@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA-WinFormsUI", "POSPRA-WinFormsUI\POSPRA-WinFormsUI.csproj", "{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Domain", "POSPRA.Domain\POSPRA.Domain.csproj", "{B5103915-A06C-4403-BF1E-A366D388D789}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Application", "POSPRA.Application\POSPRA.Application.csproj", "{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Infrastructure", "POSPRA.Infrastructure\POSPRA.Infrastructure.csproj", "{D9F25FA2-00A0-4598-95C4-6D758C976018}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Repositories", "POSPRA.Repositories\POSPRA.Repositories.csproj", "{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.DTOs", "POSPRA.DTOs\POSPRA.DTOs.csproj", "{4CE3D57A-D323-4803-A960-BA71447933E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.API", "POSPRA.API\POSPRA.API.csproj", "{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5103915-A06C-4403-BF1E-A366D388D789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5103915-A06C-4403-BF1E-A366D388D789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5103915-A06C-4403-BF1E-A366D388D789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5103915-A06C-4403-BF1E-A366D388D789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9F25FA2-00A0-4598-95C4-6D758C976018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9F25FA2-00A0-4598-95C4-6D758C976018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9F25FA2-00A0-4598-95C4-6D758C976018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9F25FA2-00A0-4598-95C4-6D758C976018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CE3D57A-D323-4803-A960-BA71447933E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CE3D57A-D323-4803-A960-BA71447933E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CE3D57A-D323-4803-A960-BA71447933E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CE3D57A-D323-4803-A960-BA71447933E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DFDEBA51-DE77-46BE-9C4E-27152D9B6275}
+	EndGlobalSection
+EndGlobal

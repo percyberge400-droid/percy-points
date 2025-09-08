@@ -1,0 +1,15 @@
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\bin\Debug\net9.0\POSPRA.Infrastructure.deps.json
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\bin\Debug\net9.0\POSPRA.Infrastructure.dll
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\bin\Debug\net9.0\POSPRA.Infrastructure.pdb
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\bin\Debug\net9.0\POSPRA.Domain.dll
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\bin\Debug\net9.0\POSPRA.Domain.pdb
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.Infrastructure.csproj.AssemblyReference.cache
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.Infrastructure.AssemblyInfoInputs.cache
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.Infrastructure.AssemblyInfo.cs
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.Infrastructure.csproj.CoreCompileInputs.cache
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.I.0C4AD83F.Up2Date
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.Infrastructure.dll
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\refint\POSPRA.Infrastructure.dll
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\POSPRA.Infrastructure.pdb
+D:\workspace\pos-pra\POS-PRA\POSPRA.Infrastructure\obj\Debug\net9.0\ref\POSPRA.Infrastructure.dll

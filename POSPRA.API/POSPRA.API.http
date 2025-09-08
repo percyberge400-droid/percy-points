@@ -1,0 +1,6 @@
+@POSPRA.API_HostAddress = http://localhost:5162
+
+GET {{POSPRA.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
