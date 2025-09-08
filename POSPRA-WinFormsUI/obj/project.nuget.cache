@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "wGKlDpjT62o=",
+  "dgSpecHash": "Qr8TMYi9+5Q=",
   "success": true,
-  "projectFilePath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj",
+  "projectFilePath": "D:\\workspace\\apis\\pos2.0\\POS_2.0\\POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\qaisar.ali\\.nuget\\packages\\microsoft.data.sqlite.core\\9.0.8\\microsoft.data.sqlite.core.9.0.8.nupkg.sha512",
     "C:\\Users\\qaisar.ali\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.8\\microsoft.entityframeworkcore.9.0.8.nupkg.sha512",

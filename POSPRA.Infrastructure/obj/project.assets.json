@@ -1136,11 +1136,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj",
+      "projectUniqueName": "D:\\workspace\\apis\\pos2.0\\POS_2.0\\POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj",
       "projectName": "POSPRA.Infrastructure",
-      "projectPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj",
+      "projectPath": "D:\\workspace\\apis\\pos2.0\\POS_2.0\\POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\qaisar.ali\\.nuget\\packages\\",
-      "outputPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\obj\\",
+      "outputPath": "D:\\workspace\\apis\\pos2.0\\POS_2.0\\POSPRA.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1161,8 +1161,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Domain\\POSPRA.Domain.csproj": {
-              "projectPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Domain\\POSPRA.Domain.csproj"
+            "D:\\workspace\\apis\\pos2.0\\POS_2.0\\POSPRA.Domain\\POSPRA.Domain.csproj": {
+              "projectPath": "D:\\workspace\\apis\\pos2.0\\POS_2.0\\POSPRA.Domain\\POSPRA.Domain.csproj"
             }
           }
         }
