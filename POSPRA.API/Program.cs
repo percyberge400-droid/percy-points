@@ -33,6 +33,7 @@ if (app.Environment.IsDevelopment())
     // ✅ Enable Swagger UI in development
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapGet("/", () => Results.Redirect("/swagger"));
 }
 
 app.UseHttpsRedirection();
