@@ -22,13 +22,24 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Add controllers
 builder.Services.AddControllers();
 
+// ✅ Register Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    // ✅ Enable Swagger UI in development
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-// 🔹 Ensure database is created at API startup
+// ✅ Ensure database is created at API startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
