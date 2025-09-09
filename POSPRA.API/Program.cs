@@ -13,7 +13,11 @@ builder.Services.AddDbContext<SqliteDbContext>(options =>
     options.UseSqlite("Data Source=pospra.db"));
 
 // Register AutoMapper, repositories, services...
-builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<UserProfile>();
+});
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
