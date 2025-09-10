@@ -1,5 +1,5 @@
-﻿using POSPRA.Domain.ValueObjects;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using POSPRA.Domain.ValueObjects;
 
 namespace POSPRA.Domain.Entities
 {
@@ -22,7 +22,6 @@ namespace POSPRA.Domain.Entities
             }
         }
 
-        // public int BPOSID { get; set; }
         public short InvoiceType { get; set; }
         public DateTime InvoiceDate { get; set; }
         public string? NTN_CNIC { get; set; }
@@ -41,11 +40,12 @@ namespace POSPRA.Domain.Entities
 
         public List<InvoiceItemDetail>? InvoiceItemDetails { get; set; }
     }
+
     public class InvoiceItemDetail
     {
-        public string HSCode { get; set; }
-        public string ProductCode { get; set; }
-        public string ProductDescription { get; set; }
+        public string? HSCode { get; set; }
+        public string? ProductCode { get; set; }
+        public string? ProductDescription { get; set; }
         public decimal Rate { get; set; }
         public int UoM { get; set; }
         public decimal Quantity { get; set; }
@@ -60,8 +60,8 @@ namespace POSPRA.Domain.Entities
         public decimal? CVT { get; set; }
         public decimal? WHIT_1 { get; set; }
         public decimal? WHIT_2 { get; set; }
-        public string WHIT_Section_1 { get; set; }
-        public string WHIT_Section_2 { get; set; }
+        public string? WHIT_Section_1 { get; set; }
+        public string? WHIT_Section_2 { get; set; }
         public decimal TotalValues { get; set; }
     }
 }
