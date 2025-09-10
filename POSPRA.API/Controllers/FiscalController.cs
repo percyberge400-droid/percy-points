@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using POSPRA.Application.Services.FiscalService;
 using POSPRA.Domain.Entities;
-using POSPRA.Repositories.FiscalRepository;
 
 namespace POSPRA.API.Controllers
 {
@@ -8,16 +8,17 @@ namespace POSPRA.API.Controllers
     [ApiController]
     public class FiscalController : ControllerBase
     {
-        private readonly IFiscalRepository _fiscalRepository;
-        public FiscalController(IFiscalRepository fiscalRepository)
+        private readonly IFiscalService _fiscalService;
+        public FiscalController(IFiscalService fiscalService)
         {
-            _fiscalRepository = fiscalRepository;
+            _fiscalService = fiscalService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] Logs model)
+        [HttpPost("post")]
+        public async Task<IActionResult> Post([FromBody] Invoice invoice)
         {
-            var response = "";//await _logService.CreateAsync(model);
+            var response = await _fiscalService.CreateAsync(invoice);
+
             return Ok(response);
         }
     }

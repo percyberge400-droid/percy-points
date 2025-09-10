@@ -1,0 +1,26 @@
+﻿namespace POSPRA.Application.Utility
+{
+    public class AppSettings
+    {
+        public int LogInterval { get; set; }
+        public int RecordInterval { get; set; }
+        public int HeartbeatInterval { get; set; }
+        public int RecordSyncLimit { get; set; }
+        public int LogSyncLimit { get; set; }
+        public string Version { get; set; } = string.Empty;
+        public int BackUpSize { get; set; }
+        public string ClientSettingsProviderServiceUri { get; set; } = string.Empty;
+        public string LocalURL { get; set; } = string.Empty;
+        public string EC { get; set; } = string.Empty;
+        public string PV { get; set; } = string.Empty;
+        public string PB { get; set; } = string.Empty;
+        public int POS { get; set; }
+        public string FolderPath { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
+        public string GatewayURL { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
+        public string IMSServicePath { get; set; } = string.Empty;
+        public bool IsProduction { get; set; }
+        public int IMSUpdateInterval { get; set; }
+    }
+}
