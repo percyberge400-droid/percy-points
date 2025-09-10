@@ -3,6 +3,7 @@ using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.UserService;
+using POSPRA.Application.Utility;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories;
 using POSPRA.Repositories.BaseRepository;
@@ -21,13 +22,20 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<UserProfile>();
 });
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<InvoiceValidatorService>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IFiscalService, FiscalService>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<InvoiceValidatorService>();
+
+// Bind AppSettings section
+builder.Services.Configure<AppSettings>(
+    builder.Configuration.GetSection("AppSettings"));
 
 // Add controllers
 builder.Services.AddControllers();

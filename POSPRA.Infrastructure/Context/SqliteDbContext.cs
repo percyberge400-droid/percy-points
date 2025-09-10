@@ -6,6 +6,10 @@ namespace POSPRA.Infrastructure.Context
     public class SqliteDbContext : DbContext
     {
         public DbSet<User> Users { get; set; } = null!;
+        public DbSet<FileRecord> FileRecords { get; set; } = null!;
+        public DbSet<Logs> Logs { get; set; } = null!;
+        public DbSet<Invoice> Invoices { get; set; } = null!;
+
 
         private readonly string _dbPath;
 
@@ -40,6 +44,8 @@ namespace POSPRA.Infrastructure.Context
             modelBuilder.Entity<User>().HasData(
                 new User { Id = 1, Username = "admin", Password = "admin123" }
             );
+
+            modelBuilder.Entity<Invoice>().HasNoKey();
         }
     }
 }

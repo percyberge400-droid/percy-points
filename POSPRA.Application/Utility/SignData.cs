@@ -1,29 +1,30 @@
-﻿using Org.BouncyCastle.Asn1.Sec;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace POSPRA.Application.Utility
 {
     public class DataSigning
     {
-        public static string Sign(string privateKey, string message)
+        public static string Sign(string privateKeyXml, string data)
         {
+            using var rsa = RSA.Create();
+            rsa.FromXmlString(privateKeyXml); // load private key in XML format
 
-            var curve = SecNamedCurves.GetByName("secp256k1");
-            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
+            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+            byte[] signatureBytes = rsa.SignData(dataBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
-            var keyParameters = new
-                    ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(privateKey),
-                    domain);
+            return Convert.ToBase64String(signatureBytes);
+        }
 
-            ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");
+        public static bool Verify(string publicKeyXml, string data, string signature)
+        {
+            using var rsa = RSA.Create();
+            rsa.FromXmlString(publicKeyXml); // load public key
 
-            signer.Init(true, keyParameters);
-            signer.BlockUpdate(Encoding.ASCII.GetBytes(message), 0, message.Length);
-            var signature = signer.GenerateSignature();
-            return Base58Encoding.Encode(signature);
+            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+            byte[] signatureBytes = Convert.FromBase64String(signature);
+
+            return rsa.VerifyData(dataBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         }
     }
 }
