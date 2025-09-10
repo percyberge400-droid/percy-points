@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
 
-namespace POSPRA.Domain.ValueObjects
+namespace POSPRA.Application.Utility
 {
-    public class Enums
+    public class GlobalEnums
     {
+
         public enum StatusCodes
         {
 
@@ -34,7 +35,6 @@ namespace POSPRA.Domain.ValueObjects
 
         public enum AlertType
         {
-
             [Description("IMS Started")]
             Component_Started = 1,
             [Description("IMS Stopped")]
