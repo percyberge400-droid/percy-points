@@ -5,29 +5,45 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
+using POSPRA.Repositories;
 using POSPRA.Repositories.BaseRepository;
 using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.FiscalService
 {
+    /// <summary>
+    /// Service responsible for handling fiscal invoice operations.
+    /// It validates invoices, generates invoice numbers, signs and encrypts invoice data,
+    /// logs errors or important events, and persists invoice records to the database.
+    /// </summary>
     public class FiscalService : IFiscalService
     {
         private readonly InvoiceValidatorService _invoiceValidatorService;
         private readonly ILogService _logService;
         private readonly IRepository<FileRecord> _fileRecordRepository;
         private readonly AppSettings _settings;
+        private readonly IUnitOfWork _unitOfWork;
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
             IRepository<FileRecord> fileRecordRepository,
-            IOptions<AppSettings> options)
+            IOptions<AppSettings> options,
+            IUnitOfWork unitOfWork)
         {
             _invoiceValidatorService = invoiceValidatorService;
             _logService = logService;
             _fileRecordRepository = fileRecordRepository;
             _settings = options.Value;
+            _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Creates a new invoice by validating it, generating a fiscal invoice,
+        /// and logging any errors or exceptions. Returns an ApiResponse containing
+        /// the status and any relevant messages.
+        /// </summary>
+        /// <param name="invoice">The invoice object to create.</param>
+        /// <returns>An ApiResponse containing the result of the operation.</returns>
         public async Task<ApiResponse<Invoice>> CreateAsync(Invoice invoice)
         {
             try
@@ -86,42 +102,71 @@ namespace POSPRA.Application.Services.FiscalService
             }
         }
 
+        /// <summary>
+        /// Generates a fiscal invoice by serializing, signing, and encrypting
+        /// the invoice data. It then inserts the encrypted invoice into the database.
+        /// </summary>
+        /// <param name="invoice">The invoice to process.</param>
+        /// <returns>
+        /// A string containing the encrypted invoice package if successful;
+        /// otherwise, an empty string.
+        /// </returns>
         public async Task<string> CreateFiscalInvoiceAsync(Invoice invoice)
         {
             try
             {
+                // 1️⃣ Generate invoice number
                 string invoiceNumber = GlobalMethods.InvoiceNumber(_settings.POS);
-
-                // Ensure invoice number is assigned
                 //invoice.InvoiceNumber = invoiceNumber;
 
+                // 2️⃣ Serialize invoice
                 string invoiceData = JsonConvert.SerializeObject(invoice);
                 bool isValidCalculation = false;
 
+                // 3️⃣ Create payload
                 string payload = $"{invoiceData}|{isValidCalculation}|Latest";
-                string signature = DataSigning.Sign(_settings.PV, payload);
 
-                // Generate 256-bit key once & reuse (store securely!)
-                byte[] key = Encoding.UTF8.GetBytes(_settings.EC.PadRight(32).Substring(0, 32));
+                // 4️⃣ Sign the payload using RSA
+                // Replace GenerateKeys() with actual PEM private key for production
+                var (privateKey, publicKeyPem) = DataSigning.GenerateKeys();
+                string signature = DataSigning.Sign(privateKey, payload);
 
-                // Encrypt with AES-GCM
-                var encryptedData = ModernAESEncryption.Encrypt($"{payload}|{signature}", key);
+                // 5️⃣ Optional: verify signature immediately
+                bool verified = DataSigning.Verify(publicKeyPem, payload, signature);
+
+                // 6️⃣ Generate 256-bit AES key from _settings.EC
+                byte[] aesKey = Encoding.UTF8.GetBytes(_settings.EC.PadRight(32).Substring(0, 32));
+
+                // 7️⃣ Encrypt payload + signature using AES-GCM
+                string textToEncrypt = $"{payload}|{signature}";
+                var encryptedData = ModernAESEncryption.Encrypt(textToEncrypt, aesKey);
+
+                // 8️⃣ Combine into final encrypted package
                 string encryptedPackage = $"{encryptedData.cipherText}:{encryptedData.nonce}:{encryptedData.tag}";
 
+                // 9️⃣ Insert invoice and return invoice number
                 int invoiceId = await InsertInvoiceAsync(invoice.BPOSID, encryptedPackage, invoiceNumber);
 
-                return invoiceId > 0 ? invoiceNumber : string.Empty;
+                // You can return encryptedPackage if needed for fiscal system
+                return invoiceId > 0 ? encryptedPackage : string.Empty;
             }
             catch (Exception ex)
             {
-                string errorMessage =
-                    $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
-
+                string errorMessage = $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
                 await _logService.LogAsync(new Logs(errorMessage, (int)AlertType.Exception, false));
                 return string.Empty;
             }
         }
 
+        /// <summary>
+        /// Inserts the encrypted invoice data into the database as a FileRecord.
+        /// </summary>
+        /// <param name="posId">The POS identifier for the invoice.</param>
+        /// <param name="encryptedData">The encrypted invoice data.</param>
+        /// <param name="invoiceNumber">The generated invoice number.</param>
+        /// <returns>
+        /// The ID of the newly created FileRecord if successful; otherwise, 0.
+        /// </returns>
         private async Task<int> InsertInvoiceAsync(int posId, string encryptedData, string invoiceNumber)
         {
             try
@@ -138,6 +183,7 @@ namespace POSPRA.Application.Services.FiscalService
                 };
 
                 await _fileRecordRepository.AddAsync(model);
+                await _unitOfWork.SaveChangesAsync();
                 return model.ID;
             }
             catch (Exception ex)
