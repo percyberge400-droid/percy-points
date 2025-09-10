@@ -7,6 +7,7 @@
         public int TypeId { get; set; }
         public bool IsSynced { get; set; }
 
+        public Logs() { }
         public Logs(string message, int typeId, bool isSynced)
         {
             Message = message;

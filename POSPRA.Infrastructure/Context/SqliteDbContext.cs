@@ -10,16 +10,9 @@ namespace POSPRA.Infrastructure.Context
         public DbSet<Logs> Logs { get; set; } = null!;
         public DbSet<Invoice> Invoices { get; set; } = null!;
 
+        private static readonly string DbPath;
 
-        private readonly string _dbPath;
-
-        // Constructor for Dependency Injection (API)
-        public SqliteDbContext(DbContextOptions<SqliteDbContext> options) : base(options)
-        {
-        }
-
-        // Constructor for manual usage (WinForms)
-        public SqliteDbContext()
+        static SqliteDbContext()
         {
             var folder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -28,14 +21,17 @@ namespace POSPRA.Infrastructure.Context
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
-            _dbPath = Path.Combine(folder, "pospra.db");
+            DbPath = Path.Combine(folder, "pospra.db");
         }
+
+        public SqliteDbContext(DbContextOptions<SqliteDbContext> options)
+            : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured && !string.IsNullOrEmpty(_dbPath))
+            if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite($"Data Source={_dbPath}");
+                optionsBuilder.UseSqlite($"Data Source={DbPath}");
             }
         }
 
@@ -47,5 +43,7 @@ namespace POSPRA.Infrastructure.Context
 
             modelBuilder.Entity<Invoice>().HasNoKey();
         }
+
+        public static string GetDbPath() => DbPath;
     }
 }
