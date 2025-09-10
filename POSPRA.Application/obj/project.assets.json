@@ -1375,23 +1375,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\qaisar.ali\\.nuget\\packages\\": {},
+    "C:\\Users\\waqas.mehmood\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\POSPRA.Application.csproj",
+      "projectUniqueName": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\POSPRA.Application.csproj",
       "projectName": "POSPRA.Application",
-      "projectPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\POSPRA.Application.csproj",
-      "packagesPath": "C:\\Users\\qaisar.ali\\.nuget\\packages\\",
-      "outputPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\obj\\",
+      "projectPath": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\POSPRA.Application.csproj",
+      "packagesPath": "C:\\Users\\waqas.mehmood\\.nuget\\packages\\",
+      "outputPath": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\qaisar.ali\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\waqas.mehmood\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1400,20 +1400,21 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "C:\\Users\\waqas.mehmood\\.nuget\\packages": {},
+        "https://www.nuget.org/api/v2": {}
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Domain\\POSPRA.Domain.csproj": {
-              "projectPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Domain\\POSPRA.Domain.csproj"
+            "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Domain\\POSPRA.Domain.csproj": {
+              "projectPath": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Domain\\POSPRA.Domain.csproj"
             },
-            "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.DTOs\\POSPRA.DTOs.csproj": {
-              "projectPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.DTOs\\POSPRA.DTOs.csproj"
+            "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.DTOs\\POSPRA.DTOs.csproj": {
+              "projectPath": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.DTOs\\POSPRA.DTOs.csproj"
             },
-            "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\POSPRA.Repositories.csproj": {
-              "projectPath": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\POSPRA.Repositories.csproj"
+            "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\POSPRA.Repositories.csproj": {
+              "projectPath": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\POSPRA.Repositories.csproj"
             }
           }
         }
@@ -1455,7 +1456,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

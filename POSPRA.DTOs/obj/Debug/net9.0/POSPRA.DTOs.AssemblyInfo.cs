@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("POSPRA.DTOs")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+00e20502c4512fb65cd61210c62d3d010ad4ef00")]
 [assembly: System.Reflection.AssemblyProductAttribute("POSPRA.DTOs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("POSPRA.DTOs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
