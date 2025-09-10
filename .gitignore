@@ -1,0 +1,89 @@
+# Build results
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# VS user-specific files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# NuGet packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# EF Core migrations - DO NOT TRACK
+**/Migrations/
+
+# Databases (SQLite / LiteDB etc.)
+*.db
+*.db-shm
+*.db-wal
+
+# Log files
+*.log
+
+# Backup & temp
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish output
+*.publishsettings
+*.pubxml
+*.pubxml.user
+
+# Rider IDE
+.idea/
+*.iml
+
+# Cache
+*.cache
+*.config
+*.dll
+*.exe
+*.pdb
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+
+# JetBrains Rider
+.idea/
+*.iml
+
+# Node (if frontend added later)
+node_modules/
+dist/

@@ -1,66 +1,54 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\workspace\\pos-pra\\POS-PRA\\",
+  "WorkspaceRootPath": "D:\\PralWorking\\POS_2.0\\POS_2.0\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|solutionrelative:pospra.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra-winformsui\\forms\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|solutionrelative:pospra-winformsui\\forms\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra-winformsui\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|solutionrelative:pospra-winformsui\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra-winformsui\\forms\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|solutionrelative:pospra-winformsui\\forms\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.repositories\\userrepository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\userrepository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.repositories\\unitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\unitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.repositories\\baserepository\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\baserepository\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.repositories\\baserepository\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\baserepository\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D9F25FA2-00A0-4598-95C4-6D758C976018}|POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.infrastructure\\context\\sqlitedbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D9F25FA2-00A0-4598-95C4-6D758C976018}|POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj|solutionrelative:pospra.infrastructure\\context\\sqlitedbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.application\\services\\httpclientservice\\httpservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.application\\services\\httpclientservice\\httpservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|solutionrelative:pospra.application\\services\\httpclientservice\\httpservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.application\\services\\httpclientservice\\ihttpservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|solutionrelative:pospra.application\\services\\httpclientservice\\ihttpservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.application\\automapperprofile\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|solutionrelative:pospra.application\\automapperprofile\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.application\\services\\userservice\\userservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.application\\services\\userservice\\userservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|solutionrelative:pospra.application\\services\\userservice\\userservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.application\\services\\httpclientservice\\ihttpservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|solutionrelative:pospra.application\\services\\httpclientservice\\ihttpservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|solutionrelative:pospra.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.repositories\\baserepository\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\baserepository\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B5103915-A06C-4403-BF1E-A366D388D789}|POSPRA.Domain\\POSPRA.Domain.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.domain\\valueobjects\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B5103915-A06C-4403-BF1E-A366D388D789}|POSPRA.Domain\\POSPRA.Domain.csproj|solutionrelative:pospra.domain\\valueobjects\\enums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.application\\pospra.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|solutionrelative:pospra.application\\pospra.application.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.repositories\\pospra.repositories.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\pospra.repositories.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.repositories\\userrepository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\userrepository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.repositories\\userrepository\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\userrepository\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|solutionrelative:pospra.api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D9F25FA2-00A0-4598-95C4-6D758C976018}|POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.infrastructure\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D9F25FA2-00A0-4598-95C4-6D758C976018}|POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj|solutionrelative:pospra.infrastructure\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|d:\\pralworking\\pos_2.0\\pos_2.0\\pospra.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|solutionrelative:pospra.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -69,210 +57,299 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 15,
+          "DockedWidth": 21,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Form1.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Forms\\Form1.cs",
-              "RelativeDocumentMoniker": "POSPRA-WinFormsUI\\Forms\\Form1.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Forms\\Form1.cs",
-              "RelativeToolTip": "POSPRA-WinFormsUI\\Forms\\Form1.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:16:06.45Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Form1.cs [Design]",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Forms\\Form1.cs",
-              "RelativeDocumentMoniker": "POSPRA-WinFormsUI\\Forms\\Form1.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Forms\\Form1.cs [Design]",
-              "RelativeToolTip": "POSPRA-WinFormsUI\\Forms\\Form1.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:15:54.931Z",
-              "EditorCaption": " [Design]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "UnitOfWork.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\UnitOfWork.cs",
-              "RelativeDocumentMoniker": "POSPRA.Repositories\\UnitOfWork.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\UnitOfWork.cs",
-              "RelativeToolTip": "POSPRA.Repositories\\UnitOfWork.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:15:22.486Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "IRepository.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\BaseRepository\\IRepository.cs",
-              "RelativeDocumentMoniker": "POSPRA.Repositories\\BaseRepository\\IRepository.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\BaseRepository\\IRepository.cs",
-              "RelativeToolTip": "POSPRA.Repositories\\BaseRepository\\IRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:15:04.318Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "SqliteDbContext.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\Context\\SqliteDbContext.cs",
-              "RelativeDocumentMoniker": "POSPRA.Infrastructure\\Context\\SqliteDbContext.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\Context\\SqliteDbContext.cs",
-              "RelativeToolTip": "POSPRA.Infrastructure\\Context\\SqliteDbContext.cs",
-              "ViewState": "AgIAAAwAAAAAAAAAAAA5wCUAAAA8AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:13:58.741Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "IHttpService.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
-              "RelativeDocumentMoniker": "POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
-              "RelativeToolTip": "POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:13:02.871Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 0,
               "Title": "HttpService.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\Services\\HttpClientService\\HttpService.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\Services\\HttpClientService\\HttpService.cs",
               "RelativeDocumentMoniker": "POSPRA.Application\\Services\\HttpClientService\\HttpService.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\Services\\HttpClientService\\HttpService.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\Services\\HttpClientService\\HttpService.cs",
               "RelativeToolTip": "POSPRA.Application\\Services\\HttpClientService\\HttpService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAQwCMAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:13:01.338Z",
+              "WhenOpened": "2025-09-09T11:00:45.982Z",
+              "IsPinned": true,
               "EditorCaption": ""
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{65ddf8c3-8f89-4077-a6c6-dbb8853aab13}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:15:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:26:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{809f6ff3-8092-454a-8003-6d4091f9b5bb}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{809f6ff3-8092-454a-8003-6d4091f9b5bb}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{809f6ff3-8092-454a-8003-6d4091f9b5bb}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:16:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:17:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:14:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:13:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{80454082-9ab8-47d4-af23-82bf6739e2a9}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:12:0:{2456bd12-ecf7-4988-a4a6-67d49173f565}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:137:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:137:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 1,
               "Title": "UserService.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\Services\\UserService\\UserService.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\Services\\UserService\\UserService.cs",
               "RelativeDocumentMoniker": "POSPRA.Application\\Services\\UserService\\UserService.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\Services\\UserService\\UserService.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\Services\\UserService\\UserService.cs",
               "RelativeToolTip": "POSPRA.Application\\Services\\UserService\\UserService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T06:12:07Z",
+              "WhenOpened": "2025-09-09T11:39:38.816Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "IHttpService.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
+              "RelativeDocumentMoniker": "POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
+              "RelativeToolTip": "POSPRA.Application\\Services\\HttpClientService\\IHttpService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-09T11:01:57.827Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Program.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Program.cs",
-              "RelativeDocumentMoniker": "POSPRA-WinFormsUI\\Program.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Program.cs",
-              "RelativeToolTip": "POSPRA-WinFormsUI\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAyAAAAAAAAAA==",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.API\\Program.cs",
+              "RelativeDocumentMoniker": "POSPRA.API\\Program.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.API\\Program.cs",
+              "RelativeToolTip": "POSPRA.API\\Program.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T05:34:22.819Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Repository.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\BaseRepository\\Repository.cs",
-              "RelativeDocumentMoniker": "POSPRA.Repositories\\BaseRepository\\Repository.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\BaseRepository\\Repository.cs",
-              "RelativeToolTip": "POSPRA.Repositories\\BaseRepository\\Repository.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAowAIAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T05:34:22.01Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "DbInitializer.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\Data\\DbInitializer.cs",
-              "RelativeDocumentMoniker": "POSPRA.Infrastructure\\Data\\DbInitializer.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\Data\\DbInitializer.cs",
-              "RelativeToolTip": "POSPRA.Infrastructure\\Data\\DbInitializer.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T05:33:32.664Z",
+              "WhenOpened": "2025-09-09T09:11:05.985Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "UserRepository.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\UserRepository\\UserRepository.cs",
-              "RelativeDocumentMoniker": "POSPRA.Repositories\\UserRepository\\UserRepository.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\UserRepository\\UserRepository.cs",
-              "RelativeToolTip": "POSPRA.Repositories\\UserRepository\\UserRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAJAAAAAAAAAA==",
+              "Title": "IRepository.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\BaseRepository\\IRepository.cs",
+              "RelativeDocumentMoniker": "POSPRA.Repositories\\BaseRepository\\IRepository.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\BaseRepository\\IRepository.cs",
+              "RelativeToolTip": "POSPRA.Repositories\\BaseRepository\\IRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-08T05:01:38.137Z",
+              "WhenOpened": "2025-09-09T09:15:26.837Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Enums.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Domain\\ValueObjects\\Enums.cs",
+              "RelativeDocumentMoniker": "POSPRA.Domain\\ValueObjects\\Enums.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Domain\\ValueObjects\\Enums.cs",
+              "RelativeToolTip": "POSPRA.Domain\\ValueObjects\\Enums.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-09T07:38:14.135Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "POSPRA.Application",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\POSPRA.Application.csproj",
+              "RelativeDocumentMoniker": "POSPRA.Application\\POSPRA.Application.csproj",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Application\\POSPRA.Application.csproj",
+              "RelativeToolTip": "POSPRA.Application\\POSPRA.Application.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-09-09T06:25:53.393Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "POSPRA.Repositories",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\POSPRA.Repositories.csproj",
+              "RelativeDocumentMoniker": "POSPRA.Repositories\\POSPRA.Repositories.csproj",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\POSPRA.Repositories.csproj",
+              "RelativeToolTip": "POSPRA.Repositories\\POSPRA.Repositories.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-09-09T06:31:05.797Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "UserRepository.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "RelativeDocumentMoniker": "POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "RelativeToolTip": "POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-09T06:36:38.434Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "IUserRepository.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\UserRepository\\IUserRepository.cs",
+              "RelativeDocumentMoniker": "POSPRA.Repositories\\UserRepository\\IUserRepository.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Repositories\\UserRepository\\IUserRepository.cs",
+              "RelativeToolTip": "POSPRA.Repositories\\UserRepository\\IUserRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-09T06:36:15.856Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.API\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "POSPRA.API\\Controllers\\UsersController.cs",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.API\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "POSPRA.API\\Controllers\\UsersController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-09T06:01:02.567Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 11,
-              "Title": "UserProfile.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
-              "RelativeDocumentMoniker": "POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
-              "RelativeToolTip": "POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-05T11:07:45.52Z",
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.API\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "POSPRA.API\\Properties\\launchSettings.json",
+              "ToolTip": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.API\\Properties\\launchSettings.json",
+              "RelativeToolTip": "POSPRA.API\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-09T05:49:55.459Z",
               "EditorCaption": ""
-            },
+            }
+          ]
+        },
+        {
+          "DockedWidth": 211,
+          "SelectedChildIndex": -1,
+          "Children": [
             {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Program.cs",
-              "RelativeDocumentMoniker": "POSPRA.API\\Program.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Program.cs",
-              "RelativeToolTip": "POSPRA.API\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAABAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-05T10:51:00.981Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "UsersController.cs",
-              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Controllers\\UsersController.cs",
-              "RelativeDocumentMoniker": "POSPRA.API\\Controllers\\UsersController.cs",
-              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Controllers\\UsersController.cs",
-              "RelativeToolTip": "POSPRA.API\\Controllers\\UsersController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAABAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-05T10:50:33.385Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             }
           ]
         }
