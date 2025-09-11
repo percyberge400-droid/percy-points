@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.UserService;
@@ -51,9 +52,10 @@ builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<InvoiceValidatorService>();
 builder.Services.AddHttpClient<IHttpService, HttpService>();
 
+builder.Services.AddHttpClient<IRequestHeaderService, RequestHeaderService>();
+
 // SendModelToServer depends on IHttpService
 builder.Services.AddScoped<SendModelToServer>();
-
 
 // Bind AppSettings section
 builder.Services.Configure<AppSettings>(

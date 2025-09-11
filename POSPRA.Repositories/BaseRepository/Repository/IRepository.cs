@@ -25,6 +25,13 @@ namespace POSPRA.Repositories.BaseRepository.Repository
         /// Executes a stored procedure or raw SQL command.
         /// Returns the number of rows affected.
         /// </summary>
-        Task<int> ExecuteProcedureAsync(string sql, params object[] parameters);
+        Task<int> ExecuteProcedureAsync(string procedureName, params object[] parameters);
+
+        /// <summary>
+        /// Executes a stored procedure or raw SQL that returns a result set and maps it to TResult.
+        /// TResult can be an entity or a plain DTO.
+        /// </summary>
+        Task<List<TResult>> QueryProcedureAsync<TResult>(string procedureName, params object[] parameters)
+            where TResult : class;
     }
 }
