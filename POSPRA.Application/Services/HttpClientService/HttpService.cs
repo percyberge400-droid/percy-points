@@ -3,18 +3,9 @@ using System.Text.Json;
 
 namespace POSPRA.Application.Services.HttpClientService
 {
-    public class HttpService : IHttpService, IDisposable
+    public class HttpService(HttpClient httpClient) : IHttpService, IDisposable
     {
-        private readonly HttpClient _client;
-
-        public HttpService(string baseUrl)
-        {
-            _client = new HttpClient
-            {
-                BaseAddress = new Uri(baseUrl)
-            };
-            _client.DefaultRequestHeaders.Add("Accept", "application/json");
-        }
+        private readonly HttpClient _client = httpClient;
 
         public async Task<string> GetAsync(string url, Dictionary<string, string>? headers = null)
         {

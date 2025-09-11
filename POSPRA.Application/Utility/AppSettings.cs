@@ -16,7 +16,7 @@
         public string PB { get; set; } = string.Empty;
         public int POS { get; set; }
         public string FolderPath { get; set; } = string.Empty;
-        public string Key { get; set; } = string.Empty;
+        public string LICENSEKEY { get; set; } = string.Empty;
         public string GatewayURL { get; set; } = string.Empty;
         public string Token { get; set; } = string.Empty;
         public string IMSServicePath { get; set; } = string.Empty;

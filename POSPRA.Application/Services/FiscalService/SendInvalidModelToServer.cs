@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
-using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs.InvoiceDTOs;
 using static POSPRA.Application.Utility.GlobalEnums;
 
@@ -25,20 +24,23 @@ namespace POSPRA.Application.Services.FiscalService
                 // StatusModel => StatusDTO
                 var result = new List<Logs>
                 {
-                    new Logs(JsonConvert.SerializeObject(invoice), (int)AlertType.InvalidInvoiceModel, false)
+                    new(JsonConvert.SerializeObject(invoice), (int)AlertType.InvalidInvoiceModel, false)
                 };
 
                 var customHeaders = new Dictionary<string, string>
                 {
                     { "Authorization", $"Bearer {_settings.Token}" },
-                    { "POSID", GlobalVariables.POS_ID.ToString() },
-                    { "MACADDRESS", GlobalVariables.LICENSE_KEY.ToString() }
+                    { "POSID", _settings.POS.ToString() },
+                    { "MACADDRESS", _settings.LICENSEKEY.ToString() }
                 };
 
                 StatusDTO res = await _httpService.PostAsync<StatusDTO>(Endpoints.POSStatus, result, customHeaders);
 
             }
-            catch { }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

@@ -5,7 +5,6 @@ using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.Application.Utility;
-using POSPRA.Domain.ValueObjects;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories;
 using POSPRA.Repositories.BaseRepository;
@@ -35,12 +34,6 @@ builder.Services.AddScoped<IFiscalService, FiscalService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<InvoiceValidatorService>();
 builder.Services.AddHttpClient<IHttpService, HttpService>();
-
-// IHttpService needs HttpClient
-builder.Services.AddHttpClient<IHttpService, HttpService>(client =>
-{
-    client.BaseAddress = new Uri(GlobalVariables.GATEWAY_URL);
-});
 
 // SendModelToServer depends on IHttpService
 builder.Services.AddScoped<SendModelToServer>();
