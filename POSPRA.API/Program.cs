@@ -4,6 +4,8 @@ using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.PosService;
+using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.Application.Utility;
 using POSPRA.Infrastructure.Context;
@@ -48,6 +50,8 @@ builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFiscalService, FiscalService>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<IPosService, PosService>();
+builder.Services.AddScoped(typeof(SqlServerRepository<>));
 
 builder.Services.AddScoped<InvoiceValidatorService>();
 builder.Services.AddHttpClient<IHttpService, HttpService>();
