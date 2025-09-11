@@ -33,7 +33,7 @@ namespace POSPRA.Application.Services.HttpClientService
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
-        public async Task<string> PostAsync(string url, object data, Dictionary<string, string>? headers = null)
+        public async Task<T> PostAsync<T>(string url, object data, Dictionary<string, string>? headers = null)
         {
             var json = JsonSerializer.Serialize(data);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -43,7 +43,6 @@ namespace POSPRA.Application.Services.HttpClientService
                 Content = content
             };
 
-            // Add custom headers if provided
             if (headers != null)
             {
                 foreach (var header in headers)
@@ -54,7 +53,9 @@ namespace POSPRA.Application.Services.HttpClientService
 
             var response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+
+            string responseJson = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<T>(responseJson)!;
         }
 
         public void Dispose()
