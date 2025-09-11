@@ -135,36 +135,36 @@ namespace POSPRA.Application.Services.FiscalService
         {
             try
             {
-                // 1️⃣ Generate invoice number
+                // 1️ Generate invoice number
                 string invoiceNumber = GlobalMethods.InvoiceNumber(_settings.POS);
                 //invoice.InvoiceNumber = invoiceNumber;
 
-                // 2️⃣ Serialize invoice
+                // 2️ Serialize invoice
                 string invoiceData = JsonConvert.SerializeObject(invoice);
                 bool isValidCalculation = false;
 
-                // 3️⃣ Create payload
+                // 3️ Create payload
                 string payload = $"{invoiceData}|{isValidCalculation}|Latest";
 
-                // 4️⃣ Sign the payload using RSA
+                // 4️ Sign the payload using RSA
                 // Replace GenerateKeys() with actual PEM private key for production
                 var (privateKey, publicKeyPem) = DataSigning.GenerateKeys();
                 string signature = DataSigning.Sign(privateKey, payload);
 
-                // 5️⃣ Optional: verify signature immediately
+                // 5️ Optional: verify signature immediately
                 bool verified = DataSigning.Verify(publicKeyPem, payload, signature);
 
-                // 6️⃣ Generate 256-bit AES key from _settings.EC
+                // 6️ Generate 256-bit AES key from _settings.EC
                 byte[] aesKey = Encoding.UTF8.GetBytes(_settings.EC.PadRight(32).Substring(0, 32));
 
-                // 7️⃣ Encrypt payload + signature using AES-GCM
+                // 7️ Encrypt payload + signature using AES-GCM
                 string textToEncrypt = $"{payload}|{signature}";
                 var encryptedData = ModernAESEncryption.Encrypt(textToEncrypt, aesKey);
 
-                // 8️⃣ Combine into final encrypted package
+                // 8️ Combine into final encrypted package
                 string encryptedPackage = $"{encryptedData.cipherText}:{encryptedData.nonce}:{encryptedData.tag}";
 
-                // 9️⃣ Insert invoice and return invoice number
+                // 9️ Insert invoice and return invoice number
                 int invoiceId = await InsertInvoiceAsync(invoice.BPOSID, encryptedPackage, invoiceNumber);
 
                 // You can return encryptedPackage if needed for fiscal system
