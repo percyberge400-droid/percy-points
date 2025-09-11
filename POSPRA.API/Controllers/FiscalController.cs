@@ -14,6 +14,8 @@ using POSPRA.Domain.Entities;
 [ApiController]
 public class FiscalController(IFiscalService fiscalService) : ControllerBase
 {
+    private readonly IFiscalService _fiscalService = fiscalService;
+
     /// <summary>
     /// Creates a new fiscal invoice.
     /// Accepts an <see cref="Invoice"/> object in the request body,
@@ -24,7 +26,7 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     [HttpPost("post")]
     public async Task<IActionResult> Post([FromBody] Invoice invoice)
     {
-        var response = await fiscalService.CreateAsync(invoice);
+        var response = await _fiscalService.CreateAsync(invoice);
         return Ok(response);
     }
 }
