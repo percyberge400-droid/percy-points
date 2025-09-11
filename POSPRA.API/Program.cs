@@ -14,9 +14,11 @@ using POSPRA.Repositories.UserRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register DbContext
+// ✅ Always use the same DB file (AppData\POSPRA\pospra.db)
+var dbPath = SqliteDbContext.GetDbPath();
+
 builder.Services.AddDbContext<SqliteDbContext>(options =>
-    options.UseSqlite("Data Source=pospra.db"));
+    options.UseSqlite($"Data Source={dbPath}"));
 
 // Register AutoMapper, repositories, services...
 builder.Services.AddAutoMapper(cfg =>
@@ -77,12 +79,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
-// ✅ Ensure database is created at API startup
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-    dbContext.Database.EnsureCreated();
-}
 
 app.Run();

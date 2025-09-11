@@ -1,20 +1,32 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
+using POSPRA.Repositories;
 using POSPRA.Repositories.BaseRepository;
 using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.LogService
 {
-    public class LogService(IRepository<Logs> logRepository) : ILogService
+    public class LogService : ILogService
     {
-        private readonly IRepository<Logs> _logRepository = logRepository;
+        private readonly IRepository<Logs> _logRepository;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public LogService(IRepository<Logs> logRepository, IUnitOfWork unitOfWork)
+        {
+            _logRepository = logRepository ?? throw new ArgumentNullException(nameof(logRepository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        }
 
         public async Task LogAsync(Logs model, int retry = 0)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             try
             {
                 retry++;
                 await _logRepository.AddAsync(model);
+                await _unitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -24,7 +36,9 @@ namespace POSPRA.Application.Services.LogService
                         $"{DateTime.Now}: Try {retry}, DbInsertIssue: {(ex.InnerException?.Message ?? ex.Message)}",
                         (int)AlertType.Exception,
                         false);
+
                     await _logRepository.AddAsync(errorLog);
+                    await _unitOfWork.SaveChangesAsync();
 
                     if (retry <= 3)
                     {
@@ -36,7 +50,8 @@ namespace POSPRA.Application.Services.LogService
                 }
                 catch
                 {
-                    // final fallback, maybe write to file
+                    // Final fallback: write to file or console
+                    File.AppendAllText("log_fallback.txt", $"{DateTime.Now}: Failed to log -> {ex.Message}{Environment.NewLine}");
                 }
             }
         }
