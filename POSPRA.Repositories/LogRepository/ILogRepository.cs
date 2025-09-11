@@ -1,6 +1,7 @@
-﻿namespace POSPRA.Repositories.LogRepository
+﻿using POSPRA.Domain.Entities;
+using POSPRA.Repositories.BaseRepository.Repository;
+
+namespace POSPRA.Repositories.LogRepository
 {
-    public class ILogRepository
-    {
-    }
+    public interface ILogRepository : IRepository<Logs> { }
 }

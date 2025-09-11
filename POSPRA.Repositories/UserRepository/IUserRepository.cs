@@ -1,10 +1,9 @@
 ﻿using POSPRA.Domain.Entities;
+using POSPRA.Repositories.BaseRepository.Repository;
 
-namespace POSPRA.Repositories.UserRepository
+namespace POSPRA.Repositories.BaseRepository
 {
-    public interface IUserRepository
+    public interface IUserRepository : IRepository<User>
     {
-        Task<User> AddUserAsync(User user);
-        Task<List<User>> GetAllUsersAsync();
     }
 }

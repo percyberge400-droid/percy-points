@@ -1,0 +1,1 @@
+9/11/2025 2:57:53 PM: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.

@@ -1,15 +1,15 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using POSPRA.Infrastructure.Context;
 
-namespace POSPRA.Repositories.BaseRepository
+namespace POSPRA.Repositories.BaseRepository.Repository
 {
+    // 🔹 Generic repository base class
     public class Repository<T> : IRepository<T> where T : class
     {
-        protected readonly SqliteDbContext _context;
+        protected readonly DbContext _context;
         private readonly DbSet<T> _dbSet;
 
-        public Repository(SqliteDbContext context)
+        public Repository(DbContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

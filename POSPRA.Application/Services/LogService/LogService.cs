@@ -1,20 +1,20 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
-using POSPRA.Repositories;
-using POSPRA.Repositories.BaseRepository;
+using POSPRA.Repositories.LogRepository;
+using POSPRA.Repositories.UnitOfWork;
 using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.LogService
 {
     public class LogService : ILogService
     {
-        private readonly IRepository<Logs> _logRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogRepository _logRepository;
+        private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
 
-        public LogService(IRepository<Logs> logRepository, IUnitOfWork unitOfWork)
+        public LogService(ILogRepository logRepository, ISqliteUnitOfWork sqliteUnitOfWork)
         {
-            _logRepository = logRepository ?? throw new ArgumentNullException(nameof(logRepository));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _logRepository = logRepository;
+            _sqliteUnitOfWork = sqliteUnitOfWork;
         }
 
         public async Task LogAsync(Logs model, int retry = 0)
@@ -26,7 +26,7 @@ namespace POSPRA.Application.Services.LogService
             {
                 retry++;
                 await _logRepository.AddAsync(model);
-                await _unitOfWork.SaveChangesAsync();
+                await _sqliteUnitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -38,7 +38,7 @@ namespace POSPRA.Application.Services.LogService
                         false);
 
                     await _logRepository.AddAsync(errorLog);
-                    await _unitOfWork.SaveChangesAsync();
+                    await _sqliteUnitOfWork.SaveChangesAsync();
 
                     if (retry <= 3)
                     {

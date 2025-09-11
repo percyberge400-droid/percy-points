@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Text;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
-using POSPRA.Repositories;
-using POSPRA.Repositories.BaseRepository;
-using System.Text;
+using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.UnitOfWork;
 using AlertType = POSPRA.Application.Utility.GlobalEnums.AlertType;
 using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
 
@@ -21,15 +21,15 @@ namespace POSPRA.Application.Services.FiscalService
     {
         private readonly InvoiceValidatorService _invoiceValidatorService;
         private readonly ILogService _logService;
-        private readonly IRepository<FileRecord> _fileRecordRepository;
+        private readonly IFiscalRepository _fileRecordRepository;
         private readonly AppSettings _settings;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly SendModelToServer _sendModelToServer;
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
-            IRepository<FileRecord> fileRecordRepository,
-            IUnitOfWork unitOfWork,
+            IFiscalRepository fileRecordRepository,
+            ISqliteUnitOfWork sqliteUnitOfWork,
             IOptions<AppSettings> options,
             SendModelToServer sendModelToServer)
         {
@@ -37,7 +37,7 @@ namespace POSPRA.Application.Services.FiscalService
             _logService = logService;
             _fileRecordRepository = fileRecordRepository;
             _settings = options.Value;
-            _unitOfWork = unitOfWork;
+            _sqliteUnitOfWork = sqliteUnitOfWork;
             _sendModelToServer = sendModelToServer;
         }
 
@@ -98,10 +98,7 @@ namespace POSPRA.Application.Services.FiscalService
                         //response = Request.CreateResponse(HttpStatusCode.OK, new InvoiceResponseModel("Not Available", ((int)GlobalEnums.StatusCodes.Code_402).ToString(), GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_402), errors));
                         //_Service.Log(new Logs() { Message = GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + invoice.InvoiceType + " Error:" + errors), TypeId = (int)AlertType.Exception, IsSynced = false });
 
-                        //await Task.Factory.StartNew(async () =>
-                        //{
-                        await _sendModelToServer.SendInvalidModelToServer(invoice);
-                        //});
+                        string result = await CreateFiscalInvoiceAsync(invoice);
                     }
                 }
 
@@ -203,7 +200,7 @@ namespace POSPRA.Application.Services.FiscalService
                 };
 
                 await _fileRecordRepository.AddAsync(model);
-                await _unitOfWork.SaveChangesAsync();
+                await _sqliteUnitOfWork.SaveChangesAsync();
                 return model.ID;
             }
             catch (Exception ex)

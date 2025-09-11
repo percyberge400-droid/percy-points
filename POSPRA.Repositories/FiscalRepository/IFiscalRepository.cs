@@ -1,6 +1,7 @@
-﻿namespace POSPRA.Repositories.FiscalRepository
+﻿using POSPRA.Domain.Entities;
+using POSPRA.Repositories.BaseRepository.Repository;
+
+namespace POSPRA.Repositories.FiscalRepository
 {
-    public interface IFiscalRepository
-    {
-    }
+    public interface IFiscalRepository : IRepository<FileRecord> { }
 }

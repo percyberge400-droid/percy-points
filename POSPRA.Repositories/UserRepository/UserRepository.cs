@@ -1,25 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using POSPRA.Domain.Entities;
+﻿using POSPRA.Domain.Entities;
 using POSPRA.Infrastructure.Context;
+using POSPRA.Repositories.BaseRepository;
 
 namespace POSPRA.Repositories.UserRepository
 {
-    public class UserRepository : IUserRepository
+    // SQLite User repository
+    public class UserRepository : SqliteRepository<User>, IUserRepository
     {
-        private readonly SqliteDbContext _context;
-
-        public UserRepository(SqliteDbContext context) => _context = context;
-
-        public async Task<User> AddUserAsync(User user)
-        {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        public async Task<List<User>> GetAllUsersAsync()
-        {
-            return await _context.Users.ToListAsync();
-        }
+        public UserRepository(SqliteDbContext context) : base(context) { }
     }
 }

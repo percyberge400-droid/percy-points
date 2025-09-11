@@ -1,6 +1,12 @@
-﻿namespace POSPRA.Repositories.FiscalRepository
+﻿using POSPRA.Domain.Entities;
+using POSPRA.Infrastructure.Context;
+using POSPRA.Repositories.BaseRepository;
+
+namespace POSPRA.Repositories.FiscalRepository
 {
-    public class FiscalRepository : IFiscalRepository
+    // SQLite User repository
+    public class FiscalRepository : SqliteRepository<FileRecord>, IFiscalRepository
     {
+        public FiscalRepository(SqliteDbContext context) : base(context) { }
     }
 }

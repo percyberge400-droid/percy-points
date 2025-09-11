@@ -6,9 +6,11 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.Application.Utility;
 using POSPRA.Infrastructure.Context;
-using POSPRA.Repositories;
 using POSPRA.Repositories.BaseRepository;
+using POSPRA.Repositories.BaseRepository.Repository;
 using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.LogRepository;
+using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,8 +18,13 @@ var builder = WebApplication.CreateBuilder(args);
 // ✅ Always use the same DB file (AppData\POSPRA\pospra.db)
 var dbPath = SqliteDbContext.GetDbPath();
 
+// ✅ SQLite
 builder.Services.AddDbContext<SqliteDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
+
+// ✅ SQL Server
+builder.Services.AddDbContext<SqlServerDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
 
 // Register AutoMapper, repositories, services...
 builder.Services.AddAutoMapper(cfg =>
@@ -25,13 +32,22 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<UserProfile>();
 });
 
+// ✅ SQLite
+builder.Services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
+
+// ✅ SQL Server
+builder.Services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
+
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
+// ✅ Add this line
+builder.Services.AddScoped<ILogRepository, LogRepository>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFiscalService, FiscalService>();
 builder.Services.AddScoped<ILogService, LogService>();
+
 builder.Services.AddScoped<InvoiceValidatorService>();
 builder.Services.AddHttpClient<IHttpService, HttpService>();
 

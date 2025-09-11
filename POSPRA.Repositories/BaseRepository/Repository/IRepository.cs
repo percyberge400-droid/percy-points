@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace POSPRA.Repositories.BaseRepository
+namespace POSPRA.Repositories.BaseRepository.Repository
 {
     public interface IRepository<T> where T : class
     {
