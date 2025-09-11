@@ -47,5 +47,12 @@ namespace POSPRA.Repositories.BaseRepository.Repository
 
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate) =>
             await _dbSet.FirstOrDefaultAsync(predicate);
+
+        public async Task<int> ExecuteProcedureAsync(string sql, params object[] parameters)
+        {
+            // Use ExecuteSqlRawAsync if you are passing a plain SQL string
+            // or ExecuteSqlInterpolatedAsync if you want interpolation.
+            return await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+        }
     }
 }

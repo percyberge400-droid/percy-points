@@ -20,5 +20,11 @@ namespace POSPRA.Repositories.BaseRepository.Repository
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
 
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// Executes a stored procedure or raw SQL command.
+        /// Returns the number of rows affected.
+        /// </summary>
+        Task<int> ExecuteProcedureAsync(string sql, params object[] parameters);
     }
 }
