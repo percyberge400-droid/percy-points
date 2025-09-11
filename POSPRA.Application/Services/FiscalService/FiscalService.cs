@@ -1,12 +1,13 @@
-﻿using System.Text;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.Repositories.BaseRepository;
-using static POSPRA.Application.Utility.GlobalEnums;
+using System.Text;
+using AlertType = POSPRA.Application.Utility.GlobalEnums.AlertType;
+using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
 
 namespace POSPRA.Application.Services.FiscalService
 {
@@ -16,16 +17,19 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly ILogService _logService;
         private readonly IRepository<FileRecord> _fileRecordRepository;
         private readonly AppSettings _settings;
+        private readonly SendModelToServer _sendModelToServer;
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
             IRepository<FileRecord> fileRecordRepository,
-            IOptions<AppSettings> options)
+            IOptions<AppSettings> options,
+            SendModelToServer sendModelToServer)
         {
             _invoiceValidatorService = invoiceValidatorService;
             _logService = logService;
             _fileRecordRepository = fileRecordRepository;
             _settings = options.Value;
+            _sendModelToServer = sendModelToServer;
         }
 
         public async Task<ApiResponse<Invoice>> CreateAsync(Invoice invoice)
@@ -43,29 +47,45 @@ namespace POSPRA.Application.Services.FiscalService
                         data: null, null
                         );
                 }
-
-                var isValid = _invoiceValidatorService.InvoiceValidator(invoice, errors);
-                if (isValid)
+                else
                 {
-                    string result = await CreateFiscalInvoiceAsync(invoice);
-                    if (!String.IsNullOrEmpty(result))
+                    var isValid = _invoiceValidatorService.InvoiceValidator(invoice, errors);
+                    if (isValid)
                     {
-                        return new ApiResponse<Invoice>(
-                            statusCode: GlobalEnums.StatusCodes.Code_100.ToString(),
-                            message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_100),
-                            data: null, null);
+                        string result = await CreateFiscalInvoiceAsync(invoice);
+                        if (!String.IsNullOrEmpty(result))
+                        {
+                            return new ApiResponse<Invoice>(
+                                statusCode: GlobalEnums.StatusCodes.Code_100.ToString(),
+                                message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_100),
+                                data: null, null);
+                        }
+                        else
+                        {
+                            await _logService.LogAsync(
+                                new Logs(GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + invoice.InvoiceType),
+                                (int)AlertType.Exception, false),
+                                2);
+
+                            return new ApiResponse<Invoice>(
+                                statusCode: GlobalEnums.StatusCodes.Code_101.ToString(),
+                                message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_101),
+                                data: null, null);
+                        }
                     }
                     else
                     {
-                        await _logService.LogAsync(
-                            new Logs(GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + invoice.InvoiceType),
-                            (int)AlertType.Exception, false),
-                            2);
+                        //string errors = string.Join(", ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage == "" ? x.Exception.Message : x.ErrorMessage));
+                        //int indexOfSteam = errors.IndexOf("in ");
+                        //if (indexOfSteam >= 0)
+                        //    errors = errors.Remove(indexOfSteam);
+                        //response = Request.CreateResponse(HttpStatusCode.OK, new InvoiceResponseModel("Not Available", ((int)GlobalEnums.StatusCodes.Code_402).ToString(), GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_402), errors));
+                        //_Service.Log(new Logs() { Message = GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + invoice.InvoiceType + " Error:" + errors), TypeId = (int)AlertType.Exception, IsSynced = false });
 
-                        return new ApiResponse<Invoice>(
-                            statusCode: GlobalEnums.StatusCodes.Code_101.ToString(),
-                            message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_101),
-                            data: null, null);
+                        //await Task.Factory.StartNew(async () =>
+                        //{
+                        await _sendModelToServer.SendInvalidModelToServer(invoice);
+                        //});
                     }
                 }
 
@@ -85,7 +105,6 @@ namespace POSPRA.Application.Services.FiscalService
                 );
             }
         }
-
         public async Task<string> CreateFiscalInvoiceAsync(Invoice invoice)
         {
             try
