@@ -1,5 +1,4 @@
 using POSPRA.Infrastructure.Data;
-using POSPRA_WinFormsUI.Forms;
 
 namespace POSPRA_WinFormsUI
 {
@@ -17,7 +16,7 @@ namespace POSPRA_WinFormsUI
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
+            //Application.Run(new Form1());
         }
     }
 }
