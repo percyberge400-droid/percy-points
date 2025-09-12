@@ -1,6 +1,7 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.Forms;
 using System.Drawing.Drawing2D;
+using System.ComponentModel;
 
 namespace POSPRA_WinFormsUI
 {
@@ -16,7 +17,9 @@ namespace POSPRA_WinFormsUI
         {
             return this.WindowState == FormWindowState.Maximized;
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public static bool Proceeded { get; set; } = false;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public static Invoice CurrentInvoice { get; set; } = null;
 
 
