@@ -82,5 +82,48 @@ namespace POSPRA.Repositories.BaseRepository
                     await conn.CloseAsync();
             }
         }
+
+        public async Task<List<Dictionary<string, object?>>> ExecuteProcedureToDictionaryListAsync(
+            string procedureName,
+            params Microsoft.Data.SqlClient.SqlParameter[] parameters)
+        {
+            var results = new List<Dictionary<string, object?>>();
+
+            var conn = _context.Database.GetDbConnection();
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = procedureName;
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            if (parameters != null && parameters.Length > 0)
+                cmd.Parameters.AddRange(parameters);
+
+            bool shouldClose = conn.State != ConnectionState.Open;
+            if (shouldClose)
+                await conn.OpenAsync();
+
+            try
+            {
+                await using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    var row = new Dictionary<string, object?>();
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                    }
+                    results.Add(row);
+                }
+            }
+            finally
+            {
+                if (shouldClose && conn.State == ConnectionState.Open)
+                    await conn.CloseAsync();
+            }
+
+            return results;
+        }
+
+
     }
 }
