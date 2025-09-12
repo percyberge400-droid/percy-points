@@ -1,4 +1,6 @@
 ﻿using POSPRA.Application.Utility;
+using POSPRA.Domain.Entities;
+using POSPRA.DTOs.PosDTOs;
 
 namespace POSPRA.Application.Services.PosService
 {
@@ -15,5 +17,7 @@ namespace POSPRA.Application.Services.PosService
         /// An <see cref="ApiResponse{T}"/> containing the status or result of the operation.
         /// </returns>
         Task<ApiResponse<string>> UpdateHeartBeatAsync();
+        Task<ApiResponse<List<ResponseConfigurationDto>>> GetConfigurationsAsync();
+        Task<string> InsertPosStatusAsync(IList<Logs> logs);
     }
 }
