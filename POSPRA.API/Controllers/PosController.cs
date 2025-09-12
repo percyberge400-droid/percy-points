@@ -9,8 +9,8 @@ namespace POSPRA.API.Controllers
     {
         private readonly IPosService _posService = posService;
 
-        [HttpPost("post")]
-        public async Task<IActionResult> Post()
+        [HttpPost("HeartBeat")]
+        public async Task<IActionResult> HeartBeat()
         {
             var response = await _posService.UpdateHeartBeatAsync();
             return Ok(response);

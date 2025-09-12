@@ -27,7 +27,8 @@ builder.Services.AddDbContext<SqliteDbContext>(options =>
 
 // ✅ SQL Server
 builder.Services.AddDbContext<SqlServerDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")),
+    ServiceLifetime.Scoped);
 
 // Register AutoMapper, repositories, services...
 builder.Services.AddAutoMapper(cfg =>
@@ -56,7 +57,8 @@ builder.Services.AddScoped(typeof(SqlServerRepository<>));
 builder.Services.AddScoped<InvoiceValidatorService>();
 builder.Services.AddHttpClient<IHttpService, HttpService>();
 
-builder.Services.AddHttpClient<IRequestHeaderService, RequestHeaderService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
 
 // SendModelToServer depends on IHttpService
 builder.Services.AddScoped<SendModelToServer>();

@@ -1,17 +1,19 @@
-﻿using POSPRA.Application.Services.HelperService;
+﻿using Microsoft.Data.SqlClient;
+using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Utility;
-using POSPRA.DTOs.PosDTOs;
 using POSPRA.Repositories.BaseRepository;
+using System.Data;
 
 namespace POSPRA.Application.Services.POSService
 {
     public class PosService : IPosService
     {
         private readonly IRequestHeaderService _requestHeaderService;
-        private readonly SqlServerRepository<ResponseHeartbeatDTO> _sqlServerRepository;
+        private readonly SqlServerRepository<object> _sqlServerRepository;
 
-        public PosService(SqlServerRepository<ResponseHeartbeatDTO> sqlServerRepository, IRequestHeaderService requestHeaderService)
+        public PosService(SqlServerRepository<object> sqlServerRepository,
+                          IRequestHeaderService requestHeaderService)
         {
             _sqlServerRepository = sqlServerRepository;
             _requestHeaderService = requestHeaderService;
@@ -21,19 +23,38 @@ namespace POSPRA.Application.Services.POSService
         {
             try
             {
+                //long posId = 110039;
                 var posId = _requestHeaderService.GetPosId();
-                // Stored procedure call with output parameter captured as a column
-                // The procedure should SELECT the @Result at the end:
-                //   SELECT @Result AS Result;
-                var results = await _sqlServerRepository.QueryProcedureAsync<ResponseHeartbeatDTO>(
-                    $"EXEC sp_UpdatePOSHeartbeat @POSID = {posId}");
+                // Input parameter
+                var inputParam = new SqlParameter("@POSID", SqlDbType.BigInt) { Value = posId };
 
-                // If the proc SELECTs the value, we just read it
-                return null;
+                // Output parameter
+                var outputParam = new SqlParameter("@Result", SqlDbType.Char, 1)
+                {
+                    Direction = ParameterDirection.Output
+                };
+
+                // Execute the stored procedure
+                string? result = await _sqlServerRepository.ExecuteScalarProcedureWithOutputAsync(
+                    "sp_UpdatePOSHeartbeat",
+                    new SqlParameter[] { inputParam },
+                    outputParam
+                );
+
+                return new ApiResponse<string>(
+                    statusCode: "200",
+                    message: "Heartbeat updated",
+                    data: result
+                );
             }
             catch (Exception)
             {
-                return null;
+                // Log ex if needed
+                return new ApiResponse<string>(
+                    statusCode: "500",
+                    message: "Error updating heartbeat",
+                    data: null
+                );
             }
         }
     }

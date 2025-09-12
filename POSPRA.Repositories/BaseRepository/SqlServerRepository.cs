@@ -1,36 +1,48 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository.Repository;
-
+using System.Data;
+using System.Data.Common;
 namespace POSPRA.Repositories.BaseRepository
 {
-    // 🔹 SQL Server specific repository
     public class SqlServerRepository<T> : Repository<T>, IRepository<T> where T : class
     {
         public SqlServerRepository(SqlServerDbContext context) : base(context) { }
 
-        /// <summary>
-        /// Executes a stored procedure and returns the first column
-        /// of the first row as a string (or null if no result).
-        /// </summary>
-        public async Task<string?> ExecuteScalarProcedureAsync(
+        public async Task<string?> ExecuteScalarProcedureWithOutputAsync(
             string procedureName,
-            params SqlParameter[] parameters)
+            Microsoft.Data.SqlClient.SqlParameter[] inputParameters,
+            Microsoft.Data.SqlClient.SqlParameter? outputParameter = null)
         {
-            await using var conn = _context.Database.GetDbConnection();
-            await conn.OpenAsync();
+            if (string.IsNullOrWhiteSpace(procedureName))
+                throw new ArgumentException("Procedure name cannot be null or empty.", nameof(procedureName));
+
+            DbConnection conn = _context.Database.GetDbConnection();
 
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = procedureName;
             cmd.CommandType = CommandType.StoredProcedure;
 
-            foreach (var p in parameters)
-                cmd.Parameters.Add(p);
+            if (inputParameters != null && inputParameters.Length > 0)
+                cmd.Parameters.AddRange(inputParameters);
 
-            var result = await cmd.ExecuteScalarAsync();
-            return result?.ToString();
+            if (outputParameter != null)
+                cmd.Parameters.Add(outputParameter);
+
+            bool shouldClose = conn.State != ConnectionState.Open;
+            if (shouldClose)
+                await conn.OpenAsync();
+
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+                return outputParameter?.Value?.ToString();
+            }
+            finally
+            {
+                if (shouldClose && conn.State == ConnectionState.Open)
+                    await conn.CloseAsync();
+            }
         }
     }
 }

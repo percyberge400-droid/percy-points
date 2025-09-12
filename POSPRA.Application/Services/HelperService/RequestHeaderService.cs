@@ -11,15 +11,18 @@ namespace POSPRA.Application.Services.HelperService
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public int? GetPosId()
+        public long GetPosId()
         {
-            var headers = _httpContextAccessor.HttpContext?.Request.Headers;
-            if (headers != null && headers.TryGetValue("POSID", out var value)
-                && int.TryParse(value.FirstOrDefault(), out var posId))
+            var context = _httpContextAccessor.HttpContext;
+            if (context != null && context.Request.Headers.TryGetValue("POS-ID", out var posIdValue))
             {
-                return posId;
+                if (long.TryParse(posIdValue, out var posId))
+                {
+                    return posId;
+                }
             }
-            return null;
+
+            throw new InvalidOperationException("POS-ID header is missing or invalid.");
         }
 
         public string? GetMacAddress()
