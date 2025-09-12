@@ -10,7 +10,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\POSPRA.Infrastructure\POSPRA.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\POSPRA.Application\POSPRA.Application.csproj" />
   </ItemGroup>
 
 </Project>

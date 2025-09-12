@@ -1,4 +1,6 @@
-﻿using System.Drawing.Drawing2D;
+﻿using POSPRA.Domain.Entities;
+using POSPRA_WinFormsUI.Forms;
+using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
 {
@@ -15,7 +17,7 @@ namespace POSPRA_WinFormsUI
             return this.WindowState == FormWindowState.Maximized;
         }
         public static bool Proceeded { get; set; } = false;
-        //public static InvoiceModel CurrentInvoice { get; set; } = null;
+        public static Invoice CurrentInvoice { get; set; } = null;
 
 
 
@@ -47,26 +49,40 @@ namespace POSPRA_WinFormsUI
 
         }
 
-        //private InvoiceModel CollectInvoiceData()
-        //{
-        //    return new InvoiceModel
-        //    {
-        //        InvoiceType = chkSaleInvoice.Checked ? "Sale" : "Debit",
-        //        CustomerRegType = chkRegistered.Checked ? "Registered" : "Unregistered",
-        //        InvoiceDate = txtInvoiceDate.Value,
-        //        InvoiceRef = txtInvoiceExtra.Text,
+        private Invoice CollectInvoiceData()
+        {
+            return new Invoice
+            {
+                // Convert InvoiceType string to short (example: Sale = 1, Debit = 2)
+                InvoiceType = chkSaleInvoice.Checked ? (short)1 : (short)2,
 
-        //        SellerBusiness = txtSellerBusiness.Text,
-        //        SellerAddress = txtSellerAddress.Text,
-        //        SellerProvince = cmbSellerProvince.SelectedItem?.ToString() ?? "",
-        //        SellerRegNo = txtSellerRegNo.Text,
+                // Invoice date
+                InvoiceDate = txtInvoiceDate.Value,
 
-        //        BuyerBusiness = txtBuyerBusiness.Text,
-        //        BuyerAddress = txtBuyerAddress.Text,
-        //        BuyerProvince = cmbBuyerProvince.SelectedItem?.ToString() ?? "",
-        //        BuyerRegNo = txtBuyerRegNo.Text
-        //    };
-        //}
+                // Buyer/Seller info
+                BuyerSellerName = txtBuyerBusiness.Text,        // You may combine Seller/Buyer logic
+                DestinationAddress = txtBuyerAddress.Text,      // Assuming Buyer address goes here
+                NTN_CNIC = txtBuyerRegNo.Text,                  // Assuming buyer's NTN/CNIC
+                DistributorName = txtSellerBusiness.Text,
+                Distributor_NTN_CNIC = txtSellerRegNo.Text,
+
+                // Sale type: Registered = 1, Unregistered = 2 (example)
+                SaleType = chkRegistered.Checked ? 1 : 2,
+
+                // Optional: provinces (you may store separately if needed)
+                // SellerProvince = cmbSellerProvince.SelectedItem?.ToString() ?? "",
+                // BuyerProvince = cmbBuyerProvince.SelectedItem?.ToString() ?? "",
+
+                // Other numeric fields can be calculated or left null if not yet filled
+                TotalRetailPrice = 0,       // Replace with actual calculation
+                TotalSalesTaxApplicable = null,
+                TotalSTWithheldAtSource = null,
+                TotalExtraTax = null,
+                TotalFEDPayable = null,
+                TotalWithheldIncomeTax = null,
+                TotalCVT = null
+            };
+        }
 
         private void item_entry_Load(object sender, EventArgs e)
         {
@@ -85,32 +101,53 @@ namespace POSPRA_WinFormsUI
             //    return;
             //}
 
-            //InvoiceModel inputData = CollectInvoiceData();
+            Invoice inputData = CollectInvoiceData();
 
-            //try
-            //{
-            //    // ✅ Save session
-            //    InvoiceEntry.CurrentInvoice = inputData;
-            //    InvoiceEntry.Proceeded = true;
+            try
+            {
+                // Map form inputs to modal
+                var invoice = new Invoice
+                {
+                    InvoiceType = chkSaleInvoice.Checked ? (short)1 : (short)2,
+                    InvoiceDate = txtInvoiceDate.Value,
+                    SaleType = chkRegistered.Checked ? 1 : 2,
+                    BuyerSellerName = txtBuyerBusiness.Text,
+                    DestinationAddress = txtBuyerAddress.Text,
+                    NTN_CNIC = txtBuyerRegNo.Text,
+                    DistributorName = txtSellerBusiness.Text,
+                    Distributor_NTN_CNIC = txtSellerRegNo.Text,
+                    TotalRetailPrice = 0,              // Replace with actual calculation
+                    TotalSalesTaxApplicable = null,
+                    TotalSTWithheldAtSource = null,
+                    TotalExtraTax = null,
+                    TotalFEDPayable = null,
+                    TotalWithheldIncomeTax = null,
+                    TotalCVT = null
+                };
 
-            //    string msg = $"Proceeding with {inputData.InvoiceType} Invoice\n" +
-            //                 $"Customer Type: {inputData.CustomerRegType}\n" +
-            //                 $"Seller: {inputData.SellerBusiness}, {inputData.SellerAddress}\n" +
-            //                 $"Buyer: {inputData.BuyerBusiness}, {inputData.BuyerAddress}\n" +
-            //                 $"Invoice Date: {inputData.FormattedDate}";
+                // ✅ Save session
+                InvoiceEntry.CurrentInvoice = invoice;
+                InvoiceEntry.Proceeded = true;
 
-            //    MessageBox.Show(msg, "Invoice Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                string msg = $"Proceeding with {(invoice.InvoiceType == 1 ? "Sale" : "Debit")} Invoice\n" +
+                             $"Customer Type: {(invoice.SaleType == 1 ? "Registered" : "Unregistered")}\n" +
+                             $"Seller: {invoice.DistributorName}, {cmbSellerProvince.SelectedItem?.ToString() ?? ""}\n" +
+                             $"Buyer: {invoice.BuyerSellerName}, {cmbBuyerProvince.SelectedItem?.ToString() ?? ""}\n" +
+                             $"Invoice Date: {invoice.InvoiceDate:dd-MMM-yyyy}";
 
-            //    if (this.MdiParent is Main mainForm)
-            //    {
-            //        this.Close();
-            //        mainForm.OpenItemEntry();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //}
+                MessageBox.Show(msg, "Invoice Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                if (this.MdiParent is Main mainForm)
+                {
+                    this.Close();
+                    mainForm.OpenItemEntry();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
 
 
@@ -173,34 +210,43 @@ namespace POSPRA_WinFormsUI
 
         private void InvoiceEntry_Load()
         {
-            //if (InvoiceEntry.CurrentInvoice != null)
-            //{
-            //    var saved = InvoiceEntry.CurrentInvoice;
+            if (InvoiceEntry.CurrentInvoice != null)
+            {
+                var saved = InvoiceEntry.CurrentInvoice;
 
-            //    chkSaleInvoice.Checked = saved.InvoiceType == "Sale";
-            //    chkDebitInvoice.Checked = saved.InvoiceType == "Debit";
-            //    chkRegistered.Checked = saved.CustomerRegType == "Registered";
-            //    chkUnregistered.Checked = saved.CustomerRegType == "Unregistered";
+                // Map numeric codes back to checkboxes
+                chkSaleInvoice.Checked = saved.InvoiceType == 1;
+                chkDebitInvoice.Checked = saved.InvoiceType == 2;
 
-            //    txtInvoiceDate.Value = saved.InvoiceDate;
-            //    txtInvoiceExtra.Text = saved.InvoiceRef;
+                chkRegistered.Checked = saved.SaleType == 1;
+                chkUnregistered.Checked = saved.SaleType == 2;
 
-            //    txtSellerBusiness.Text = saved.SellerBusiness;
-            //    txtSellerAddress.Text = saved.SellerAddress;
-            //    cmbSellerProvince.SelectedItem = saved.SellerProvince;
-            //    txtSellerRegNo.Text = saved.SellerRegNo;
+                // Date and extra reference
+                txtInvoiceDate.Value = saved.InvoiceDate;
+                //txtInvoiceExtra.Text = saved.InvoiceRef;
 
-            //    txtBuyerBusiness.Text = saved.BuyerBusiness;
-            //    txtBuyerAddress.Text = saved.BuyerAddress;
-            //    cmbBuyerProvince.SelectedItem = saved.BuyerProvince;
-            //    txtBuyerRegNo.Text = saved.BuyerRegNo;
-            //}
-            //else
-            //{
-            //    // Default initialization
-            //    if (cmbSellerProvince.Items.Count > 0) cmbSellerProvince.SelectedIndex = 0;
-            //    if (cmbBuyerProvince.Items.Count > 0) cmbBuyerProvince.SelectedIndex = 0;
-            //}
+                // Seller info
+                txtSellerBusiness.Text = saved.DistributorName;
+                txtSellerAddress.Text = ""; // No field in modal; optional
+                cmbSellerProvince.SelectedItem = ""; // Optional, store separately if needed
+                txtSellerRegNo.Text = saved.Distributor_NTN_CNIC;
+
+                // Buyer info
+                txtBuyerBusiness.Text = saved.BuyerSellerName;
+                txtBuyerAddress.Text = saved.DestinationAddress;
+                cmbBuyerProvince.SelectedItem = ""; // Optional, store separately if needed
+                txtBuyerRegNo.Text = saved.NTN_CNIC;
+            }
+            else
+            {
+                // Default initialization
+                if (cmbSellerProvince.Items.Count > 0) cmbSellerProvince.SelectedIndex = 0;
+                if (cmbBuyerProvince.Items.Count > 0) cmbBuyerProvince.SelectedIndex = 0;
+
+                chkSaleInvoice.Checked = true;
+                chkRegistered.Checked = true;
+            }
+
         }
 
 

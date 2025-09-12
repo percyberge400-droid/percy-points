@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
@@ -7,6 +6,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Text;
 using AlertType = POSPRA.Application.Utility.GlobalEnums.AlertType;
 using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
 
@@ -173,6 +173,12 @@ namespace POSPRA.Application.Services.FiscalService
                 await _logService.LogAsync(new Logs(errorMessage, (int)AlertType.Exception, false));
                 return string.Empty;
             }
+        }
+
+        public async Task<ApiResponse<List<FileRecord>>> GetAllAsync()
+        {
+            var output = await _fileRecordRepository.GetAllAsync();
+            return new ApiResponse<List<FileRecord>>(null, null, output.ToList(), null);
         }
 
         /// <summary>
