@@ -6,17 +6,27 @@ using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.LogService
 {
+    /// <summary>
+    /// Service implementation for logging operations.
+    /// Provides robust async logging with retry logic and backup creation.
+    /// </summary>
     public class LogService : ILogService
     {
         private readonly ILogRepository _logRepository;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LogService"/>.
+        /// </summary>
+        /// <param name="logRepository">The repository to persist Logs entities.</param>
+        /// <param name="sqliteUnitOfWork">Unit of Work for SQLite context.</param>
         public LogService(ILogRepository logRepository, ISqliteUnitOfWork sqliteUnitOfWork)
         {
             _logRepository = logRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
         }
 
+        /// <inheritdoc/>
         public async Task LogAsync(Logs model, int retry = 0)
         {
             if (model == null)
@@ -32,6 +42,7 @@ namespace POSPRA.Application.Services.LogService
             {
                 try
                 {
+                    // Log the exception internally
                     var errorLog = new Logs(
                         $"{DateTime.Now}: Try {retry}, DbInsertIssue: {(ex.InnerException?.Message ?? ex.Message)}",
                         (int)AlertType.Exception,
@@ -40,6 +51,7 @@ namespace POSPRA.Application.Services.LogService
                     await _logRepository.AddAsync(errorLog);
                     await _sqliteUnitOfWork.SaveChangesAsync();
 
+                    // Retry logic: max 3 attempts
                     if (retry <= 3)
                     {
                         if (retry is 2 or 3)
@@ -50,29 +62,31 @@ namespace POSPRA.Application.Services.LogService
                 }
                 catch
                 {
-                    // Final fallback: write to file or console
-                    File.AppendAllText("log_fallback.txt", $"{DateTime.Now}: Failed to log -> {ex.Message}{Environment.NewLine}");
+                    // Final fallback: write to a file if database logging fails
+                    File.AppendAllText(
+                        "log_fallback.txt",
+                        $"{DateTime.Now}: Failed to log -> {ex.Message}{Environment.NewLine}");
                 }
             }
         }
 
+        /// <summary>
+        /// Creates a backup of the SQLite database.
+        /// Keeps a maximum of 10 backup files.
+        /// </summary>
         private void CreateDatabaseBackup()
         {
             try
             {
                 string backupDir = Path.Combine(GlobalVariables.FOLDER_PATH, "Backup");
 
-                // Ensure backup directory exists
                 if (!Directory.Exists(backupDir))
                     Directory.CreateDirectory(backupDir);
 
-                // Count existing backups
                 var existingBackups = Directory.GetFiles(backupDir, "*.bak", SearchOption.TopDirectoryOnly);
 
-                // Keep a maximum of 10 backups
                 if (existingBackups.Length >= 10)
                 {
-                    // delete the oldest backup (by creation time)
                     var oldestBackup = existingBackups
                         .Select(f => new FileInfo(f))
                         .OrderBy(f => f.CreationTimeUtc)
@@ -81,18 +95,17 @@ namespace POSPRA.Application.Services.LogService
                     File.Delete(oldestBackup.FullName);
                 }
 
-                // Create new backup file
                 string backupFile = Path.Combine(backupDir, $"{Guid.NewGuid()}.bak");
 
                 if (File.Exists(GlobalVariables.FILE_NAME))
                 {
                     File.Copy(GlobalVariables.FILE_NAME, backupFile, overwrite: true);
-                    File.Delete(GlobalVariables.FILE_NAME); // optional: only if you need fresh db
+                    File.Delete(GlobalVariables.FILE_NAME); // optional: to start fresh
                 }
             }
             catch (Exception ex)
             {
-                // Last-resort fallback: write error to a text file
+                // Last-resort fallback: log backup errors to text file
                 try
                 {
                     string errorLog = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "backup_error.txt");
@@ -100,7 +113,7 @@ namespace POSPRA.Application.Services.LogService
                 }
                 catch
                 {
-                    // swallow exception - we don't want backup errors to crash the app
+                    // swallow exception to prevent app crash
                 }
             }
         }

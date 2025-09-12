@@ -3,11 +3,27 @@ using POSPRA.Domain.Entities;
 
 namespace POSPRA.Infrastructure.Context
 {
+    /// <summary>
+    /// EF Core DbContext for the SQLite database used by POSPRA.
+    /// <para>
+    /// Provides DbSet properties for all main entities like Users, FileRecords, Logs, and Invoices.
+    /// </para>
+    /// <para>
+    /// Automatically ensures that the database file exists in the user's Application Data folder.
+    /// </para>
+    /// </summary>
     public class SqliteDbContext : DbContext
     {
+        /// <summary>Users table.</summary>
         public DbSet<User> Users { get; set; } = null!;
+
+        /// <summary>FileRecords table.</summary>
         public DbSet<FileRecord> FileRecords { get; set; } = null!;
+
+        /// <summary>Logs table.</summary>
         public DbSet<Logs> Logs { get; set; } = null!;
+
+        /// <summary>Invoices table. Configured as keyless.</summary>
         public DbSet<Invoice> Invoices { get; set; } = null!;
 
         private static readonly string DbPath;
@@ -37,13 +53,18 @@ namespace POSPRA.Infrastructure.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Seed default admin user
             modelBuilder.Entity<User>().HasData(
                 new User { Id = 1, Username = "admin", Password = "admin123" }
             );
 
+            // Configure Invoice as keyless entity
             modelBuilder.Entity<Invoice>().HasNoKey();
         }
 
+        /// <summary>
+        /// Returns the full path to the SQLite database file.
+        /// </summary>
         public static string GetDbPath() => DbPath;
     }
 }
