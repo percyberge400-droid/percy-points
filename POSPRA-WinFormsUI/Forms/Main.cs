@@ -1,7 +1,10 @@
-﻿namespace POSPRA_WinFormsUI.Forms
+﻿using POSPRA.Application.Services.FiscalService;
+
+namespace POSPRA_WinFormsUI.Forms
 {
     public partial class Main : Form
     {
+        private readonly IFiscalService _fiscalService;
         public Main()
         {
             InitializeComponent();
@@ -69,7 +72,7 @@
                             "Access Restricted", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
-                    childForm = new item_entry();
+                    childForm = new item_entry(_fiscalService);
                     break;
 
                 case "Invoice Export":

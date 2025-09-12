@@ -1,4 +1,5 @@
-﻿using POSPRA.Domain.Entities;
+﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Domain.Entities;
 using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
@@ -18,8 +19,9 @@ namespace POSPRA_WinFormsUI
 
         // Instance reference to session data
         private readonly List<InvoiceItemDetail> addedItems;
+        private readonly IFiscalService _fiscalService;
 
-        public item_entry()
+        public item_entry(IFiscalService fiscalService)
         {
             InitializeComponent();
 
@@ -48,6 +50,7 @@ namespace POSPRA_WinFormsUI
             this.FormClosing += Item_entry_FormClosing;
             this.Leave += Item_entry_Leave;
             this.Deactivate += Item_entry_Deactivate;
+            _fiscalService=fiscalService;
         }
 
         #region Session Management
@@ -374,99 +377,7 @@ namespace POSPRA_WinFormsUI
         // Save button: persist session to DB
         private async void BtnSave_Click(object sender, EventArgs e)
         {
-            //try
-            //{
-            //    if (addedItems.Count == 0)
-            //    {
-            //        MessageBox.Show("No items to save.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //        return;
-            //    }
-
-            //    // Check if invoice data exists
-            //    if (InvoiceEntry.CurrentInvoice == null)
-            //    {
-            //        MessageBox.Show("No invoice data found. Please go back to Invoice Entry and fill the required information.",
-            //            "Missing Invoice Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            //        return;
-            //    }
-
-            //    // Show loading cursor
-            //    this.Cursor = Cursors.WaitCursor;
-
-            //    //using var context = new POSPRA.Infrastructure.Context.SqliteDbContext();
-
-            //    // Ensure database is created
-            //    await context.Database.EnsureCreatedAsync();
-
-            //    // Start a transaction for data consistency
-            //    using var transaction = await context.Database.BeginTransactionAsync();
-
-            //    try
-            //    {
-            //        // Step 1: Create and save the Invoice using the domain model
-            //        var invoiceToSave = new Invoice
-            //        {
-            //            // Map from your current invoice form (InvoiceEntry.CurrentInvoice)
-            //            InvoiceType = (short)InvoiceEntry.CurrentInvoice.InvoiceType,
-            //            InvoiceDate = InvoiceEntry.CurrentInvoice.InvoiceDate,
-            //            //NTN_CNIC = InvoiceEntry.CurrentInvoice.BuyerRegNo,
-            //            //BuyerSellerName = InvoiceEntry.CurrentInvoice.BuyerBusiness,
-            //            //DestinationAddress = InvoiceEntry.CurrentInvoice.BuyerAddress,
-            //            SaleType = 1, // You may need to map this from your form data
-
-            //            // Calculate totals from items
-            //            TotalSalesTaxApplicable = addedItems.Sum(i => i.SalesTaxApplicable),
-            //            TotalRetailPrice = addedItems.Sum(i => i.RetailPrice),
-            //            TotalSTWithheldAtSource = addedItems.Sum(i => i.STWithheldAtSource ?? 0),
-            //            TotalExtraTax = addedItems.Sum(i => i.ExtraTax ?? 0),
-            //            TotalFEDPayable = addedItems.Sum(i => i.FedPayable ?? 0),
-            //            TotalCVT = addedItems.Sum(i => i.CVT ?? 0),
-
-            //            // Set the invoice item details
-            //            InvoiceItemDetails = addedItems.ToList()
-            //        };
-
-            //        // Add invoice to context
-            //        context.Invoices.Add(invoiceToSave);
-
-            //        // Save changes
-            //        await context.SaveChangesAsync();
-
-            //        // Commit the transaction
-            //        await transaction.CommitAsync();
-
-            //        // Success message
-            //        MessageBox.Show($"Invoice saved successfully!\nItems saved: {addedItems.Count}",
-            //            "Save Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-            //        // Clear entire session after successful save
-            //        ClearAllItems();
-            //        ClearSession(); // This clears both grid and form data permanently
-
-            //        // Reset invoice session as well
-            //        InvoiceEntry.CurrentInvoice = null;
-            //        InvoiceEntry.Proceeded = false;
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        // Rollback transaction on error
-            //        await transaction.RollbackAsync();
-            //        throw; // Re-throw to outer catch block
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"Save failed: {ex.Message}\n\nDetails: {ex.InnerException?.Message}",
-            //        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-            //    // Log the error for debugging
-            //    System.Diagnostics.Debug.WriteLine($"Save Error: {ex}");
-            //}
-            //finally
-            //{
-            //    // Restore cursor
-            //    this.Cursor = Cursors.Default;
-            //}
+            //var output = await _fiscalService.CreateAsync();
         }
         #endregion
 
@@ -717,5 +628,10 @@ namespace POSPRA_WinFormsUI
             RemoveSelectedItem();
         }
         #endregion
+
+        private void btnSave_Click_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }

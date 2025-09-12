@@ -43,6 +43,10 @@ namespace POSPRA.Infrastructure.Context
         public SqliteDbContext(DbContextOptions<SqliteDbContext> options)
             : base(options) { }
 
+        public SqliteDbContext()
+        {
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -60,6 +64,8 @@ namespace POSPRA.Infrastructure.Context
 
             // Configure Invoice as keyless entity
             modelBuilder.Entity<Invoice>().HasNoKey();
+
+
         }
 
         /// <summary>
