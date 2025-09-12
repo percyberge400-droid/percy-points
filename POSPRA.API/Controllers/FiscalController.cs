@@ -2,6 +2,7 @@
 using POSPRA.Application.Services.FiscalService;
 
 using POSPRA.Domain.Entities;
+using POSPRA.DTOs.InvoiceDTOs;
 
 /// <summary>
 /// Controller responsible for handling fiscal invoice-related API endpoints.
@@ -24,9 +25,9 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     /// <param name="invoice">The invoice object to create.</param>
     /// <returns>An <see cref="IActionResult"/> containing the API response.</returns>
     [HttpPost("post")]
-    public async Task<IActionResult> Post([FromBody] Invoice invoice)
+    public async Task<IActionResult> Post([FromBody] InvoiceDto dto)
     {
-        var response = await _fiscalService.CreateAsync(invoice);
+        var response = await _fiscalService.CreateAsync(dto);
         return Ok(response);
     }
 }
