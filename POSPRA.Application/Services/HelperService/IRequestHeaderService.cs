@@ -2,7 +2,7 @@
 {
     public interface IRequestHeaderService
     {
-        int? GetPosId();
+        long GetPosId();
         string? GetMacAddress();
     }
 }
