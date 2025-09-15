@@ -65,14 +65,8 @@ namespace POSPRA_WinFormsUI.Forms
                     childForm = new InvoiceEntry(_fiscalService);
                     break;
 
-                case "Item Entry":
-                    if (!InvoiceEntry.Proceeded)
-                    {
-                        MessageBox.Show("Please complete Invoice Entry first before proceeding to Item Entry.",
-                            "Access Restricted", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
-                    childForm = new item_entry(_fiscalService, null);
+                case "Invoice Entry":
+                    childForm = new item_entry(_fiscalService);
                     break;
 
                 case "Invoice Export":
@@ -107,7 +101,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnInvoiceSelection.ForeColor = ColorTranslator.FromHtml("#686DF4");
             panInvoiceSelection.Visible = true;
 
-            LoadView("Invoice Selection");
+            LoadView("Invoice Entry");
         }
 
         private void btnExportInvoice_Click(object sender, EventArgs e)
@@ -132,26 +126,5 @@ namespace POSPRA_WinFormsUI.Forms
             btnItemEntry.Enabled = false;
             btnItemEntry.ForeColor = Color.Gray;
         }
-
-        // ✅ Method called from InvoiceEntry once Proceed is clicked
-        public void EnableItemEntry()
-        {
-            btnItemEntry.Enabled = true;
-            btnItemEntry.ForeColor = Color.Black; // normal look
-        }
-        public void OpenItemEntry()
-        {
-            // Reset all tabs to unselected
-            ResetNavStyles();
-
-            // Select Item Entry tab
-            btnItemEntry.ForeColor = ColorTranslator.FromHtml("#686DF4");
-            panItemEntry.Visible = true;
-
-            // Load the Item Entry view
-            LoadView("Item Entry");
-        }
-
-
     }
 }

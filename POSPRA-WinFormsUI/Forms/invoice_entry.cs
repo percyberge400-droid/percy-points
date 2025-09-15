@@ -144,7 +144,7 @@ namespace POSPRA_WinFormsUI
                     this.Close(); // close InvoiceEntry
 
                     // Open item entry and pass invoice
-                    var itemEntryForm = new item_entry(_fiscalService, CurrentInvoice);
+                    var itemEntryForm = new item_entry(_fiscalService);
                     //var itemEntryForm = new item_entry(_fiscalService, CurrentInvoice);
 
                     itemEntryForm.MdiParent = mainForm;
