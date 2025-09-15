@@ -1,4 +1,5 @@
-﻿using POSPRA.Domain.Entities;
+﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.Forms;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
@@ -13,24 +14,24 @@ namespace POSPRA_WinFormsUI
         private readonly Dictionary<Control, Font> _originalFonts = new Dictionary<Control, Font>();
         private Size _originalClientSize = Size.Empty;
         private bool _originalLayoutCaptured = false;
+        private readonly IFiscalService _fiscalService;
         private bool IsFormMaximized()
         {
             return this.WindowState == FormWindowState.Maximized;
         }
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public static bool Proceeded { get; set; } = false;
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public static Invoice CurrentInvoice { get; set; } = null;
+        public static Invoice CurrentInvoice { get; set; }
 
 
-
-        public InvoiceEntry()
+        public InvoiceEntry(IFiscalService fiscalService)
         {
             InitializeComponent();
 
 
             // keep behavior you had
             InvoiceEntry_Load();
+            _fiscalService = fiscalService;
 
 
             // Event handlers
@@ -142,9 +143,16 @@ namespace POSPRA_WinFormsUI
 
                 if (this.MdiParent is Main mainForm)
                 {
-                    this.Close();
-                    mainForm.OpenItemEntry();
+                    this.Close(); // close InvoiceEntry
+
+                    // Open item entry and pass invoice
+                    var itemEntryForm = new item_entry(_fiscalService, CurrentInvoice);
+                    //var itemEntryForm = new item_entry(_fiscalService, CurrentInvoice);
+
+                    itemEntryForm.MdiParent = mainForm;
+                    itemEntryForm.Show();
                 }
+
             }
             catch (Exception ex)
             {

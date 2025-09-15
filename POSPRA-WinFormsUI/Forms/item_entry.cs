@@ -1,8 +1,11 @@
-﻿using POSPRA.Domain.Entities;
+﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Domain.Entities;
+using POSPRA.DTOs.InvoiceDTOs;
 using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
 {
+
     public partial class item_entry : Form
     {
         // Original bounds, parent sizes, and fonts (for responsive logic)
@@ -17,9 +20,14 @@ namespace POSPRA_WinFormsUI
         private static ItemEntryFormState _sessionFormState = new ItemEntryFormState();
 
         // Instance reference to session data
+        public static Invoice CurrentInvoice;
         private readonly List<InvoiceItemDetail> addedItems;
+        private readonly IFiscalService _fiscalService;
 
-        public item_entry()
+        private readonly Invoice _invoice;
+
+
+        public item_entry(IFiscalService fiscalService, Invoice invoice)
         {
             InitializeComponent();
 
@@ -48,6 +56,12 @@ namespace POSPRA_WinFormsUI
             this.FormClosing += Item_entry_FormClosing;
             this.Leave += Item_entry_Leave;
             this.Deactivate += Item_entry_Deactivate;
+            _fiscalService=fiscalService;
+
+            _invoice = invoice;
+
+            CurrentInvoice = invoice;   // <--- THIS WAS MISSING
+
         }
 
         #region Session Management
@@ -374,100 +388,86 @@ namespace POSPRA_WinFormsUI
         // Save button: persist session to DB
         private async void BtnSave_Click(object sender, EventArgs e)
         {
-            //try
-            //{
-            //    if (addedItems.Count == 0)
-            //    {
-            //        MessageBox.Show("No items to save.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //        return;
-            //    }
+            try
+            {
+                if (addedItems == null || !addedItems.Any())
+                {
+                    MessageBox.Show("Please add at least one item before saving the invoice.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
-            //    // Check if invoice data exists
-            //    if (InvoiceEntry.CurrentInvoice == null)
-            //    {
-            //        MessageBox.Show("No invoice data found. Please go back to Invoice Entry and fill the required information.",
-            //            "Missing Invoice Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            //        return;
-            //    }
+                // Map InvoiceItemDetail -> InvoiceItemDetailDto
+                var itemDtos = addedItems.Select(i => new InvoiceItemDetailDto
+                {
+                    HSCode = i.HSCode,
+                    ProductCode = i.ProductCode,
+                    ProductDescription = i.ProductDescription,
+                    Rate = i.Rate,
+                    UoM = i.UoM,
+                    Quantity = i.Quantity,
+                    ValueSalesExcludingST = i.ValueSalesExcludingST,
+                    SalesTaxApplicable = i.SalesTaxApplicable,
+                    RetailPrice = i.RetailPrice,
+                    STWithheldAtSource = i.STWithheldAtSource,
+                    ExtraTax = i.ExtraTax,
+                    FurtherTax = i.FurtherTax,
+                    SroScheduleNo = i.SroScheduleNo,
+                    FedPayable = i.FedPayable,
+                    CVT = i.CVT,
+                    WHIT_1 = i.WHIT_1,
+                    WHIT_2 = i.WHIT_2,
+                    WHIT_Section_1 = i.WHIT_Section_1,
+                    WHIT_Section_2 = i.WHIT_Section_2,
+                    TotalValues = i.TotalValues
+                }).ToList();
 
-            //    // Show loading cursor
-            //    this.Cursor = Cursors.WaitCursor;
+                // Map Invoice -> InvoiceDto
+                var dto = new InvoiceDto
+                {
+                    BPOSID = CurrentInvoice?.BPOSID ?? 0,
+                    InvoiceType = CurrentInvoice?.InvoiceType ?? 0,
+                    InvoiceDate = CurrentInvoice?.InvoiceDate ?? DateTime.Now,
+                    NTN_CNIC = CurrentInvoice?.NTN_CNIC,
+                    BuyerSellerName = CurrentInvoice?.BuyerSellerName,
+                    DestinationAddress = CurrentInvoice?.DestinationAddress,
+                    SaleType = CurrentInvoice?.SaleType ?? 0,
+                    TotalSalesTaxApplicable = CurrentInvoice?.TotalSalesTaxApplicable,
+                    TotalRetailPrice = CurrentInvoice?.TotalRetailPrice ?? itemDtos.Sum(x => x.RetailPrice),
+                    TotalSTWithheldAtSource = CurrentInvoice?.TotalSTWithheldAtSource,
+                    TotalExtraTax = CurrentInvoice?.TotalExtraTax,
+                    TotalFEDPayable = CurrentInvoice?.TotalFEDPayable,
+                    TotalWithheldIncomeTax = CurrentInvoice?.TotalWithheldIncomeTax,
+                    TotalCVT = CurrentInvoice?.TotalCVT,
+                    Distributor_NTN_CNIC = CurrentInvoice?.Distributor_NTN_CNIC,
+                    DistributorName = CurrentInvoice?.DistributorName,
+                    InvoiceItemDetails = itemDtos
+                };
 
-            //    //using var context = new POSPRA.Infrastructure.Context.SqliteDbContext();
 
-            //    // Ensure database is created
-            //    await context.Database.EnsureCreatedAsync();
 
-            //    // Start a transaction for data consistency
-            //    using var transaction = await context.Database.BeginTransactionAsync();
+                // Post to fiscal service
+                var output = await _fiscalService.CreateAsync(dto);
 
-            //    try
-            //    {
-            //        // Step 1: Create and save the Invoice using the domain model
-            //        var invoiceToSave = new Invoice
-            //        {
-            //            // Map from your current invoice form (InvoiceEntry.CurrentInvoice)
-            //            InvoiceType = (short)InvoiceEntry.CurrentInvoice.InvoiceType,
-            //            InvoiceDate = InvoiceEntry.CurrentInvoice.InvoiceDate,
-            //            //NTN_CNIC = InvoiceEntry.CurrentInvoice.BuyerRegNo,
-            //            //BuyerSellerName = InvoiceEntry.CurrentInvoice.BuyerBusiness,
-            //            //DestinationAddress = InvoiceEntry.CurrentInvoice.BuyerAddress,
-            //            SaleType = 1, // You may need to map this from your form data
+                if (output != null)
+                {
+                    MessageBox.Show("Invoice saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            //            // Calculate totals from items
-            //            TotalSalesTaxApplicable = addedItems.Sum(i => i.SalesTaxApplicable),
-            //            TotalRetailPrice = addedItems.Sum(i => i.RetailPrice),
-            //            TotalSTWithheldAtSource = addedItems.Sum(i => i.STWithheldAtSource ?? 0),
-            //            TotalExtraTax = addedItems.Sum(i => i.ExtraTax ?? 0),
-            //            TotalFEDPayable = addedItems.Sum(i => i.FedPayable ?? 0),
-            //            TotalCVT = addedItems.Sum(i => i.CVT ?? 0),
-
-            //            // Set the invoice item details
-            //            InvoiceItemDetails = addedItems.ToList()
-            //        };
-
-            //        // Add invoice to context
-            //        context.Invoices.Add(invoiceToSave);
-
-            //        // Save changes
-            //        await context.SaveChangesAsync();
-
-            //        // Commit the transaction
-            //        await transaction.CommitAsync();
-
-            //        // Success message
-            //        MessageBox.Show($"Invoice saved successfully!\nItems saved: {addedItems.Count}",
-            //            "Save Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-            //        // Clear entire session after successful save
-            //        ClearAllItems();
-            //        ClearSession(); // This clears both grid and form data permanently
-
-            //        // Reset invoice session as well
-            //        InvoiceEntry.CurrentInvoice = null;
-            //        InvoiceEntry.Proceeded = false;
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        // Rollback transaction on error
-            //        await transaction.RollbackAsync();
-            //        throw; // Re-throw to outer catch block
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"Save failed: {ex.Message}\n\nDetails: {ex.InnerException?.Message}",
-            //        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-            //    // Log the error for debugging
-            //    System.Diagnostics.Debug.WriteLine($"Save Error: {ex}");
-            //}
-            //finally
-            //{
-            //    // Restore cursor
-            //    this.Cursor = Cursors.Default;
-            //}
+                    // Clear session
+                    addedItems.Clear();
+                    dataGridView1.Rows.Clear();
+                    lblTotalItems.Text = "Total 0 items";
+                }
+                else
+                {
+                    MessageBox.Show("Failed to save invoice. No response from service.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving invoice: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
         #endregion
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItemDetail inputData)
@@ -717,5 +717,10 @@ namespace POSPRA_WinFormsUI
             RemoveSelectedItem();
         }
         #endregion
+
+        private void btnSave_Click_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }

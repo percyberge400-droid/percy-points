@@ -5,6 +5,14 @@ namespace POSPRA.Application.Utility
 {
     public class GlobalEnums
     {
+        public static class ApiStatusCodes
+        {
+            public const string Success = "200";
+            public const string Error = "500";
+            public const string NotFound = "404";
+            public const string Unauthorized = "401";
+            // Add more as needed
+        }
 
         public enum StatusCodes
         {
@@ -29,8 +37,6 @@ namespace POSPRA.Application.Utility
 
             [Description("Model validation failed.")]
             Code_402 = 402,
-
-
         }
 
         public enum AlertType

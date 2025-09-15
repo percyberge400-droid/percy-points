@@ -1,86 +1,71 @@
 ﻿using System.Data;
 using System.Data.Common;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository.Repository;
-
 namespace POSPRA.Repositories.BaseRepository
 {
-    /// <summary>
-    ///     SQL Server–specific generic repository.
-    ///     <para>
-    ///     In addition to the base <see cref="Repository{T}"/> CRUD methods,
-    ///     this class provides a helper to execute a stored procedure that
-    ///     returns a single scalar value through an output parameter.
-    ///     </para>
-    /// </summary>
-    /// <typeparam name="T">
-    ///     Entity type managed by the repository. The generic type is not used
-    ///     by <see cref="ExecuteScalarProcedureWithOutputAsync"/> but allows the
-    ///     repository to participate in the same DI/Repository pattern as the base class.
-    /// </typeparam>
     public class SqlServerRepository<T> : Repository<T>, IRepository<T> where T : class
     {
         public SqlServerRepository(SqlServerDbContext context) : base(context) { }
 
-        /// <summary>
-        /// Executes a stored procedure that may include input parameters
-        /// and an optional output parameter, and returns the output value
-        /// as a string.
-        /// </summary>
-        /// <param name="procedureName">
-        /// Name of the stored procedure to execute.
-        /// </param>
-        /// <param name="inputParameters">
-        /// Array of input <see cref="Microsoft.Data.SqlClient.SqlParameter"/> objects
-        /// to pass to the procedure. Pass an empty array if none are required.
-        /// </param>
-        /// <param name="outputParameter">
-        /// Optional output <see cref="Microsoft.Data.SqlClient.SqlParameter"/> whose
-        /// value will be retrieved after execution. If null, the method
-        /// simply executes the procedure without returning a value.
-        /// </param>
-        /// <returns>
-        /// The string value of the output parameter if provided and set;
-        /// otherwise <c>null</c>.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Thrown when <paramref name="procedureName"/> is null or empty.
-        /// </exception>
-        public async Task<string?> ExecuteScalarProcedureWithOutputAsync(
-            string procedureName,
-            Microsoft.Data.SqlClient.SqlParameter[] inputParameters,
-            Microsoft.Data.SqlClient.SqlParameter? outputParameter = null)
+        public async Task<List<T>> ExecuteProcedureAsync<T>(
+     string procedureName,
+     Func<DbDataReader, T>? map = null,          // optional mapper
+     SqlParameter[]? parameters = null)
         {
             if (string.IsNullOrWhiteSpace(procedureName))
                 throw new ArgumentException("Procedure name cannot be null or empty.", nameof(procedureName));
 
-            DbConnection conn = _context.Database.GetDbConnection();
-
+            var conn = _context.Database.GetDbConnection();
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = procedureName;
             cmd.CommandType = CommandType.StoredProcedure;
 
-            if (inputParameters != null && inputParameters.Length > 0)
-                cmd.Parameters.AddRange(inputParameters);
+            if (parameters is { Length: > 0 })
+                cmd.Parameters.AddRange(parameters);
 
-            if (outputParameter != null)
-                cmd.Parameters.Add(outputParameter);
+            var shouldClose = conn.State != ConnectionState.Open;
+            if (shouldClose) await conn.OpenAsync();
 
-            bool shouldClose = conn.State != ConnectionState.Open;
-            if (shouldClose)
-                await conn.OpenAsync();
-
+            var results = new List<T>();
             try
             {
-                await cmd.ExecuteNonQueryAsync();
-                return outputParameter?.Value?.ToString();
+                await using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    if (map != null)
+                    {
+                        // Case 1: Custom mapping provided
+                        results.Add(map(reader));
+                    }
+                    else if (typeof(T) == typeof(Dictionary<string, object?>))
+                    {
+                        // Case 2: Auto-convert row into Dictionary<string, object?>
+                        var row = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                        }
+                        results.Add((T)(object)row);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"No mapper provided for type {typeof(T).Name} and it is not a Dictionary<string, object?>."
+                        );
+                    }
+                }
             }
             finally
             {
                 if (shouldClose && conn.State == ConnectionState.Open)
                     await conn.CloseAsync();
             }
+
+            return results;
         }
     }
 }

@@ -4,6 +4,7 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
+using POSPRA.DTOs.InvoiceDTOs;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
 using System.Text;
@@ -25,13 +26,15 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly AppSettings _settings;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly SendModelToServer _sendModelToServer;
+        private readonly AutoMapper.IMapper _mapper;
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
             IFiscalRepository fileRecordRepository,
             ISqliteUnitOfWork sqliteUnitOfWork,
             IOptions<AppSettings> options,
-            SendModelToServer sendModelToServer)
+            SendModelToServer sendModelToServer,
+            AutoMapper.IMapper mapper)
         {
             _invoiceValidatorService = invoiceValidatorService;
             _logService = logService;
@@ -39,6 +42,7 @@ namespace POSPRA.Application.Services.FiscalService
             _settings = options.Value;
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _sendModelToServer = sendModelToServer;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -46,18 +50,18 @@ namespace POSPRA.Application.Services.FiscalService
         /// and logging any errors or exceptions. Returns an ApiResponse containing
         /// the status and any relevant messages.
         /// </summary>
-        /// <param name="invoice">The invoice object to create.</param>
+        /// <param name="dto">The invoice object to create.</param>
         /// <returns>An ApiResponse containing the result of the operation.</returns>
-        public async Task<ApiResponse<Invoice>> CreateAsync(Invoice invoice)
+        public async Task<ApiResponse<InvoiceDto>> CreateAsync(InvoiceDto dto)
         {
             try
             {
                 List<string> errors = new();
-                if (invoice == null)
+                if (dto == null)
                 {
                     await _logService.LogAsync(new Logs(GlobalVariables.DATE + Messages.INVALID_MODEL, (int)AlertType.Exception, false), 2);
 
-                    return new ApiResponse<Invoice>(
+                    return new ApiResponse<InvoiceDto>(
                         statusCode: GlobalEnums.StatusCodes.Code_401.ToString(),
                         message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_401),
                         data: null, null
@@ -65,13 +69,15 @@ namespace POSPRA.Application.Services.FiscalService
                 }
                 else
                 {
-                    var isValid = _invoiceValidatorService.InvoiceValidator(invoice, errors);
+                    // _mapper injected via constructor
+                    var invoiceEntity = _mapper.Map<Invoice>(dto);
+                    var isValid = _invoiceValidatorService.InvoiceValidator(invoiceEntity, errors);
                     if (isValid)
                     {
-                        string result = await CreateFiscalInvoiceAsync(invoice);
+                        string result = await CreateFiscalInvoiceAsync(invoiceEntity);
                         if (!String.IsNullOrEmpty(result))
                         {
-                            return new ApiResponse<Invoice>(
+                            return new ApiResponse<InvoiceDto>(
                                 statusCode: GlobalEnums.StatusCodes.Code_100.ToString(),
                                 message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_100),
                                 data: null, null);
@@ -79,11 +85,11 @@ namespace POSPRA.Application.Services.FiscalService
                         else
                         {
                             await _logService.LogAsync(
-                                new Logs(GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + invoice.InvoiceType),
+                                new Logs(GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + dto.InvoiceType),
                                 (int)AlertType.Exception, false),
                                 2);
 
-                            return new ApiResponse<Invoice>(
+                            return new ApiResponse<InvoiceDto>(
                                 statusCode: GlobalEnums.StatusCodes.Code_101.ToString(),
                                 message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_101),
                                 data: null, null);
@@ -98,11 +104,11 @@ namespace POSPRA.Application.Services.FiscalService
                         //response = Request.CreateResponse(HttpStatusCode.OK, new InvoiceResponseModel("Not Available", ((int)GlobalEnums.StatusCodes.Code_402).ToString(), GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_402), errors));
                         //_Service.Log(new Logs() { Message = GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + invoice.InvoiceType + " Error:" + errors), TypeId = (int)AlertType.Exception, IsSynced = false });
 
-                        string result = await CreateFiscalInvoiceAsync(invoice);
+                        string result = await CreateFiscalInvoiceAsync(invoiceEntity);
                     }
                 }
 
-                return new ApiResponse<Invoice>(
+                return new ApiResponse<InvoiceDto>(
                     statusCode: "200",
                     message: "Created successfully",
                     data: null
@@ -110,7 +116,7 @@ namespace POSPRA.Application.Services.FiscalService
             }
             catch (Exception ex)
             {
-                return new ApiResponse<Invoice>(
+                return new ApiResponse<InvoiceDto>(
                     statusCode: "500",
                     message: "An error occurred while creating entity",
                     data: null,

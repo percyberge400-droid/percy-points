@@ -70,13 +70,13 @@ namespace POSPRA_WinFormsUI
                 Options.Create(configuration.GetSection("AppSettings").Get<AppSettings>()));
 
             // FiscalService
-            services.AddScoped<IFiscalService, FiscalService>();
+            services.AddTransient<IFiscalService, FiscalService>();
 
             // Forms
             services.AddTransient<LoginForm>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
-
+            services.AddTransient<item_entry>();
             // Initialize WinForms
             ApplicationConfiguration.Initialize();
             using var provider = services.BuildServiceProvider();

@@ -1,16 +1,19 @@
-﻿namespace POSPRA.Infrastructure.Data
+﻿using Microsoft.EntityFrameworkCore;
+using POSPRA.Infrastructure.Context;
+
+namespace POSPRA.Infrastructure.Data
 {
     public static class DbInitializer
     {
         public static void Initialize()
         {
-            //using var context = new SqliteDbContext();
+            using var context = new SqliteDbContext();
 
-            // Ensure database + tables exist
-            //context.Database.EnsureCreated();
+            //Ensure database +tables exist
+            context.Database.EnsureCreated();
 
-            // Optional: Apply migrations if you are using them
-            // context.Database.Migrate();
+            //Optional: Apply migrations if you are using them
+            context.Database.Migrate();
         }
     }
 }
