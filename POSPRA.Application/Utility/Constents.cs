@@ -32,5 +32,6 @@
         public static string BEFORE_EXTENSION = "Data prior to {0} is no more acceptable";
         public static string VERSION = "Current Version running on clients system";
         public static string INVALID_POS = "POS ID entered is invalid.";
+        public static string HEARTBEAT_UPDATED = "Heartbeat updated successfully.";
     }
 }

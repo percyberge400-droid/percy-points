@@ -1,35 +1,68 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.PosService;
+using POSPRA.Application.Utility;
+using POSPRA.Domain.Entities;
 
 namespace POSPRA.API.Controllers
 {
-    /// <summary>
-    /// Controller to handle POS (Point of Sale) related endpoints.
-    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class PosController : ControllerBase
+    public class PosController(IPosService posService) : ControllerBase
     {
-        private readonly IPosService _posService;
+        private readonly IPosService _posService = posService;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="PosController"/>.
+        ///Get the heartbeat of POS System
         /// </summary>
-        /// <param name="posService">Service to handle POS operations.</param>
-        public PosController(IPosService posService)
-        {
-            _posService = posService ?? throw new ArgumentNullException(nameof(posService));
-        }
-
-        /// <summary>
-        /// Updates the POS heartbeat by calling the corresponding service method.
-        /// </summary>
-        /// <returns>An <see cref="IActionResult"/> containing the API response.</returns>
+        /// <returns>
+        /// Heartbeat Status
+        /// </returns>
         [HttpPost("HeartBeat")]
         public async Task<IActionResult> HeartBeat()
         {
             var response = await _posService.UpdateHeartBeatAsync();
             return Ok(response);
         }
+
+        /// <summary>
+        ///Get the lastest configuration from Server
+        /// </summary>
+        /// <returns>
+        /// List of configuration values
+        /// </returns>
+        [HttpPost("Configuration")]
+        public async Task<IActionResult> Configuration()
+        {
+            var response = await _posService.GetConfigurationsAsync();
+            return Ok(response);
+        }
+        /// <summary>
+        /// Post IMS Component Log
+        /// </summary>
+        /// <returns>
+        /// Response from Server
+        /// </returns>
+        [HttpPost("Status")]
+        public async Task<IActionResult> Status([FromBody] List<Logs> logs)
+        {
+            if (logs == null || !logs.Any())
+                return BadRequest(new ApiResponse<string>("400", "No logs provided"));
+
+            try
+            {
+                var result = await _posService.InsertPosStatusAsync(logs);
+
+                if (result.Equals("Success", StringComparison.OrdinalIgnoreCase))
+                    return Ok(new ApiResponse<string>("200", "Logs saved successfully", result));
+                else
+                    return StatusCode(500, new ApiResponse<string>("500", "Failed to save logs", result));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>("500", ex.Message));
+            }
+        }
+
+
     }
 }

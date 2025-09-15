@@ -34,6 +34,7 @@ builder.Services.AddDbContext<SqlServerDbContext>(options =>
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<InvoiceProfile>();
 });
 
 // ✅ SQLite

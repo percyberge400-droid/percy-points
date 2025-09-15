@@ -62,7 +62,7 @@ namespace POSPRA_WinFormsUI.Forms
                     break;
 
                 case "Invoice Selection":
-                    childForm = new InvoiceEntry();
+                    childForm = new InvoiceEntry(_fiscalService);
                     break;
 
                 case "Item Entry":
@@ -72,7 +72,7 @@ namespace POSPRA_WinFormsUI.Forms
                             "Access Restricted", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
-                    childForm = new item_entry(_fiscalService);
+                    childForm = new item_entry(_fiscalService, null);
                     break;
 
                 case "Invoice Export":

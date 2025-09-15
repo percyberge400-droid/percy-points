@@ -1,9 +1,11 @@
 ﻿using POSPRA.Application.Services.FiscalService;
 using POSPRA.Domain.Entities;
+using POSPRA.DTOs.InvoiceDTOs;
 using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
 {
+
     public partial class item_entry : Form
     {
         // Original bounds, parent sizes, and fonts (for responsive logic)
@@ -18,10 +20,14 @@ namespace POSPRA_WinFormsUI
         private static ItemEntryFormState _sessionFormState = new ItemEntryFormState();
 
         // Instance reference to session data
+        public static Invoice CurrentInvoice;
         private readonly List<InvoiceItemDetail> addedItems;
         private readonly IFiscalService _fiscalService;
 
-        public item_entry(IFiscalService fiscalService)
+        private readonly Invoice _invoice;
+
+
+        public item_entry(IFiscalService fiscalService, Invoice invoice)
         {
             InitializeComponent();
 
@@ -51,6 +57,11 @@ namespace POSPRA_WinFormsUI
             this.Leave += Item_entry_Leave;
             this.Deactivate += Item_entry_Deactivate;
             _fiscalService=fiscalService;
+
+            _invoice = invoice;
+
+            CurrentInvoice = invoice;   // <--- THIS WAS MISSING
+
         }
 
         #region Session Management
@@ -377,8 +388,86 @@ namespace POSPRA_WinFormsUI
         // Save button: persist session to DB
         private async void BtnSave_Click(object sender, EventArgs e)
         {
-            //var output = await _fiscalService.CreateAsync();
+            try
+            {
+                if (addedItems == null || !addedItems.Any())
+                {
+                    MessageBox.Show("Please add at least one item before saving the invoice.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Map InvoiceItemDetail -> InvoiceItemDetailDto
+                var itemDtos = addedItems.Select(i => new InvoiceItemDetailDto
+                {
+                    HSCode = i.HSCode,
+                    ProductCode = i.ProductCode,
+                    ProductDescription = i.ProductDescription,
+                    Rate = i.Rate,
+                    UoM = i.UoM,
+                    Quantity = i.Quantity,
+                    ValueSalesExcludingST = i.ValueSalesExcludingST,
+                    SalesTaxApplicable = i.SalesTaxApplicable,
+                    RetailPrice = i.RetailPrice,
+                    STWithheldAtSource = i.STWithheldAtSource,
+                    ExtraTax = i.ExtraTax,
+                    FurtherTax = i.FurtherTax,
+                    SroScheduleNo = i.SroScheduleNo,
+                    FedPayable = i.FedPayable,
+                    CVT = i.CVT,
+                    WHIT_1 = i.WHIT_1,
+                    WHIT_2 = i.WHIT_2,
+                    WHIT_Section_1 = i.WHIT_Section_1,
+                    WHIT_Section_2 = i.WHIT_Section_2,
+                    TotalValues = i.TotalValues
+                }).ToList();
+
+                // Map Invoice -> InvoiceDto
+                var dto = new InvoiceDto
+                {
+                    BPOSID = CurrentInvoice?.BPOSID ?? 0,
+                    InvoiceType = CurrentInvoice?.InvoiceType ?? 0,
+                    InvoiceDate = CurrentInvoice?.InvoiceDate ?? DateTime.Now,
+                    NTN_CNIC = CurrentInvoice?.NTN_CNIC,
+                    BuyerSellerName = CurrentInvoice?.BuyerSellerName,
+                    DestinationAddress = CurrentInvoice?.DestinationAddress,
+                    SaleType = CurrentInvoice?.SaleType ?? 0,
+                    TotalSalesTaxApplicable = CurrentInvoice?.TotalSalesTaxApplicable,
+                    TotalRetailPrice = CurrentInvoice?.TotalRetailPrice ?? itemDtos.Sum(x => x.RetailPrice),
+                    TotalSTWithheldAtSource = CurrentInvoice?.TotalSTWithheldAtSource,
+                    TotalExtraTax = CurrentInvoice?.TotalExtraTax,
+                    TotalFEDPayable = CurrentInvoice?.TotalFEDPayable,
+                    TotalWithheldIncomeTax = CurrentInvoice?.TotalWithheldIncomeTax,
+                    TotalCVT = CurrentInvoice?.TotalCVT,
+                    Distributor_NTN_CNIC = CurrentInvoice?.Distributor_NTN_CNIC,
+                    DistributorName = CurrentInvoice?.DistributorName,
+                    InvoiceItemDetails = itemDtos
+                };
+
+
+
+                // Post to fiscal service
+                var output = await _fiscalService.CreateAsync(dto);
+
+                if (output != null)
+                {
+                    MessageBox.Show("Invoice saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    // Clear session
+                    addedItems.Clear();
+                    dataGridView1.Rows.Clear();
+                    lblTotalItems.Text = "Total 0 items";
+                }
+                else
+                {
+                    MessageBox.Show("Failed to save invoice. No response from service.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving invoice: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
         #endregion
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItemDetail inputData)
