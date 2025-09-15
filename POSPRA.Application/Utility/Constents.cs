@@ -34,4 +34,28 @@
         public static string INVALID_POS = "POS ID entered is invalid.";
         public static string HEARTBEAT_UPDATED = "Heartbeat updated successfully.";
     }
+
+    public static class ResponseMessages
+    {
+        public const string ConfigurationsFound = "Success...Configuration(s) found.";
+        public const string ConfigurationsNotFound = "No configuration(s) found.";
+        public const string ConfigurationsFetchError = "Error occurred while fetching configurations: ";
+        public const string HeartbeatUpdated = "Heartbeat updated";
+        public const string ErrorUpdatingHeartbeat = "Error updating heartbeat";
+    }
+
+    public enum ApiStatusCode
+    {
+        Success = 200,
+        Error = 500
+    }
+
+    public static class StoredProcedures
+    {
+        public const string sp_UpdatePOSHeartbeat = "sp_UpdatePOSHeartbeat";
+        public const string sp_GetConfigurations = "sp_GetConfigurations";
+        public const string sp_InsertInvoice = "sp_InsertInvoice";
+        public const string sp_UpdateStatus = "sp_UpdateStatus";
+        // Add more stored procedures as needed
+    }
 }

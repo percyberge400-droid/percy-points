@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System.Data;
+using AutoMapper;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.PosService;
@@ -6,7 +8,7 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.PosDTOs;
 using POSPRA.Repositories.BaseRepository;
-using System.Data;
+using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.POSService
 {
@@ -14,21 +16,29 @@ namespace POSPRA.Application.Services.POSService
     {
         private readonly IRequestHeaderService _requestHeaderService;
         private readonly SqlServerRepository<object> _sqlServerRepository;
-        public PosService(SqlServerRepository<object> sqlServerRepository,
-                          IRequestHeaderService requestHeaderService)
+        public readonly IMapper _mapper;
+        public PosService(
+            SqlServerRepository<object> sqlServerRepository,
+            IRequestHeaderService requestHeaderService,
+            IMapper mapper
+            )
         {
             _sqlServerRepository = sqlServerRepository;
             _requestHeaderService = requestHeaderService;
+            _mapper = mapper;
         }
 
         public async Task<ApiResponse<string>> UpdateHeartBeatAsync()
         {
             try
             {
-                //long posId = 110039;
                 var posId = _requestHeaderService.GetPosId();
+
                 // Input parameter
-                var inputParam = new SqlParameter("@POSID", SqlDbType.BigInt) { Value = posId };
+                var inputParam = new SqlParameter("@POSID", SqlDbType.BigInt)
+                {
+                    Value = posId
+                };
 
                 // Output parameter
                 var outputParam = new SqlParameter("@Result", SqlDbType.Char, 1)
@@ -36,95 +46,115 @@ namespace POSPRA.Application.Services.POSService
                     Direction = ParameterDirection.Output
                 };
 
-                // Execute the stored procedure
-                string? result = await _sqlServerRepository.ExecuteScalarProcedureWithOutputAsync(
-                    "sp_UpdatePOSHeartbeat",
-                    new SqlParameter[] { inputParam },
-                    outputParam
+                // Use the generic helper to execute the procedure
+                // We don't need row mapping here because we only care about the output parameter
+                await _sqlServerRepository.ExecuteProcedureAsync<object>(
+                    StoredProcedures.sp_UpdatePOSHeartbeat,
+                    map: _ => default!,                            // no rows to map
+                    parameters: new[] { inputParam, outputParam }
                 );
 
+                // Retrieve the output parameter value
+                string? result = outputParam.Value?.ToString();
+
                 return new ApiResponse<string>(
-                    statusCode: "200",
-                    message: "Heartbeat updated",
+                    statusCode: ApiStatusCodes.Success,
+                    message: ResponseMessages.HeartbeatUpdated,
                     data: result
                 );
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Log ex if needed
+                // Optionally log ex here
+
                 return new ApiResponse<string>(
-                    statusCode: "500",
-                    message: "Error updating heartbeat",
+                    statusCode: ApiStatusCodes.Error,
+                    message: ResponseMessages.ErrorUpdatingHeartbeat,
                     data: null
                 );
             }
         }
-        //
+
         public async Task<ApiResponse<List<ResponseConfigurationDto>>> GetConfigurationsAsync()
         {
             try
             {
-                long posId = 110039;
-                // var posId = _requestHeaderService.GetPosId();
-
+                var posId = _requestHeaderService.GetPosId();
                 var inputParam = new SqlParameter("@POSID", SqlDbType.BigInt)
                 {
                     Value = posId
                 };
 
-                // Get raw dictionary list from repository
-                var rawResults = await _sqlServerRepository.ExecuteProcedureToDictionaryListAsync(
-                    "sp_GetConfigurations", inputParam);
+                // Use the unified procedure executor.
+                // We want List<Dictionary<string, object?>> so we set T accordingly
+                // and skip the mapping delegate.
+                var rawResults = await _sqlServerRepository.ExecuteProcedureAsync<Dictionary<string, object?>>(
+                    StoredProcedures.sp_GetConfigurations,
+                    parameters: new[] { inputParam }      // no mapper needed
+                );
 
-                // Map dictionaries to DTOs
-                var results = rawResults.Select(row => new ResponseConfigurationDto
-                {
-                    LogInterval = row["LogInterval"]?.ToString(),
-                    RecordInterval = row["RecordInterval"]?.ToString(),
-                    HeartbeatInterval = row["HeartbeatInterval"]?.ToString(),
-                    IMSUpdateInterval = row["IMSUpdateInterval"]?.ToString(),
-                    RecordSyncLimit = row["RecordSyncLimit"]?.ToString(),
-                    LogSyncLimit = row["LogSyncLimit"]?.ToString(),
-                    GatewayURL = row["GatewayURL"]?.ToString(),
-                    FilePath = row["FilePath"]?.ToString(),
-                    Version = row["Version"]?.ToString(),
-                    FileSize = row["FileSize"]?.ToString(),
-                    Token = row["Token"]?.ToString()
-                }).ToList();
+                // Auto-map dictionaries to your DTOs
+                var results = _mapper.Map<List<ResponseConfigurationDto>>(rawResults);
 
                 return new ApiResponse<List<ResponseConfigurationDto>>(
-                    statusCode: "200",
-                    message: results.Count > 0 ? "Success...Configuration(s) found." : "No configuration(s) found.",
+                    statusCode: ApiStatusCodes.Success,
+                    message: results.Count > 0
+                        ? ResponseMessages.ConfigurationsFound
+                        : ResponseMessages.ConfigurationsNotFound,
                     data: results
                 );
             }
             catch (Exception ex)
             {
                 return new ApiResponse<List<ResponseConfigurationDto>>(
-                    statusCode: "500",
-                    message: $"Error occurred while fetching configurations: {ex.Message}",
+                    statusCode: ApiStatusCodes.NotFound,
+                    message: $"{ResponseMessages.ConfigurationsFetchError} {ex.Message}",
                     data: null
                 );
             }
         }
 
-
         public async Task<string> InsertPosStatusAsync(IList<Logs> logs)
         {
-            //  Convert logs to DataTable using SharedResources
-            var logsTable = SharedResources.ToDataTable(logs);
-            // var posId = _requestHeaderService.GetPosId(); // or from headers
-            long posId = 110039;
-            if (logs == null || logs.Count == 0)
-                return "No logs to insert";
+            string response = string.Empty;
 
-            // Serialize logs list into JSON
-            string logsJson = JsonConvert.SerializeObject(logs);
+            try
+            {
+                var posId = _requestHeaderService.GetPosId();
 
-            //  Call repository SP
-            string result = await _sqlServerRepository.InsertPOSStatusAsync(posId, logsJson);
+                // Convert logs list to JSON (because the proc expects NVARCHAR(MAX) JSON)
+                string logsJson = JsonConvert.SerializeObject(logs);
 
-            return result; // "Success" or "Error: ..."
+                var inputParams = new[]
+                {
+                    new SqlParameter("@POSID", SqlDbType.BigInt) { Value = posId },
+                    new SqlParameter("@LogsJson", SqlDbType.NVarChar)
+                    {
+                        Value = logsJson
+                    }
+                };
+
+                var outputParam = new SqlParameter("@Result", SqlDbType.NVarChar, 50)
+                {
+                    Direction = ParameterDirection.Output
+                };
+
+                // Execute the procedure (no result set expected)
+                await _sqlServerRepository.ExecuteProcedureAsync<object>(
+                    "sp_InsertPOSStatus",
+                    map: null,
+                    parameters: inputParams.Concat(new[] { outputParam }).ToArray()
+                );
+
+                response = outputParam.Value?.ToString() ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                response = ex.Message;
+            }
+
+            return response;
         }
+
     }
 }
