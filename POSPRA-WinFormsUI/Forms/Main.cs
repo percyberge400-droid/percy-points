@@ -7,12 +7,11 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly IFiscalService _fiscalService;
-
-        // private readonly IFiscalService _fiscalService;
         public Main(IServiceProvider provider, IFiscalService fiscalService)
         {
             InitializeComponent();
             _provider = provider;
+            _fiscalService = fiscalService;
 
             this.IsMdiContainer = true;
 
@@ -64,16 +63,14 @@ namespace POSPRA_WinFormsUI.Forms
             switch (v)
             {
                 case "Dashboard":
-                    childForm = _provider.GetRequiredService<DashboardForm>();
-                    break;
+                    childForm = _provider.GetRequiredService<DashboardForm>(); break;
 
                 case "Invoice Selection":
-                    childForm = _provider.GetRequiredService<InvoiceEntry>();
+                    //childForm = new invoice_entry(_fiscalService);
                     break;
 
                 case "Invoice Entry":
-                    childForm = _provider.GetRequiredService<item_entry>();
-                    break;
+                    childForm = _provider.GetRequiredService<item_entry>(); break;
 
                 case "Invoice Export":
                     // Uncomment when ready

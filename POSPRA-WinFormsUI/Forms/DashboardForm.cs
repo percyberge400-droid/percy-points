@@ -1,11 +1,13 @@
 ﻿namespace POSPRA_WinFormsUI.Forms
 {
+
     public partial class DashboardForm : Form
     {
         private readonly IServiceProvider _provider;
 
         public DashboardForm(IServiceProvider provider)
         {
+            _provider = provider;
             this.FormBorderStyle = FormBorderStyle.None;
             this.ControlBox = false;
             this.ShowIcon = false;
