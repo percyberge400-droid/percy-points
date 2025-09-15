@@ -34,7 +34,7 @@ namespace POSPRA_WinFormsUI
         {
             InitializeComponent();
 
-            _fiscalService = fiscalService;
+            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
 
             // Use static session list
             addedItems = _sessionItems;
@@ -449,7 +449,7 @@ namespace POSPRA_WinFormsUI
                 lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
                 ClearFormFields();
 
-                MessageBox.Show($"Item '{inputData.ProductCode}' added/updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"Item '{inputData.ProductCode}' added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 textBox1.Focus();
             }
             catch (Exception ex)
@@ -829,9 +829,9 @@ namespace POSPRA_WinFormsUI
             if (!chkSaleInvoice.Checked && !chkDebitInvoice.Checked) return false;
             if (!chkRegistered.Checked && !chkUnregistered.Checked) return false;
             if (string.IsNullOrWhiteSpace(txtSellerBusiness.Text)) return false;
-            if (string.IsNullOrWhiteSpace(txtBuyerBusiness.Text)) return false;
-            if (string.IsNullOrWhiteSpace(txtSellerRegNo.Text)) return false;
-            if (string.IsNullOrWhiteSpace(txtBuyerRegNo.Text)) return false;
+            //if (string.IsNullOrWhiteSpace(txtBuyerBusiness.Text)) return false;
+            //if (string.IsNullOrWhiteSpace(txtSellerRegNo.Text)) return false;
+            //if (string.IsNullOrWhiteSpace(txtBuyerRegNo.Text)) return false;
             // optional: require provinces if needed
             return true;
         }

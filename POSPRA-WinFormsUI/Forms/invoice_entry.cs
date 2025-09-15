@@ -8,6 +8,8 @@ namespace POSPRA_WinFormsUI
 {
     public partial class InvoiceEntry : Form
     {
+        private readonly IServiceProvider _provider;
+
         // original bounds and parent sizes (captured once at startup)
         private readonly Dictionary<Control, Rectangle> _originalBounds = new Dictionary<Control, Rectangle>();
         private readonly Dictionary<Control, Size> _originalParentSizes = new Dictionary<Control, Size>();
@@ -21,17 +23,19 @@ namespace POSPRA_WinFormsUI
         }
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public static bool Proceeded { get; set; } = false;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public static Invoice CurrentInvoice { get; set; }
 
 
-        public InvoiceEntry(IFiscalService fiscalService)
+        public InvoiceEntry(IServiceProvider provider)
         {
             InitializeComponent();
+            _provider = provider;
 
 
             // keep behavior you had
             InvoiceEntry_Load();
-            _fiscalService = fiscalService;
+         
 
 
             // Event handlers

@@ -2,13 +2,16 @@
 {
     public partial class DashboardForm : Form
     {
-        public DashboardForm()
+        private readonly IServiceProvider _provider;
+
+        public DashboardForm(IServiceProvider provider)
         {
             this.FormBorderStyle = FormBorderStyle.None;
             this.ControlBox = false;
             this.ShowIcon = false;
             this.Text = string.Empty;
             InitializeComponent();
+            _provider = provider;
         }
 
         private void LogoutUser(object sender, EventArgs e)

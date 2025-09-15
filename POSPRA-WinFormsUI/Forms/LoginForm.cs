@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using POSPRA.Application.Services.UserService;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -14,8 +16,13 @@ namespace POSPRA_WinFormsUI.Forms
 {
     public partial class LoginForm : Form
     {
-        public LoginForm()
+       // private readonly IUserService _userService; // inject only what you need
+        private readonly IServiceProvider _provider;
+        public LoginForm(IServiceProvider provider)
         {
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+           // _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+
             //MessageBox.Show($"Current Font: {this.Font.Name}");
             InitializeComponent();
             this.AcceptButton = btnLogin; // Pressing Enter triggers login
@@ -53,10 +60,10 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (enteredUsername == configUsername && enteredPassword == configPassword)
                 {
-                    MessageBox.Show("Login successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // MessageBox.Show("Login successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     // Open DashboardForm
-                    Main dashboard = new Main();
+                    var dashboard = _provider.GetRequiredService<Main>();
                     dashboard.Show();
 
                     // Hide the current login form

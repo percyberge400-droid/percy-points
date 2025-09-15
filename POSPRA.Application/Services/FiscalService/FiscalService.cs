@@ -28,6 +28,10 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly SendModelToServer _sendModelToServer;
         private readonly AutoMapper.IMapper _mapper;
 
+        public FiscalService()
+        {
+        }
+
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
             IFiscalRepository fileRecordRepository,
