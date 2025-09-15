@@ -10,10 +10,8 @@ namespace POSPRA.Repositories.BaseRepository
     {
         public SqlServerRepository(SqlServerDbContext context) : base(context) { }
 
-        public async Task<List<T>> ExecuteProcedureAsync<T>(
-     string procedureName,
-     Func<DbDataReader, T>? map = null,          // optional mapper
-     SqlParameter[]? parameters = null)
+        public async Task<List<T>> ExecuteProcedureAsync<T>(string procedureName, Func<DbDataReader, T>? map = null,          // optional mapper
+        SqlParameter[]? parameters = null)
         {
             if (string.IsNullOrWhiteSpace(procedureName))
                 throw new ArgumentException("Procedure name cannot be null or empty.", nameof(procedureName));
