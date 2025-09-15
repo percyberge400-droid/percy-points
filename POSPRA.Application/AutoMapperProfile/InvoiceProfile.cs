@@ -15,6 +15,10 @@ namespace POSPRA.Application.AutoMapperProfile
 
             CreateMap<Dictionary<string, object>, ResponseConfigurationDto>()
               .ConvertUsing<DictionaryToDtoConverter<ResponseConfigurationDto>>();
+
+            // ✅ Add this for POSVerificationDTO
+            CreateMap<Dictionary<string, object>, POSVerificationDTO>()
+                .ConvertUsing<DictionaryToDtoConverter<POSVerificationDTO>>();
         }
     }
 }
