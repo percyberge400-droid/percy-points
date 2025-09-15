@@ -1,5 +1,6 @@
 ﻿using POSPRA.Application.Services.FiscalService;
 using POSPRA.Domain.Entities;
+using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs.InvoiceDTOs;
 using System.Drawing.Drawing2D;
 
@@ -18,13 +19,11 @@ namespace POSPRA_WinFormsUI
 
         // Session data (persisted across instances)
         private static List<InvoiceItemDetail> _sessionItems = new List<InvoiceItemDetail>();
-        private static ItemEntryFormState _sessionFormState = new ItemEntryFormState();
 
         // Current invoice & item list
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItemDetail> addedItems;
         private readonly IFiscalService _fiscalService;
-
 
         #endregion
 
@@ -39,9 +38,6 @@ namespace POSPRA_WinFormsUI
             // Use static session list
             addedItems = _sessionItems;
 
-            // Restore previous session state & grid items
-            RestoreSessionState();
-
             // UI & event wiring
             this.Resize += Item_entry_Resize;
             pnlBasicInfo.Resize += (s, e) => MakeRoundedControl(pnlBasicInfo, 25);
@@ -49,235 +45,12 @@ namespace POSPRA_WinFormsUI
             btnProceed.Click += BtnProceed_Click;      // Add / Update item behaviour (kept name: Proceed)
             btnSave.Click += BtnSave_Click;            // Persist invoice + items
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
-            chkSaleInvoice.CheckedChanged += ChkSaleInvoice_CheckedChanged;
-            chkDebitInvoice.CheckedChanged += ChkDebitInvoice_CheckedChanged;
             chkRegistered.CheckedChanged += ChkRegistered_CheckedChanged;
             chkUnregistered.CheckedChanged += ChkUnregistered_CheckedChanged;
 
             SetupContextMenu();
             CaptureOriginalLayout();
 
-            // Persist session on close / deactivate
-            this.FormClosing += Item_entry_FormClosing;
-            this.Leave += Item_entry_Leave;
-            this.Deactivate += Item_entry_Deactivate;
-        }
-
-        #endregion
-
-        #region Session Management
-
-        /// <summary>
-        /// Small DTO to hold the visible header fields to restore the form later.
-        /// </summary>
-        public class ItemEntryFormState
-        {
-            public string ProductCode { get; set; } = "";
-            public string UOM { get; set; } = "";
-            public string Rate { get; set; } = "";
-            public string ProductDescription { get; set; } = "";
-            public string TotalValues { get; set; } = "";
-            public string SalesTaxApplicable { get; set; } = "";
-            public string ExtraTax { get; set; } = "";
-            public string FurtherTax { get; set; } = "";
-            public string SroScheduleNo { get; set; } = "";
-            public string HsCode { get; set; } = "";
-            public string Quantity { get; set; } = "";
-            public string RetailPrice { get; set; } = "";
-            public string FedPayable { get; set; } = "";
-            public string SaleType { get; set; } = "";
-            public string ValueSalesExcludingST { get; set; } = "";
-            public string STWithheldAtSource { get; set; } = "";
-            public string CVT { get; set; } = "";
-            public string WHIT_1 { get; set; } = "";
-            public string WHIT_2 { get; set; } = "";
-            public string WHIT_Section_1 { get; set; } = "";
-
-            // Invoice header-related state (from InvoiceEntry)
-            public DateTime InvoiceDate { get; set; } = DateTime.Now;
-            public bool SaleInvoiceChecked { get; set; } = true;
-            public bool DebitInvoiceChecked { get; set; } = false;
-            public bool RegisteredChecked { get; set; } = true;
-            public bool UnregisteredChecked { get; set; } = false;
-            public string SellerBusiness { get; set; } = "";
-            public string SellerRegNo { get; set; } = "";
-            public string BuyerBusiness { get; set; } = "";
-            public string BuyerAddress { get; set; } = "";
-            public string BuyerRegNo { get; set; } = "";
-            public string SellerProvince { get; set; } = "";
-            public string BuyerProvince { get; set; } = "";
-        }
-
-        private void SaveCurrentFormState()
-        {
-            try
-            {
-                // item fields
-                _sessionFormState.ProductCode = textBox1.Text;
-                _sessionFormState.UOM = uom.Text;
-                _sessionFormState.Rate = textBox3.Text;
-                _sessionFormState.ProductDescription = textBox11.Text;
-                _sessionFormState.TotalValues = textBox4.Text;
-                _sessionFormState.SalesTaxApplicable = textBox5.Text;
-                _sessionFormState.ExtraTax = textBox6.Text;
-                _sessionFormState.FurtherTax = textBox7.Text;
-                _sessionFormState.SroScheduleNo = srosche.Text;
-                _sessionFormState.HsCode = hscode.Text;
-                _sessionFormState.Quantity = qty.Text;
-                _sessionFormState.RetailPrice = mrp.Text;
-                _sessionFormState.FedPayable = fed.Text;
-                _sessionFormState.SaleType = saletype.Text;
-                _sessionFormState.ValueSalesExcludingST = SalesValueExclST.Text;
-                _sessionFormState.STWithheldAtSource = STWithheld.Text;
-                _sessionFormState.CVT = Discount.Text; // Mapping Discount to CVT
-                _sessionFormState.WHIT_Section_1 = SROScheduleNo.Text;
-
-                // invoice header fields
-                _sessionFormState.InvoiceDate = txtInvoiceDate.Value;
-                _sessionFormState.SaleInvoiceChecked = chkSaleInvoice.Checked;
-                _sessionFormState.DebitInvoiceChecked = chkDebitInvoice.Checked;
-                _sessionFormState.RegisteredChecked = chkRegistered.Checked;
-                _sessionFormState.UnregisteredChecked = chkUnregistered.Checked;
-                _sessionFormState.SellerBusiness = txtSellerBusiness.Text;
-                _sessionFormState.SellerRegNo = txtSellerRegNo.Text;
-                _sessionFormState.BuyerBusiness = txtBuyerBusiness.Text;
-                _sessionFormState.BuyerAddress = txtBuyerAddress.Text;
-                _sessionFormState.BuyerRegNo = txtBuyerRegNo.Text;
-                _sessionFormState.SellerProvince = cmbSellerProvince.SelectedItem?.ToString() ?? "";
-                _sessionFormState.BuyerProvince = cmbBuyerProvince.SelectedItem?.ToString() ?? "";
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error saving form state: {ex.Message}");
-            }
-        }
-
-        private void RestoreSessionState()
-        {
-            try
-            {
-                // Restore item fields
-                textBox1.Text = _sessionFormState.ProductCode;
-                uom.Text = _sessionFormState.UOM;
-                textBox3.Text = _sessionFormState.Rate;
-                textBox11.Text = _sessionFormState.ProductDescription;
-                textBox4.Text = _sessionFormState.TotalValues;
-                textBox5.Text = _sessionFormState.SalesTaxApplicable;
-                textBox6.Text = _sessionFormState.ExtraTax;
-                textBox7.Text = _sessionFormState.FurtherTax;
-                srosche.Text = _sessionFormState.SroScheduleNo;
-                hscode.Text = _sessionFormState.HsCode;
-                qty.Text = _sessionFormState.Quantity;
-                mrp.Text = _sessionFormState.RetailPrice;
-                fed.Text = _sessionFormState.FedPayable;
-                saletype.Text = _sessionFormState.SaleType;
-                SalesValueExclST.Text = _sessionFormState.ValueSalesExcludingST;
-                STWithheld.Text = _sessionFormState.STWithheldAtSource;
-                Discount.Text = _sessionFormState.CVT;
-                SROScheduleNo.Text = _sessionFormState.WHIT_Section_1;
-
-                // Restore invoice header
-                txtInvoiceDate.Value = _sessionFormState.InvoiceDate;
-                chkSaleInvoice.Checked = _sessionFormState.SaleInvoiceChecked;
-                chkDebitInvoice.Checked = _sessionFormState.DebitInvoiceChecked;
-                chkRegistered.Checked = _sessionFormState.RegisteredChecked;
-                chkUnregistered.Checked = _sessionFormState.UnregisteredChecked;
-
-                txtSellerBusiness.Text = _sessionFormState.SellerBusiness;
-                txtSellerRegNo.Text = _sessionFormState.SellerRegNo;
-                txtBuyerBusiness.Text = _sessionFormState.BuyerBusiness;
-                txtBuyerAddress.Text = _sessionFormState.BuyerAddress;
-                txtBuyerRegNo.Text = _sessionFormState.BuyerRegNo;
-
-                if (!string.IsNullOrWhiteSpace(_sessionFormState.SellerProvince))
-                {
-                    if (cmbSellerProvince.Items.Contains(_sessionFormState.SellerProvince))
-                        cmbSellerProvince.SelectedItem = _sessionFormState.SellerProvince;
-                }
-
-                if (!string.IsNullOrWhiteSpace(_sessionFormState.BuyerProvince))
-                {
-                    if (cmbBuyerProvince.Items.Contains(_sessionFormState.BuyerProvince))
-                        cmbBuyerProvince.SelectedItem = _sessionFormState.BuyerProvince;
-                }
-
-                // Restore grid items
-                RestoreGridItems();
-
-                // Update totals label
-                lblTotalItems.Text = $"Total {addedItems.Count} items";
-
-                // Focus first input if nothing entered
-                if (string.IsNullOrEmpty(_sessionFormState.ProductCode))
-                    textBox1.Focus();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error restoring session state: {ex.Message}");
-                InitializeEmptyGrid();
-            }
-        }
-
-        private void RestoreGridItems()
-        {
-            try
-            {
-                dataGridView1.Rows.Clear();
-
-                for (int i = 0; i < addedItems.Count; i++)
-                {
-                    var item = addedItems[i];
-                    string srNo = (i + 1).ToString("D2");
-
-                    dataGridView1.Rows.Add(
-                        srNo,
-                        item.ProductCode,
-                        item.ProductDescription,
-                        item.UoM.ToString(),
-                        item.Rate.ToString("F2"),
-                        item.ValueSalesExcludingST.ToString("F2"),
-                        item.SalesTaxApplicable.ToString("F2"),
-                        item.Quantity.ToString()
-                    );
-                }
-            }
-            catch
-            {
-                // fallback
-                InitializeEmptyGrid();
-            }
-        }
-
-        /// <summary>
-        /// Clear the entire session (both grid and form data)
-        /// </summary>
-        public static void ClearSession()
-        {
-            _sessionItems.Clear();
-            _sessionFormState = new ItemEntryFormState();
-        }
-
-        /// <summary>
-        /// Get current session item count
-        /// </summary>
-        public static int GetSessionItemCount()
-        {
-            return _sessionItems.Count;
-        }
-
-        private void Item_entry_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            SaveCurrentFormState();
-        }
-
-        private void Item_entry_Leave(object sender, EventArgs e)
-        {
-            SaveCurrentFormState();
-        }
-
-        private void Item_entry_Deactivate(object sender, EventArgs e)
-        {
-            SaveCurrentFormState();
         }
 
         #endregion
@@ -288,7 +61,7 @@ namespace POSPRA_WinFormsUI
         {
             dataGridView1.Rows.Clear();
             lblTotalItems.Text = "Total 0 items";
-            textBox1.Focus();
+            ProductCode.Focus();
         }
 
         private void SetupContextMenu()
@@ -305,24 +78,26 @@ namespace POSPRA_WinFormsUI
         {
             return new InvoiceItemDetail
             {
-                ProductCode = textBox1.Text.Trim(),
+                ProductCode = ProductCode.Text.Trim(),
                 UoM = int.TryParse(uom.Text, out var uomVal) ? uomVal : 0,
-                Rate = decimal.TryParse(textBox3.Text, out var rate) ? rate : 0m,
-                ProductDescription = textBox11.Text.Trim(),
-                TotalValues = decimal.TryParse(textBox4.Text, out var totalVal) ? totalVal : 0m,
-                SalesTaxApplicable = decimal.TryParse(textBox5.Text, out var salesTax) ? salesTax : 0m,
-                ExtraTax = decimal.TryParse(textBox6.Text, out var extraTax) ? extraTax : 0m,
-                FurtherTax = decimal.TryParse(textBox7.Text, out var furtherTax) ? furtherTax : 0m,
-                SroScheduleNo = int.TryParse(srosche.Text, out var sroVal) ? sroVal : (int?)null,
+                Rate = decimal.TryParse(rate.Text, out var rateVal) ? rateVal : 0m,
+                ProductDescription = ProductDescription.Text.Trim(),
+                TotalValues = decimal.TryParse(TotalValue.Text, out var totalVal) ? totalVal : 0m,
+                SalesTaxApplicable = decimal.TryParse(SalesTaxApplicable.Text, out var salesTax) ? salesTax : 0m,
+                ExtraTax = decimal.TryParse(extratax.Text, out var extraTax) ? extraTax : (decimal?)null,
+                FurtherTax = decimal.TryParse(furturetax.Text, out var furtherTax) ? furtherTax : (decimal?)null,
+                SroScheduleNo = int.TryParse(SroScheduleNo.Text, out var sroVal) ? sroVal : (int?)null,
                 HSCode = hscode.Text.Trim(),
                 Quantity = decimal.TryParse(qty.Text, out var qtyVal) ? qtyVal : 0m,
-                RetailPrice = decimal.TryParse(mrp.Text, out var retailPrice) ? retailPrice : 0m,
+                RetailPrice = decimal.TryParse(RetailPrice.Text, out var retailPrice) ? retailPrice : 0m,
                 FedPayable = decimal.TryParse(fed.Text, out var fedVal) ? fedVal : (decimal?)null,
                 ValueSalesExcludingST = decimal.TryParse(SalesValueExclST.Text, out var exclST) ? exclST : 0m,
-                STWithheldAtSource = decimal.TryParse(STWithheld.Text, out var stWithheld) ? stWithheld : (decimal?)null,
-                CVT = decimal.TryParse(Discount.Text, out var cvt) ? cvt : (decimal?)null,
-                WHIT_Section_1 = SROScheduleNo.Text.Trim(),
-                // WHIT_1, WHIT_2, WHIT_Section_2 left as default/null if not present
+                STWithheldAtSource = decimal.TryParse(SalesTaxWithheldatSource.Text, out var stWithheld) ? stWithheld : (decimal?)null,
+                CVT = decimal.TryParse(cvt.Text, out var cvtVal) ? cvtVal : (decimal?)null,
+                WHIT_1 = decimal.TryParse(whit1.Text, out var whit1Val) ? whit1Val : (decimal?)null,
+                WHIT_2 = decimal.TryParse(whit2.Text, out var whit2Val) ? whit2Val : (decimal?)null,
+                WHIT_Section_1 = WHIT_Section_1.Text.Trim(),
+                WHIT_Section_2 = WHIT_Section_2.Text.Trim(),
             };
         }
 
@@ -332,7 +107,7 @@ namespace POSPRA_WinFormsUI
             if (string.IsNullOrWhiteSpace(inputData.ProductCode))
             {
                 MessageBox.Show("Please enter a Product Code.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                textBox1.Focus();
+                ProductCode.Focus();
                 return false;
             }
 
@@ -348,7 +123,7 @@ namespace POSPRA_WinFormsUI
             if (inputData.Rate <= 0)
             {
                 MessageBox.Show("Please enter a valid Rate greater than 0.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                textBox3.Focus();
+                rate.Focus();
                 return false;
             }
 
@@ -356,7 +131,7 @@ namespace POSPRA_WinFormsUI
             if (string.IsNullOrWhiteSpace(inputData.ProductDescription))
             {
                 MessageBox.Show("Please enter a Product Description.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                textBox11.Focus();
+                ProductDescription.Focus();
                 return false;
             }
 
@@ -423,7 +198,7 @@ namespace POSPRA_WinFormsUI
                     }
                     else
                     {
-                        textBox1.Focus();
+                        ProductCode.Focus();
                         return;
                     }
                 }
@@ -450,7 +225,7 @@ namespace POSPRA_WinFormsUI
                 ClearFormFields();
 
                 MessageBox.Show($"Item '{inputData.ProductCode}' added/updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                textBox1.Focus();
+                ProductCode.Focus();
             }
             catch (Exception ex)
             {
@@ -469,7 +244,7 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                // 🔒 Ensure invoice header is filled before saving
+                // Ensure invoice header is filled before saving
                 if (!AreInvoiceFieldsValid())
                 {
                     MessageBox.Show("Invoice header is incomplete. Please fill in the invoice header before saving.",
@@ -511,22 +286,22 @@ namespace POSPRA_WinFormsUI
                 // Map Invoice -> InvoiceDto
                 var dto = new InvoiceDto
                 {
-                    BPOSID = CurrentInvoice?.BPOSID ?? 0,
-                    InvoiceType = CurrentInvoice?.InvoiceType ?? 0,
+                    BPOSID = int.TryParse(posid.Text, out var bposId) ? bposId : GlobalVariables.POS_ID,
+                    InvoiceType = chkRegistered.Checked ? (short)1 : (chkUnregistered.Checked ? (short)2 : (short)0),
                     InvoiceDate = CurrentInvoice?.InvoiceDate ?? DateTime.Now,
-                    NTN_CNIC = CurrentInvoice?.NTN_CNIC,
-                    BuyerSellerName = CurrentInvoice?.BuyerSellerName,
-                    DestinationAddress = CurrentInvoice?.DestinationAddress,
-                    SaleType = CurrentInvoice?.SaleType ?? 0,
-                    TotalSalesTaxApplicable = CurrentInvoice?.TotalSalesTaxApplicable,
-                    TotalRetailPrice = CurrentInvoice?.TotalRetailPrice ?? itemDtos.Sum(x => x.RetailPrice),
-                    TotalSTWithheldAtSource = CurrentInvoice?.TotalSTWithheldAtSource,
-                    TotalExtraTax = CurrentInvoice?.TotalExtraTax,
-                    TotalFEDPayable = CurrentInvoice?.TotalFEDPayable,
-                    TotalWithheldIncomeTax = CurrentInvoice?.TotalWithheldIncomeTax,
-                    TotalCVT = CurrentInvoice?.TotalCVT,
-                    Distributor_NTN_CNIC = CurrentInvoice?.Distributor_NTN_CNIC,
-                    DistributorName = CurrentInvoice?.DistributorName,
+                    NTN_CNIC = sellerntn.Text,
+                    BuyerSellerName = sellerBname.Text,
+                    DestinationAddress = DestinationAddress.Text,
+                    SaleType = int.TryParse(saletype.Text, out var saleType) ? saleType : 0,
+                    TotalSalesTaxApplicable = decimal.TryParse(SalesTaxApplicable.Text, out var st) ? st : 0,
+                    TotalRetailPrice = decimal.TryParse(RetailPrice.Text, out var retail) ? retail : itemDtos.Sum(x => x.RetailPrice),
+                    TotalSTWithheldAtSource = decimal.TryParse(TotalSTWithheld.Text, out var withheld) ? withheld : 0,
+                    TotalExtraTax = decimal.TryParse(extratax.Text, out var extraTax) ? extraTax : 0,
+                    TotalFEDPayable = decimal.TryParse(TotalFEDPayable.Text, out var fed) ? fed : 0,
+                    TotalWithheldIncomeTax = decimal.TryParse(TotalWithheldIncomeTax.Text, out var incomeTax) ? incomeTax : 0,
+                    TotalCVT = decimal.TryParse(TotalCVT.Text, out var cvt) ? cvt : 0,
+                    Distributor_NTN_CNIC = buyerntn.Text,
+                    DistributorName = buyerBname.Text,
                     InvoiceItemDetails = itemDtos
                 };
 
@@ -555,7 +330,6 @@ namespace POSPRA_WinFormsUI
             }
         }
 
-
         #endregion
 
         #region Grid Edit / Remove Helpers
@@ -582,10 +356,10 @@ namespace POSPRA_WinFormsUI
             var row = dataGridView1.Rows[rowIndex];
 
             // Load data back into form fields
-            textBox1.Text = row.Cells["colInvoice"].Value?.ToString() ?? "";           // Product Code
-            textBox11.Text = row.Cells["colPosId"].Value?.ToString() ?? "";           // Product Description
+            ProductCode.Text = row.Cells["colInvoice"].Value?.ToString() ?? "";           // Product Code
+            ProductDescription.Text = row.Cells["colPosId"].Value?.ToString() ?? "";           // Product Description
             uom.Text = row.Cells["colInvoiceSynced"].Value?.ToString() ?? "";         // UOM
-            textBox3.Text = row.Cells["colDueDate"].Value?.ToString() ?? "";          // Rate
+            rate.Text = row.Cells["colDueDate"].Value?.ToString() ?? "";          // Rate
             SalesValueExclST.Text = row.Cells["colStatus"].Value?.ToString() ?? "";   // Sales Excl ST
             qty.Text = row.Cells["colQuantity"].Value?.ToString() ?? "";              // Quantity
 
@@ -598,32 +372,35 @@ namespace POSPRA_WinFormsUI
 
             UpdateSerialNumbers();
             lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
-            textBox1.Focus();
+            ProductCode.Focus();
         }
 
         private void ClearFormFields()
         {
-            textBox1.Clear();       // Product Code
+            ProductCode.Clear();       // Product Code
             uom.Clear();            // UOM
-            textBox3.Clear();       // Rate
-            textBox4.Clear();       // Total Values
-            textBox5.Clear();       // Sales Tax Applicable
-            textBox6.Clear();       // Extra Tax
-            textBox7.Clear();       // Further Tax
+            rate.Clear();       // Rate
+            textBox4.Clear();       // Total Values (mapped to TotalValue in designer)
+            textBox5.Clear();       // Sales Tax Applicable (mapped to SalesTaxApplicable in designer)
+            extratax.Clear();       // Extra Tax
+            furturetax.Clear();       // Further Tax
             hscode.Clear();         // HS Code
             qty.Clear();            // Quantity
-            mrp.Clear();            // Retail Price
+            RetailPrice.Clear();            // Retail Price
             fed.Clear();            // FED Payable
-            saletype.Clear();       // Sale Type
-            srosche.Clear();        // SRO Schedule No
-            SROScheduleNo.Clear();  // WHIT Section 1
-            textBox11.Clear();      // Product Description
+            SaleType.Clear();       // Sale Type
+            SroScheduleNo.Clear();        // SRO Schedule No
+            ProductDescription.Clear();      // Product Description
             SalesValueExclST.Clear(); // Value Sales Excluding ST
-            STWithheld.Clear();     // ST Withheld at Source
-            Discount.Clear();       // CVT
+            SalesTaxWithheldatSource.Clear();     // ST Withheld at Source
+            cvt.Clear();       // CVT
+            whit1.Clear();          // WHIT-1
+            whit2.Clear();          // WHIT-2
+            WHIT_Section_1.Clear();  // WHIT Section-1
+            WHIT_Section_2.Clear();  // WHIT Section-2
+            TotalValue.Clear();      // Total Value
+            SalesTaxApplicable.Clear(); // Sales Tax Applicable
 
-            // Also update the session form state
-            _sessionFormState = new ItemEntryFormState();
         }
 
         private void RemoveSelectedItem()
@@ -811,42 +588,29 @@ namespace POSPRA_WinFormsUI
         {
             return new Invoice
             {
-                InvoiceType = chkSaleInvoice.Checked ? (short)1 : (short)2,
-                InvoiceDate = txtInvoiceDate.Value,
-                BuyerSellerName = txtBuyerBusiness.Text,
-                DestinationAddress = txtBuyerAddress.Text,
-                NTN_CNIC = txtBuyerRegNo.Text,
-                DistributorName = txtSellerBusiness.Text,
-                Distributor_NTN_CNIC = txtSellerRegNo.Text,
-                SaleType = chkRegistered.Checked ? 1 : 2,
-                TotalRetailPrice = 0 // will be computed by service or set before save
+                //InvoiceType = chkSaleInvoice.Checked ? (short)1 : (short)2,
+                //InvoiceDate = txtInvoiceDate.Value,
+                //BuyerSellerName = txtBuyerBusiness.Text,
+                //DestinationAddress = txtBuyerAddress.Text,
+                //NTN_CNIC = txtBuyerRegNo.Text,
+                //DistributorName = txtSellerBusiness.Text,
+                //Distributor_NTN_CNIC = txtSellerRegNo.Text,
+                //SaleType = chkRegistered.Checked ? 1 : 2,
+                //TotalRetailPrice = 0 // will be computed by service or set before save
             };
         }
 
         private bool AreInvoiceFieldsValid()
         {
-            // Basic checks for header completeness (loose - adjust if you want stricter)
-            if (!chkSaleInvoice.Checked && !chkDebitInvoice.Checked) return false;
+            //// Basic checks for header completeness (loose - adjust if you want stricter)
             if (!chkRegistered.Checked && !chkUnregistered.Checked) return false;
-            if (string.IsNullOrWhiteSpace(txtSellerBusiness.Text)) return false;
-            if (string.IsNullOrWhiteSpace(txtBuyerBusiness.Text)) return false;
-            if (string.IsNullOrWhiteSpace(txtSellerRegNo.Text)) return false;
-            if (string.IsNullOrWhiteSpace(txtBuyerRegNo.Text)) return false;
-            // optional: require provinces if needed
+            if (string.IsNullOrWhiteSpace(posid.Text)) return false;
+            if (string.IsNullOrWhiteSpace(buyerntn.Text)) return false;
+            if (string.IsNullOrWhiteSpace(sellerBname.Text)) return false;
+            if (string.IsNullOrWhiteSpace(buyerBname.Text)) return false;
+            //// optional: require provinces if needed
             return true;
         }
-
-        // Toggle handlers that you might wire in designer or in constructor (if not wired via designer)
-        private void ChkSaleInvoice_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkSaleInvoice.Checked) chkDebitInvoice.Checked = false;
-        }
-
-        private void ChkDebitInvoice_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkDebitInvoice.Checked) chkSaleInvoice.Checked = false;
-        }
-
         private void ChkRegistered_CheckedChanged(object sender, EventArgs e)
         {
             if (chkRegistered.Checked) chkUnregistered.Checked = false;
@@ -867,5 +631,10 @@ namespace POSPRA_WinFormsUI
         }
 
         #endregion
+
+        private void extratax_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

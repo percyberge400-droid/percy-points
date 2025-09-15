@@ -151,9 +151,9 @@
             label1.ForeColor = Color.DimGray;
             label1.Location = new Point(46, 184);
             label1.Name = "label1";
-            label1.Size = new Size(76, 19);
+            label1.Size = new Size(55, 19);
             label1.TabIndex = 1;
-            label1.Text = "Username";
+            label1.Text = "POS ID";
             // 
             // pictureBox1
             // 
@@ -206,7 +206,7 @@
             txtUsername.Font = new Font("Microsoft Sans Serif", 9F);
             txtUsername.Location = new Point(46, 207);
             txtUsername.Name = "txtUsername";
-            txtUsername.PlaceholderText = "user@pral.com.pk";
+            txtUsername.PlaceholderText = "123456";
             txtUsername.Size = new Size(308, 24);
             txtUsername.TabIndex = 0;
             // 

@@ -1,13 +1,17 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using Microsoft.Extensions.DependencyInjection;
+using POSPRA.Application.Services.FiscalService;
 
 namespace POSPRA_WinFormsUI.Forms
 {
     public partial class Main : Form
     {
+        private readonly IServiceProvider _provider;
         private readonly IFiscalService _fiscalService;
-        public Main()
+        public Main(IServiceProvider provider, IFiscalService fiscalService)
         {
             InitializeComponent();
+            _provider = provider;
+            _fiscalService = fiscalService;
 
             this.IsMdiContainer = true;
 
@@ -17,7 +21,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#686DF4"); // Highlight color
 
-            Form childForm = new DashboardForm();
+            Form childForm = _provider.GetRequiredService<DashboardForm>();
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
@@ -58,16 +62,14 @@ namespace POSPRA_WinFormsUI.Forms
             switch (v)
             {
                 case "Dashboard":
-                    childForm = new DashboardForm();
-                    break;
+                    childForm = _provider.GetRequiredService<DashboardForm>(); break;
 
                 case "Invoice Selection":
-                    childForm = new InvoiceEntry(_fiscalService);
+                    //childForm = new invoice_entry(_fiscalService);
                     break;
 
                 case "Invoice Entry":
-                    childForm = new item_entry(_fiscalService);
-                    break;
+                    childForm = _provider.GetRequiredService<item_entry>(); break;
 
                 case "Invoice Export":
                     // Uncomment when ready

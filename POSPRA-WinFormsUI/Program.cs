@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
@@ -47,8 +47,12 @@ namespace POSPRA_WinFormsUI
             services.AddDbContext<SqlServerDbContext>(opt =>
                 opt.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
-            // AutoMapper
-            services.AddAutoMapper(cfg => cfg.AddProfile<UserProfile>());
+            // AutoMapper (register all profiles in assembly)
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<UserProfile>();
+                cfg.AddProfile<InvoiceProfile>();
+            });
 
             // Repositories & UnitOfWork
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
@@ -64,23 +68,29 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<SendModelToServer>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPosService, PosService>();
+            services.AddScoped<IFiscalService, FiscalService>();
+            // Register HttpClient + IHttpService
+            services.AddHttpClient<IHttpService, HttpService>(); // <-- FIX (needed by SendModelToServer)
+            services.AddScoped<SendModelToServer>();
 
-            // AppSettings for DI
-            services.AddScoped<IOptions<AppSettings>>(sp =>
-                Options.Create(configuration.GetSection("AppSettings").Get<AppSettings>()));
+            // AppSettings (Options pattern)
+            services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 
-            // FiscalService
-            services.AddTransient<IFiscalService, FiscalService>();
-
-            // Forms
+            // Forms (use DI)
             services.AddTransient<LoginForm>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
             services.AddTransient<item_entry>();
-            // Initialize WinForms
-            ApplicationConfiguration.Initialize();
+
+            // Build provider
             using var provider = services.BuildServiceProvider();
+
+            // Start WinForms
+            ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            // Resolve login form from DI
             var loginForm = provider.GetRequiredService<LoginForm>();
             Application.Run(loginForm);
         }
