@@ -5,69 +5,70 @@ using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
 {
-
     public partial class item_entry : Form
     {
-        // Original bounds, parent sizes, and fonts (for responsive logic)
+        #region Fields
+
+        // Responsive layout capture
         private readonly Dictionary<Control, Rectangle> _originalBounds = new Dictionary<Control, Rectangle>();
         private readonly Dictionary<Control, Size> _originalParentSizes = new Dictionary<Control, Size>();
         private readonly Dictionary<Control, Font> _originalFonts = new Dictionary<Control, Font>();
         private Size _originalClientSize = Size.Empty;
         private bool _originalLayoutCaptured = false;
 
-        // Static session data to persist across form instances
+        // Session data (persisted across instances)
         private static List<InvoiceItemDetail> _sessionItems = new List<InvoiceItemDetail>();
         private static ItemEntryFormState _sessionFormState = new ItemEntryFormState();
 
-        // Instance reference to session data
+        // Current invoice & item list
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItemDetail> addedItems;
         private readonly IFiscalService _fiscalService;
 
-        private readonly Invoice _invoice;
 
+        #endregion
 
-        public item_entry(IFiscalService fiscalService, Invoice invoice)
+        #region Constructor / Initialization
+
+        public item_entry(IFiscalService fiscalService)
         {
             InitializeComponent();
 
-            // Use static session data
+            _fiscalService = fiscalService;
+
+            // Use static session list
             addedItems = _sessionItems;
 
-            // Restore previous session state
+            // Restore previous session state & grid items
             RestoreSessionState();
 
-            // UI event wiring
+            // UI & event wiring
             this.Resize += Item_entry_Resize;
             pnlBasicInfo.Resize += (s, e) => MakeRoundedControl(pnlBasicInfo, 25);
 
-            btnProceed.Click += BtnProceed_Click;
-
-            // Save button (must exist in designer)
-            btnSave.Click += BtnSave_Click;
-
-            // Grid editing & context menu
+            btnProceed.Click += BtnProceed_Click;      // Add / Update item behaviour (kept name: Proceed)
+            btnSave.Click += BtnSave_Click;            // Persist invoice + items
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
-            SetupContextMenu();
+            chkSaleInvoice.CheckedChanged += ChkSaleInvoice_CheckedChanged;
+            chkDebitInvoice.CheckedChanged += ChkDebitInvoice_CheckedChanged;
+            chkRegistered.CheckedChanged += ChkRegistered_CheckedChanged;
+            chkUnregistered.CheckedChanged += ChkUnregistered_CheckedChanged;
 
+            SetupContextMenu();
             CaptureOriginalLayout();
 
-            // Save form state when form is closing or losing focus
+            // Persist session on close / deactivate
             this.FormClosing += Item_entry_FormClosing;
             this.Leave += Item_entry_Leave;
             this.Deactivate += Item_entry_Deactivate;
-            _fiscalService=fiscalService;
-
-            _invoice = invoice;
-
-            CurrentInvoice = invoice;   // <--- THIS WAS MISSING
-
         }
+
+        #endregion
 
         #region Session Management
 
         /// <summary>
-        /// Class to hold form state data
+        /// Small DTO to hold the visible header fields to restore the form later.
         /// </summary>
         public class ItemEntryFormState
         {
@@ -91,13 +92,27 @@ namespace POSPRA_WinFormsUI
             public string WHIT_1 { get; set; } = "";
             public string WHIT_2 { get; set; } = "";
             public string WHIT_Section_1 { get; set; } = "";
-            public string WHIT_Section_2 { get; set; } = "";
+
+            // Invoice header-related state (from InvoiceEntry)
+            public DateTime InvoiceDate { get; set; } = DateTime.Now;
+            public bool SaleInvoiceChecked { get; set; } = true;
+            public bool DebitInvoiceChecked { get; set; } = false;
+            public bool RegisteredChecked { get; set; } = true;
+            public bool UnregisteredChecked { get; set; } = false;
+            public string SellerBusiness { get; set; } = "";
+            public string SellerRegNo { get; set; } = "";
+            public string BuyerBusiness { get; set; } = "";
+            public string BuyerAddress { get; set; } = "";
+            public string BuyerRegNo { get; set; } = "";
+            public string SellerProvince { get; set; } = "";
+            public string BuyerProvince { get; set; } = "";
         }
 
         private void SaveCurrentFormState()
         {
             try
             {
+                // item fields
                 _sessionFormState.ProductCode = textBox1.Text;
                 _sessionFormState.UOM = uom.Text;
                 _sessionFormState.Rate = textBox3.Text;
@@ -116,10 +131,23 @@ namespace POSPRA_WinFormsUI
                 _sessionFormState.STWithheldAtSource = STWithheld.Text;
                 _sessionFormState.CVT = Discount.Text; // Mapping Discount to CVT
                 _sessionFormState.WHIT_Section_1 = SROScheduleNo.Text;
+
+                // invoice header fields
+                _sessionFormState.InvoiceDate = txtInvoiceDate.Value;
+                _sessionFormState.SaleInvoiceChecked = chkSaleInvoice.Checked;
+                _sessionFormState.DebitInvoiceChecked = chkDebitInvoice.Checked;
+                _sessionFormState.RegisteredChecked = chkRegistered.Checked;
+                _sessionFormState.UnregisteredChecked = chkUnregistered.Checked;
+                _sessionFormState.SellerBusiness = txtSellerBusiness.Text;
+                _sessionFormState.SellerRegNo = txtSellerRegNo.Text;
+                _sessionFormState.BuyerBusiness = txtBuyerBusiness.Text;
+                _sessionFormState.BuyerAddress = txtBuyerAddress.Text;
+                _sessionFormState.BuyerRegNo = txtBuyerRegNo.Text;
+                _sessionFormState.SellerProvince = cmbSellerProvince.SelectedItem?.ToString() ?? "";
+                _sessionFormState.BuyerProvince = cmbBuyerProvince.SelectedItem?.ToString() ?? "";
             }
             catch (Exception ex)
             {
-                // Log error if needed, but don't show to user during navigation
                 System.Diagnostics.Debug.WriteLine($"Error saving form state: {ex.Message}");
             }
         }
@@ -128,7 +156,7 @@ namespace POSPRA_WinFormsUI
         {
             try
             {
-                // Restore textbox values
+                // Restore item fields
                 textBox1.Text = _sessionFormState.ProductCode;
                 uom.Text = _sessionFormState.UOM;
                 textBox3.Text = _sessionFormState.Rate;
@@ -148,21 +176,43 @@ namespace POSPRA_WinFormsUI
                 Discount.Text = _sessionFormState.CVT;
                 SROScheduleNo.Text = _sessionFormState.WHIT_Section_1;
 
+                // Restore invoice header
+                txtInvoiceDate.Value = _sessionFormState.InvoiceDate;
+                chkSaleInvoice.Checked = _sessionFormState.SaleInvoiceChecked;
+                chkDebitInvoice.Checked = _sessionFormState.DebitInvoiceChecked;
+                chkRegistered.Checked = _sessionFormState.RegisteredChecked;
+                chkUnregistered.Checked = _sessionFormState.UnregisteredChecked;
+
+                txtSellerBusiness.Text = _sessionFormState.SellerBusiness;
+                txtSellerRegNo.Text = _sessionFormState.SellerRegNo;
+                txtBuyerBusiness.Text = _sessionFormState.BuyerBusiness;
+                txtBuyerAddress.Text = _sessionFormState.BuyerAddress;
+                txtBuyerRegNo.Text = _sessionFormState.BuyerRegNo;
+
+                if (!string.IsNullOrWhiteSpace(_sessionFormState.SellerProvince))
+                {
+                    if (cmbSellerProvince.Items.Contains(_sessionFormState.SellerProvince))
+                        cmbSellerProvince.SelectedItem = _sessionFormState.SellerProvince;
+                }
+
+                if (!string.IsNullOrWhiteSpace(_sessionFormState.BuyerProvince))
+                {
+                    if (cmbBuyerProvince.Items.Contains(_sessionFormState.BuyerProvince))
+                        cmbBuyerProvince.SelectedItem = _sessionFormState.BuyerProvince;
+                }
+
                 // Restore grid items
                 RestoreGridItems();
 
-                // Update total items label
+                // Update totals label
                 lblTotalItems.Text = $"Total {addedItems.Count} items";
 
-                // Focus on first textbox if no data exists
+                // Focus first input if nothing entered
                 if (string.IsNullOrEmpty(_sessionFormState.ProductCode))
-                {
                     textBox1.Focus();
-                }
             }
             catch (Exception ex)
             {
-                // If restore fails, initialize empty
                 System.Diagnostics.Debug.WriteLine($"Error restoring session state: {ex.Message}");
                 InitializeEmptyGrid();
             }
@@ -170,23 +220,31 @@ namespace POSPRA_WinFormsUI
 
         private void RestoreGridItems()
         {
-            dataGridView1.Rows.Clear();
-
-            for (int i = 0; i < addedItems.Count; i++)
+            try
             {
-                var item = addedItems[i];
-                string srNo = (i + 1).ToString("D2");
+                dataGridView1.Rows.Clear();
 
-                dataGridView1.Rows.Add(
-                    srNo,
-                    item.ProductCode,
-                    item.ProductDescription,
-                    item.UoM.ToString(),
-                    item.Rate.ToString("F2"),
-                    item.ValueSalesExcludingST.ToString("F2"),
-                    item.SalesTaxApplicable.ToString("F2"),
-                    item.Quantity.ToString()
-                );
+                for (int i = 0; i < addedItems.Count; i++)
+                {
+                    var item = addedItems[i];
+                    string srNo = (i + 1).ToString("D2");
+
+                    dataGridView1.Rows.Add(
+                        srNo,
+                        item.ProductCode,
+                        item.ProductDescription,
+                        item.UoM.ToString(),
+                        item.Rate.ToString("F2"),
+                        item.ValueSalesExcludingST.ToString("F2"),
+                        item.SalesTaxApplicable.ToString("F2"),
+                        item.Quantity.ToString()
+                    );
+                }
+            }
+            catch
+            {
+                // fallback
+                InitializeEmptyGrid();
             }
         }
 
@@ -224,6 +282,8 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
+        #region Grid / Item Helpers
+
         private void InitializeEmptyGrid()
         {
             dataGridView1.Rows.Clear();
@@ -253,16 +313,16 @@ namespace POSPRA_WinFormsUI
                 SalesTaxApplicable = decimal.TryParse(textBox5.Text, out var salesTax) ? salesTax : 0m,
                 ExtraTax = decimal.TryParse(textBox6.Text, out var extraTax) ? extraTax : 0m,
                 FurtherTax = decimal.TryParse(textBox7.Text, out var furtherTax) ? furtherTax : 0m,
-                SroScheduleNo = int.TryParse(srosche.Text, out var sroVal) ? sroVal : null,
+                SroScheduleNo = int.TryParse(srosche.Text, out var sroVal) ? sroVal : (int?)null,
                 HSCode = hscode.Text.Trim(),
                 Quantity = decimal.TryParse(qty.Text, out var qtyVal) ? qtyVal : 0m,
                 RetailPrice = decimal.TryParse(mrp.Text, out var retailPrice) ? retailPrice : 0m,
-                FedPayable = decimal.TryParse(fed.Text, out var fedVal) ? fedVal : null,
+                FedPayable = decimal.TryParse(fed.Text, out var fedVal) ? fedVal : (decimal?)null,
                 ValueSalesExcludingST = decimal.TryParse(SalesValueExclST.Text, out var exclST) ? exclST : 0m,
-                STWithheldAtSource = decimal.TryParse(STWithheld.Text, out var stWithheld) ? stWithheld : null,
-                CVT = decimal.TryParse(Discount.Text, out var cvt) ? cvt : null,
+                STWithheldAtSource = decimal.TryParse(STWithheld.Text, out var stWithheld) ? stWithheld : (decimal?)null,
+                CVT = decimal.TryParse(Discount.Text, out var cvt) ? cvt : (decimal?)null,
                 WHIT_Section_1 = SROScheduleNo.Text.Trim(),
-                // Note: WHIT_1, WHIT_2, WHIT_Section_2 would need additional form fields if required
+                // WHIT_1, WHIT_2, WHIT_Section_2 left as default/null if not present
             };
         }
 
@@ -319,17 +379,31 @@ namespace POSPRA_WinFormsUI
             return true;
         }
 
-        #region Button Handlers (Add / Save)
+        #endregion
+
+        #region Buttons: Proceed (Add/Update) & Save
+
+        // This is the merged "Proceed" logic: it collects invoice header (if not already) and adds/updates an item row
         private void BtnProceed_Click(object sender, EventArgs e)
         {
             try
             {
+                // Ensure invoice header is filled enough to create a CurrentInvoice
+                if (!AreInvoiceFieldsValid())
+                {
+                    var res = MessageBox.Show("Invoice header looks incomplete. Do you want to continue adding items anyway?", "Invoice Header", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (res == DialogResult.No) return;
+                }
+
+                // ensure CurrentInvoice updated with header values
+                CurrentInvoice = CollectInvoiceData();
+
                 InvoiceItemDetail inputData = GetTextboxData();
 
                 if (!ValidateItemEntry(inputData))
                     return;
 
-                // detect duplicate by ProductCode
+                // detect duplicate by ProductCode (column name in your DataGridView designer was "colInvoice")
                 var existingRow = dataGridView1.Rows
                     .Cast<DataGridViewRow>()
                     .FirstOrDefault(r => (r.Cells["colInvoice"].Value?.ToString() ?? "") == inputData.ProductCode);
@@ -341,7 +415,6 @@ namespace POSPRA_WinFormsUI
 
                     if (result == DialogResult.Yes)
                     {
-                        // update grid & in-memory list
                         int rowIndex = existingRow.Index;
                         UpdateExistingItem(existingRow, inputData);
 
@@ -385,7 +458,7 @@ namespace POSPRA_WinFormsUI
             }
         }
 
-        // Save button: persist session to DB
+        // Save button: persist invoice + session to service
         private async void BtnSave_Click(object sender, EventArgs e)
         {
             try
@@ -394,6 +467,20 @@ namespace POSPRA_WinFormsUI
                 {
                     MessageBox.Show("Please add at least one item before saving the invoice.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
+                }
+
+                // 🔒 Ensure invoice header is filled before saving
+                if (!AreInvoiceFieldsValid())
+                {
+                    MessageBox.Show("Invoice header is incomplete. Please fill in the invoice header before saving.",
+                        "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Ensure CurrentInvoice is updated
+                if (CurrentInvoice == null)
+                {
+                    CurrentInvoice = CollectInvoiceData();
                 }
 
                 // Map InvoiceItemDetail -> InvoiceItemDetailDto
@@ -443,8 +530,6 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDetails = itemDtos
                 };
 
-
-
                 // Post to fiscal service
                 var output = await _fiscalService.CreateAsync(dto);
 
@@ -456,6 +541,8 @@ namespace POSPRA_WinFormsUI
                     addedItems.Clear();
                     dataGridView1.Rows.Clear();
                     lblTotalItems.Text = "Total 0 items";
+                    CurrentInvoice = null;
+                    _sessionItems.Clear();
                 }
                 else
                 {
@@ -468,11 +555,14 @@ namespace POSPRA_WinFormsUI
             }
         }
 
+
         #endregion
+
+        #region Grid Edit / Remove Helpers
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItemDetail inputData)
         {
-            // Make sure your column names match these keys in the designer
+            // Update cells — make sure names match your designer columns
             row.Cells["colPosId"].Value = inputData.ProductDescription;           // Product Description
             row.Cells["colInvoiceSynced"].Value = inputData.UoM.ToString();       // UOM
             row.Cells["colDueDate"].Value = inputData.Rate.ToString("F2");        // Rate
@@ -499,7 +589,7 @@ namespace POSPRA_WinFormsUI
             SalesValueExclST.Text = row.Cells["colStatus"].Value?.ToString() ?? "";   // Sales Excl ST
             qty.Text = row.Cells["colQuantity"].Value?.ToString() ?? "";              // Quantity
 
-            // Remove row (user will add it back after editing)
+            // Remove row (user will re-add after editing)
             dataGridView1.Rows.RemoveAt(rowIndex);
 
             // Keep the in-memory list in sync
@@ -511,7 +601,6 @@ namespace POSPRA_WinFormsUI
             textBox1.Focus();
         }
 
-        #region Form Management Helpers
         private void ClearFormFields()
         {
             textBox1.Clear();       // Product Code
@@ -525,7 +614,7 @@ namespace POSPRA_WinFormsUI
             qty.Clear();            // Quantity
             mrp.Clear();            // Retail Price
             fed.Clear();            // FED Payable
-            saletype.Clear();       // Sale Type (not directly mapped to InvoiceItemDetail)
+            saletype.Clear();       // Sale Type
             srosche.Clear();        // SRO Schedule No
             SROScheduleNo.Clear();  // WHIT Section 1
             textBox11.Clear();      // Product Description
@@ -581,9 +670,11 @@ namespace POSPRA_WinFormsUI
             lblTotalItems.Text = "Total 0 items";
             ClearFormFields();
         }
+
         #endregion
 
-        #region Rounded Corners / Responsive Layout
+        #region Responsive / Rounded Corners
+
         public void MakeRoundedControl(Control control, int radius)
         {
             if (control == null) return;
@@ -712,15 +803,69 @@ namespace POSPRA_WinFormsUI
             }
         }
 
+        #endregion
+
+        #region Invoice Header helpers (merged from InvoiceEntry)
+
+        private Invoice CollectInvoiceData()
+        {
+            return new Invoice
+            {
+                InvoiceType = chkSaleInvoice.Checked ? (short)1 : (short)2,
+                InvoiceDate = txtInvoiceDate.Value,
+                BuyerSellerName = txtBuyerBusiness.Text,
+                DestinationAddress = txtBuyerAddress.Text,
+                NTN_CNIC = txtBuyerRegNo.Text,
+                DistributorName = txtSellerBusiness.Text,
+                Distributor_NTN_CNIC = txtSellerRegNo.Text,
+                SaleType = chkRegistered.Checked ? 1 : 2,
+                TotalRetailPrice = 0 // will be computed by service or set before save
+            };
+        }
+
+        private bool AreInvoiceFieldsValid()
+        {
+            // Basic checks for header completeness (loose - adjust if you want stricter)
+            if (!chkSaleInvoice.Checked && !chkDebitInvoice.Checked) return false;
+            if (!chkRegistered.Checked && !chkUnregistered.Checked) return false;
+            if (string.IsNullOrWhiteSpace(txtSellerBusiness.Text)) return false;
+            if (string.IsNullOrWhiteSpace(txtBuyerBusiness.Text)) return false;
+            if (string.IsNullOrWhiteSpace(txtSellerRegNo.Text)) return false;
+            if (string.IsNullOrWhiteSpace(txtBuyerRegNo.Text)) return false;
+            // optional: require provinces if needed
+            return true;
+        }
+
+        // Toggle handlers that you might wire in designer or in constructor (if not wired via designer)
+        private void ChkSaleInvoice_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkSaleInvoice.Checked) chkDebitInvoice.Checked = false;
+        }
+
+        private void ChkDebitInvoice_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkDebitInvoice.Checked) chkSaleInvoice.Checked = false;
+        }
+
+        private void ChkRegistered_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkRegistered.Checked) chkUnregistered.Checked = false;
+        }
+
+        private void ChkUnregistered_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkUnregistered.Checked) chkRegistered.Checked = false;
+        }
+
+        #endregion
+
+        #region Misc UI handlers
+
         private void btn_remove_Click(object sender, EventArgs e)
         {
             RemoveSelectedItem();
         }
+
         #endregion
-
-        private void btnSave_Click_1(object sender, EventArgs e)
-        {
-
-        }
     }
 }
