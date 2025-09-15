@@ -856,7 +856,7 @@
             btnProceed.TabIndex = 39;
             btnProceed.Text = "➕ Add Item";
             btnProceed.UseVisualStyleBackColor = false;
-            btnProceed.Click += BtnProceed_Click;
+            //btnProceed.Click += BtnProceed_Click;
             // 
             // contentPanel
             // 
@@ -1317,7 +1317,7 @@
         private Label label14;
         private TextBox SalesValueExclST;
         private Label label6;
-        private TextBox saletype;
+        //private TextBox saletype;
         private TextBox extratax;
         private TextBox furturetax;
         private Label label8;

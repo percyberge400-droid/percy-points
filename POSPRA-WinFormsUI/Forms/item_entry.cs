@@ -292,7 +292,7 @@ namespace POSPRA_WinFormsUI
                     NTN_CNIC = sellerntn.Text,
                     BuyerSellerName = sellerBname.Text,
                     DestinationAddress = DestinationAddress.Text,
-                    SaleType = int.TryParse(saletype.Text, out var saleType) ? saleType : 0,
+                    SaleType = int.TryParse(SaleType.Text, out var saleType) ? saleType : 0,
                     TotalSalesTaxApplicable = decimal.TryParse(SalesTaxApplicable.Text, out var st) ? st : 0,
                     TotalRetailPrice = decimal.TryParse(RetailPrice.Text, out var retail) ? retail : itemDtos.Sum(x => x.RetailPrice),
                     TotalSTWithheldAtSource = decimal.TryParse(TotalSTWithheld.Text, out var withheld) ? withheld : 0,
@@ -307,10 +307,9 @@ namespace POSPRA_WinFormsUI
 
                 // Post to fiscal service
                 var output = await _fiscalService.CreateAsync(dto);
-
-                if (output != null)
+                if (output.StatusCode == "200")
                 {
-                    MessageBox.Show("Invoice saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(output.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     // Clear session
                     addedItems.Clear();
@@ -321,8 +320,9 @@ namespace POSPRA_WinFormsUI
                 }
                 else
                 {
-                    MessageBox.Show("Failed to save invoice. No response from service.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(output.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+
             }
             catch (Exception ex)
             {
