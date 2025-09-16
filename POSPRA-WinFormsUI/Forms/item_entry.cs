@@ -292,7 +292,7 @@ namespace POSPRA_WinFormsUI
                     NTN_CNIC = sellerntn.Text,
                     BuyerSellerName = sellerBname.Text,
                     DestinationAddress = DestinationAddress.Text,
-                    SaleType = int.TryParse(saletype.Text, out var saleType) ? saleType : 0,
+                    SaleType = int.TryParse(SaleType.Text, out var saleType) ? saleType : 0,
                     TotalSalesTaxApplicable = decimal.TryParse(SalesTaxApplicable.Text, out var st) ? st : 0,
                     TotalRetailPrice = decimal.TryParse(RetailPrice.Text, out var retail) ? retail : itemDtos.Sum(x => x.RetailPrice),
                     TotalSTWithheldAtSource = decimal.TryParse(TotalSTWithheld.Text, out var withheld) ? withheld : 0,
