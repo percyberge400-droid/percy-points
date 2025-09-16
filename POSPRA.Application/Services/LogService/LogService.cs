@@ -37,6 +37,7 @@ namespace POSPRA.Application.Services.LogService
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _sqlServerRepository = sqlServerRepository;
             _httpContextAccessor = httpContextAccessor;
+
         }
 
         /// <summary>
@@ -45,6 +46,8 @@ namespace POSPRA.Application.Services.LogService
         /// </summary>
         public async Task LogAsync(Logs model, int retry = 0)
         {
+            var user = _httpContextAccessor?.HttpContext?.User?.Identity?.Name
+           ?? "WinFormsUser";
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 

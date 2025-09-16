@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.FiscalService.IHttpContextAccessorService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
@@ -62,6 +64,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFiscalRepository, FiscalRepository>();
             services.AddScoped<ILogRepository, LogRepository>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessorService>();
 
             // Services
             services.AddScoped<InvoiceValidatorService>();
@@ -73,6 +76,14 @@ namespace POSPRA_WinFormsUI
             // Register HttpClient + IHttpService
             services.AddHttpClient<IHttpService, HttpService>(); // <-- FIX (needed by SendModelToServer)
             services.AddScoped<SendModelToServer>();
+            // Register generic repositories
+            services.AddScoped(typeof(SqlServerRepository<>));
+
+            // Register IHttpContextAccessor
+            //services.AddHttpContextAccessor();
+
+            // Register your service
+            services.AddScoped<ILogService, LogService>();
 
             // AppSettings (Options pattern)
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));

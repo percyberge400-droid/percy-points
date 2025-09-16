@@ -60,7 +60,7 @@ builder.Services.AddHttpClient<IHttpService, HttpService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
-
+builder.Services.AddHttpContextAccessor(); // Web only
 // SendModelToServer depends on IHttpService
 builder.Services.AddScoped<SendModelToServer>();
 
