@@ -1,9 +1,9 @@
 ﻿using System.Data;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
-using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
+using POSPRA.DTOs;
 using POSPRA.DTOs.LogDTOs;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;

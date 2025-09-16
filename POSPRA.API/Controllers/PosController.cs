@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.PosService;
-using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
+using POSPRA.DTOs;
 
 namespace POSPRA.API.Controllers
 {

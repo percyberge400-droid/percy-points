@@ -1,5 +1,5 @@
-﻿using POSPRA.Application.Utility;
-using POSPRA.Domain.Entities;
+﻿using POSPRA.Domain.Entities;
+using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDTOs;
 
 namespace POSPRA.Application.Services.FiscalService

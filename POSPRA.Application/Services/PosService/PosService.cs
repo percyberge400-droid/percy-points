@@ -6,6 +6,7 @@ using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
+using POSPRA.DTOs;
 using POSPRA.DTOs.PosDTOs;
 using POSPRA.Repositories.BaseRepository;
 using static POSPRA.Application.Utility.GlobalEnums;

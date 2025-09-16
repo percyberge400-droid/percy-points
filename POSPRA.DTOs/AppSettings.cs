@@ -1,4 +1,4 @@
-﻿namespace POSPRA.Application.Utility
+﻿namespace POSPRA.DTOs
 {
     public class AppSettings
     {

@@ -2,7 +2,7 @@
 using AutoMapper;
 using Microsoft.Data.SqlClient; // ✅ correct namespace
 using POSPRA.Application.Services.HelperService;
-using POSPRA.Application.Utility;
+using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDTOs;
 using POSPRA.Repositories.BaseRepository;
 using static POSPRA.Application.Utility.GlobalEnums;

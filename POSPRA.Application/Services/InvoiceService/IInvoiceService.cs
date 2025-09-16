@@ -1,4 +1,4 @@
-﻿using POSPRA.Application.Utility;
+﻿using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDTOs;
 
 namespace POSPRA.Application.Services.InvoiceService
