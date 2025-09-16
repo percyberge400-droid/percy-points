@@ -1,4 +1,6 @@
 ﻿using POSPRA.Domain.Entities;
+using POSPRA.DTOs.LogDTOs;
+using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -8,13 +10,18 @@ namespace POSPRA.Application.Services.LogService
     /// </summary>
     public interface ILogService
     {
+
         /// <summary>
-        /// Logs the specified <see cref="Logs"/> model asynchronously.
+        /// Persists a log entry to the **local SQLite** database.
         /// </summary>
-        /// <param name="model">The log entry to persist.</param>
-        /// <param name="retry">
-        /// Optional retry count in case of failure. Defaults to 0 (no retries).
-        /// </param>
         Task LogAsync(Logs model, int retry = 0);
+
+        Logs BuildLog(string message, AlertType type, string? module = null, string? action = null, string? userId = null, string? userName = null);
+
+        /// <summary>
+        /// Persists an error log entry to the **SQL Server** database.
+        /// </summary>
+        /// 
+        Task SaveErrorLogAsync(ErrorLogDto dto);
     }
 }

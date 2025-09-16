@@ -1,5 +1,10 @@
-﻿using POSPRA.Domain.Entities;
+﻿using System.Data;
+using System.Reflection;
+using Microsoft.AspNetCore.Http;
+using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
+using POSPRA.DTOs.LogDTOs;
+using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
 using static POSPRA.Application.Utility.GlobalEnums;
@@ -14,23 +19,40 @@ namespace POSPRA.Application.Services.LogService
     {
         private readonly ILogRepository _logRepository;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
+        private readonly SqlServerRepository<object> _sqlServerRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogService"/>.
         /// </summary>
         /// <param name="logRepository">The repository to persist Logs entities.</param>
         /// <param name="sqliteUnitOfWork">Unit of Work for SQLite context.</param>
-        public LogService(ILogRepository logRepository, ISqliteUnitOfWork sqliteUnitOfWork)
+        public LogService(ILogRepository logRepository,
+            ISqliteUnitOfWork sqliteUnitOfWork,
+            SqlServerRepository<object> sqlServerRepository,
+            IHttpContextAccessor httpContextAccessor)
         {
             _logRepository = logRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
+            _sqlServerRepository = sqlServerRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Logs to local SQLite with retry and fallback-to-file.
+        /// Automatically fills CreatedAtUtc/CreatedAtPk in the entity.
+        /// </summary>
         public async Task LogAsync(Logs model, int retry = 0)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
+
+            // ensure timestamps always set
+            model.CreatedAtUtc = DateTime.UtcNow;
+            model.CreatedAtPk = TimeZoneInfo.ConvertTimeFromUtc(
+                                        DateTime.UtcNow,
+                                        TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi"));
 
             try
             {
@@ -42,16 +64,25 @@ namespace POSPRA.Application.Services.LogService
             {
                 try
                 {
-                    // Log the exception internally
-                    var errorLog = new Logs(
-                        $"{DateTime.Now}: Try {retry}, DbInsertIssue: {(ex.InnerException?.Message ?? ex.Message)}",
-                        (int)AlertType.Exception,
-                        false);
+                    // create an internal log for the failure itself
+                    var errorLog = new Logs
+                    {
+                        Message = $"{DateTime.UtcNow}: Retry {retry}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
+                        TypeId = (int)AlertType.Exception,
+                        IsSynced = false,
+                        Module = "Logging",
+                        ActionName = "LogAsync",
+                        ExceptionType = ex.GetType().FullName,
+                        ExceptionMessage = ex.Message,
+                        StackTrace = ex.StackTrace,
+                        MachineName = Environment.MachineName,
+                        ApplicationName = "POSPRA"
+                    };
 
                     await _logRepository.AddAsync(errorLog);
                     await _sqliteUnitOfWork.SaveChangesAsync();
 
-                    // Retry logic: max 3 attempts
+                    // Retry logic: up to 3 attempts
                     if (retry <= 3)
                     {
                         if (retry is 2 or 3)
@@ -62,18 +93,58 @@ namespace POSPRA.Application.Services.LogService
                 }
                 catch
                 {
-                    // Final fallback: write to a file if database logging fails
+                    // Final fallback: write to a local text file
                     File.AppendAllText(
                         "log_fallback.txt",
-                        $"{DateTime.Now}: Failed to log -> {ex.Message}{Environment.NewLine}");
+                        $"{DateTime.UtcNow:o}: Failed to log -> {ex.Message}{Environment.NewLine}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Build a fully populated Logs entity from the current HTTP context
+        /// and any extra data you supply.
+        /// </summary>
+        public Logs BuildLog(
+            string message,
+            AlertType type,
+            string? module = null,
+            string? action = null,
+            string? userId = null,
+            string? userName = null)
+        {
+            var ctx = _httpContextAccessor.HttpContext;
+
+            return new Logs
+            {
+                Message = message,
+                TypeId = (int)type,
+                IsSynced = false,
+                Module = module,
+                ActionName = action,
+                UserId = userId ?? ctx?.User?.FindFirst("sub")?.Value,
+                UserName = userName ?? ctx?.User?.Identity?.Name,
+                HttpMethod = ctx?.Request?.Method,
+                RequestPath = ctx?.Request?.Path,
+                QueryString = ctx?.Request?.QueryString.ToString(),
+                RequestHeaders = ctx != null
+                                  ? System.Text.Json.JsonSerializer.Serialize(
+                                        ctx.Request.Headers.ToDictionary(k => k.Key, v => v.Value.ToString()))
+                                  : null,
+                ClientIp = ctx?.Connection?.RemoteIpAddress?.ToString(),
+                UserAgent = ctx?.Request?.Headers["User-Agent"].ToString(),
+                MachineName = Environment.MachineName,
+                ApplicationName = "POSPRA",
+                EnvironmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
+                AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString()
+            };
         }
 
         /// <summary>
         /// Creates a backup of the SQLite database.
         /// Keeps a maximum of 10 backup files.
         /// </summary>
+        /// 
         private void CreateDatabaseBackup()
         {
             try
@@ -115,6 +186,34 @@ namespace POSPRA.Application.Services.LogService
                 {
                     // swallow exception to prevent app crash
                 }
+            }
+        }
+
+
+        // ✅ 2. Central SQL Server error log
+        public async Task SaveErrorLogAsync(ErrorLogDto dto)
+        {
+            try
+            {
+                var parameters = new[]
+                {
+                    new Microsoft.Data.SqlClient.SqlParameter("@POSID",          SqlDbType.BigInt) { Value = dto.POSID },
+                    new Microsoft.Data.SqlClient.SqlParameter("@ActualData",     SqlDbType.VarChar, 8000) { Value =dto.ActualData},
+                    new Microsoft.Data.SqlClient.SqlParameter("@IsValidSignature",SqlDbType.Bit)   { Value =dto.IsValidSignature},
+                    new Microsoft.Data.SqlClient.SqlParameter("@Message",        SqlDbType.VarChar, 8000) { Value =dto.Message},
+                    new Microsoft.Data.SqlClient.SqlParameter("@TotalFiles",     SqlDbType.Int)    { Value =dto.TotalFiles}
+                };
+
+                // We don’t need row results, so use object as T and no mapper.
+                await _sqlServerRepository.ExecuteProcedureAsync<object>(
+                    "sp_SaveErroLog",
+                    map: null,
+                    parameters: parameters
+                );
+            }
+            catch (Exception ex)
+            {
+                throw; // or swallow if you prefer
             }
         }
     }

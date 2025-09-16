@@ -2,161 +2,123 @@
 
 namespace POSPRA.Application.Services.FiscalService
 {
+    /// <summary>
+    /// Simple DTO to return overall validity and all validation messages.
+    /// </summary>
+    public record ValidationResult(bool IsValid, string ErrorMessages);
+
     public class InvoiceValidatorService
     {
-        public bool InvoiceValidator(Invoice invoice, List<string> errors)
+        /// <summary>
+        /// Validates an invoice and returns a single string with all errors separated by new lines.
+        /// </summary>
+        public ValidationResult ValidateInvoice(Invoice invoice)
         {
+            if (invoice == null)
+                return new ValidationResult(false, "Invoice cannot be null.");
+
+            var errors = new List<string>();
             bool isValid = true;
-            if (invoice.BPOSID == 0)
+
+            void AddError(string msg)
             {
-                errors.Add("Invalid BPOSID!");
+                errors.Add(msg);
                 isValid = false;
             }
+
+            static bool IsEmpty(string? s) => string.IsNullOrWhiteSpace(s);
+            static string TrimSafe(string? s) => s?.Trim() ?? string.Empty;
+
+            // -------- BPOSID --------
+            if (invoice.BPOSID == 0)
+                AddError("Invalid BPOSID!");
             else if (invoice.BPOSID.ToString().Length != 6)
+                AddError("Invalid BPOSID should be of 6 digits!");
+
+            // -------- InvoiceType ---
+            if (invoice.InvoiceType < 1 || invoice.InvoiceType > 4)
+                AddError("Invalid Invoice Type!");
+
+            // -------- Date ----------
+            if (invoice.InvoiceDate == DateTime.MinValue)
+                AddError("Invalid Invoice Date!");
+
+            // -------- NTN / CNIC ----
+            var ntn = TrimSafe(invoice.NTN_CNIC);
+            if (ntn.Length == 0)
+                AddError("Invalid NTN/CNIC!");
+            else if (ntn.Length < 7 || ntn.Length > 13)
+                AddError("NTN/CNIC should be between 7 and 13 characters.");
+
+            // -------- Buyer/Seller --
+            if (IsEmpty(invoice.BuyerSellerName))
+                AddError("Invalid Buyer/Seller Name!");
+
+            if (IsEmpty(invoice.DestinationAddress))
+                AddError("Invalid Destination Address!");
+
+            // -------- Sale Type & Price
+            if (invoice.SaleType <= 0)
+                AddError("Invalid Sale Type!");
+
+            if (invoice.TotalRetailPrice == 0)
+                AddError("Invalid Total Retail Price!");
+
+            // -------- Distributor ----
+            var distNtn = TrimSafe(invoice.Distributor_NTN_CNIC);
+            if (!IsEmpty(distNtn))
             {
-                errors.Add("Invalid BPOSID should be of 6 digit!");
-                isValid = false;
+                if (distNtn.Length < 7 || distNtn.Length > 13)
+                    AddError("Invalid Distributor NTN/CNIC!");
+                if (IsEmpty(invoice.DistributorName))
+                    AddError("Invalid Distributor Name!");
+            }
+
+            // -------- Items ---------
+            if (invoice.InvoiceItemDetails.Count == 0)
+            {
+                AddError("Invoice Items Not Found!");
             }
             else
             {
-                var posClient = invoice.BPOSID;
-                if (posClient == null)
+                foreach (var item in invoice.InvoiceItemDetails)
                 {
-                    errors.Add("Invalid BPOSID Not Found!");
-                    isValid = false;
-                }
-            }
-            if (invoice.InvoiceType < 1 || invoice.InvoiceType > 4)
-            {
-                errors.Add("Invalid Invoice Type!");
-                isValid = false;
-            }
-            if (invoice.InvoiceDate == DateTime.MinValue)
-            {
-                errors.Add("Invalid Invoice Date!");
-                isValid = false;
-            }
-            if (string.IsNullOrEmpty(invoice.NTN_CNIC.Trim()))
-            {
-                errors.Add("Invalid NTN/CNIC!");
-                isValid = false;
-            }
-            else if (invoice.NTN_CNIC.Trim().Length > 7 || invoice.NTN_CNIC.Trim().Length > 13)
-            {
-                errors.Add("NTN/CNIC should be between 7 and 13");
-                isValid = false;
-            }
-            if (string.IsNullOrEmpty(invoice.BuyerSellerName.Trim()))
-            {
-                errors.Add("Invalid Buyer/Seller Name!");
-                isValid = false;
-            }
-            if (string.IsNullOrEmpty(invoice.DestinationAddress.Trim()))
-            {
-                errors.Add("Invalid Destination Address!");
-                isValid = false;
-            }
-            if (invoice.SaleType <= 0)
-            {
-                errors.Add("Invalid Sale Type!");
-                isValid = false;
-            }
+                    var hs = TrimSafe(item.HSCode);
+                    if (hs.Length == 0)
+                        AddError("Invoice Item: HS Code Not Found!");
+                    else if (hs.Length != 8)
+                        AddError("Invoice Item: Invalid HS Code!");
 
-            if (invoice.TotalRetailPrice == 0)
-            {
-                errors.Add("Invalid Total Retail Price!");
-                isValid = false;
-            }
+                    if (IsEmpty(item.ProductCode))
+                        AddError("Invoice Item: Product Code Not Found!");
 
-            if (!string.IsNullOrEmpty(invoice.Distributor_NTN_CNIC))
-            {
-                if (invoice.Distributor_NTN_CNIC.Trim().Length < 7 || invoice.Distributor_NTN_CNIC.Trim().Length > 13)
-                {
-                    errors.Add("Invalid Distributor NTN/CNIC!");
-                    isValid = false;
-                }
-                if (string.IsNullOrEmpty(invoice.DistributorName))
-                {
-                    errors.Add("Invalid Distributor Name!");
-                    isValid = false;
+                    if (IsEmpty(item.ProductDescription))
+                        AddError("Invoice Item: Product Description Not Found!");
+
+                    if (item.Rate <= 0)
+                        AddError("Invoice Item: Rate should be greater than zero!");
+                    if (item.UoM <= 0)
+                        AddError("Invoice Item: Invalid UoM!");
+                    if (item.Quantity <= 0)
+                        AddError("Invoice Item: Invalid Quantity!");
+                    if (item.ValueSalesExcludingST <= 0)
+                        AddError("Invoice Item: Invalid Value of Sales Excluding ST!");
+                    if (item.SalesTaxApplicable <= 0)
+                    {
+                        AddError("Invoice Item: Invalid Value of Sales Tax Applicable!");
+                        AddError("Invoice Item: Invalid ST Withheld At Source!");
+                    }
+                    if (item.RetailPrice <= 0)
+                        AddError("Invoice Item: Invalid Retail Price!");
                 }
             }
 
-            if (invoice.InvoiceItemDetails.Count == 0)
-            {
-                errors.Add("Invoice Items Not Found!");
-                isValid = false;
-            }
+            // -------- Final result --
+            string message = errors.Count > 0
+                ? string.Join(Environment.NewLine, errors)
+                : string.Empty;
 
-            foreach (var item in invoice.InvoiceItemDetails)
-            {
-                if (string.IsNullOrEmpty(item.HSCode.Trim()))
-                {
-                    errors.Add("Invoice Item: HS Code Not Found!");
-                    isValid = false;
-                }
-                else if (item.HSCode.Trim().Length != 8)
-                {
-                    errors.Add("Invoice Item: Invalid HS Code!");
-                    isValid = false;
-                }
-
-                if (string.IsNullOrEmpty(item.ProductCode.Trim()))
-                {
-                    errors.Add("Invoice Item: Product Code Not Found!");
-                    isValid = false;
-                }
-
-                if (string.IsNullOrEmpty(item.ProductDescription.Trim()))
-                {
-                    errors.Add("Invoice Item: Product Description Not Found!");
-                    isValid = false;
-                }
-
-                if (item.Rate <= 0)
-                {
-                    errors.Add("Invoice Item: Rate Should be greater than zero!");
-                    isValid = false;
-                }
-
-                if (item.UoM <= 0)
-                {
-                    errors.Add("Invoice Item: Invalid UoM!");
-                    isValid = false;
-                }
-
-                if (item.Quantity <= 0)
-                {
-                    errors.Add("Invoice Item: Invalid Quantity!");
-                    isValid = false;
-                }
-
-                if (item.ValueSalesExcludingST <= 0)
-                {
-                    errors.Add("Invoice Item: Invalid Value of Sales Excluding ST!");
-                    isValid = false;
-                }
-
-                if (item.SalesTaxApplicable <= 0)
-                {
-                    errors.Add("Invoice Item: Invalid Value of Sales Tax Applicable!");
-                    isValid = false;
-                }
-
-                if (item.RetailPrice <= 0)
-                {
-                    errors.Add("Invoice Item: Invalid Retail Price!");
-                    isValid = false;
-                }
-
-                if (item.SalesTaxApplicable <= 0)
-                {
-                    errors.Add("Invoice Item: Invalid ST Withheld At Source!");
-                    isValid = false;
-                }
-            }
-
-            return isValid;
+            return new ValidationResult(isValid, message);
         }
     }
 }

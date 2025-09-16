@@ -42,6 +42,23 @@
         public const string ConfigurationsFetchError = "Error occurred while fetching configurations: ";
         public const string HeartbeatUpdated = "Heartbeat updated";
         public const string ErrorUpdatingHeartbeat = "Error updating heartbeat";
+
+        // ===== Generic Success =====
+        public const string OperationSuccess = "Operation completed successfully.";
+        public const string RecordSaved = "Record saved successfully.";
+        public const string RecordUpdated = "Record updated successfully.";
+        public const string RecordDeleted = "Record deleted successfully.";
+        public const string DataSynchronized = "Data synchronized successfully.";
+        public const string BackupCompleted = "Backup completed successfully.";
+
+        // ===== Generic Error =====
+        public const string UnknownError = "An unexpected error occurred. Please try again.";
+        public const string DatabaseError = "Database error occurred while processing your request.";
+        public const string DataNotFound = "Requested data not found.";
+        public const string DuplicateRecord = "Duplicate record detected.";
+        public const string InvalidInput = "Invalid input provided.";
+        public const string UnauthorizedAccess = "You are not authorized to perform this action.";
+        public const string SessionExpired = "Session has expired. Please log in again.";
     }
 
     public enum ApiStatusCode

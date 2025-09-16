@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.LogService;
@@ -27,6 +28,7 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly SendModelToServer _sendModelToServer;
         private readonly AutoMapper.IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
@@ -34,7 +36,8 @@ namespace POSPRA.Application.Services.FiscalService
             ISqliteUnitOfWork sqliteUnitOfWork,
             IOptions<AppSettings> options,
             SendModelToServer sendModelToServer,
-            AutoMapper.IMapper mapper)
+            AutoMapper.IMapper mapper,
+            IHttpContextAccessor httpContextAccessor)
         {
             _invoiceValidatorService = invoiceValidatorService;
             _logService = logService;
@@ -43,6 +46,7 @@ namespace POSPRA.Application.Services.FiscalService
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _sendModelToServer = sendModelToServer;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -59,7 +63,14 @@ namespace POSPRA.Application.Services.FiscalService
                 List<string> errors = new();
                 if (dto == null)
                 {
-                    await _logService.LogAsync(new Logs(GlobalVariables.DATE + Messages.INVALID_MODEL, (int)AlertType.Exception, false), 2);
+                    // Example inside a controller/service where you already have HttpContext
+                    await _logService.LogAsync(
+                      _logService.BuildLog(
+                          Messages.INVALID_MODEL,
+                          AlertType.Exception,
+                          module: "Invoice",
+                          action: nameof(CreateAsync)));
+
 
                     return new ApiResponse<InvoiceDto>(
                         statusCode: GlobalEnums.StatusCodes.Code_401.ToString(),
@@ -71,8 +82,8 @@ namespace POSPRA.Application.Services.FiscalService
                 {
                     // _mapper injected via constructor
                     var invoiceEntity = _mapper.Map<Invoice>(dto);
-                    var isValid = _invoiceValidatorService.InvoiceValidator(invoiceEntity, errors);
-                    if (isValid)
+                    var validationResult = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
+                    if (validationResult.IsValid)
                     {
                         string result = await CreateFiscalInvoiceAsync(invoiceEntity);
                         if (!String.IsNullOrEmpty(result))
@@ -85,9 +96,11 @@ namespace POSPRA.Application.Services.FiscalService
                         else
                         {
                             await _logService.LogAsync(
-                                new Logs(GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + dto.InvoiceType),
-                                (int)AlertType.Exception, false),
-                                2);
+                             _logService.BuildLog(
+                                 string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + dto.InvoiceType),
+                                 AlertType.Exception,
+                                 module: "Invoice",
+                                 action: nameof(CreateAsync)));
 
                             return new ApiResponse<InvoiceDto>(
                                 statusCode: GlobalEnums.StatusCodes.Code_101.ToString(),
@@ -97,28 +110,28 @@ namespace POSPRA.Application.Services.FiscalService
                     }
                     else
                     {
-                        //string errors = string.Join(", ", ModelState.Values.SelectMany(x => x.Errors).Select(x => x.ErrorMessage == "" ? x.Exception.Message : x.ErrorMessage));
-                        //int indexOfSteam = errors.IndexOf("in ");
-                        //if (indexOfSteam >= 0)
-                        //    errors = errors.Remove(indexOfSteam);
-                        //response = Request.CreateResponse(HttpStatusCode.OK, new InvoiceResponseModel("Not Available", ((int)GlobalEnums.StatusCodes.Code_402).ToString(), GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_402), errors));
-                        //_Service.Log(new Logs() { Message = GlobalVariables.DATE + string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + invoice.InvoiceType + " Error:" + errors), TypeId = (int)AlertType.Exception, IsSynced = false });
+                        await _logService.LogAsync(
+                         _logService.BuildLog(
+                             validationResult.ErrorMessages,
+                             AlertType.Exception,
+                             module: "Invoice",
+                             action: nameof(CreateAsync)));
 
                         string result = await CreateFiscalInvoiceAsync(invoiceEntity);
                     }
                 }
 
                 return new ApiResponse<InvoiceDto>(
-                    statusCode: "200",
-                    message: "Created successfully",
+                    statusCode: ApiStatusCode.Error.ToString(),
+                    message: ResponseMessages.UnknownError,
                     data: null
                 );
             }
             catch (Exception ex)
             {
                 return new ApiResponse<InvoiceDto>(
-                    statusCode: "500",
-                    message: "An error occurred while creating entity",
+                    statusCode: ApiStatusCode.Error.ToString(),
+                    message: ResponseMessages.UnknownError,
                     data: null,
                     errors: ex.InnerException?.Message ?? ex.Message
                 );

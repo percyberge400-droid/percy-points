@@ -7,7 +7,7 @@
             //using var context = new SqliteDbContext();
 
             // Ensure database + tables exist
-            //context.Database.EnsureCreated();
+            //context.Database.EnsureCreatzzed();
 
             // Optional: Apply migrations if you are using them
             // context.Database.Migrate();
