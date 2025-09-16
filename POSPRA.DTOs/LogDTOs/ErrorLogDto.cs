@@ -1,6 +1,6 @@
 ﻿namespace POSPRA.DTOs.LogDTOs
 {
-    public class ErrorLogDto
+    public class ErrorLogDTO
     {
         public string Message { get; set; } = string.Empty;
 

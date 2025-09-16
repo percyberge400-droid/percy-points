@@ -1,1 +1,6 @@
 9/11/2025 2:57:53 PM: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-09-16T08:02:34.4301994Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-09-16T08:04:31.4426381Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-09-16T08:05:31.1220778Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-09-16T08:06:01.0738260Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-09-16T08:06:12.7794733Z: Failed to log -> SQLite Error 5: 'database is locked'.

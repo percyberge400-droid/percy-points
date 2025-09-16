@@ -2,6 +2,7 @@
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.DTOs.PosDTOs;
 
 namespace POSPRA.Application.AutoMapperProfile
@@ -12,6 +13,12 @@ namespace POSPRA.Application.AutoMapperProfile
         {
             CreateMap<InvoiceDto, Invoice>();
             CreateMap<InvoiceItemDetailDto, InvoiceItemDetail>();
+
+            CreateMap<FileRecordDTO, FileRecord>();
+            CreateMap<FileRecord, FileRecordDTO>();
+
+            CreateMap<LogDto, Logs>();
+            CreateMap<Logs, LogDto>();
 
             CreateMap<Dictionary<string, object>, ResponseConfigurationDto>()
               .ConvertUsing<DictionaryToDtoConverter<ResponseConfigurationDto>>();

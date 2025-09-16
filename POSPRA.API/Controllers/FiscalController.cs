@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.FiscalService;
-
-using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDTOs;
 
 /// <summary>
@@ -18,16 +16,29 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     private readonly IFiscalService _fiscalService = fiscalService;
 
     /// <summary>
-    /// Creates a new fiscal invoice.
-    /// Accepts an <see cref="Invoice"/> object in the request body,
-    /// processes it using <see cref="IFiscalService"/>, and returns the result.
+    /// Retrieves all fiscal invoices.
     /// </summary>
-    /// <param name="invoice">The invoice object to create.</param>
-    /// <returns>An <see cref="IActionResult"/> containing the API response.</returns>
-    [HttpPost("post")]
-    public async Task<IActionResult> Post([FromBody] InvoiceDto dto)
-    {
-        var response = await _fiscalService.CreateAsync(dto);
-        return Ok(response);
-    }
+    /// <remarks>
+    /// Returns a list of all fiscal invoices stored in the system.
+    /// </remarks>
+    /// <response code="200">A collection of fiscal invoices.</response>
+    [HttpGet("GetAll")]
+    public async Task<IActionResult> GetAll() =>
+        Ok(await _fiscalService.GetAllAsync());
+
+    /// <summary>
+    /// Creates a new fiscal invoice.
+    /// </summary>
+    /// <param name="dto">
+    /// The <see cref="InvoiceDto"/> containing the invoice details to be created.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IActionResult"/> with the result of the create operation.
+    /// </returns>
+    /// <response code="200">The newly created invoice or a success message.</response>
+    /// <response code="400">If the input data is invalid.</response>
+    [HttpPost("Create")]
+    public async Task<IActionResult> Create([FromBody] InvoiceDto dto) =>
+        Ok(await _fiscalService.CreateAsync(dto));
+
 }

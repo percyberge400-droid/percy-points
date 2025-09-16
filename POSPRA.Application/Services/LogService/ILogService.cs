@@ -1,4 +1,5 @@
-﻿using POSPRA.Domain.Entities;
+﻿using POSPRA.Application.Utility;
+using POSPRA.Domain.Entities;
 using POSPRA.DTOs.LogDTOs;
 using static POSPRA.Application.Utility.GlobalEnums;
 
@@ -11,17 +12,26 @@ namespace POSPRA.Application.Services.LogService
     public interface ILogService
     {
 
+        Task<ApiResponse<List<LogDto>>> GetAllAsync();
+
         /// <summary>
         /// Persists a log entry to the **local SQLite** database.
         /// </summary>
         Task LogAsync(Logs model, int retry = 0);
 
-        Logs BuildLog(string message, AlertType type, string? module = null, string? action = null, string? userId = null, string? userName = null);
-
+        Logs BuildLog(
+                string message,
+                AlertType type,
+                string? module = null,
+                string? action = null,
+                string? userId = null,
+                string? userName = null,
+                string? clientIp = null,
+                string? userAgent = null);
         /// <summary>
         /// Persists an error log entry to the **SQL Server** database.
         /// </summary>
         /// 
-        Task SaveErrorLogAsync(ErrorLogDto dto);
+        Task SaveErrorLogAsync(ErrorLogDTO dto);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
+using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs.LogDTOs;
@@ -21,6 +22,7 @@ namespace POSPRA.Application.Services.LogService
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly SqlServerRepository<object> _sqlServerRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly AutoMapper.IMapper _mapper;
 
 
         /// <summary>
@@ -31,13 +33,23 @@ namespace POSPRA.Application.Services.LogService
         public LogService(ILogRepository logRepository,
             ISqliteUnitOfWork sqliteUnitOfWork,
             SqlServerRepository<object> sqlServerRepository,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            AutoMapper.IMapper mapper)
         {
             _logRepository = logRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _sqlServerRepository = sqlServerRepository;
             _httpContextAccessor = httpContextAccessor;
+            _mapper = mapper;
+        }
 
+
+        public async Task<ApiResponse<List<LogDto>>> GetAllAsync()
+        {
+            var output = await _logRepository.GetAllAsync();
+            var logDTO = _mapper.Map<List<LogDto>>(output);
+
+            return new ApiResponse<List<LogDto>>(null, null, logDTO, null);
         }
 
         /// <summary>
@@ -109,14 +121,16 @@ namespace POSPRA.Application.Services.LogService
         /// and any extra data you supply.
         /// </summary>
         public Logs BuildLog(
-            string message,
-            AlertType type,
-            string? module = null,
-            string? action = null,
-            string? userId = null,
-            string? userName = null)
+         string message,
+         AlertType type,
+         string? module = null,
+         string? action = null,
+         string? userId = null,
+         string? userName = null,
+         string? clientIp = null,
+         string? userAgent = null)
         {
-            var ctx = _httpContextAccessor.HttpContext;
+            var ctx = _httpContextAccessor.HttpContext;   // will be null in WinForms
 
             return new Logs
             {
@@ -130,18 +144,18 @@ namespace POSPRA.Application.Services.LogService
                 HttpMethod = ctx?.Request?.Method,
                 RequestPath = ctx?.Request?.Path,
                 QueryString = ctx?.Request?.QueryString.ToString(),
-                RequestHeaders = ctx != null
-                                  ? System.Text.Json.JsonSerializer.Serialize(
-                                        ctx.Request.Headers.ToDictionary(k => k.Key, v => v.Value.ToString()))
-                                  : null,
-                ClientIp = ctx?.Connection?.RemoteIpAddress?.ToString(),
-                UserAgent = ctx?.Request?.Headers["User-Agent"].ToString(),
+                RequestHeaders = ctx == null ? null :
+                                  System.Text.Json.JsonSerializer.Serialize(
+                                       ctx.Request.Headers.ToDictionary(k => k.Key, v => v.Value.ToString())),
+                ClientIp = clientIp ?? ctx?.Connection?.RemoteIpAddress?.ToString(),
+                UserAgent = userAgent ?? ctx?.Request?.Headers["User-Agent"].ToString(),
                 MachineName = Environment.MachineName,
                 ApplicationName = "POSPRA",
                 EnvironmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
                 AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString()
             };
         }
+
 
         /// <summary>
         /// Creates a backup of the SQLite database.
@@ -194,7 +208,7 @@ namespace POSPRA.Application.Services.LogService
 
 
         // ✅ 2. Central SQL Server error log
-        public async Task SaveErrorLogAsync(ErrorLogDto dto)
+        public async Task SaveErrorLogAsync(ErrorLogDTO dto)
         {
             try
             {

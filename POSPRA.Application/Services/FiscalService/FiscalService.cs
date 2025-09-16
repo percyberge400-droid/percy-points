@@ -9,7 +9,6 @@ using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs.InvoiceDTOs;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
-using System.Text;
 using AlertType = POSPRA.Application.Utility.GlobalEnums.AlertType;
 using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
 
@@ -199,10 +198,12 @@ namespace POSPRA.Application.Services.FiscalService
             }
         }
 
-        public async Task<ApiResponse<List<FileRecord>>> GetAllAsync()
+        public async Task<ApiResponse<List<FileRecordDTO>>> GetAllAsync()
         {
             var output = await _fileRecordRepository.GetAllAsync();
-            return new ApiResponse<List<FileRecord>>(null, null, output.ToList(), null);
+            var fileRecrodDTO = _mapper.Map<List<FileRecordDTO>>(output);
+
+            return new ApiResponse<List<FileRecordDTO>>(null, null, fileRecrodDTO, null);
         }
 
         /// <summary>
