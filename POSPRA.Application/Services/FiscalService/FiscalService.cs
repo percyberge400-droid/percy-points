@@ -9,6 +9,7 @@ using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs.InvoiceDTOs;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Text;
 using AlertType = POSPRA.Application.Utility.GlobalEnums.AlertType;
 using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
 
@@ -29,6 +30,10 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly SendModelToServer _sendModelToServer;
         private readonly AutoMapper.IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public FiscalService()
+        {
+        }
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
@@ -192,6 +197,12 @@ namespace POSPRA.Application.Services.FiscalService
                 await _logService.LogAsync(new Logs(errorMessage, (int)AlertType.Exception, false));
                 return string.Empty;
             }
+        }
+
+        public async Task<ApiResponse<List<FileRecord>>> GetAllAsync()
+        {
+            var output = await _fileRecordRepository.GetAllAsync();
+            return new ApiResponse<List<FileRecord>>(null, null, output.ToList(), null);
         }
 
         /// <summary>
