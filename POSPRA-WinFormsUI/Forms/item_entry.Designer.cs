@@ -779,7 +779,7 @@
             // 
             // colInvoiceSynced
             // 
-            colInvoiceSynced.HeaderText = "Sale Type";
+            colInvoiceSynced.HeaderText = "UOM";
             colInvoiceSynced.MinimumWidth = 6;
             colInvoiceSynced.Name = "colInvoiceSynced";
             colInvoiceSynced.ReadOnly = true;

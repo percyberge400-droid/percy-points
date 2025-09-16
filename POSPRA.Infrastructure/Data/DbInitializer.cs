@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using POSPRA.Infrastructure.Context;
+﻿using POSPRA.Infrastructure.Context;
 
 namespace POSPRA.Infrastructure.Data
 {
@@ -11,9 +10,8 @@ namespace POSPRA.Infrastructure.Data
 
             //Ensure database +tables exist
             context.Database.EnsureCreated();
-
             //Optional: Apply migrations if you are using them
-            context.Database.Migrate();
+            //context.Database.Migrate();
         }
     }
 }
