@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.PosService;
-using POSPRA.Domain.Entities;
-using POSPRA.DTOs;
 
 namespace POSPRA.API.Controllers
 {
@@ -36,6 +34,7 @@ namespace POSPRA.API.Controllers
             var response = await _posService.GetConfigurationsAsync();
             return Ok(response);
         }
+
         /// <summary>
         /// Post IMS Component Log
         /// </summary>
@@ -43,26 +42,10 @@ namespace POSPRA.API.Controllers
         /// Response from Server
         /// </returns>
         [HttpPost("Status")]
-        public async Task<IActionResult> Status([FromBody] List<Logs> logs)
+        public async Task<IActionResult> Status()
         {
-            if (logs == null || !logs.Any())
-                return BadRequest(new ApiResponse<string>("400", "No logs provided"));
-
-            try
-            {
-                var result = await _posService.InsertPosStatusAsync(logs);
-
-                if (result.Equals("Success", StringComparison.OrdinalIgnoreCase))
-                    return Ok(new ApiResponse<string>("200", "Logs saved successfully", result));
-                else
-                    return StatusCode(500, new ApiResponse<string>("500", "Failed to save logs", result));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiResponse<string>("500", ex.Message));
-            }
+            var response = await _posService.InsertPosStatusAsync();
+            return Ok(response);
         }
-
-
     }
 }

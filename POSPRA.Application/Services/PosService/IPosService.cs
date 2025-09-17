@@ -18,6 +18,6 @@ namespace POSPRA.Application.Services.PosService
         /// </returns>
         Task<ApiResponse<string>> UpdateHeartBeatAsync();
         Task<ApiResponse<List<ResponseConfigurationDto>>> GetConfigurationsAsync();
-        Task<string> InsertPosStatusAsync(IList<Logs> logs);
+        Task<ApiResponse<List<PosStatus>>> InsertPosStatusAsync();
     }
 }
