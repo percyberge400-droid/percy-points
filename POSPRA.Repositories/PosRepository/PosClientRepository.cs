@@ -4,7 +4,7 @@ using POSPRA.Repositories.BaseRepository;
 
 namespace POSPRA.Repositories.PosRepository
 {
-    public class PosClientRepository : SqlServerRepository<POSClients>, IPosClientRepository
+    public class PosClientRepository : SqlServerRepository<PosClients>, IPosClientRepository
     {
         public PosClientRepository(SqlServerDbContext context) : base(context)
         {

@@ -13,6 +13,7 @@ using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.LogRepository;
+using POSPRA.Repositories.PosRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 
@@ -54,6 +55,7 @@ builder.Services.AddScoped(typeof(SqlServerRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
 builder.Services.AddScoped<ILogRepository, LogRepository>();
+builder.Services.AddScoped<IPosClientRepository, PosClientRepository>();
 
 // Application services
 builder.Services.AddScoped<IUserService, UserService>();
@@ -62,7 +64,7 @@ builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IPosService, PosService>();
 builder.Services.AddScoped<InvoiceValidatorService>();
 builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
-builder.Services.AddScoped<SendModelToServer>();
+//builder.Services.AddScoped<SendModelToServer>();
 
 // Http client
 builder.Services.AddHttpClient<IHttpService, HttpService>();

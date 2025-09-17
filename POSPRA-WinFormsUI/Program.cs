@@ -1,9 +1,11 @@
 ﻿using System.Drawing.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.FiscalService.IHttpContextAccessorService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
@@ -44,6 +46,7 @@ namespace POSPRA_WinFormsUI
                 opt.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
             // AutoMapper
+            // AutoMapper (register all profiles in assembly)
             services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<UserProfile>();
@@ -51,6 +54,7 @@ namespace POSPRA_WinFormsUI
             });
 
             // Repositories & Services
+            services.AddScoped(typeof(SqlServerRepository<>));
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
             services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -61,18 +65,20 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IFiscalService, FiscalService>();
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
+            services.AddScoped<IHttpContextAccessor, HttpContextAccessorService>();
             services.AddScoped<InvoiceValidatorService>();
 
-
-
             // ✅ Typed HttpClient with base address
-            services.AddHttpClient("SelfHostedApi", (sp, client) =>
-            {
-                var cfg = sp.GetRequiredService<IConfiguration>();
-                client.BaseAddress = new Uri(cfg["ApiSettings:BaseUrl"]);
-            });
-
+            //services.AddHttpClient("SelfHostedApi", (sp, client) =>
+            //{
+            //    var cfg = sp.GetRequiredService<IConfiguration>();
+            //    client.BaseAddress = new Uri(cfg["ApiSettings:BaseUrl"]);
+            //});
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddHttpContextAccessor();
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+
+            services.AddHttpClient();
 
             // Forms
             services.AddTransient<LoginForm>();

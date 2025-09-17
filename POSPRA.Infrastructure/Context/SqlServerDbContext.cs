@@ -13,9 +13,9 @@ namespace POSPRA.Infrastructure.Context
     {
         // Example DbSets:
         // public DbSet<SomeEntity> SomeEntities { get; set; } = null!;
-        public DbSet<POSClients> POSClients { get; set; } = null!;
-        public DbSet<PosConfiguration> PosConfiguration { get; set; } = null!;
-        public DbSet<PosStatus> POSStatus { get; set; }
+        public DbSet<PosClients> PosClients { get; set; } = null!;
+        //public DbSet<PosConfiguration> PosConfiguration { get; set; } = null!;
+        //public DbSet<PosStatus> POSStatus { get; set; }
 
 
         /// <summary>
@@ -33,8 +33,8 @@ namespace POSPRA.Infrastructure.Context
         {
             base.OnModelCreating(modelBuilder);
 
-            // Add Fluent API configurations here if needed
-            // e.g., modelBuilder.Entity<SomeEntity>().HasKey(e => e.Id);
+            //Add Fluent API configurations here if needed
+            modelBuilder.Entity<PosClients>().HasNoKey();
         }
     }
 }

@@ -27,20 +27,13 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly IFiscalRepository _fileRecordRepository;
         private readonly AppSettings _settings;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
-        private readonly SendModelToServer _sendModelToServer;
         private readonly AutoMapper.IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public FiscalService()
-        {
-        }
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
             IFiscalRepository fileRecordRepository,
             ISqliteUnitOfWork sqliteUnitOfWork,
             IOptions<AppSettings> options,
-            SendModelToServer sendModelToServer,
             AutoMapper.IMapper mapper,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -49,9 +42,7 @@ namespace POSPRA.Application.Services.FiscalService
             _fileRecordRepository = fileRecordRepository;
             _settings = options.Value;
             _sqliteUnitOfWork = sqliteUnitOfWork;
-            _sendModelToServer = sendModelToServer;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         /// <summary>
@@ -127,8 +118,8 @@ namespace POSPRA.Application.Services.FiscalService
                 }
 
                 return new ApiResponse<InvoiceDto>(
-                    statusCode: ApiStatusCode.Error.ToString(),
-                    message: ResponseMessages.UnknownError,
+                    statusCode: ApiStatusCode.Success.ToString(),
+                    message: ResponseMessages.RecordSaved,
                     data: null
                 );
             }
