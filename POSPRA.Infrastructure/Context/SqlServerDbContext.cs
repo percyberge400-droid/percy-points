@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using POSPRA.Domain.Entities;
 
 namespace POSPRA.Infrastructure.Context
 {
@@ -12,7 +13,10 @@ namespace POSPRA.Infrastructure.Context
     {
         // Example DbSets:
         // public DbSet<SomeEntity> SomeEntities { get; set; } = null!;
-        // public DbSet<POSClients> POSClients { get; set; } = null!;
+        public DbSet<POSClients> POSClients { get; set; } = null!;
+        public DbSet<PosConfiguration> PosConfiguration { get; set; } = null!;
+        public DbSet<PosStatus> POSStatus { get; set; }
+
 
         /// <summary>
         /// Initializes a new instance of <see cref="SqlServerDbContext"/> with the specified options.

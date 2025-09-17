@@ -1,7 +1,4 @@
-﻿using System.Data;
-using AutoMapper;
-using Microsoft.Data.SqlClient;
-using Newtonsoft.Json;
+﻿using AutoMapper;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Utility;
@@ -9,6 +6,8 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.PosDTOs;
 using POSPRA.Repositories.BaseRepository;
+using POSPRA.Repositories.PosRepository;
+using POSPRA.Repositories.UnitOfWork;
 using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.POSService
@@ -17,16 +16,29 @@ namespace POSPRA.Application.Services.POSService
     {
         private readonly IRequestHeaderService _requestHeaderService;
         private readonly SqlServerRepository<object> _sqlServerRepository;
+        private readonly SqlServerRepository<PosConfiguration> _posConfigurationRepository;
+        private readonly SqlServerRepository<PosStatus> _posStatusRepository;
+
+        private readonly IPosClientRepository _posClientRepository;
+        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         public readonly IMapper _mapper;
         public PosService(
             SqlServerRepository<object> sqlServerRepository,
             IRequestHeaderService requestHeaderService,
             IMapper mapper
-            )
+,
+            IPosClientRepository posClientRepository,
+            ISqlServerUnitOfWork sqlServerUnitOfWork,
+            SqlServerRepository<PosConfiguration> posConfigurationRepository,
+            SqlServerRepository<PosStatus> posStatusRepository)
         {
             _sqlServerRepository = sqlServerRepository;
             _requestHeaderService = requestHeaderService;
             _mapper = mapper;
+            _posClientRepository = posClientRepository;
+            _sqlServerUnitOfWork = sqlServerUnitOfWork;
+            _posConfigurationRepository = posConfigurationRepository;
+            _posStatusRepository = posStatusRepository;
         }
 
         public async Task<ApiResponse<string>> UpdateHeartBeatAsync()
@@ -34,44 +46,32 @@ namespace POSPRA.Application.Services.POSService
             try
             {
                 var posId = _requestHeaderService.GetPosId();
+                var client = await _posClientRepository.FirstOrDefaultAsync(p => p.POSRegistrationNumber == posId);
+                if (client == null)
+                    return new ApiResponse<string>(
+                        statusCode: ApiStatusCodes.NotFound,
+                        message: ResponseMessages.DataNotFound,
+                        data: string.Empty
+                    );
 
-                // Input parameter
-                var inputParam = new SqlParameter("@POSID", SqlDbType.BigInt)
-                {
-                    Value = posId
-                };
+                client.IsConnected = true;
+                client.HeartbeatUpdatedOn = DateTime.Now;
+                client.StoreStatus = "Connected";
 
-                // Output parameter
-                var outputParam = new SqlParameter("@Result", SqlDbType.Char, 1)
-                {
-                    Direction = ParameterDirection.Output
-                };
-
-                // Use the generic helper to execute the procedure
-                // We don't need row mapping here because we only care about the output parameter
-                await _sqlServerRepository.ExecuteProcedureAsync<object>(
-                    StoredProcedures.sp_UpdatePOSHeartbeat,
-                    map: _ => default!,                            // no rows to map
-                    parameters: new[] { inputParam, outputParam }
-                );
-
-                // Retrieve the output parameter value
-                string? result = outputParam.Value?.ToString();
+                await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 return new ApiResponse<string>(
                     statusCode: ApiStatusCodes.Success,
                     message: ResponseMessages.HeartbeatUpdated,
-                    data: result
+                    data: string.Empty
                 );
             }
             catch (Exception ex)
             {
-                // Optionally log ex here
-
                 return new ApiResponse<string>(
                     statusCode: ApiStatusCodes.Error,
                     message: ResponseMessages.ErrorUpdatingHeartbeat,
-                    data: null
+                    data: string.Empty
                 );
             }
         }
@@ -81,27 +81,23 @@ namespace POSPRA.Application.Services.POSService
             try
             {
                 var posId = _requestHeaderService.GetPosId();
-                var inputParam = new SqlParameter("@POSID", SqlDbType.BigInt)
-                {
-                    Value = posId
-                };
+                var posConfiguration = await _posConfigurationRepository.FirstOrDefaultAsync(x => x.POSID == posId && x.IsActive == true);
+                if (posConfiguration == null)
+                    return new ApiResponse<List<ResponseConfigurationDto>>(
+                        statusCode: ApiStatusCodes.NotFound,
+                        message: ResponseMessages.ConfigurationsNotFound,
+                        data: null
+                    );
 
-                // Use the unified procedure executor.
-                // We want List<Dictionary<string, object?>> so we set T accordingly
-                // and skip the mapping delegate.
-                var rawResults = await _sqlServerRepository.ExecuteProcedureAsync<Dictionary<string, object?>>(
-                    StoredProcedures.sp_GetConfigurations,
-                    parameters: new[] { inputParam }      // no mapper needed
-                );
+                posConfiguration.IsActive = false;
+                await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 // Auto-map dictionaries to your DTOs
-                var results = _mapper.Map<List<ResponseConfigurationDto>>(rawResults);
+                var results = _mapper.Map<List<ResponseConfigurationDto>>(posConfiguration);
 
                 return new ApiResponse<List<ResponseConfigurationDto>>(
                     statusCode: ApiStatusCodes.Success,
-                    message: results.Count > 0
-                        ? ResponseMessages.ConfigurationsFound
-                        : ResponseMessages.ConfigurationsNotFound,
+                    message: ResponseMessages.ConfigurationsFound,
                     data: results
                 );
             }
@@ -115,47 +111,29 @@ namespace POSPRA.Application.Services.POSService
             }
         }
 
-        public async Task<string> InsertPosStatusAsync(IList<Logs> logs)
+        public async Task<ApiResponse<List<PosStatus>>> InsertPosStatusAsync()
         {
-            string response = string.Empty;
-
             try
             {
-                var posId = _requestHeaderService.GetPosId();
+                PosStatus posStatus = new();
+                await _posStatusRepository.AddAsync(posStatus);
+                await _sqlServerUnitOfWork.SaveChangesAsync();
 
-                // Convert logs list to JSON (because the proc expects NVARCHAR(MAX) JSON)
-                string logsJson = JsonConvert.SerializeObject(logs);
-
-                var inputParams = new[]
-                {
-                    new SqlParameter("@POSID", SqlDbType.BigInt) { Value = posId },
-                    new SqlParameter("@LogsJson", SqlDbType.NVarChar)
-                    {
-                        Value = logsJson
-                    }
-                };
-
-                var outputParam = new SqlParameter("@Result", SqlDbType.NVarChar, 50)
-                {
-                    Direction = ParameterDirection.Output
-                };
-
-                // Execute the procedure (no result set expected)
-                await _sqlServerRepository.ExecuteProcedureAsync<object>(
-                    "sp_InsertPOSStatus",
-                    map: null,
-                    parameters: inputParams.Concat(new[] { outputParam }).ToArray()
+                // Auto-map dictionaries to your DTOs
+                return new ApiResponse<List<PosStatus>>(
+                    statusCode: ApiStatusCodes.Success,
+                    message: ResponseMessages.ConfigurationsFound,
+                    data: null
                 );
-
-                response = outputParam.Value?.ToString() ?? string.Empty;
             }
             catch (Exception ex)
             {
-                response = ex.Message;
+                return new ApiResponse<List<PosStatus>>(
+                    statusCode: ApiStatusCodes.NotFound,
+                    message: $"{ResponseMessages.ConfigurationsFetchError} {ex.Message}",
+                    data: null
+                );
             }
-
-            return response;
         }
-
     }
 }
