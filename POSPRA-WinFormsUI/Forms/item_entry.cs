@@ -44,9 +44,11 @@ namespace POSPRA_WinFormsUI
             // UI & event wiring
             this.Resize += Item_entry_Resize;
             pnlBasicInfo.Resize += (s, e) => MakeRoundedControl(pnlBasicInfo, 25);
+            panel1.Resize += (s, e) => MakeRoundedControl(panel1, 25);
 
             btnProceed.Click += BtnProceed_Click;      // Add / Update item behaviour (kept name: Proceed)
             btnSave.Click += BtnSave_Click;            // Persist invoice + items
+            btnEdit.Click += btnEdit_Click;
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
             chkRegistered.CheckedChanged += ChkRegistered_CheckedChanged;
             chkUnregistered.CheckedChanged += ChkUnregistered_CheckedChanged;
@@ -161,7 +163,6 @@ namespace POSPRA_WinFormsUI
 
         #region Buttons: Proceed (Add/Update) & Save
 
-        // This is the merged "Proceed" logic: it collects invoice header (if not already) and adds/updates an item row
         private void BtnProceed_Click(object sender, EventArgs e)
         {
             try
@@ -181,10 +182,10 @@ namespace POSPRA_WinFormsUI
                 if (!ValidateItemEntry(inputData))
                     return;
 
-                // detect duplicate by ProductCode (column name in your DataGridView designer was "colInvoice")
+                // FIXED: detect duplicate by ProductCode using correct column name
                 var existingRow = dataGridView1.Rows
                     .Cast<DataGridViewRow>()
-                    .FirstOrDefault(r => (r.Cells["colInvoice"].Value?.ToString() ?? "") == inputData.ProductCode);
+                    .FirstOrDefault(r => (r.Cells["colProductCode"].Value?.ToString() ?? "") == inputData.ProductCode);
 
                 if (existingRow != null)
                 {
@@ -207,19 +208,8 @@ namespace POSPRA_WinFormsUI
                 }
                 else
                 {
-                    // Add new row
-                    string newSrNo = (dataGridView1.Rows.Count + 1).ToString("D2");
-                    dataGridView1.Rows.Add(
-                        newSrNo,
-                        inputData.ProductCode,
-                        inputData.ProductDescription,
-                        inputData.UoM.ToString(),
-                        inputData.Rate.ToString("F2"),
-                        inputData.ValueSalesExcludingST.ToString("F2"),
-                        inputData.SalesTaxApplicable.ToString("F2"),
-                        inputData.Quantity.ToString()
-                    );
-
+                    // FIXED: Use AddItemToDataGrid method instead of manual row addition
+                    AddItemToDataGrid(inputData);
                     addedItems.Add(inputData);
                 }
 
@@ -229,6 +219,7 @@ namespace POSPRA_WinFormsUI
 
                 MessageBox.Show($"Item '{inputData.ProductCode}' added/updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ProductCode.Focus();
+                UpdateInvoiceTotals();
             }
             catch (Exception ex)
             {
@@ -252,6 +243,19 @@ namespace POSPRA_WinFormsUI
                 {
                     MessageBox.Show("Invoice header is incomplete. Please fill in the invoice header before saving.",
                         "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // ✅ Ask for confirmation here
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to save this invoice?",
+                    "Confirm Save",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (confirm != DialogResult.Yes)
+                {
+                    // User pressed No → stop execution
                     return;
                 }
 
@@ -335,18 +339,108 @@ namespace POSPRA_WinFormsUI
             }
         }
 
+        private void btnEdit_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // 1) ensure a row is selected
+                if (dataGridView1.SelectedRows.Count == 0)
+                {
+                    MessageBox.Show("Please select a row to edit.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // 2) FIXED: get selected row using correct column name
+                var row = dataGridView1.SelectedRows[0];
+                string productCode = row.Cells["colProductCode"].Value?.ToString()?.Trim();
+
+                if (string.IsNullOrEmpty(productCode))
+                {
+                    MessageBox.Show("Product code is missing for this row.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // 3) find item in list
+                int itemIndex = addedItems.FindIndex(i => string.Equals(i.ProductCode?.Trim(), productCode, StringComparison.OrdinalIgnoreCase));
+
+                if (itemIndex < 0)
+                {
+                    MessageBox.Show($"Item with Product Code '{productCode}' was not found in the current list.", "Not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var item = addedItems[itemIndex];
+
+                // 4) populate form fields
+                ProductCode.Text = item.ProductCode ?? "";
+                ProductDescription.Text = item.ProductDescription ?? "";
+                uom.Text = item.UoM.ToString();
+                rate.Text = item.Rate.ToString("F2");
+                TotalValue.Text = item.TotalValues.ToString("F2");
+                SalesTaxApplicable.Text = item.SalesTaxApplicable.ToString("F2");
+                extratax.Text = item.ExtraTax?.ToString("F2") ?? "";
+                furturetax.Text = item.FurtherTax?.ToString("F2") ?? "";
+                SroScheduleNo.Text = item.SroScheduleNo?.ToString() ?? "";
+                hscode.Text = item.HSCode ?? "";
+                qty.Text = item.Quantity.ToString();
+                RetailPrice.Text = item.RetailPrice.ToString("F2");
+                fed.Text = item.FedPayable?.ToString("F2") ?? "";
+                SalesValueExclST.Text = item.ValueSalesExcludingST.ToString("F2");
+                SalesTaxWithheldatSource.Text = item.STWithheldAtSource?.ToString("F2") ?? "";
+                cvt.Text = item.CVT?.ToString("F2") ?? "";
+                whit1.Text = item.WHIT_1?.ToString("F2") ?? "";
+                whit2.Text = item.WHIT_2?.ToString("F2") ?? "";
+                WHIT_Section_1.Text = item.WHIT_Section_1 ?? "";
+                WHIT_Section_2.Text = item.WHIT_Section_2 ?? "";
+
+                // 5) remove from memory + grid
+                addedItems.RemoveAt(itemIndex);
+                dataGridView1.Rows.Remove(row);
+
+                // 6) update UI
+                UpdateSerialNumbers();
+                lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
+                UpdateInvoiceTotals();
+
+                // 7) focus first field
+                ProductCode.Focus();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error while trying to edit the item: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         #endregion
 
         #region Grid Edit / Remove Helpers
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItemDetail inputData)
         {
-            // Update cells — make sure names match your designer columns
-            row.Cells["colPosId"].Value = inputData.ProductDescription;           // Product Description
-            row.Cells["colInvoiceSynced"].Value = inputData.UoM.ToString();       // UOM
-            row.Cells["colDueDate"].Value = inputData.Rate.ToString("F2");        // Rate
-            row.Cells["colStatus"].Value = inputData.ValueSalesExcludingST.ToString("F2"); // Sales Excl ST
-            row.Cells["colQuantity"].Value = inputData.Quantity.ToString();       // Quantity
+            // Update cells with all form fields using correct property names and data types
+            row.Cells["colProductCode"].Value = inputData.ProductCode?.ToString() ?? "";
+            row.Cells["colHSCode"].Value = inputData.HSCode?.ToString() ?? "";
+            row.Cells["colProductDescription"].Value = inputData.ProductDescription?.ToString() ?? "";
+            row.Cells["colUOM"].Value = inputData.UoM.ToString(); // int (non-nullable)
+            row.Cells["colQuantity"].Value = inputData.Quantity.ToString(); // decimal (non-nullable)
+            row.Cells["colRate"].Value = inputData.Rate.ToString(); // decimal (non-nullable)
+            row.Cells["colRetailPrice"].Value = inputData.RetailPrice.ToString(); // decimal (non-nullable)
+            row.Cells["colSalesValueExcST"].Value = inputData.ValueSalesExcludingST.ToString(); // decimal (non-nullable)
+            row.Cells["colTotalValue"].Value = inputData.TotalValues.ToString(); // decimal (non-nullable)
+            row.Cells["colSalesTax"].Value = inputData.SalesTaxApplicable.ToString(); // decimal (non-nullable)
+            row.Cells["colExtraTax"].Value = inputData.ExtraTax?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
+            row.Cells["colFutureTax"].Value = inputData.FurtherTax?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
+            row.Cells["colSROSNo"].Value = inputData.SroScheduleNo?.ToString() ?? "0"; // int? (nullable) - show 0 if null
+            row.Cells["colCVT"].Value = inputData.CVT?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
+            row.Cells["colSalesTaxApplicable"].Value = inputData.SalesTaxApplicable.ToString(); // decimal (non-nullable)
+            row.Cells["colSalesTaxWithheldAtSource"].Value = inputData.STWithheldAtSource?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
+            row.Cells["colWHIT1"].Value = inputData.WHIT_1?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
+            row.Cells["colWHIT2"].Value = inputData.WHIT_2?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
+            row.Cells["colFedPayable"].Value = inputData.FedPayable?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
+            row.Cells["colTotalValuePayable"].Value = inputData.FedPayable?.ToString() ?? "0"; // Note: You have same value for both
+            row.Cells["colWHITSection1"].Value = inputData.WHIT_Section_1?.ToString() ?? ""; // string? (nullable) - keep empty for strings
+            row.Cells["colWHITSection2"].Value = inputData.WHIT_Section_2?.ToString() ?? ""; // string? (nullable) - keep empty for strings
+
         }
 
         private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -360,13 +454,30 @@ namespace POSPRA_WinFormsUI
 
             var row = dataGridView1.Rows[rowIndex];
 
-            // Load data back into form fields
-            ProductCode.Text = row.Cells["colInvoice"].Value?.ToString() ?? "";           // Product Code
-            ProductDescription.Text = row.Cells["colPosId"].Value?.ToString() ?? "";           // Product Description
-            uom.Text = row.Cells["colInvoiceSynced"].Value?.ToString() ?? "";         // UOM
-            rate.Text = row.Cells["colDueDate"].Value?.ToString() ?? "";          // Rate
-            SalesValueExclST.Text = row.Cells["colStatus"].Value?.ToString() ?? "";   // Sales Excl ST
-            qty.Text = row.Cells["colQuantity"].Value?.ToString() ?? "";              // Quantity
+            // Load data back into form fields using correct column names and property mappings
+            ProductCode.Text = row.Cells["colProductCode"].Value?.ToString() ?? "";
+            hscode.Text = row.Cells["colHSCode"].Value?.ToString() ?? "";
+            ProductDescription.Text = row.Cells["colProductDescription"].Value?.ToString() ?? "";
+            uom.Text = row.Cells["colUOM"].Value?.ToString() ?? "";
+            qty.Text = row.Cells["colQuantity"].Value?.ToString() ?? "";
+            rate.Text = row.Cells["colRate"].Value?.ToString() ?? "";
+            RetailPrice.Text = row.Cells["colRetailPrice"].Value?.ToString() ?? "";
+            SalesValueExclST.Text = row.Cells["colSalesValueExcST"].Value?.ToString() ?? "";
+            TotalValue.Text = row.Cells["colTotalValue"].Value?.ToString() ?? "";
+            SalesTaxApplicable.Text = row.Cells["colSalesTax"].Value?.ToString() ?? ""; // Note: colSalesTax maps to SalesTaxApplicable
+            extratax.Text = row.Cells["colExtraTax"].Value?.ToString() ?? "";
+            furturetax.Text = row.Cells["colFutureTax"].Value?.ToString() ?? "";
+            SroScheduleNo.Text = row.Cells["colSROSNo"].Value?.ToString() ?? "";
+            cvt.Text = row.Cells["colCVT"].Value?.ToString() ?? "";
+            // Note: SalesTaxApplicable appears in both colSalesTax and colSalesTaxApplicable - using colSalesTaxApplicable here
+            SalesTaxApplicable.Text = row.Cells["colSalesTaxApplicable"].Value?.ToString() ?? "";
+            SalesTaxWithheldatSource.Text = row.Cells["colSalesTaxWithheldAtSource"].Value?.ToString() ?? "";
+            whit1.Text = row.Cells["colWHIT1"].Value?.ToString() ?? "";
+            whit2.Text = row.Cells["colWHIT2"].Value?.ToString() ?? "";
+            fed.Text = row.Cells["colFedPayable"].Value?.ToString() ?? "";
+            textBox4.Text = row.Cells["colTotalValuePayable"].Value?.ToString() ?? ""; // Total Value Payable
+            WHIT_Section_1.Text = row.Cells["colWHITSection1"].Value?.ToString() ?? "";
+            WHIT_Section_2.Text = row.Cells["colWHITSection2"].Value?.ToString() ?? "";
 
             // Remove row (user will re-add after editing)
             dataGridView1.Rows.RemoveAt(rowIndex);
@@ -382,30 +493,36 @@ namespace POSPRA_WinFormsUI
 
         private void ClearFormFields()
         {
+            // Basic Information
             ProductCode.Clear();       // Product Code
-            uom.Clear();            // UOM
-            rate.Clear();       // Rate
-            textBox4.Clear();       // Total Values (mapped to TotalValue in designer)
-            textBox5.Clear();       // Sales Tax Applicable (mapped to SalesTaxApplicable in designer)
-            extratax.Clear();       // Extra Tax
-            furturetax.Clear();       // Further Tax
-            hscode.Clear();         // HS Code
-            qty.Clear();            // Quantity
-            RetailPrice.Clear();            // Retail Price
-            fed.Clear();            // FED Payable
-            SaleType.Clear();       // Sale Type
-            SroScheduleNo.Clear();        // SRO Schedule No
-            ProductDescription.Clear();      // Product Description
-            SalesValueExclST.Clear(); // Value Sales Excluding ST
-            SalesTaxWithheldatSource.Clear();     // ST Withheld at Source
-            cvt.Clear();       // CVT
-            whit1.Clear();          // WHIT-1
-            whit2.Clear();          // WHIT-2
-            WHIT_Section_1.Clear();  // WHIT Section-1
-            WHIT_Section_2.Clear();  // WHIT Section-2
-            TotalValue.Clear();      // Total Value
-            SalesTaxApplicable.Clear(); // Sales Tax Applicable
+            hscode.Clear();           // HS Code
+            ProductDescription.Clear(); // Product Description
 
+            // Pricing Information
+            rate.Clear();             // Rate
+            uom.Clear();              // UOM
+            qty.Clear();              // Quantity
+            RetailPrice.Clear();      // Retail Price
+            SalesValueExclST.Clear(); // Sales Value Excluding ST
+
+            // Sales Tax Information
+            TotalValue.Clear();       // Total Value
+            SaleType.Clear();         // Sales Tax (mapped to SaleType)
+            extratax.Clear();         // Extra Tax
+            furturetax.Clear();       // Future Tax
+            SroScheduleNo.Clear();    // SRO Schedule No
+            cvt.Clear();              // CVT
+
+            // Additional fields
+            SalesTaxApplicable.Clear(); // Sales Tax Applicable
+            SalesTaxWithheldatSource.Clear(); // Sales Tax Withheld at Source
+            whit1.Clear();            // WHIT-1
+            whit2.Clear();            // WHIT-2
+            fed.Clear();              // Fed Payable
+            textBox4.Clear();         // Total Value Payable (mapped to textBox4)
+            WHIT_Section_1.Clear();   // WHIT Section-1
+            WHIT_Section_2.Clear();   // WHIT Section-2
+            textBox5.Clear();         // Additional field if needed
         }
 
         private void RemoveSelectedItem()
@@ -418,6 +535,7 @@ namespace POSPRA_WinFormsUI
                 if (result == DialogResult.Yes)
                 {
                     int selectedIndex = dataGridView1.SelectedRows[0].Index;
+
                     if (selectedIndex < addedItems.Count)
                         addedItems.RemoveAt(selectedIndex);
 
@@ -428,7 +546,8 @@ namespace POSPRA_WinFormsUI
             }
             else
             {
-                MessageBox.Show("Please select a row to delete.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Please select a row to delete.", "No Selection",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -436,21 +555,85 @@ namespace POSPRA_WinFormsUI
         {
             for (int i = 0; i < dataGridView1.Rows.Count; i++)
             {
-                dataGridView1.Rows[i].Cells[0].Value = (i + 1).ToString("D2");
+                dataGridView1.Rows[i].Cells["colSrNo"].Value = (i + 1).ToString("D2");
             }
         }
 
-        public List<InvoiceItemDetail> GetAllItems()
+        private void AddItemToDataGrid(InvoiceItemDetail item)
         {
-            return addedItems.ToList();
+            int rowIndex = dataGridView1.Rows.Add();
+            var row = dataGridView1.Rows[rowIndex];
+
+            // Set serial number
+            row.Cells["colSrNo"].Value = (rowIndex + 1).ToString("D2");
+
+            // For non-nullable numeric fields (decimal, int) → always show numeric value
+            row.Cells["colUOM"].Value = item.UoM.ToString();
+            row.Cells["colQuantity"].Value = item.Quantity.ToString("0.##");
+            row.Cells["colRate"].Value = item.Rate.ToString("0.##");
+            row.Cells["colRetailPrice"].Value = item.RetailPrice.ToString("0.##");
+            row.Cells["colSalesValueExcST"].Value = item.ValueSalesExcludingST.ToString("0.##");
+            row.Cells["colTotalValue"].Value = item.TotalValues.ToString("0.##");
+            row.Cells["colSalesTax"].Value = item.SalesTaxApplicable.ToString("0.##");
+            row.Cells["colSalesTaxApplicable"].Value = item.SalesTaxApplicable.ToString("0.##");
+
+            // For nullable numeric fields → "0" if null
+            row.Cells["colExtraTax"].Value = item.ExtraTax?.ToString("0.##") ?? "0";
+            row.Cells["colFutureTax"].Value = item.FurtherTax?.ToString("0.##") ?? "0";
+            row.Cells["colSROSNo"].Value = item.SroScheduleNo?.ToString() ?? "0";
+            row.Cells["colCVT"].Value = item.CVT?.ToString("0.##") ?? "0";
+            row.Cells["colSalesTaxWithheldAtSource"].Value = item.STWithheldAtSource?.ToString("0.##") ?? "0";
+            row.Cells["colWHIT1"].Value = item.WHIT_1?.ToString("0.##") ?? "0";
+            row.Cells["colWHIT2"].Value = item.WHIT_2?.ToString("0.##") ?? "0";
+            row.Cells["colFedPayable"].Value = item.FedPayable?.ToString("0.##") ?? "0";
+            row.Cells["colTotalValuePayable"].Value = item.FedPayable?.ToString("0.##") ?? "0";
+
+            // For strings → keep empty
+            row.Cells["colProductCode"].Value = item.ProductCode ?? "";
+            row.Cells["colHSCode"].Value = item.HSCode ?? "";
+            row.Cells["colProductDescription"].Value = item.ProductDescription ?? "";
+            row.Cells["colWHITSection1"].Value = item.WHIT_Section_1 ?? "";
+            row.Cells["colWHITSection2"].Value = item.WHIT_Section_2 ?? "";
+
+
+            lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
         }
 
-        public void ClearAllItems()
+        #endregion
+
+        #region maths 
+        private void UpdateInvoiceTotals()
         {
-            dataGridView1.Rows.Clear();
-            addedItems.Clear();
-            lblTotalItems.Text = "Total 0 items";
-            ClearFormFields();
+            if (addedItems == null || !addedItems.Any())
+            {
+                // reset if no items
+                STapplicable.Text = "0.00";
+                TotalRetailPrice.Text = "0.00";
+                TotalSTWithheld.Text = "0.00";
+                TotalFEDPayable.Text = "0.00";
+                TotalWithheldIncomeTax.Text = "0.00";
+                TotalCVT.Text = "0.00";
+                TotalExtraTax.Text = "0.00";
+                return;
+            }
+
+            // Sum from addedItems
+            decimal totalSalesTax = addedItems.Sum(i => i.SalesTaxApplicable);
+            decimal totalRetail = addedItems.Sum(i => i.RetailPrice);
+            decimal totalWithheld = addedItems.Sum(i => i.STWithheldAtSource ?? 0);
+            decimal totalFED = addedItems.Sum(i => i.FedPayable ?? 0);
+            decimal totalIncomeTax = addedItems.Sum(i => (i.WHIT_1 ?? 0) + (i.WHIT_2 ?? 0));
+            decimal totalCVT = addedItems.Sum(i => i.CVT ?? 0);
+            decimal totalExtraTax = addedItems.Sum(i => i.ExtraTax ?? 0);
+
+            // Push values to UI textboxes
+            STapplicable.Text = totalSalesTax.ToString("F2");
+            TotalRetailPrice.Text = totalRetail.ToString("F2");
+            TotalSTWithheld.Text = totalWithheld.ToString("F2");
+            TotalFEDPayable.Text = totalFED.ToString("F2");
+            TotalWithheldIncomeTax.Text = totalIncomeTax.ToString("F2");
+            TotalCVT.Text = totalCVT.ToString("F2");
+            TotalExtraTax.Text = totalExtraTax.ToString("F2");
         }
 
         #endregion

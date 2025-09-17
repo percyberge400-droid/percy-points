@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
             WHIT_Section_2lbl = new Label();
             WHIT_Section_2 = new TextBox();
@@ -79,17 +79,33 @@
             SroScheduleNo = new TextBox();
             cvt = new TextBox();
             lblItemEntry = new Label();
-            button1 = new Button();
+            btnEdit = new Button();
             btnSave = new Button();
             dataGridView1 = new DataGridView();
-            colSrNo = new DataGridViewTextBoxColumn();
-            colInvoice = new DataGridViewTextBoxColumn();
-            colPosId = new DataGridViewTextBoxColumn();
-            colInvoiceSynced = new DataGridViewTextBoxColumn();
-            colDueDate = new DataGridViewTextBoxColumn();
-            colStatus = new DataGridViewTextBoxColumn();
-            colQuantity = new DataGridViewTextBoxColumn();
             lblTotalItems = new Label();
+            colSrNo = new DataGridViewTextBoxColumn();
+            colProductCode = new DataGridViewTextBoxColumn();
+            colHSCode = new DataGridViewTextBoxColumn();
+            colProductDescription = new DataGridViewTextBoxColumn();
+            colUOM = new DataGridViewTextBoxColumn();
+            colQuantity = new DataGridViewTextBoxColumn();
+            colRate = new DataGridViewTextBoxColumn();
+            colRetailPrice = new DataGridViewTextBoxColumn();
+            colSalesValueExcST = new DataGridViewTextBoxColumn();
+            colTotalValue = new DataGridViewTextBoxColumn();
+            colSalesTax = new DataGridViewTextBoxColumn();
+            colExtraTax = new DataGridViewTextBoxColumn();
+            colFutureTax = new DataGridViewTextBoxColumn();
+            colSROSNo = new DataGridViewTextBoxColumn();
+            colCVT = new DataGridViewTextBoxColumn();
+            colSalesTaxApplicable = new DataGridViewTextBoxColumn();
+            colSalesTaxWithheldAtSource = new DataGridViewTextBoxColumn();
+            colWHIT1 = new DataGridViewTextBoxColumn();
+            colWHIT2 = new DataGridViewTextBoxColumn();
+            colFedPayable = new DataGridViewTextBoxColumn();
+            colTotalValuePayable = new DataGridViewTextBoxColumn();
+            colWHITSection1 = new DataGridViewTextBoxColumn();
+            colWHITSection2 = new DataGridViewTextBoxColumn();
             lblInvoicesListing = new Label();
             btn_remove = new Button();
             btnProceed = new Button();
@@ -417,7 +433,6 @@
             extratax.PlaceholderText = "Extra Tax";
             extratax.Size = new Size(90, 24);
             extratax.TabIndex = 22;
-            extratax.TextChanged += extratax_TextChanged;
             // 
             // furturetax
             // 
@@ -686,20 +701,20 @@
             lblItemEntry.TabIndex = 5;
             lblItemEntry.Text = "Add Item";
             // 
-            // button1
+            // btnEdit
             // 
-            button1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            button1.BackColor = Color.DimGray;
-            button1.FlatAppearance.BorderSize = 0;
-            button1.FlatStyle = FlatStyle.Flat;
-            button1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button1.ForeColor = Color.Transparent;
-            button1.Location = new Point(909, 635);
-            button1.Name = "button1";
-            button1.Size = new Size(126, 44);
-            button1.TabIndex = 41;
-            button1.Text = "Cancel";
-            button1.UseVisualStyleBackColor = false;
+            btnEdit.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnEdit.BackColor = Color.DimGray;
+            btnEdit.FlatAppearance.BorderSize = 0;
+            btnEdit.FlatStyle = FlatStyle.Flat;
+            btnEdit.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnEdit.ForeColor = Color.Transparent;
+            btnEdit.Location = new Point(859, 635);
+            btnEdit.Name = "btnEdit";
+            btnEdit.Size = new Size(155, 44);
+            btnEdit.TabIndex = 41;
+            btnEdit.Text = "🖊️ Edit";
+            btnEdit.UseVisualStyleBackColor = false;
             // 
             // btnSave
             // 
@@ -709,11 +724,11 @@
             btnSave.FlatStyle = FlatStyle.Flat;
             btnSave.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnSave.ForeColor = Color.Transparent;
-            btnSave.Location = new Point(1041, 635);
+            btnSave.Location = new Point(1020, 635);
             btnSave.Name = "btnSave";
-            btnSave.Size = new Size(126, 44);
+            btnSave.Size = new Size(155, 44);
             btnSave.TabIndex = 42;
-            btnSave.Text = "Save";
+            btnSave.Text = "💾 Save";
             btnSave.UseVisualStyleBackColor = false;
             // 
             // dataGridView1
@@ -721,27 +736,31 @@
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.AllowUserToResizeRows = false;
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None; // Changed to None to enable horizontal scrolling
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.BorderStyle = BorderStyle.None;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = Color.White;
-            dataGridViewCellStyle5.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle5.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle5.SelectionBackColor = Color.White;
-            dataGridViewCellStyle5.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.White;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle1.SelectionBackColor = Color.White;
+            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colSrNo, colInvoice, colPosId, colInvoiceSynced, colDueDate, colStatus, colQuantity });
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = Color.White;
-            dataGridViewCellStyle6.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle6.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle6.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle6.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] {
+    colSrNo, colProductCode, colHSCode, colProductDescription, colUOM, colQuantity, colRate, colRetailPrice,
+    colSalesValueExcST, colTotalValue, colSalesTax, colExtraTax, colFutureTax, colSROSNo, colCVT,
+    colSalesTaxApplicable, colSalesTaxWithheldAtSource, colWHIT1, colWHIT2, colFedPayable, colTotalValuePayable,
+    colWHITSection1, colWHITSection2});
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.White;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 703);
@@ -754,7 +773,9 @@
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.Size = new Size(1145, 153);
             dataGridView1.TabIndex = 43;
-            dataGridView1.CellFormatting += DataGridView1_CellFormatting;
+            dataGridView1.ScrollBars = ScrollBars.Both; // Enable horizontal and vertical scrollbars
+
+            // Column Definitions with fixed widths similar to original
             // 
             // colSrNo
             // 
@@ -762,41 +783,44 @@
             colSrNo.MinimumWidth = 6;
             colSrNo.Name = "colSrNo";
             colSrNo.ReadOnly = true;
+            colSrNo.Width = 80;
+
             // 
-            // colInvoice
+            // colProductCode
             // 
-            colInvoice.HeaderText = "Item Code";
-            colInvoice.MinimumWidth = 6;
-            colInvoice.Name = "colInvoice";
-            colInvoice.ReadOnly = true;
+            colProductCode.HeaderText = "Item Code";
+            colProductCode.MinimumWidth = 6;
+            colProductCode.Name = "colProductCode";
+            colProductCode.ReadOnly = true;
+            colProductCode.Width = 120;
+
             // 
-            // colPosId
+            // colHSCode
             // 
-            colPosId.HeaderText = "Item Name";
-            colPosId.MinimumWidth = 6;
-            colPosId.Name = "colPosId";
-            colPosId.ReadOnly = true;
+            colHSCode.HeaderText = "HS Code";
+            colHSCode.MinimumWidth = 6;
+            colHSCode.Name = "colHSCode";
+            colHSCode.ReadOnly = true;
+            colHSCode.Width = 100;
+
             // 
-            // colInvoiceSynced
+            // colProductDescription
             // 
-            colInvoiceSynced.HeaderText = "UOM";
-            colInvoiceSynced.MinimumWidth = 6;
-            colInvoiceSynced.Name = "colInvoiceSynced";
-            colInvoiceSynced.ReadOnly = true;
+            colProductDescription.HeaderText = "Item Name";
+            colProductDescription.MinimumWidth = 6;
+            colProductDescription.Name = "colProductDescription";
+            colProductDescription.ReadOnly = true;
+            colProductDescription.Width = 200;
+
             // 
-            // colDueDate
+            // colUOM
             // 
-            colDueDate.HeaderText = "Rate";
-            colDueDate.MinimumWidth = 6;
-            colDueDate.Name = "colDueDate";
-            colDueDate.ReadOnly = true;
-            // 
-            // colStatus
-            // 
-            colStatus.HeaderText = "Sales Value Exc ST";
-            colStatus.MinimumWidth = 6;
-            colStatus.Name = "colStatus";
-            colStatus.ReadOnly = true;
+            colUOM.HeaderText = "UOM";
+            colUOM.MinimumWidth = 6;
+            colUOM.Name = "colUOM";
+            colUOM.ReadOnly = true;
+            colUOM.Width = 80;
+
             // 
             // colQuantity
             // 
@@ -804,6 +828,160 @@
             colQuantity.MinimumWidth = 6;
             colQuantity.Name = "colQuantity";
             colQuantity.ReadOnly = true;
+            colQuantity.Width = 100;
+
+            // 
+            // colRate
+            // 
+            colRate.HeaderText = "Rate";
+            colRate.MinimumWidth = 6;
+            colRate.Name = "colRate";
+            colRate.ReadOnly = true;
+            colRate.Width = 100;
+
+            // 
+            // colRetailPrice
+            // 
+            colRetailPrice.HeaderText = "Retail Price";
+            colRetailPrice.MinimumWidth = 6;
+            colRetailPrice.Name = "colRetailPrice";
+            colRetailPrice.ReadOnly = true;
+            colRetailPrice.Width = 120;
+
+            // 
+            // colSalesValueExcST
+            // 
+            colSalesValueExcST.HeaderText = "Sales Value Exc ST";
+            colSalesValueExcST.MinimumWidth = 6;
+            colSalesValueExcST.Name = "colSalesValueExcST";
+            colSalesValueExcST.ReadOnly = true;
+            colSalesValueExcST.Width = 150;
+
+            // 
+            // colTotalValue
+            // 
+            colTotalValue.HeaderText = "Total Value";
+            colTotalValue.MinimumWidth = 6;
+            colTotalValue.Name = "colTotalValue";
+            colTotalValue.ReadOnly = true;
+            colTotalValue.Width = 120;
+
+            // 
+            // colSalesTax
+            // 
+            colSalesTax.HeaderText = "Sales Tax";
+            colSalesTax.MinimumWidth = 6;
+            colSalesTax.Name = "colSalesTax";
+            colSalesTax.ReadOnly = true;
+            colSalesTax.Width = 120;
+
+            // 
+            // colExtraTax
+            // 
+            colExtraTax.HeaderText = "Extra Tax";
+            colExtraTax.MinimumWidth = 6;
+            colExtraTax.Name = "colExtraTax";
+            colExtraTax.ReadOnly = true;
+            colExtraTax.Width = 120;
+
+            // 
+            // colFutureTax
+            // 
+            colFutureTax.HeaderText = "Future Tax";
+            colFutureTax.MinimumWidth = 6;
+            colFutureTax.Name = "colFutureTax";
+            colFutureTax.ReadOnly = true;
+            colFutureTax.Width = 120;
+
+            // 
+            // colSROSNo
+            // 
+            colSROSNo.HeaderText = "SRO S No";
+            colSROSNo.MinimumWidth = 6;
+            colSROSNo.Name = "colSROSNo";
+            colSROSNo.ReadOnly = true;
+            colSROSNo.Width = 100;
+
+            // 
+            // colCVT
+            // 
+            colCVT.HeaderText = "CVT";
+            colCVT.MinimumWidth = 6;
+            colCVT.Name = "colCVT";
+            colCVT.ReadOnly = true;
+            colCVT.Width = 100;
+
+            // 
+            // colSalesTaxApplicable
+            // 
+            colSalesTaxApplicable.HeaderText = "Sales Tax Applicable";
+            colSalesTaxApplicable.MinimumWidth = 6;
+            colSalesTaxApplicable.Name = "colSalesTaxApplicable";
+            colSalesTaxApplicable.ReadOnly = true;
+            colSalesTaxApplicable.Width = 150;
+
+            // 
+            // colSalesTaxWithheldAtSource
+            // 
+            colSalesTaxWithheldAtSource.HeaderText = "ST Withheld at Source";
+            colSalesTaxWithheldAtSource.MinimumWidth = 6;
+            colSalesTaxWithheldAtSource.Name = "colSalesTaxWithheldAtSource";
+            colSalesTaxWithheldAtSource.ReadOnly = true;
+            colSalesTaxWithheldAtSource.Width = 160;
+
+            // 
+            // colWHIT1
+            // 
+            colWHIT1.HeaderText = "WHIT-1";
+            colWHIT1.MinimumWidth = 6;
+            colWHIT1.Name = "colWHIT1";
+            colWHIT1.ReadOnly = true;
+            colWHIT1.Width = 100;
+
+            // 
+            // colWHIT2
+            // 
+            colWHIT2.HeaderText = "WHIT-2";
+            colWHIT2.MinimumWidth = 6;
+            colWHIT2.Name = "colWHIT2";
+            colWHIT2.ReadOnly = true;
+            colWHIT2.Width = 100;
+
+            // 
+            // colFedPayable
+            // 
+            colFedPayable.HeaderText = "Fed Payable";
+            colFedPayable.MinimumWidth = 6;
+            colFedPayable.Name = "colFedPayable";
+            colFedPayable.ReadOnly = true;
+            colFedPayable.Width = 120;
+
+            // 
+            // colTotalValuePayable
+            // 
+            colTotalValuePayable.HeaderText = "Total Value Payable";
+            colTotalValuePayable.MinimumWidth = 6;
+            colTotalValuePayable.Name = "colTotalValuePayable";
+            colTotalValuePayable.ReadOnly = true;
+            colTotalValuePayable.Width = 150;
+
+            // 
+            // colWHITSection1
+            // 
+            colWHITSection1.HeaderText = "WHIT Section-1";
+            colWHITSection1.MinimumWidth = 6;
+            colWHITSection1.Name = "colWHITSection1";
+            colWHITSection1.ReadOnly = true;
+            colWHITSection1.Width = 130;
+
+            // 
+            // colWHITSection2
+            // 
+            colWHITSection2.HeaderText = "WHIT Section-2";
+            colWHITSection2.MinimumWidth = 6;
+            colWHITSection2.Name = "colWHITSection2";
+            colWHITSection2.ReadOnly = true;
+            colWHITSection2.Width = 130;
             // 
             // lblTotalItems
             // 
@@ -824,7 +1002,7 @@
             lblInvoicesListing.Name = "lblInvoicesListing";
             lblInvoicesListing.Size = new Size(191, 37);
             lblInvoicesListing.TabIndex = 0;
-            lblInvoicesListing.Text = "Invoices Listing";
+            lblInvoicesListing.Text = "Items List";
             // 
             // btn_remove
             // 
@@ -834,11 +1012,11 @@
             btn_remove.FlatStyle = FlatStyle.Flat;
             btn_remove.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btn_remove.ForeColor = Color.Transparent;
-            btn_remove.Location = new Point(759, 635);
+            btn_remove.Location = new Point(698, 635);
             btn_remove.Name = "btn_remove";
-            btn_remove.Size = new Size(144, 44);
+            btn_remove.Size = new Size(155, 44);
             btn_remove.TabIndex = 40;
-            btn_remove.Text = "- Remove Item";
+            btn_remove.Text = "➖ Remove Item";
             btn_remove.UseVisualStyleBackColor = false;
             btn_remove.Click += btn_remove_Click;
             // 
@@ -850,9 +1028,9 @@
             btnProceed.FlatStyle = FlatStyle.Flat;
             btnProceed.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnProceed.ForeColor = Color.Transparent;
-            btnProceed.Location = new Point(627, 635);
+            btnProceed.Location = new Point(537, 635);
             btnProceed.Name = "btnProceed";
-            btnProceed.Size = new Size(126, 44);
+            btnProceed.Size = new Size(155, 44);
             btnProceed.TabIndex = 39;
             btnProceed.Text = "➕ Add Item";
             btnProceed.UseVisualStyleBackColor = false;
@@ -869,7 +1047,7 @@
             contentPanel.Controls.Add(lblTotalItems);
             contentPanel.Controls.Add(dataGridView1);
             contentPanel.Controls.Add(btnSave);
-            contentPanel.Controls.Add(button1);
+            contentPanel.Controls.Add(btnEdit);
             contentPanel.Controls.Add(lblItemEntry);
             contentPanel.Controls.Add(cvt);
             contentPanel.Controls.Add(pnlBasicInfo);
@@ -934,9 +1112,9 @@
             TotalCVT.Location = new Point(237, 198);
             TotalCVT.Name = "TotalCVT";
             TotalCVT.PlaceholderText = "Total CVT";
+            TotalCVT.ReadOnly = true;
             TotalCVT.Size = new Size(200, 24);
             TotalCVT.TabIndex = 13;
-            TotalCVT.Text = "6";
             // 
             // TotalWithheldIncomeTaxlbl
             // 
@@ -954,9 +1132,9 @@
             TotalWithheldIncomeTax.Location = new Point(17, 200);
             TotalWithheldIncomeTax.Name = "TotalWithheldIncomeTax";
             TotalWithheldIncomeTax.PlaceholderText = "Total Withheld Income Tax";
+            TotalWithheldIncomeTax.ReadOnly = true;
             TotalWithheldIncomeTax.Size = new Size(200, 24);
             TotalWithheldIncomeTax.TabIndex = 12;
-            TotalWithheldIncomeTax.Text = "4";
             // 
             // TotalFEDPayablelbl
             // 
@@ -974,9 +1152,9 @@
             TotalFEDPayable.Location = new Point(903, 198);
             TotalFEDPayable.Name = "TotalFEDPayable";
             TotalFEDPayable.PlaceholderText = "Total FED Payable";
+            TotalFEDPayable.ReadOnly = true;
             TotalFEDPayable.Size = new Size(200, 24);
             TotalFEDPayable.TabIndex = 16;
-            TotalFEDPayable.Text = "8";
             // 
             // TotalExtraTaxlbl
             // 
@@ -994,9 +1172,9 @@
             TotalExtraTax.Location = new Point(682, 198);
             TotalExtraTax.Name = "TotalExtraTax";
             TotalExtraTax.PlaceholderText = "Total Extra Tax";
+            TotalExtraTax.ReadOnly = true;
             TotalExtraTax.Size = new Size(200, 24);
             TotalExtraTax.TabIndex = 15;
-            TotalExtraTax.Text = "0";
             // 
             // TotalSTWithheldlbl
             // 
@@ -1014,9 +1192,9 @@
             TotalSTWithheld.Location = new Point(462, 200);
             TotalSTWithheld.Name = "TotalSTWithheld";
             TotalSTWithheld.PlaceholderText = "Total ST Withheld At Source";
+            TotalSTWithheld.ReadOnly = true;
             TotalSTWithheld.Size = new Size(200, 24);
             TotalSTWithheld.TabIndex = 14;
-            TotalSTWithheld.Text = "8";
             // 
             // TotalRetailPricelbl
             // 
@@ -1034,9 +1212,9 @@
             TotalRetailPrice.Location = new Point(903, 46);
             TotalRetailPrice.Name = "TotalRetailPrice";
             TotalRetailPrice.PlaceholderText = "Total Retail Price";
+            TotalRetailPrice.ReadOnly = true;
             TotalRetailPrice.Size = new Size(200, 24);
             TotalRetailPrice.TabIndex = 6;
-            TotalRetailPrice.Text = "3";
             // 
             // TotalSalesTaxApplicablelbl
             // 
@@ -1054,9 +1232,9 @@
             STapplicable.Location = new Point(903, 117);
             STapplicable.Name = "STapplicable";
             STapplicable.PlaceholderText = "Total Sales Tax Applicable";
+            STapplicable.ReadOnly = true;
             STapplicable.Size = new Size(200, 24);
             STapplicable.TabIndex = 11;
-            STapplicable.Text = "4";
             // 
             // SaleType
             // 
@@ -1114,8 +1292,6 @@
             // chkUnregistered
             // 
             chkUnregistered.AutoSize = true;
-            chkUnregistered.Checked = true;
-            chkUnregistered.CheckState = CheckState.Checked;
             chkUnregistered.Font = new Font("Microsoft Sans Serif", 9F);
             chkUnregistered.ForeColor = Color.FromArgb(75, 85, 99);
             chkUnregistered.Location = new Point(324, 43);
@@ -1277,37 +1453,6 @@
         #endregion
         private System.Windows.Forms.GroupBox grpBlock1;
         private System.Windows.Forms.TextBox txtBuyerName;
-
-        private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {
-            // Format the "Invoice Synced" column to show green "Yes" badges
-            if (e.ColumnIndex == colInvoiceSynced.Index && e.Value?.ToString() == "Yes")
-            {
-                e.CellStyle.ForeColor = Color.FromArgb(34, 197, 94);
-                e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
-                e.Value = "● Yes";
-            }
-            if (e.ColumnIndex == colInvoiceSynced.Index && e.Value?.ToString() == "No")
-            {
-                e.CellStyle.ForeColor = Color.FromArgb(255, 0, 0);
-                e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
-                e.Value = "● No";
-            }
-
-            // Format the "Status" column to show green "Completed" badges
-            if (e.ColumnIndex == colStatus.Index && e.Value?.ToString() == "Completed")
-            {
-                e.CellStyle.ForeColor = Color.FromArgb(34, 197, 94);
-                e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
-                e.Value = "● Completed";
-            }
-            if (e.ColumnIndex == colStatus.Index && e.Value?.ToString() == "Incomplete")
-            {
-                e.CellStyle.ForeColor = Color.FromArgb(255, 0, 0);
-                e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
-                e.Value = "● Incomplete";
-            }
-        }
         private Panel pnlBasicInfo;
         private TextBox uom;
         private Label label11;
@@ -1345,16 +1490,32 @@
         private Label SroScheduleNolbl;
         private TextBox SroScheduleNo;
         private Label lblItemEntry;
-        private Button button1;
+        private Button btnEdit;
         private Button btnSave;
         private DataGridView dataGridView1;
         private DataGridViewTextBoxColumn colSrNo;
-        private DataGridViewTextBoxColumn colInvoice;
-        private DataGridViewTextBoxColumn colPosId;
-        private DataGridViewTextBoxColumn colInvoiceSynced;
-        private DataGridViewTextBoxColumn colDueDate;
-        private DataGridViewTextBoxColumn colStatus;
+        private DataGridViewTextBoxColumn colProductCode;
+        private DataGridViewTextBoxColumn colHSCode;
+        private DataGridViewTextBoxColumn colProductDescription;
+        private DataGridViewTextBoxColumn colUOM;
         private DataGridViewTextBoxColumn colQuantity;
+        private DataGridViewTextBoxColumn colRate;
+        private DataGridViewTextBoxColumn colRetailPrice;
+        private DataGridViewTextBoxColumn colSalesValueExcST;
+        private DataGridViewTextBoxColumn colTotalValue;
+        private DataGridViewTextBoxColumn colSalesTax;
+        private DataGridViewTextBoxColumn colExtraTax;
+        private DataGridViewTextBoxColumn colFutureTax;
+        private DataGridViewTextBoxColumn colSROSNo;
+        private DataGridViewTextBoxColumn colCVT;
+        private DataGridViewTextBoxColumn colSalesTaxApplicable;
+        private DataGridViewTextBoxColumn colSalesTaxWithheldAtSource;
+        private DataGridViewTextBoxColumn colWHIT1;
+        private DataGridViewTextBoxColumn colWHIT2;
+        private DataGridViewTextBoxColumn colFedPayable;
+        private DataGridViewTextBoxColumn colTotalValuePayable;
+        private DataGridViewTextBoxColumn colWHITSection1;
+        private DataGridViewTextBoxColumn colWHITSection2;
         private Label lblTotalItems;
         private Label lblInvoicesListing;
         private Button btn_remove;
