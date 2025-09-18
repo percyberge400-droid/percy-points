@@ -323,6 +323,7 @@ namespace POSPRA_WinFormsUI
                     lblTotalItems.Text = "Total 0 items";
                     CurrentInvoice = null;
                     _sessionItems.Clear();
+                    UpdateInvoiceTotals();
                 }
                 else
                 {
