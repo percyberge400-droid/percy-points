@@ -161,7 +161,7 @@ namespace POSPRA_WinFormsUI.Forms
             button5.Name = "button5";
             button5.Size = new Size(189, 51);
             button5.TabIndex = 6;
-            button5.Text = "Pending Invoices";
+            button5.Text = "Not Synced";
             button5.TextImageRelation = TextImageRelation.ImageBeforeText;
             button5.UseVisualStyleBackColor = true;
             // 
@@ -245,7 +245,7 @@ namespace POSPRA_WinFormsUI.Forms
             button6.Name = "button6";
             button6.Size = new Size(159, 51);
             button6.TabIndex = 6;
-            button6.Text = "Paid Invoices";
+            button6.Text = "Synced Invoices";
             button6.TextImageRelation = TextImageRelation.ImageBeforeText;
             button6.UseVisualStyleBackColor = true;
             // 

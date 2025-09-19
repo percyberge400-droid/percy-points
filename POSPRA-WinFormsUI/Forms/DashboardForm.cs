@@ -119,8 +119,11 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 var response = await _logService.GetAllAsync();
 
-                
-                WindowsLocalAppNotification.Show("Logs Loaded", $"Successfully loaded {response?.Data?.Count} log entries");
+                //Local App notiofication call
+                WindowsLocalAppNotification.Show("Logs Loaded", $"Successfully loaded log entries");
+                AlertManager.ShowSuccess("Successfuly loaded Log data");
+
+
 
                 if (response?.Data != null && response.Data.Any())
                 {
