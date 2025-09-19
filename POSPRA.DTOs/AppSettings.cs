@@ -7,6 +7,7 @@
         public int HeartbeatInterval { get; set; }
         public int RecordSyncLimit { get; set; }
         public int LogSyncLimit { get; set; }
+        public string BaseUrl { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
         public int BackUpSize { get; set; }
         public string ClientSettingsProviderServiceUri { get; set; } = string.Empty;

@@ -10,7 +10,6 @@ using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDTOs;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
-using AlertType = POSPRA.Application.Utility.GlobalEnums.AlertType;
 using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
 
 namespace POSPRA.Application.Services.FiscalService
@@ -185,7 +184,7 @@ namespace POSPRA.Application.Services.FiscalService
             catch (Exception ex)
             {
                 string errorMessage = $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
-                await _logService.LogAsync(new Logs(errorMessage, (int)AlertType.Exception, false));
+                await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
                 return string.Empty;
             }
         }
@@ -196,6 +195,22 @@ namespace POSPRA.Application.Services.FiscalService
             var fileRecrodDTO = _mapper.Map<List<FileRecordDTO>>(output);
 
             return new ApiResponse<List<FileRecordDTO>>(null, null, fileRecrodDTO, null);
+        }
+
+        public async Task<ApiResponse<List<FileRecordDTO>>> GetAllUnsyncedAsync()
+        {
+            // Await the repository call directly (don't use .Result)
+            var allRecords = await _fileRecordRepository.GetAllAsync();
+
+            // Filter in memory (if GetAllAsync() already returns an IQueryable, you can filter earlier)
+            var unsynced = allRecords
+                .Where(x => x.IsSynced == (int)InvoiceStatus.NotSynced)   // use !x.IsSynced for clarity
+                .ToList();                 // materialize as a List
+
+            // Map to DTOs
+            var fileRecordDtos = _mapper.Map<List<FileRecordDTO>>(unsynced);
+
+            return new ApiResponse<List<FileRecordDTO>>(null, null, fileRecordDtos, null);
         }
 
         /// <summary>
@@ -231,7 +246,7 @@ namespace POSPRA.Application.Services.FiscalService
                 var errorMessage =
                     $"{GlobalVariables.DATE} InsertInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
 
-                await _logService.LogAsync(new Logs(errorMessage, (int)AlertType.Exception, false));
+                await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
                 return 0;
             }
         }

@@ -39,24 +39,6 @@ namespace POSPRA.Application.Utility
             Code_402 = 402,
         }
 
-        public enum AlertType
-        {
-            [Description("IMS Started")]
-            Component_Started = 1,
-            [Description("IMS Stopped")]
-            Component_Stopped = 2,
-            [Description("Exception")]
-            Exception = 3,
-            [Description("Version")]
-            Version = 4,
-            [Description("Database Information")]
-            DatabaseInfo = 5,
-            [Description("Configuration Information")]
-            Configuration = 6,
-            [Description("Invalid model received")]
-            InvalidInvoiceModel = 8,
-        }
-
         public enum InvoiceStatus
         {
             NotSynced = 0,

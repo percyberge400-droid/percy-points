@@ -9,8 +9,9 @@ namespace POSPRA.Application.Services.FiscalService
     /// </summary>
     public interface IFiscalService
     {
-
         Task<ApiResponse<List<FileRecordDTO>>> GetAllAsync();
+
+        Task<ApiResponse<List<FileRecordDTO>>> GetAllUnsyncedAsync();
 
         /// <summary>
         /// Creates a new invoice record asynchronously.

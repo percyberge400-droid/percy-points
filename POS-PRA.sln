@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.DTOs", "POSPRA.DTOs\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.API", "POSPRA.API\POSPRA.API.csproj", "{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Worker", "POSPRA.Worker\POSPRA.Worker.csproj", "{AFD5BB00-9CFB-4047-A06C-2E1D60A6C095}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFD5BB00-9CFB-4047-A06C-2E1D60A6C095}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFD5BB00-9CFB-4047-A06C-2E1D60A6C095}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFD5BB00-9CFB-4047-A06C-2E1D60A6C095}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFD5BB00-9CFB-4047-A06C-2E1D60A6C095}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

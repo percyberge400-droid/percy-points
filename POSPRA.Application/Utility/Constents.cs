@@ -17,6 +17,9 @@
         public const string Configuration = "api/POS/Configuration";
         public const string HeartBeat = "api/POS/HeartBeat";
         public const string DownloadFile = "api/POS/DownloadFile";
+        public const string GetAll = "api/Fiscal/GetAll";
+        public const string PostData = "api/Fiscal/GetAll";
+
     }
 
     public class Messages
@@ -60,6 +63,31 @@
         public const string UnauthorizedAccess = "You are not authorized to perform this action.";
         public const string SessionExpired = "Session has expired. Please log in again.";
     }
+
+    public static class AlertType
+    {
+        // Generic/common alerts
+        public const string Information = "Information";
+        public const string Warning = "Warning";
+        public const string Error = "Error";
+        public const string Critical = "Critical";
+        public const string Exception = "Exception";
+        public const string Startup = "Startup";
+        public const string Shutdown = "Shutdown";
+        public const string ConfigurationChange = "ConfigurationChange";
+        public const string VersionUpdate = "VersionUpdate";
+        public const string DatabaseEvent = "DatabaseEvent";
+        public const string SecurityEvent = "SecurityEvent";
+
+        // Specific alerts from your original enum
+        public const string ComponentStarted = "Started";
+        public const string ComponentStopped = "Stopped";
+        public const string Version = "Version";
+        public const string DatabaseInfo = "Database Information";
+        public const string Configuration = "Configuration Information";
+        public const string InvalidInvoiceModel = "Invalid model received";
+    }
+
 
     public enum ApiStatusCode
     {

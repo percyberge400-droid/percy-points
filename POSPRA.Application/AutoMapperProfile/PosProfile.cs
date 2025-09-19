@@ -7,9 +7,9 @@ using POSPRA.DTOs.PosDTOs;
 
 namespace POSPRA.Application.AutoMapperProfile
 {
-    public class InvoiceProfile : Profile
+    public class PosProfile : Profile
     {
-        public InvoiceProfile()
+        public PosProfile()
         {
             CreateMap<InvoiceDto, Invoice>();
             CreateMap<InvoiceItemDetailDto, InvoiceItemDetail>();
@@ -19,6 +19,9 @@ namespace POSPRA.Application.AutoMapperProfile
 
             CreateMap<LogDto, Logs>();
             CreateMap<Logs, LogDto>();
+
+            CreateMap<WorkerLogDTO, Logs>();
+            CreateMap<Logs, WorkerLogDTO>();
 
             CreateMap<Dictionary<string, object>, ResponseConfigurationDto>()
               .ConvertUsing<DictionaryToDtoConverter<ResponseConfigurationDto>>();

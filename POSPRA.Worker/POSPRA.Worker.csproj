@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>dotnet-POSPRA.Worker-6ed6f5a6-a19a-4724-9b76-89df9951af05</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Hangfire.AspNetCore" Version="1.8.21" />
+		<PackageReference Include="Hangfire.Core" Version="1.8.21" />
+		<PackageReference Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
+		<PackageReference Include="Hangfire.SqlServer" Version="1.8.21" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
+		<ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
+	</ItemGroup>
+</Project>

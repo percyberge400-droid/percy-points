@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hangfire;
+using Hangfire.MemoryStorage;
+using Microsoft.EntityFrameworkCore;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -17,99 +19,125 @@ using POSPRA.Repositories.PosRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 
-var builder = WebApplication.CreateBuilder(args);
-
-//----------------------------------------------------
-// 🔧 Database configuration
-//----------------------------------------------------
-
-// ✅ Use single SQLite database file under AppData\POSPRA\pospra.db
-var dbPath = SqliteDbContext.GetDbPath();
-
-builder.Services.AddDbContext<SqliteDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
-
-// ✅ SQL Server for production data
-builder.Services.AddDbContext<SqlServerDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")),
-    ServiceLifetime.Scoped);
-
-//----------------------------------------------------
-// 🔧 Dependency Injection
-//----------------------------------------------------
-
-// AutoMapper
-builder.Services.AddAutoMapper(cfg =>
+namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
 {
-    cfg.AddProfile<UserProfile>();
-    cfg.AddProfile<InvoiceProfile>();
-});
-
-// Unit of Work
-builder.Services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
-builder.Services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
-
-// Generic / custom repositories
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped(typeof(SqlServerRepository<>));
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
-builder.Services.AddScoped<ILogRepository, LogRepository>();
-builder.Services.AddScoped<IPosClientRepository, PosClientRepository>();
-
-// Application services
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IFiscalService, FiscalService>();
-builder.Services.AddScoped<ILogService, LogService>();
-builder.Services.AddScoped<IPosService, PosService>();
-builder.Services.AddScoped<InvoiceValidatorService>();
-builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
-//builder.Services.AddScoped<SendModelToServer>();
-
-// Http client
-builder.Services.AddHttpClient<IHttpService, HttpService>();
-
-// Access to HttpContext (needed by RequestHeaderService, etc.)
-builder.Services.AddHttpContextAccessor();
-
-// Strongly typed AppSettings
-builder.Services.Configure<AppSettings>(
-    builder.Configuration.GetSection("AppSettings"));
-
-//----------------------------------------------------
-// 🔧 Web / API configuration
-//----------------------------------------------------
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddHealthChecks(); // optional but recommended
-
-//----------------------------------------------------
-// 🔧 Build and configure middleware
-//----------------------------------------------------
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
-    // Redirect root URL to Swagger UI
-    app.Use(async (context, next) =>
+    public static class Program
     {
-        if (context.Request.Path == "/")
+        /// <summary>
+        /// Entry point when running as a normal Web API (Kestrel, IIS, etc.).
+        /// </summary>
+        public static async Task Main(string[] args)
         {
-            context.Response.Redirect("/swagger");
-            return;
+            var apiHost = BuildApiHost();
+            apiHost.Urls.Add("http://localhost:5000");
+            await apiHost.StartAsync();
+
+            // Wait here until shutdown is triggered (Ctrl+C, SIGTERM)
+            await apiHost.WaitForShutdownAsync();
+
+
         }
-        await next();
-    });
+
+        /// <summary>
+        /// Creates the fully configured WebApplication.
+        /// WinForms or Worker can call this to start the API in-process.
+        /// </summary>
+        public static WebApplication BuildApiHost(string[]? args = null)
+        {
+            var builder = WebApplication.CreateBuilder(args ?? Array.Empty<string>());
+
+            builder.Services.AddControllers()
+                .PartManager.ApplicationParts.Add(new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(FiscalController).Assembly));
+            // Force Kestrel to bind to the URL externally
+            // Change this line to:
+            builder.WebHost.UseUrls("http://0.0.0.0:5000");
+            //----------------------------------------------------
+            // 🔧 Database configuration
+            //----------------------------------------------------
+            var dbPath = SqliteDbContext.GetDbPath();
+            builder.Services.AddDbContext<SqliteDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
+
+            builder.Services.AddDbContext<SqlServerDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")),
+                ServiceLifetime.Scoped);
+
+            //----------------------------------------------------
+            // 🔧 Dependency Injection
+            //----------------------------------------------------
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<UserProfile>();
+                cfg.AddProfile<PosProfile>();
+            });
+
+            builder.Services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
+            builder.Services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
+
+            builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            builder.Services.AddScoped(typeof(SqlServerRepository<>));
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
+            builder.Services.AddScoped<ILogRepository, LogRepository>();
+            builder.Services.AddScoped<IPosClientRepository, PosClientRepository>();
+
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IFiscalService, FiscalService>();
+            builder.Services.AddScoped<ILogService, LogService>();
+            builder.Services.AddScoped<IPosService, PosService>();
+            builder.Services.AddScoped<InvoiceValidatorService>();
+            builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+
+            builder.Services.AddHttpClient<HttpService>();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+            //----------------------------------------------------
+            // 🔧 Web / API configuration
+            //----------------------------------------------------
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            builder.Services.AddHealthChecks();
+
+            //----------------------------------------------------
+            // ✅ Hangfire configuration  (ADD THESE LINES)
+            //----------------------------------------------------
+            builder.Services.AddHangfire(cfg =>
+            {
+                cfg.UseMemoryStorage();          // or UseSqlServerStorage for production
+            });
+            builder.Services.AddHangfireServer();
+            //----------------------------------------------------
+            // 🔧 Build and middleware
+            //----------------------------------------------------
+            var app = builder.Build();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+
+                // Redirect root to Swagger UI
+                app.Use(async (context, next) =>
+                {
+                    if (context.Request.Path == "/")
+                    {
+                        context.Response.Redirect("/swagger");
+                        return;
+                    }
+                    await next();
+                });
+            }
+
+            app.UseHttpsRedirection();
+            app.UseAuthorization();
+            // ✅ Now this works because services were registered above
+            app.UseHangfireDashboard();
+            app.MapControllers();
+            app.MapHealthChecks("/health");
+
+            return app;
+        }
+    }
 }
-
-app.UseHttpsRedirection();
-app.UseAuthorization();
-
-app.MapControllers();
-app.MapHealthChecks("/health"); // quick health check endpoint
-
-app.Run();
