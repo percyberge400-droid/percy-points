@@ -1,7 +1,6 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.LogDTOs;
-using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -21,7 +20,7 @@ namespace POSPRA.Application.Services.LogService
 
         Logs BuildLog(
                 string message,
-                AlertType type,
+                string type,
                 string? module = null,
                 string? action = null,
                 string? userId = null,

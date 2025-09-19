@@ -6,7 +6,7 @@ namespace POSPRA.Application.Services.HttpClientService
     /// <summary>
     /// A simple HTTP client service for sending GET and POST requests.
     /// </summary>
-    public class HttpService : IHttpService, IDisposable
+    public class HttpService : HttpClient, IDisposable
     {
         private readonly HttpClient _client;
 

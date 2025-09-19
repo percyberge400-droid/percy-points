@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
+using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
@@ -8,7 +9,6 @@ using POSPRA.DTOs.LogDTOs;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
-using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -83,7 +83,7 @@ namespace POSPRA.Application.Services.LogService
                     var errorLog = new Logs
                     {
                         Message = $"{DateTime.UtcNow}: Retry {retry}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
-                        TypeId = (int)AlertType.Exception,
+                        Type = AlertType.Exception,
                         IsSynced = false,
                         Module = "Logging",
                         ActionName = "LogAsync",
@@ -122,7 +122,7 @@ namespace POSPRA.Application.Services.LogService
         /// </summary>
         public Logs BuildLog(
          string message,
-         AlertType type,
+         string type,
          string? module = null,
          string? action = null,
          string? userId = null,
@@ -135,7 +135,7 @@ namespace POSPRA.Application.Services.LogService
             return new Logs
             {
                 Message = message,
-                TypeId = (int)type,
+                Type = type,
                 IsSynced = false,
                 Module = module,
                 ActionName = action,

@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\POSPRA.Application\POSPRA.Application.csproj" />
     <ProjectReference Include="..\POSPRA.DTOs\POSPRA.DTOs.csproj" />
+	  <ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
   </ItemGroup>
 
 </Project>

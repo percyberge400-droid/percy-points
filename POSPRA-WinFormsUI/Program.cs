@@ -21,36 +21,42 @@ using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
 
+// ✅ IMPORTANT: Add a reference to the Web API project (right-click WinForms project → Add → Project Reference…)
+
 namespace POSPRA_WinFormsUI
 {
-    internal static class Program
+    public static class Program
     {
         private static PrivateFontCollection privateFonts;
 
         [STAThread]
         static void Main()
         {
+
+
+            // Initialize SQLite database if needed
             DbInitializer.Initialize();
 
+            // Load configuration from appsettings.json
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
+            // Build DI container
             var services = new ServiceCollection();
 
-            // DbContexts
+            // Database contexts
             var dbPath = SqliteDbContext.GetDbPath();
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
             services.AddDbContext<SqlServerDbContext>(opt =>
                 opt.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
-            // AutoMapper
-            // AutoMapper (register all profiles in assembly)
+            // AutoMapper profiles
             services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<UserProfile>();
-                cfg.AddProfile<InvoiceProfile>();
+                cfg.AddProfile<PosProfile>();
             });
 
             // Repositories & Services
@@ -68,19 +74,12 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IHttpContextAccessor, HttpContextAccessorService>();
             services.AddScoped<InvoiceValidatorService>();
 
-            // ✅ Typed HttpClient with base address
-            //services.AddHttpClient("SelfHostedApi", (sp, client) =>
-            //{
-            //    var cfg = sp.GetRequiredService<IConfiguration>();
-            //    client.BaseAddress = new Uri(cfg["ApiSettings:BaseUrl"]);
-            //});
             services.AddSingleton<IConfiguration>(configuration);
             services.AddHttpContextAccessor();
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
-
             services.AddHttpClient();
 
-            // Forms
+            // WinForms UI forms
             services.AddTransient<LoginForm>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
@@ -88,6 +87,7 @@ namespace POSPRA_WinFormsUI
 
             using var provider = services.BuildServiceProvider();
 
+            // ✅ Launch WinForms UI
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

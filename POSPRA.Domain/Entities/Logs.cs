@@ -2,7 +2,8 @@
 {
     /// <summary>
     /// Master application log for PRAL/FBR systems (Pakistan).
-    /// Stores detailed request, response, environment and error data.
+    /// Stores detailed request, response, environment, error,
+    /// and worker-service lifecycle data.
     /// </summary>
     public class Logs
     {
@@ -13,31 +14,29 @@
         public string? Message { get; set; }
 
         /// <summary>Severity/category: 1=Info, 2=Warning, 3=Error, 4=Audit, etc.</summary>
-        public int TypeId { get; set; }
+        public string Type { get; set; }
 
         /// <summary>True if this log was synced to the central server.</summary>
         public bool IsSynced { get; set; }
 
         // ---------- Date/Time ----------
-        /// <summary>UTC timestamp (always recorded).</summary>
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
-        /// <summary>Pakistan Standard Time (Asia/Karachi) for direct reporting.</summary>
         public DateTime CreatedAtPk { get; set; } =
             TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
                 TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi"));
 
         // ---------- User / Security ----------
-        public string? UserId { get; set; }          // Application user id
-        public string? UserName { get; set; }        // Friendly user name
-        public string? UserRole { get; set; }        // Role(s)
-        public string? SessionId { get; set; }       // Web session or token id
+        public string? UserId { get; set; }
+        public string? UserName { get; set; }
+        public string? UserRole { get; set; }
+        public string? SessionId { get; set; }
 
         // ---------- Request Context ----------
-        public string? HttpMethod { get; set; }      // GET, POST, PUT, etc.
-        public string? RequestPath { get; set; }     // /api/Invoice/Save
+        public string? HttpMethod { get; set; }
+        public string? RequestPath { get; set; }
         public string? QueryString { get; set; }
-        public string? RequestHeaders { get; set; }  // Serialized JSON or key=value
+        public string? RequestHeaders { get; set; }
         public string? RequestBody { get; set; }
 
         // ---------- Response Context ----------
@@ -47,13 +46,13 @@
         // ---------- Client / Network ----------
         public string? ClientIp { get; set; }
         public string? ClientHost { get; set; }
-        public string? UserAgent { get; set; }       // Browser / device
+        public string? UserAgent { get; set; }
 
         // ---------- Server / Environment ----------
-        public string? MachineName { get; set; }     // Server machine name
-        public string? ApplicationName { get; set; } // e.g. POSPRA
-        public string? EnvironmentName { get; set; } // Development/Staging/Production
-        public string? AssemblyVersion { get; set; } // App build version
+        public string? MachineName { get; set; }
+        public string? ApplicationName { get; set; }
+        public string? EnvironmentName { get; set; }
+        public string? AssemblyVersion { get; set; }
 
         // ---------- Exception Details ----------
         public string? ExceptionType { get; set; }
@@ -62,17 +61,45 @@
         public string? InnerException { get; set; }
 
         // ---------- Custom / Domain ----------
-        public string? Module { get; set; }          // e.g. “MoneyExchange”
-        public string? ActionName { get; set; }      // Controller/Method
-        public string? AdditionalData { get; set; }  // JSON blob for anything else
+        public string? Module { get; set; }
+        public string? ActionName { get; set; }
+        public string? AdditionalData { get; set; }
+
+        // ---------- Worker Service ----------
+        /// <summary>
+        /// Logical name of the background/worker service (e.g. "POSPRA.Worker").
+        /// </summary>
+        public string? WorkerName { get; set; }
+
+        /// <summary>
+        /// Unique identifier for this worker instance (GUID or hostname+pid).
+        /// </summary>
+        public string? WorkerInstanceId { get; set; }
+
+        /// <summary>
+        /// Lifecycle event: Started, Stopping, Stopped, Restarted, Crashed, etc.
+        /// </summary>
+        public string? WorkerEvent { get; set; }
+
+        /// <summary>UTC time when the worker started.</summary>
+        public DateTime? WorkerStartedAtUtc { get; set; }
+
+        /// <summary>UTC time when the worker stopped or crashed.</summary>
+        public DateTime? WorkerStoppedAtUtc { get; set; }
+
+        /// <summary>Total uptime (seconds) when stop/crash was logged.</summary>
+        public double? WorkerUptimeSeconds { get; set; }
+
+        /// <summary>Executable/build version of the worker host.</summary>
+        public string? WorkerHostVersion { get; set; }
 
         // ---------- Constructors ----------
         public Logs() { }
 
-        public Logs(string message, int typeId, bool isSynced)
+        public Logs(string message, string type, bool isSynced)
         {
             Message = message;
-            TypeId = typeId;
+            Type = type;
             IsSynced = isSynced;
             CreatedAtUtc = DateTime.UtcNow;
             CreatedAtPk = TimeZoneInfo.ConvertTimeFromUtc(

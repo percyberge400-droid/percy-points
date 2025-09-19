@@ -1,7 +1,10 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using System.Drawing.Drawing2D;
+using System.Net.Http.Json;
+using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
+using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDTOs;
 using System.Drawing.Drawing2D;
 
@@ -818,48 +821,57 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
-        /// <summary>
-        /// Sends the given invoice to the self-hosted API and returns true on success.
-        /// </summary>
-        //private async Task<bool> PostInvoiceAsync(InvoiceDto dto)
-        //{
-        //    try
-        //    {
-        //        var response = await _httpClient.PostAsJsonAsync("api/Fiscal/Create", dto);
+        private void extratax_TextChanged(object sender, EventArgs e)
+        {
 
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            // If your API returns the created invoice
-        //            var apiResult = await response.Content
-        //                                          .ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
+        }
 
-        //            MessageBox.Show(apiResult?.Message ?? "Invoice created successfully!",
-        //                            "Success",
-        //                            MessageBoxButtons.OK,
-        //                            MessageBoxIcon.Information);
+        public class InvoicePoster
+        {
+            private readonly HttpClient _httpClient;
+            public InvoicePoster(IHttpClientFactory factory)
+            {
+                _httpClient = factory.CreateClient("SelfHostedApi");
+            }
 
-        //            // Optionally use apiResult.Data if you need the returned invoice
-        //            return true;
-        //        }
-        //        else
-        //        {
-        //            var error = await response.Content.ReadAsStringAsync();
-        //            MessageBox.Show($"Error from API: {response.StatusCode}\n{error}",
-        //                            "Error",
-        //                            MessageBoxButtons.OK,
-        //                            MessageBoxIcon.Error);
-        //            return false;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Error posting invoice: {ex.Message}",
-        //                        "Error",
-        //                        MessageBoxButtons.OK,
-        //                        MessageBoxIcon.Error);
-        //        return false;
-        //    }
-        //}
+            public async Task<bool> PostInvoiceAsync(InvoiceDto dto)
+            {
+                try
+                {
+                    var response = await _httpClient.PostAsJsonAsync("api/Fiscal/Create", dto);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var apiResult = await response.Content
+                                                      .ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
+
+                        MessageBox.Show(apiResult?.Message ?? "Invoice created successfully!",
+                                        "Success",
+                                        MessageBoxButtons.OK,
+                                        MessageBoxIcon.Information);
+
+                        // You can use apiResult?.Data if needed
+                        return true;
+                    }
+
+                    // Non-success HTTP status
+                    var error = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"Error from API: {response.StatusCode}\n{error}",
+                                    "Error",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error posting invoice: {ex.Message}",
+                                    "Error",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                    return false;
+                }
+            }
+        }
 
     }
 }
