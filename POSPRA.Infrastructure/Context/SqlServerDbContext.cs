@@ -13,9 +13,9 @@ namespace POSPRA.Infrastructure.Context
     {
         // Example DbSets:
         // public DbSet<SomeEntity> SomeEntities { get; set; } = null!;
-        public DbSet<PosClients> PosClients { get; set; } = null!;
-        //public DbSet<PosConfiguration> PosConfiguration { get; set; } = null!;
-        //public DbSet<PosStatus> POSStatus { get; set; }
+        public DbSet<PosClients> POSClients { get; set; } = null!;
+        public DbSet<PosConfiguration> POSConfigurations { get; set; } = null!;
+        public DbSet<PosStatus> POSStatus { get; set; }
 
 
         /// <summary>

@@ -70,40 +70,38 @@ namespace POSPRA.Application.Services.POSService
             {
                 return new ApiResponse<string>(
                     statusCode: ApiStatusCodes.Error,
-                    message: ResponseMessages.ErrorUpdatingHeartbeat,
+                    message: $"{ResponseMessages.ErrorUpdatingHeartbeat}: {ex.Message}",
                     data: string.Empty
                 );
             }
+
         }
 
-        public async Task<ApiResponse<List<ResponseConfigurationDto>>> GetConfigurationsAsync()
+        public async Task<ApiResponse<List<PosConfigurationDto>>> GetConfigurationsAsync()
         {
             try
             {
                 var posId = _requestHeaderService.GetPosId();
-                var posConfiguration = await _posConfigurationRepository.FirstOrDefaultAsync(x => x.POSID == posId && x.IsActive == true);
-                if (posConfiguration == null)
-                    return new ApiResponse<List<ResponseConfigurationDto>>(
+                var posConfigurations = await _posConfigurationRepository.FirstOrDefaultAsync(x => x.POSID == posId && x.IsActive == true);
+                if (posConfigurations == null)
+                    return new ApiResponse<List<PosConfigurationDto>>(
                         statusCode: ApiStatusCodes.NotFound,
                         message: ResponseMessages.ConfigurationsNotFound,
                         data: null
                     );
 
-                posConfiguration.IsActive = false;
+                posConfigurations.IsActive = false;
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 
-                // Auto-map dictionaries to your DTOs
-                var results = _mapper.Map<List<ResponseConfigurationDto>>(posConfiguration);
-
-                return new ApiResponse<List<ResponseConfigurationDto>>(
+                return new ApiResponse<List<PosConfigurationDto>>(
                     statusCode: ApiStatusCodes.Success,
-                    message: ResponseMessages.ConfigurationsFound,
-                    data: results
+                    message: ResponseMessages.RecordSaved,
+                    data: null
                 );
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<ResponseConfigurationDto>>(
+                return new ApiResponse<List<PosConfigurationDto>>(
                     statusCode: ApiStatusCodes.NotFound,
                     message: $"{ResponseMessages.ConfigurationsFetchError} {ex.Message}",
                     data: null
@@ -115,21 +113,31 @@ namespace POSPRA.Application.Services.POSService
         {
             try
             {
-                PosStatus posStatus = new();
+                // Get POS-ID from request header (must match POSClients.POSRegistrationNumber)
+                var posId = _requestHeaderService.GetPosId();
+
+                // Create a new status record
+                PosStatus posStatus = new()
+                {
+                    POSID = posId,                          // FK value
+                    Message = "POS status inserted",        // Example message
+                    DateCreated = DateTime.Now,             // Timestamp
+                    TypeId = 1                              // Example type (adjust as needed)
+                };
+
                 await _posStatusRepository.AddAsync(posStatus);
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 
-                // Auto-map dictionaries to your DTOs
                 return new ApiResponse<List<PosStatus>>(
                     statusCode: ApiStatusCodes.Success,
                     message: ResponseMessages.ConfigurationsFound,
-                    data: null
+                    data: new List<PosStatus> { posStatus }
                 );
             }
             catch (Exception ex)
             {
                 return new ApiResponse<List<PosStatus>>(
-                    statusCode: ApiStatusCodes.NotFound,
+                    statusCode: ApiStatusCodes.Error,
                     message: $"{ResponseMessages.ConfigurationsFetchError} {ex.Message}",
                     data: null
                 );

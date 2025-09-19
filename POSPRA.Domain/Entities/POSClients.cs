@@ -8,10 +8,10 @@
         public string? BusinessName { get; set; }
         public string? BranchName { get; set; }
         public string? BranchAddress { get; set; }
-        public decimal? Latitude { get; set; }
-        public decimal? Longitude { get; set; }
+        public string? Latitude { get; set; }   // your DB says varchar(15), not decimal
+        public string? Longitude { get; set; }  // same here
         public string? StoreStatus { get; set; }
-        public string ImagePath { get; set; }
+        public string? ImagePath { get; set; }
         public int? CityID { get; set; }
         public string? PublicKey { get; set; }
         public string? PrivateKey { get; set; }
@@ -24,19 +24,20 @@
         public string? AppID { get; set; }
         public string? AppKey { get; set; }
         public string? IPAddress { get; set; }
-        public string? PosMode { get; set; }
+        public int? PosMode { get; set; }      // FIXED: int, not string
         public string? Version { get; set; }
-        public string? Computer_no { get; set; }
-        public int? Tax_Office_ID { get; set; }
-        public string? Sector { get; set; }
-        public string? POSType { get; set; }
-        public int? POSBranchID { get; set; }
+        public long? Computer_no { get; set; } // FIXED: bigint → long
+        public short? Tax_Office_ID { get; set; }
+
+        public int? Sector { get; set; }       // FIXED: int, not string
+        public short? POSType { get; set; }
+        public long? POSBranchID { get; set; } // FIXED: bigint → long
         public string? MacAddressInput { get; set; }
         public bool? IsConnected { get; set; }
         public DateTime? HeartbeatUpdatedOn { get; set; }
         public string? Token { get; set; }
         public string? PASSWORD { get; set; }
-        public int? Province_Id { get; set; }
-        public long? FileSize { get; set; }
+        public byte? Province_Id { get; set; } // tinyint → byte
+        public long? FileSize { get; set; }    // bigint → long
     }
 }

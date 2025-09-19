@@ -1,9 +1,9 @@
-﻿using System.Drawing.Drawing2D;
-using POSPRA.Application.Services.FiscalService;
+﻿using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs.InvoiceDTOs;
+using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
 {
@@ -817,11 +817,6 @@ namespace POSPRA_WinFormsUI
         }
 
         #endregion
-
-        private void extratax_TextChanged(object sender, EventArgs e)
-        {
-
-        }
 
         /// <summary>
         /// Sends the given invoice to the self-hosted API and returns true on success.

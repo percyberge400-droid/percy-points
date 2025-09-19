@@ -20,8 +20,10 @@ namespace POSPRA.Application.AutoMapperProfile
             CreateMap<LogDto, Logs>();
             CreateMap<Logs, LogDto>();
 
-            CreateMap<Dictionary<string, object>, ResponseConfigurationDto>()
-              .ConvertUsing<DictionaryToDtoConverter<ResponseConfigurationDto>>();
+            CreateMap<PosConfigurationDto, PosConfiguration>();
+            CreateMap<PosConfiguration, PosConfigurationDto>();
+
+
 
             // ✅ Add this for POSVerificationDTO
             CreateMap<Dictionary<string, object>, POSVerificationDTO>()

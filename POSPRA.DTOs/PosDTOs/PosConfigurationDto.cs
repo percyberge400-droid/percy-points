@@ -1,6 +1,6 @@
-﻿namespace POSPRA.Domain.Entities
+﻿namespace POSPRA.DTOs.PosDTOs
 {
-    public class PosConfiguration
+    public class PosConfigurationDto
     {
         public int Id { get; set; }
         public int? LogInterval { get; set; }

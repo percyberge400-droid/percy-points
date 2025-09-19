@@ -17,7 +17,7 @@ namespace POSPRA.Application.Services.PosService
         /// An <see cref="ApiResponse{T}"/> containing the status or result of the operation.
         /// </returns>
         Task<ApiResponse<string>> UpdateHeartBeatAsync();
-        Task<ApiResponse<List<ResponseConfigurationDto>>> GetConfigurationsAsync();
+        Task<ApiResponse<List<PosConfigurationDto>>> GetConfigurationsAsync();
         Task<ApiResponse<List<PosStatus>>> InsertPosStatusAsync();
     }
 }
