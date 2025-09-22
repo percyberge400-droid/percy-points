@@ -75,7 +75,7 @@ namespace POSPRA.Application.Services.LiveService
             {
                 foreach (var item in dTOs)
                 {
-                    var decryptedInvoice = ModernAESEncryption.Decrypt(item.InvoiceData!, "36b8dd382b014af3e053ecf1322f6db2");
+                    var decryptedInvoice = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
 
                     var parts = decryptedInvoice.Split('|');
 
