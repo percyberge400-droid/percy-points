@@ -295,11 +295,11 @@ namespace POSPRA_WinFormsUI
                 {
                     BPOSID = int.TryParse(posid.Text, out var bposId) ? bposId : GlobalVariables.POS_ID,
                     InvoiceType = chkRegistered.Checked ? (short)1 : (chkUnregistered.Checked ? (short)2 : (short)0),
-                    InvoiceDate = CurrentInvoice?.InvoiceDate ?? DateTime.Now,
+                    InvoiceDate = DateTime.Now,
                     NTN_CNIC = sellerntn.Text,
                     BuyerSellerName = sellerBname.Text,
                     DestinationAddress = DestinationAddress.Text,
-                    SaleType = int.TryParse(SaleType.Text, out var saleType) ? saleType : 0,
+                    SaleType = int.TryParse(SaleType.Text, out var saleType) ? saleType : 1,
                     TotalSalesTaxApplicable = decimal.TryParse(SalesTaxApplicable.Text, out var st) ? st : 0,
                     TotalRetailPrice = decimal.TryParse(RetailPrice.Text, out var retail) ? retail : itemDtos.Sum(x => x.RetailPrice),
                     TotalSTWithheldAtSource = decimal.TryParse(TotalSTWithheld.Text, out var withheld) ? withheld : 0,
@@ -873,5 +873,9 @@ namespace POSPRA_WinFormsUI
             }
         }
 
+        private void btnSave_Click_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }
