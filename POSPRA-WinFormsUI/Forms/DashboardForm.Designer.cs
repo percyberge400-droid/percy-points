@@ -36,24 +36,24 @@ namespace POSPRA_WinFormsUI.Forms
             logout = new ToolStripMenuItem();
             panel2 = new Panel();
             button1 = new Button();
-            label5 = new Label();
+            labelAllInvoices = new Label();
             panel3 = new Panel();
             button5 = new Button();
-            label11 = new Label();
+            labelPendingInvoice = new Label();
             button2 = new Button();
             label4 = new Label();
             label6 = new Label();
             lblPendingInvoices = new Label();
             panel4 = new Panel();
             button6 = new Button();
-            label12 = new Label();
+            labelPaidInvoices = new Label();
             button3 = new Button();
             label7 = new Label();
             label8 = new Label();
             lblPaidInvoices = new Label();
             panel5 = new Panel();
             button7 = new Button();
-            label13 = new Label();
+            labelInProgressInvc = new Label();
             button4 = new Button();
             label9 = new Label();
             label10 = new Label();
@@ -61,14 +61,14 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanel1 = new TableLayoutPanel();
             tableLayoutPanel2 = new TableLayoutPanel();
             panel7 = new Panel();
-            dataGridView2 = new DataGridView();
-            colMessage = new DataGridViewComboBoxColumn();
-            colInvoiceSyncedStatus = new DataGridViewTextBoxColumn();
+            LogsDataGridView = new DataGridView();
+            colMessage = new DataGridViewTextBoxColumn();
+            SyncedStatus = new DataGridViewTextBoxColumn();
             label3 = new Label();
             panel6 = new Panel();
             btnNewInvoice = new Button();
             label2 = new Label();
-            dataGridView1 = new DataGridView();
+            InvoicesDataGridView = new DataGridView();
             colAll = new DataGridViewCheckBoxColumn();
             colSrNo = new DataGridViewTextBoxColumn();
             colInvoiceNo = new DataGridViewTextBoxColumn();
@@ -84,9 +84,9 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             panel7.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)LogsDataGridView).BeginInit();
             panel6.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)InvoicesDataGridView).BeginInit();
             SuspendLayout();
             // 
             // settings
@@ -103,7 +103,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             panel2.BackColor = Color.White;
             panel2.Controls.Add(button1);
-            panel2.Controls.Add(label5);
+            panel2.Controls.Add(labelAllInvoices);
             panel2.Dock = DockStyle.Fill;
             panel2.Location = new Point(11, 13);
             panel2.Margin = new Padding(11, 13, 11, 13);
@@ -125,21 +125,21 @@ namespace POSPRA_WinFormsUI.Forms
             button1.TextImageRelation = TextImageRelation.ImageBeforeText;
             button1.UseVisualStyleBackColor = true;
             // 
-            // label5
+            // labelAllInvoices
             // 
-            label5.AutoSize = true;
-            label5.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label5.Location = new Point(73, 111);
-            label5.Name = "label5";
-            label5.Size = new Size(118, 28);
-            label5.TabIndex = 0;
-            label5.Text = "20,000,000";
+            labelAllInvoices.AutoSize = true;
+            labelAllInvoices.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
+            labelAllInvoices.Location = new Point(73, 111);
+            labelAllInvoices.Name = "labelAllInvoices";
+            labelAllInvoices.Size = new Size(118, 28);
+            labelAllInvoices.TabIndex = 0;
+            labelAllInvoices.Text = "20,000,000";
             // 
             // panel3
             // 
             panel3.BackColor = Color.White;
             panel3.Controls.Add(button5);
-            panel3.Controls.Add(label11);
+            panel3.Controls.Add(labelPendingInvoice);
             panel3.Controls.Add(button2);
             panel3.Controls.Add(label4);
             panel3.Controls.Add(label6);
@@ -161,19 +161,19 @@ namespace POSPRA_WinFormsUI.Forms
             button5.Name = "button5";
             button5.Size = new Size(189, 51);
             button5.TabIndex = 6;
-            button5.Text = "Pending Invoices";
+            button5.Text = "Not Synced";
             button5.TextImageRelation = TextImageRelation.ImageBeforeText;
             button5.UseVisualStyleBackColor = true;
             // 
-            // label11
+            // labelPendingInvoice
             // 
-            label11.AutoSize = true;
-            label11.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label11.Location = new Point(151, 104);
-            label11.Name = "label11";
-            label11.Size = new Size(118, 28);
-            label11.TabIndex = 5;
-            label11.Text = "20,000,000";
+            labelPendingInvoice.AutoSize = true;
+            labelPendingInvoice.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
+            labelPendingInvoice.Location = new Point(151, 104);
+            labelPendingInvoice.Name = "labelPendingInvoice";
+            labelPendingInvoice.Size = new Size(118, 28);
+            labelPendingInvoice.TabIndex = 5;
+            labelPendingInvoice.Text = "20,000,000";
             // 
             // button2
             // 
@@ -223,7 +223,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             panel4.BackColor = Color.White;
             panel4.Controls.Add(button6);
-            panel4.Controls.Add(label12);
+            panel4.Controls.Add(labelPaidInvoices);
             panel4.Controls.Add(button3);
             panel4.Controls.Add(label7);
             panel4.Controls.Add(label8);
@@ -245,19 +245,19 @@ namespace POSPRA_WinFormsUI.Forms
             button6.Name = "button6";
             button6.Size = new Size(159, 51);
             button6.TabIndex = 6;
-            button6.Text = "Paid Invoices";
+            button6.Text = "Synced Invoices";
             button6.TextImageRelation = TextImageRelation.ImageBeforeText;
             button6.UseVisualStyleBackColor = true;
             // 
-            // label12
+            // labelPaidInvoices
             // 
-            label12.AutoSize = true;
-            label12.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label12.Location = new Point(151, 104);
-            label12.Name = "label12";
-            label12.Size = new Size(118, 28);
-            label12.TabIndex = 5;
-            label12.Text = "20,000,000";
+            labelPaidInvoices.AutoSize = true;
+            labelPaidInvoices.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
+            labelPaidInvoices.Location = new Point(151, 104);
+            labelPaidInvoices.Name = "labelPaidInvoices";
+            labelPaidInvoices.Size = new Size(118, 28);
+            labelPaidInvoices.TabIndex = 5;
+            labelPaidInvoices.Text = "20,000,000";
             // 
             // button3
             // 
@@ -307,7 +307,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             panel5.BackColor = Color.White;
             panel5.Controls.Add(button7);
-            panel5.Controls.Add(label13);
+            panel5.Controls.Add(labelInProgressInvc);
             panel5.Controls.Add(button4);
             panel5.Controls.Add(label9);
             panel5.Controls.Add(label10);
@@ -333,15 +333,15 @@ namespace POSPRA_WinFormsUI.Forms
             button7.TextImageRelation = TextImageRelation.ImageBeforeText;
             button7.UseVisualStyleBackColor = true;
             // 
-            // label13
+            // labelInProgressInvc
             // 
-            label13.AutoSize = true;
-            label13.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label13.Location = new Point(152, 104);
-            label13.Name = "label13";
-            label13.Size = new Size(118, 28);
-            label13.TabIndex = 5;
-            label13.Text = "20,000,000";
+            labelInProgressInvc.AutoSize = true;
+            labelInProgressInvc.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
+            labelInProgressInvc.Location = new Point(152, 104);
+            labelInProgressInvc.Name = "labelInProgressInvc";
+            labelInProgressInvc.Size = new Size(118, 28);
+            labelInProgressInvc.TabIndex = 5;
+            labelInProgressInvc.Text = "20,000,000";
             // 
             // button4
             // 
@@ -426,7 +426,7 @@ namespace POSPRA_WinFormsUI.Forms
             // panel7
             // 
             panel7.BackColor = Color.White;
-            panel7.Controls.Add(dataGridView2);
+            panel7.Controls.Add(LogsDataGridView);
             panel7.Controls.Add(label3);
             panel7.Dock = DockStyle.Fill;
             panel7.Location = new Point(3, 506);
@@ -435,37 +435,41 @@ namespace POSPRA_WinFormsUI.Forms
             panel7.Size = new Size(1843, 328);
             panel7.TabIndex = 1;
             // 
-            // dataGridView2
+            // LogsDataGridView
             // 
-            dataGridView2.AllowUserToAddRows = false;
-            dataGridView2.AllowUserToDeleteRows = false;
-            dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView2.Columns.AddRange(new DataGridViewColumn[] { colMessage, colInvoiceSyncedStatus });
-            dataGridView2.Dock = DockStyle.Bottom;
-            dataGridView2.Location = new Point(0, 72);
-            dataGridView2.Margin = new Padding(3, 4, 3, 4);
-            dataGridView2.Name = "dataGridView2";
-            dataGridView2.ReadOnly = true;
-            dataGridView2.RowHeadersVisible = false;
-            dataGridView2.RowHeadersWidth = 51;
-            dataGridView2.Size = new Size(1843, 256);
-            dataGridView2.TabIndex = 3;
+            LogsDataGridView.AllowUserToAddRows = false;
+            LogsDataGridView.AllowUserToDeleteRows = false;
+            LogsDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            LogsDataGridView.Columns.AddRange(new DataGridViewColumn[] { colMessage, SyncedStatus });
+            LogsDataGridView.Dock = DockStyle.Bottom;
+            LogsDataGridView.Location = new Point(0, 72);
+            LogsDataGridView.Margin = new Padding(3, 4, 3, 4);
+            LogsDataGridView.Name = "LogsDataGridView";
+            LogsDataGridView.ReadOnly = true;
+            LogsDataGridView.RowHeadersVisible = false;
+            LogsDataGridView.RowHeadersWidth = 51;
+            LogsDataGridView.Size = new Size(1843, 256);
+            LogsDataGridView.TabIndex = 3;
             // 
             // colMessage
             // 
             colMessage.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colMessage.DataPropertyName = "colMessage";
             colMessage.HeaderText = "Message";
             colMessage.MinimumWidth = 6;
             colMessage.Name = "colMessage";
             colMessage.ReadOnly = true;
+            colMessage.Resizable = DataGridViewTriState.True;
+            colMessage.SortMode = DataGridViewColumnSortMode.NotSortable;
             // 
-            // colInvoiceSyncedStatus
+            // SyncedStatus
             // 
-            colInvoiceSyncedStatus.HeaderText = "Invoice Synced";
-            colInvoiceSyncedStatus.MinimumWidth = 6;
-            colInvoiceSyncedStatus.Name = "colInvoiceSyncedStatus";
-            colInvoiceSyncedStatus.ReadOnly = true;
-            colInvoiceSyncedStatus.Width = 250;
+            SyncedStatus.DataPropertyName = "SyncedStatus";
+            SyncedStatus.HeaderText = "Invoice Synced";
+            SyncedStatus.MinimumWidth = 6;
+            SyncedStatus.Name = "SyncedStatus";
+            SyncedStatus.ReadOnly = true;
+            SyncedStatus.Width = 250;
             // 
             // label3
             // 
@@ -483,7 +487,7 @@ namespace POSPRA_WinFormsUI.Forms
             panel6.BackColor = Color.White;
             panel6.Controls.Add(btnNewInvoice);
             panel6.Controls.Add(label2);
-            panel6.Controls.Add(dataGridView1);
+            panel6.Controls.Add(InvoicesDataGridView);
             panel6.Dock = DockStyle.Fill;
             panel6.Location = new Point(3, 4);
             panel6.Margin = new Padding(3, 4, 3, 4);
@@ -518,21 +522,21 @@ namespace POSPRA_WinFormsUI.Forms
             label2.TabIndex = 1;
             label2.Text = "Invoices Listing";
             // 
-            // dataGridView1
+            // InvoicesDataGridView
             // 
-            dataGridView1.AllowUserToAddRows = false;
-            dataGridView1.AllowUserToDeleteRows = false;
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colAll, colSrNo, colInvoiceNo, colPosId, colInvoiceSynced, colDueDate, colTotal, colStatus });
-            dataGridView1.Dock = DockStyle.Bottom;
-            dataGridView1.Location = new Point(0, 110);
-            dataGridView1.Margin = new Padding(3, 4, 3, 4);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.ReadOnly = true;
-            dataGridView1.RowHeadersVisible = false;
-            dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.Size = new Size(1843, 384);
-            dataGridView1.TabIndex = 0;
+            InvoicesDataGridView.AllowUserToAddRows = false;
+            InvoicesDataGridView.AllowUserToDeleteRows = false;
+            InvoicesDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[] { colAll, colSrNo, colInvoiceNo, colPosId, colInvoiceSynced, colDueDate, colTotal, colStatus });
+            InvoicesDataGridView.Dock = DockStyle.Bottom;
+            InvoicesDataGridView.Location = new Point(0, 110);
+            InvoicesDataGridView.Margin = new Padding(3, 4, 3, 4);
+            InvoicesDataGridView.Name = "InvoicesDataGridView";
+            InvoicesDataGridView.ReadOnly = true;
+            InvoicesDataGridView.RowHeadersVisible = false;
+            InvoicesDataGridView.RowHeadersWidth = 51;
+            InvoicesDataGridView.Size = new Size(1843, 384);
+            InvoicesDataGridView.TabIndex = 0;
             // 
             // colAll
             // 
@@ -625,10 +629,10 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanel2.ResumeLayout(false);
             panel7.ResumeLayout(false);
             panel7.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)LogsDataGridView).EndInit();
             panel6.ResumeLayout(false);
             panel6.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)InvoicesDataGridView).EndInit();
             ResumeLayout(false);
         }
         #endregion
@@ -647,10 +651,10 @@ namespace POSPRA_WinFormsUI.Forms
         private TableLayoutPanel tableLayoutPanel2;
         private Panel panel7;
         private Panel panel6;
-        private DataGridView dataGridView1;
+        private DataGridView InvoicesDataGridView;
         private Label label3;
         private Label label2;
-        private DataGridView dataGridView2;
+        private DataGridView LogsDataGridView;
         private Button btnNewInvoice;
         private DataGridViewCheckBoxColumn colAll;
         private DataGridViewTextBoxColumn colSrNo;
@@ -660,9 +664,7 @@ namespace POSPRA_WinFormsUI.Forms
         private DataGridViewTextBoxColumn colDueDate;
         private DataGridViewTextBoxColumn colTotal;
         private DataGridViewTextBoxColumn colStatus;
-        private DataGridViewComboBoxColumn colMessage;
-        private DataGridViewTextBoxColumn colInvoiceSyncedStatus;
-        private Label label5;
+        private Label labelAllInvoices;
         private Label label6;
         private Label lblPendingInvoices;
         private Label label8;
@@ -677,10 +679,12 @@ namespace POSPRA_WinFormsUI.Forms
         private Button button4;
         private Label label9;
         private Button button5;
-        private Label label11;
+        private Label labelPendingInvoice;
         private Button button6;
-        private Label label12;
+        private Label labelPaidInvoices;
         private Button button7;
-        private Label label13;
+        private Label labelInProgressInvc;
+        private DataGridViewTextBoxColumn colMessage;
+        private DataGridViewTextBoxColumn SyncedStatus;
     }
 }
