@@ -88,7 +88,9 @@ namespace POSPRA_WinFormsUI.Forms
                 childForm.MinimizeBox = false;
                 childForm.ShowInTaskbar = false;
                 childForm.Text = "";
+                childForm.Dock = DockStyle.Fill;
                 childForm.WindowState = FormWindowState.Maximized;
+
 
                 // Set as MDI child
                 childForm.MdiParent = this;
