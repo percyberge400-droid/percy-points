@@ -50,7 +50,7 @@ namespace POSPRA_WinFormsUI.Forms
         private System.Windows.Forms.DataGridViewTextBoxColumn colID;
         private System.Windows.Forms.DataGridViewTextBoxColumn colMessage;
         private System.Windows.Forms.DataGridViewTextBoxColumn colException;
-        private System.Windows.Forms.DataGridViewTextBoxColumn SyncedStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn logdatetime;
 
         #endregion
 
@@ -101,7 +101,7 @@ namespace POSPRA_WinFormsUI.Forms
             colID = new DataGridViewTextBoxColumn();
             colMessage = new DataGridViewTextBoxColumn();
             colException = new DataGridViewTextBoxColumn();
-            SyncedStatus = new DataGridViewTextBoxColumn();
+            logdatetime = new DataGridViewTextBoxColumn();
             labelLogsTitle = new Label();
             tableLayoutPanelTop.SuspendLayout();
             panelAll.SuspendLayout();
@@ -348,11 +348,12 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             // colId
             // 
-            colId.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colId.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
             colId.HeaderText = "ID";
-            colId.MinimumWidth = 6;
+            colId.MinimumWidth = 50;
             colId.Name = "colId";
             colId.ReadOnly = true;
+            colId.Width = 80;
             // 
             // colPosId
             // 
@@ -433,7 +434,7 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.AllowUserToAddRows = false;
             LogsDataGridView.AllowUserToDeleteRows = false;
             LogsDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            LogsDataGridView.Columns.AddRange(new DataGridViewColumn[] { colID, colMessage, colException, SyncedStatus });
+            LogsDataGridView.Columns.AddRange(new DataGridViewColumn[] { colID, colMessage, colException, logdatetime });
             LogsDataGridView.Dock = DockStyle.Fill;
             LogsDataGridView.Location = new Point(8, 57);
             LogsDataGridView.Margin = new Padding(3, 4, 3, 4);
@@ -468,16 +469,15 @@ namespace POSPRA_WinFormsUI.Forms
             colException.MinimumWidth = 6;
             colException.Name = "colException";
             colException.ReadOnly = true;
-            colException.Width = 150;
             // 
-            // colIsSynced
+            // logdatetime
             // 
-            SyncedStatus.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            SyncedStatus.HeaderText = "Invoice Synced";
-            SyncedStatus.MinimumWidth = 6;
-            SyncedStatus.Name = "SyncedStatus";
-            SyncedStatus.ReadOnly = true;
-            SyncedStatus.Width = 150;
+            logdatetime.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            logdatetime.HeaderText = "Date and Time";
+            logdatetime.MinimumWidth = 6;
+            logdatetime.Name = "logdatetime";
+            logdatetime.ReadOnly = true;
+            logdatetime.Width = 300;
             // 
             // labelLogsTitle
             // 
