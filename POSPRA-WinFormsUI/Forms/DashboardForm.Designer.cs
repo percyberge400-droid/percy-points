@@ -465,7 +465,7 @@ namespace POSPRA_WinFormsUI.Forms
             // colException
             // 
             colException.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colException.HeaderText = "Exception";
+            colException.HeaderText = "Message";
             colException.MinimumWidth = 6;
             colException.Name = "colException";
             colException.ReadOnly = true;

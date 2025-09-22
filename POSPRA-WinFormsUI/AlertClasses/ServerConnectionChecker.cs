@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
+﻿using System.Net.NetworkInformation;
 
 namespace POSPRA_WinFormsUI.AlertClasses
 {
@@ -25,7 +19,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         {
             // Hook into system events
             NetworkChange.NetworkAvailabilityChanged += NetworkAvailabilityChanged;
-            NetworkChange.NetworkAddressChanged += NetworkAddressChanged;
+            //NetworkChange.NetworkAddressChanged += NetworkAddressChanged;
 
             // Timer for Internet reachability (ping test)
             internetCheckTimer = new System.Windows.Forms.Timer();
@@ -48,11 +42,11 @@ namespace POSPRA_WinFormsUI.AlertClasses
             }
         }
 
-        private void NetworkAddressChanged(object sender, EventArgs e)
-        {
-            string ip = GetLocalIPAddress();
-            OnIpChanged?.Invoke($"IP Changed: {ip}");
-        }
+        //private void NetworkAddressChanged(object sender, EventArgs e)
+        //{
+        //    //string ip = GetLocalIPAddress();
+        //    OnIpChanged?.Invoke($"IP Changed: {ip}");
+        //}
 
         private void InternetCheckTimer_Tick(object sender, EventArgs e)
         {
@@ -89,20 +83,20 @@ namespace POSPRA_WinFormsUI.AlertClasses
             }
         }
 
-        private string GetLocalIPAddress()
-        {
-            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (ni.OperationalStatus == OperationalStatus.Up)
-                {
-                    foreach (var ip in ni.GetIPProperties().UnicastAddresses)
-                    {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
-                            return ip.Address.ToString();
-                    }
-                }
-            }
-            return "Unknown";
-        }
+        //private string GetLocalIPAddress()
+        //{
+        //    foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        //    {
+        //        if (ni.OperationalStatus == OperationalStatus.Up)
+        //        {
+        //            foreach (var ip in ni.GetIPProperties().UnicastAddresses)
+        //            {
+        //                if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+        //                    return ip.Address.ToString();
+        //            }
+        //        }
+        //    }
+        //    return "Unknown";
+        //}
     }
 }

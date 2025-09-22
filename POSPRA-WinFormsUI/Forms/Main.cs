@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -7,6 +8,8 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly IFiscalService _fiscalService;
+        private ServerConnectionChecker _connectionChecker;
+
         public Main(IServiceProvider provider, IFiscalService fiscalService)
         {
             InitializeComponent();
@@ -21,11 +24,14 @@ namespace POSPRA_WinFormsUI.Forms
 
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#686DF4"); // Highlight color
 
+            // Load Dashboard as default child
             Form childForm = _provider.GetRequiredService<DashboardForm>();
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
-            _fiscalService = fiscalService;
+
+            // 🔌 Initialize connection checker at app start
+            InitializeConnectionChecker();
         }
 
         private void ResetNavStyles()
@@ -63,25 +69,25 @@ namespace POSPRA_WinFormsUI.Forms
             switch (v)
             {
                 case "Dashboard":
-                    childForm = _provider.GetRequiredService<DashboardForm>(); break;
+                    childForm = _provider.GetRequiredService<DashboardForm>();
+                    break;
 
                 case "Invoice Selection":
                     //childForm = new invoice_entry(_fiscalService);
                     break;
 
                 case "Invoice Entry":
-                    childForm = _provider.GetRequiredService<item_entry>(); break;
+                    childForm = _provider.GetRequiredService<item_entry>();
+                    break;
 
                 case "Invoice Export":
-                    // Uncomment when ready
-                    // childForm = new InvoiceExportForm();
+                    //childForm = new InvoiceExportForm();
                     break;
             }
 
             if (childForm != null)
             {
-                // Apply all properties to remove title bar
-                childForm.TopLevel = false; // Very important!
+                childForm.TopLevel = false; // remove title bar
                 childForm.FormBorderStyle = FormBorderStyle.None;
                 childForm.ControlBox = false;
                 childForm.MaximizeBox = false;
@@ -91,14 +97,12 @@ namespace POSPRA_WinFormsUI.Forms
                 childForm.Dock = DockStyle.Fill;
                 childForm.WindowState = FormWindowState.Maximized;
 
-
                 // Set as MDI child
                 childForm.MdiParent = this;
                 childForm.Dock = DockStyle.Fill;
                 childForm.Show();
             }
         }
-
 
         private void btnInvoiceSelection_Click(object sender, EventArgs e)
         {
@@ -130,6 +134,66 @@ namespace POSPRA_WinFormsUI.Forms
             // 🔒 Disable Item Entry at startup
             btnItemEntry.Enabled = false;
             btnItemEntry.ForeColor = Color.Gray;
+        }
+
+        // ===============================
+        // 🔌 NETWORK CONNECTION HANDLER
+        // ===============================
+        private void InitializeConnectionChecker()
+        {
+            _connectionChecker = new ServerConnectionChecker();
+
+            _connectionChecker.OnNetworkAvailable += msg =>
+                _ = LogAndNotifyAsync("Network Status", msg, AlertType.Success);
+
+            _connectionChecker.OnNetworkUnavailable += msg =>
+                _ = LogAndNotifyAsync("Network Status", msg, AlertType.Error);
+
+            _connectionChecker.OnInternetConnected += msg =>
+                _ = LogAndNotifyAsync("Internet Status", msg, AlertType.Success);
+
+            _connectionChecker.OnInternetDisconnected += msg =>
+                _ = LogAndNotifyAsync("Internet Status", msg, AlertType.Warning);
+
+            _connectionChecker.OnIpChanged += msg =>
+                _ = LogAndNotifyAsync("Network Status", msg, AlertType.Info);
+        }
+
+        private async Task LogAndNotifyAsync(string title, string message, AlertType alertType)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(async () =>
+                    await LogAndNotifyAsync(title, message, alertType)));
+                return;
+            }
+
+            // Windows Notification
+            WindowsLocalAppNotification.Show(title, message);
+
+            switch (alertType)
+            {
+                case AlertType.Success:
+                    AlertManager.ShowSuccess(message);
+                    break;
+                case AlertType.Error:
+                    AlertManager.ShowError(message);
+                    break;
+                case AlertType.Warning:
+                    AlertManager.ShowWarning(message);
+                    break;
+                case AlertType.Info:
+                    AlertManager.ShowInfo(message);
+                    break;
+                case AlertType.Critical:
+                    AlertManager.ShowCritical(message);
+                    break;
+                case AlertType.Update:
+                    AlertManager.ShowUpdate(message);
+                    break;
+            }
+
+            await Task.CompletedTask;
         }
     }
 }
