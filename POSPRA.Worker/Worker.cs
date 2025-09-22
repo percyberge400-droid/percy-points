@@ -25,7 +25,7 @@ namespace POSPRA.Worker
             _serviceProvider = serviceProvider;
             _mapper = mapper;
             _httpService = httpService;
-            _baseUrl = options.Value.BaseUrl.TrimEnd('/');
+            _baseUrl = options.Value.BaseUrl;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
