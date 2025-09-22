@@ -138,7 +138,7 @@ namespace POSPRA_WinFormsUI.Forms
                         row.Cells["colID"].Value = log.Id;
                         row.Cells["colMessage"].Value = log.Message ?? "No message";
                         row.Cells["colException"].Value = log.Type;
-                        row.Cells["SyncedStatus"].Value = log.IsSynced == 1 ? "Yes" : "No";
+                        row.Cells["logdatetime"].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss"); // formatted
                     }
 
                     WindowsLocalAppNotification.Show("Logs", "Logs loaded successfully");
