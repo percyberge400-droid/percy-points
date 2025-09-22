@@ -101,7 +101,7 @@ namespace POSPRA.Worker
                 }
                 else
                 {
-                    await LogAsync(AlertType.Warning, $"POST failed with status {postResponse.StatusCode}", workerInstanceId, "PostFailed", (int)postResponse.StatusCode);
+                    //await LogAsync(AlertType.Warning, $"POST failed with status {postResponse.StatusCode}", workerInstanceId, "PostFailed", (int)postResponse.StatusCode);
                     return false;
                 }
             }

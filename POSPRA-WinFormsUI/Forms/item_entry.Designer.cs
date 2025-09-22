@@ -82,7 +82,6 @@
             btnEdit = new Button();
             btnSave = new Button();
             dataGridView1 = new DataGridView();
-            lblTotalItems = new Label();
             colSrNo = new DataGridViewTextBoxColumn();
             colProductCode = new DataGridViewTextBoxColumn();
             colHSCode = new DataGridViewTextBoxColumn();
@@ -106,6 +105,7 @@
             colTotalValuePayable = new DataGridViewTextBoxColumn();
             colWHITSection1 = new DataGridViewTextBoxColumn();
             colWHITSection2 = new DataGridViewTextBoxColumn();
+            lblTotalItems = new Label();
             lblInvoicesListing = new Label();
             btn_remove = new Button();
             btnProceed = new Button();
@@ -454,15 +454,12 @@
             label8.TabIndex = 14;
             label8.Text = "Furture Tax";
             // 
-            // label2
+            // label9
             // 
-            label2.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label2.ForeColor = Color.FromArgb(17, 24, 39);
-            label2.Location = new Point(480, 27);
-            label2.Name = "label2";
-            label2.Size = new Size(198, 25);
-            label2.TabIndex = 24;
-            label2.Text = "Sales Tax Information";
+            label9.Location = new Point(0, 0);
+            label9.Name = "label9";
+            label9.Size = new Size(100, 23);
+            label9.TabIndex = 55;
             // 
             // textBox4
             // 
@@ -587,7 +584,7 @@
             hscode.PlaceholderText = "HS Code";
             hscode.Size = new Size(200, 24);
             hscode.TabIndex = 26;
-            hscode.Text = "87";
+            hscode.Text = "12345678";
             // 
             // lblBasicInfo
             // 
@@ -730,13 +727,13 @@
             btnSave.TabIndex = 42;
             btnSave.Text = "💾 Save";
             btnSave.UseVisualStyleBackColor = false;
+            btnSave.Click += btnSave_Click_1;
             // 
             // dataGridView1
             // 
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.AllowUserToResizeRows = false;
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None; // Changed to None to enable horizontal scrolling
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.BorderStyle = BorderStyle.None;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
@@ -748,11 +745,7 @@
             dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
             dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] {
-    colSrNo, colProductCode, colHSCode, colProductDescription, colUOM, colQuantity, colRate, colRetailPrice,
-    colSalesValueExcST, colTotalValue, colSalesTax, colExtraTax, colFutureTax, colSROSNo, colCVT,
-    colSalesTaxApplicable, colSalesTaxWithheldAtSource, colWHIT1, colWHIT2, colFedPayable, colTotalValuePayable,
-    colWHITSection1, colWHITSection2});
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colSrNo, colProductCode, colHSCode, colProductDescription, colUOM, colQuantity, colRate, colRetailPrice, colSalesValueExcST, colTotalValue, colSalesTax, colExtraTax, colFutureTax, colSROSNo, colCVT, colSalesTaxApplicable, colSalesTaxWithheldAtSource, colWHIT1, colWHIT2, colFedPayable, colTotalValuePayable, colWHITSection1, colWHITSection2 });
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = Color.White;
             dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
@@ -773,9 +766,6 @@
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.Size = new Size(1145, 153);
             dataGridView1.TabIndex = 43;
-            dataGridView1.ScrollBars = ScrollBars.Both; // Enable horizontal and vertical scrollbars
-
-            // Column Definitions with fixed widths similar to original
             // 
             // colSrNo
             // 
@@ -784,7 +774,6 @@
             colSrNo.Name = "colSrNo";
             colSrNo.ReadOnly = true;
             colSrNo.Width = 80;
-
             // 
             // colProductCode
             // 
@@ -793,7 +782,6 @@
             colProductCode.Name = "colProductCode";
             colProductCode.ReadOnly = true;
             colProductCode.Width = 120;
-
             // 
             // colHSCode
             // 
@@ -801,8 +789,6 @@
             colHSCode.MinimumWidth = 6;
             colHSCode.Name = "colHSCode";
             colHSCode.ReadOnly = true;
-            colHSCode.Width = 100;
-
             // 
             // colProductDescription
             // 
@@ -811,7 +797,6 @@
             colProductDescription.Name = "colProductDescription";
             colProductDescription.ReadOnly = true;
             colProductDescription.Width = 200;
-
             // 
             // colUOM
             // 
@@ -820,7 +805,6 @@
             colUOM.Name = "colUOM";
             colUOM.ReadOnly = true;
             colUOM.Width = 80;
-
             // 
             // colQuantity
             // 
@@ -828,8 +812,6 @@
             colQuantity.MinimumWidth = 6;
             colQuantity.Name = "colQuantity";
             colQuantity.ReadOnly = true;
-            colQuantity.Width = 100;
-
             // 
             // colRate
             // 
@@ -837,8 +819,6 @@
             colRate.MinimumWidth = 6;
             colRate.Name = "colRate";
             colRate.ReadOnly = true;
-            colRate.Width = 100;
-
             // 
             // colRetailPrice
             // 
@@ -847,7 +827,6 @@
             colRetailPrice.Name = "colRetailPrice";
             colRetailPrice.ReadOnly = true;
             colRetailPrice.Width = 120;
-
             // 
             // colSalesValueExcST
             // 
@@ -856,7 +835,6 @@
             colSalesValueExcST.Name = "colSalesValueExcST";
             colSalesValueExcST.ReadOnly = true;
             colSalesValueExcST.Width = 150;
-
             // 
             // colTotalValue
             // 
@@ -865,7 +843,6 @@
             colTotalValue.Name = "colTotalValue";
             colTotalValue.ReadOnly = true;
             colTotalValue.Width = 120;
-
             // 
             // colSalesTax
             // 
@@ -874,7 +851,6 @@
             colSalesTax.Name = "colSalesTax";
             colSalesTax.ReadOnly = true;
             colSalesTax.Width = 120;
-
             // 
             // colExtraTax
             // 
@@ -883,7 +859,6 @@
             colExtraTax.Name = "colExtraTax";
             colExtraTax.ReadOnly = true;
             colExtraTax.Width = 120;
-
             // 
             // colFutureTax
             // 
@@ -892,7 +867,6 @@
             colFutureTax.Name = "colFutureTax";
             colFutureTax.ReadOnly = true;
             colFutureTax.Width = 120;
-
             // 
             // colSROSNo
             // 
@@ -900,8 +874,6 @@
             colSROSNo.MinimumWidth = 6;
             colSROSNo.Name = "colSROSNo";
             colSROSNo.ReadOnly = true;
-            colSROSNo.Width = 100;
-
             // 
             // colCVT
             // 
@@ -909,8 +881,6 @@
             colCVT.MinimumWidth = 6;
             colCVT.Name = "colCVT";
             colCVT.ReadOnly = true;
-            colCVT.Width = 100;
-
             // 
             // colSalesTaxApplicable
             // 
@@ -919,7 +889,6 @@
             colSalesTaxApplicable.Name = "colSalesTaxApplicable";
             colSalesTaxApplicable.ReadOnly = true;
             colSalesTaxApplicable.Width = 150;
-
             // 
             // colSalesTaxWithheldAtSource
             // 
@@ -928,7 +897,6 @@
             colSalesTaxWithheldAtSource.Name = "colSalesTaxWithheldAtSource";
             colSalesTaxWithheldAtSource.ReadOnly = true;
             colSalesTaxWithheldAtSource.Width = 160;
-
             // 
             // colWHIT1
             // 
@@ -936,8 +904,6 @@
             colWHIT1.MinimumWidth = 6;
             colWHIT1.Name = "colWHIT1";
             colWHIT1.ReadOnly = true;
-            colWHIT1.Width = 100;
-
             // 
             // colWHIT2
             // 
@@ -945,8 +911,6 @@
             colWHIT2.MinimumWidth = 6;
             colWHIT2.Name = "colWHIT2";
             colWHIT2.ReadOnly = true;
-            colWHIT2.Width = 100;
-
             // 
             // colFedPayable
             // 
@@ -955,7 +919,6 @@
             colFedPayable.Name = "colFedPayable";
             colFedPayable.ReadOnly = true;
             colFedPayable.Width = 120;
-
             // 
             // colTotalValuePayable
             // 
@@ -964,7 +927,6 @@
             colTotalValuePayable.Name = "colTotalValuePayable";
             colTotalValuePayable.ReadOnly = true;
             colTotalValuePayable.Width = 150;
-
             // 
             // colWHITSection1
             // 
@@ -973,7 +935,6 @@
             colWHITSection1.Name = "colWHITSection1";
             colWHITSection1.ReadOnly = true;
             colWHITSection1.Width = 130;
-
             // 
             // colWHITSection2
             // 
@@ -1034,7 +995,6 @@
             btnProceed.TabIndex = 39;
             btnProceed.Text = "➕ Add Item";
             btnProceed.UseVisualStyleBackColor = false;
-            //btnProceed.Click += BtnProceed_Click;
             // 
             // contentPanel
             // 
@@ -1373,7 +1333,7 @@
             buyerntn.PlaceholderText = "Buyer NTN/CNIC";
             buyerntn.Size = new Size(200, 24);
             buyerntn.TabIndex = 8;
-            buyerntn.Text = "2";
+            buyerntn.Text = "61101458";
             // 
             // sellerntnlabel
             // 
@@ -1406,9 +1366,9 @@
             sellerntn.PlaceholderText = "Seller NTN/CNIC";
             sellerntn.Size = new Size(200, 24);
             sellerntn.TabIndex = 7;
-            sellerntn.Text = "4";
+            sellerntn.Text = "6101589";
             // 
-            // label28
+            // label15
             // 
             label15.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             label15.ForeColor = Color.FromArgb(75, 85, 99);
