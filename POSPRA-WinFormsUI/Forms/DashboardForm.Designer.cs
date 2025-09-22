@@ -1,6 +1,4 @@
-﻿using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Button = System.Windows.Forms.Button;
-
+﻿// DashboardForm.Designer.cs
 namespace POSPRA_WinFormsUI.Forms
 {
     partial class DashboardForm
@@ -10,10 +8,55 @@ namespace POSPRA_WinFormsUI.Forms
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
+        #region Designer fields
+
+        private System.Windows.Forms.ToolStripMenuItem settings;
+        private System.Windows.Forms.ToolStripMenuItem logout;
+
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelTop;
+        private System.Windows.Forms.Panel panelAll;
+        private System.Windows.Forms.Panel panelPending;
+        private System.Windows.Forms.Panel panelPaid;
+        private System.Windows.Forms.Panel panelInProgress;
+
+        private System.Windows.Forms.Label lblAllTitle;
+        private System.Windows.Forms.Label labelAllInvoices;
+        private System.Windows.Forms.Label lblPendingTitle;
+        private System.Windows.Forms.Label labelPendingInvoice;
+        private System.Windows.Forms.Label lblPaidTitle;
+        private System.Windows.Forms.Label labelPaidInvoices;
+        private System.Windows.Forms.Label lblInProgressTitle;
+        private System.Windows.Forms.Label labelInProgressInvc;
+
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelMain;
+        private System.Windows.Forms.Panel panelInvoices;
+        private System.Windows.Forms.Label labelInvoicesTitle;
+        private System.Windows.Forms.DataGridView InvoicesDataGridView;
+
+        private System.Windows.Forms.Panel panelLogs;
+        private System.Windows.Forms.Label labelLogsTitle;
+        private System.Windows.Forms.DataGridView LogsDataGridView;
+
+        // Invoice grid columns
+        private System.Windows.Forms.DataGridViewTextBoxColumn colId;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colPosId;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colInvoiceData;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colInvoiceNumber;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colIsSynced;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colAttemptCount;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colDateCreated;
+
+        // Logs grid columns
+        private System.Windows.Forms.DataGridViewTextBoxColumn colID;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colMessage;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colException;
+        private System.Windows.Forms.DataGridViewTextBoxColumn SyncedStatus;
+
+        #endregion
+
+        /// <summary> 
         /// Clean up any resources being used.
         /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -25,68 +68,50 @@ namespace POSPRA_WinFormsUI.Forms
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             settings = new ToolStripMenuItem();
             logout = new ToolStripMenuItem();
-            panel2 = new Panel();
-            button1 = new Button();
+            tableLayoutPanelTop = new TableLayoutPanel();
+            panelAll = new Panel();
             labelAllInvoices = new Label();
-            panel3 = new Panel();
-            button5 = new Button();
+            lblAllTitle = new Label();
+            panelPending = new Panel();
             labelPendingInvoice = new Label();
-            button2 = new Button();
-            label4 = new Label();
-            label6 = new Label();
-            lblPendingInvoices = new Label();
-            panel4 = new Panel();
-            button6 = new Button();
+            lblPendingTitle = new Label();
+            panelPaid = new Panel();
             labelPaidInvoices = new Label();
-            button3 = new Button();
-            label7 = new Label();
-            label8 = new Label();
-            lblPaidInvoices = new Label();
-            panel5 = new Panel();
-            button7 = new Button();
+            lblPaidTitle = new Label();
+            panelInProgress = new Panel();
             labelInProgressInvc = new Label();
-            button4 = new Button();
-            label9 = new Label();
-            label10 = new Label();
-            lblInProgressInvoices = new Label();
-            tableLayoutPanel1 = new TableLayoutPanel();
-            tableLayoutPanel2 = new TableLayoutPanel();
-            panel7 = new Panel();
+            lblInProgressTitle = new Label();
+            tableLayoutPanelMain = new TableLayoutPanel();
+            panelInvoices = new Panel();
+            InvoicesDataGridView = new DataGridView();
+            colId = new DataGridViewTextBoxColumn();
+            colPosId = new DataGridViewTextBoxColumn();
+            colInvoiceData = new DataGridViewTextBoxColumn();
+            colInvoiceNumber = new DataGridViewTextBoxColumn();
+            colIsSynced = new DataGridViewTextBoxColumn();
+            colAttemptCount = new DataGridViewTextBoxColumn();
+            colDateCreated = new DataGridViewTextBoxColumn();
+            labelInvoicesTitle = new Label();
+            panelLogs = new Panel();
             LogsDataGridView = new DataGridView();
             colMessage = new DataGridViewTextBoxColumn();
+            colException = new DataGridViewTextBoxColumn();
             SyncedStatus = new DataGridViewTextBoxColumn();
-            label3 = new Label();
-            panel6 = new Panel();
-            btnNewInvoice = new Button();
-            label2 = new Label();
-            InvoicesDataGridView = new DataGridView();
-            colAll = new DataGridViewCheckBoxColumn();
-            colSrNo = new DataGridViewTextBoxColumn();
-            colInvoiceNo = new DataGridViewTextBoxColumn();
-            colPosId = new DataGridViewTextBoxColumn();
-            colInvoiceSynced = new DataGridViewTextBoxColumn();
-            colDueDate = new DataGridViewTextBoxColumn();
-            colTotal = new DataGridViewTextBoxColumn();
-            colStatus = new DataGridViewTextBoxColumn();
-            panel2.SuspendLayout();
-            panel3.SuspendLayout();
-            panel4.SuspendLayout();
-            panel5.SuspendLayout();
-            tableLayoutPanel1.SuspendLayout();
-            tableLayoutPanel2.SuspendLayout();
-            panel7.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)LogsDataGridView).BeginInit();
-            panel6.SuspendLayout();
+            labelLogsTitle = new Label();
+            tableLayoutPanelTop.SuspendLayout();
+            panelAll.SuspendLayout();
+            panelPending.SuspendLayout();
+            panelPaid.SuspendLayout();
+            panelInProgress.SuspendLayout();
+            tableLayoutPanelMain.SuspendLayout();
+            panelInvoices.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)InvoicesDataGridView).BeginInit();
+            panelLogs.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)LogsDataGridView).BeginInit();
             SuspendLayout();
             // 
             // settings
@@ -99,472 +124,234 @@ namespace POSPRA_WinFormsUI.Forms
             logout.Name = "logout";
             logout.Size = new Size(32, 19);
             // 
-            // panel2
+            // tableLayoutPanelTop
             // 
-            panel2.BackColor = Color.White;
-            panel2.Controls.Add(button1);
-            panel2.Controls.Add(labelAllInvoices);
-            panel2.Dock = DockStyle.Fill;
-            panel2.Location = new Point(11, 13);
-            panel2.Margin = new Padding(11, 13, 11, 13);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(440, 191);
-            panel2.TabIndex = 2;
+            tableLayoutPanelTop.AutoSize = true;
+            tableLayoutPanelTop.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            tableLayoutPanelTop.ColumnCount = 4;
+            tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tableLayoutPanelTop.Controls.Add(panelAll, 0, 0);
+            tableLayoutPanelTop.Controls.Add(panelPending, 1, 0);
+            tableLayoutPanelTop.Controls.Add(panelPaid, 2, 0);
+            tableLayoutPanelTop.Controls.Add(panelInProgress, 3, 0);
+            tableLayoutPanelTop.Dock = DockStyle.Top;
+            tableLayoutPanelTop.Location = new Point(0, 0);
+            tableLayoutPanelTop.Margin = new Padding(0);
+            tableLayoutPanelTop.Name = "tableLayoutPanelTop";
+            tableLayoutPanelTop.Padding = new Padding(10);
+            tableLayoutPanelTop.RowCount = 1;
+            tableLayoutPanelTop.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanelTop.Size = new Size(1200, 136);
+            tableLayoutPanelTop.TabIndex = 1;
             // 
-            // button1
+            // panelAll
             // 
-            button1.FlatAppearance.BorderSize = 0;
-            button1.FlatStyle = FlatStyle.Flat;
-            button1.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            button1.Location = new Point(63, 55);
-            button1.Margin = new Padding(3, 4, 3, 4);
-            button1.Name = "button1";
-            button1.Size = new Size(159, 51);
-            button1.TabIndex = 1;
-            button1.Text = "All Invoices";
-            button1.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button1.UseVisualStyleBackColor = true;
+            panelAll.BackColor = Color.White;
+            panelAll.Controls.Add(labelAllInvoices);
+            panelAll.Controls.Add(lblAllTitle);
+            panelAll.Dock = DockStyle.Fill;
+            panelAll.Location = new Point(18, 18);
+            panelAll.Margin = new Padding(8);
+            panelAll.Name = "panelAll";
+            panelAll.Padding = new Padding(12);
+            panelAll.Size = new Size(279, 100);
+            panelAll.TabIndex = 0;
             // 
             // labelAllInvoices
             // 
             labelAllInvoices.AutoSize = true;
-            labelAllInvoices.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            labelAllInvoices.Location = new Point(73, 111);
+            labelAllInvoices.Dock = DockStyle.Fill;
+            labelAllInvoices.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            labelAllInvoices.ForeColor = Color.FromArgb(40, 40, 40);
+            labelAllInvoices.Location = new Point(12, 37);
             labelAllInvoices.Name = "labelAllInvoices";
-            labelAllInvoices.Size = new Size(118, 28);
+            labelAllInvoices.Size = new Size(43, 50);
             labelAllInvoices.TabIndex = 0;
-            labelAllInvoices.Text = "20,000,000";
+            labelAllInvoices.Text = "0";
+            labelAllInvoices.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // panel3
+            // lblAllTitle
             // 
-            panel3.BackColor = Color.White;
-            panel3.Controls.Add(button5);
-            panel3.Controls.Add(labelPendingInvoice);
-            panel3.Controls.Add(button2);
-            panel3.Controls.Add(label4);
-            panel3.Controls.Add(label6);
-            panel3.Controls.Add(lblPendingInvoices);
-            panel3.Dock = DockStyle.Fill;
-            panel3.Location = new Point(473, 13);
-            panel3.Margin = new Padding(11, 13, 11, 13);
-            panel3.Name = "panel3";
-            panel3.Size = new Size(440, 191);
-            panel3.TabIndex = 2;
+            lblAllTitle.AutoSize = true;
+            lblAllTitle.Dock = DockStyle.Top;
+            lblAllTitle.Font = new Font("Segoe UI", 11F);
+            lblAllTitle.ForeColor = Color.DimGray;
+            lblAllTitle.Location = new Point(12, 12);
+            lblAllTitle.Name = "lblAllTitle";
+            lblAllTitle.Size = new Size(107, 25);
+            lblAllTitle.TabIndex = 1;
+            lblAllTitle.Text = "All Invoices";
             // 
-            // button5
+            // panelPending
             // 
-            button5.FlatAppearance.BorderSize = 0;
-            button5.FlatStyle = FlatStyle.Flat;
-            button5.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            button5.Location = new Point(141, 48);
-            button5.Margin = new Padding(3, 4, 3, 4);
-            button5.Name = "button5";
-            button5.Size = new Size(189, 51);
-            button5.TabIndex = 6;
-            button5.Text = "Not Synced";
-            button5.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button5.UseVisualStyleBackColor = true;
+            panelPending.BackColor = Color.White;
+            panelPending.Controls.Add(labelPendingInvoice);
+            panelPending.Controls.Add(lblPendingTitle);
+            panelPending.Dock = DockStyle.Fill;
+            panelPending.Location = new Point(313, 18);
+            panelPending.Margin = new Padding(8);
+            panelPending.Name = "panelPending";
+            panelPending.Padding = new Padding(12);
+            panelPending.Size = new Size(279, 100);
+            panelPending.TabIndex = 1;
             // 
             // labelPendingInvoice
             // 
             labelPendingInvoice.AutoSize = true;
-            labelPendingInvoice.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            labelPendingInvoice.Location = new Point(151, 104);
+            labelPendingInvoice.Dock = DockStyle.Fill;
+            labelPendingInvoice.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            labelPendingInvoice.ForeColor = Color.FromArgb(40, 40, 40);
+            labelPendingInvoice.Location = new Point(12, 37);
             labelPendingInvoice.Name = "labelPendingInvoice";
-            labelPendingInvoice.Size = new Size(118, 28);
-            labelPendingInvoice.TabIndex = 5;
-            labelPendingInvoice.Text = "20,000,000";
+            labelPendingInvoice.Size = new Size(43, 50);
+            labelPendingInvoice.TabIndex = 0;
+            labelPendingInvoice.Text = "0";
+            labelPendingInvoice.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // button2
+            // lblPendingTitle
             // 
-            button2.FlatAppearance.BorderSize = 0;
-            button2.FlatStyle = FlatStyle.Flat;
-            button2.Location = new Point(147, 48);
-            button2.Margin = new Padding(3, 4, 3, 4);
-            button2.Name = "button2";
-            button2.Size = new Size(135, 51);
-            button2.TabIndex = 4;
-            button2.Text = "All Invoices";
-            button2.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button2.UseVisualStyleBackColor = true;
+            lblPendingTitle.AutoSize = true;
+            lblPendingTitle.Dock = DockStyle.Top;
+            lblPendingTitle.Font = new Font("Segoe UI", 11F);
+            lblPendingTitle.ForeColor = Color.DimGray;
+            lblPendingTitle.Location = new Point(12, 12);
+            lblPendingTitle.Name = "lblPendingTitle";
+            lblPendingTitle.Size = new Size(107, 25);
+            lblPendingTitle.TabIndex = 1;
+            lblPendingTitle.Text = "Not Synced";
             // 
-            // label4
+            // panelPaid
             // 
-            label4.AutoSize = true;
-            label4.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label4.Location = new Point(158, 104);
-            label4.Name = "label4";
-            label4.Size = new Size(118, 28);
-            label4.TabIndex = 3;
-            label4.Text = "20,000,000";
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label6.Location = new Point(152, 97);
-            label6.Name = "label6";
-            label6.Size = new Size(118, 28);
-            label6.TabIndex = 1;
-            label6.Text = "20,000,000";
-            // 
-            // lblPendingInvoices
-            // 
-            lblPendingInvoices.AutoSize = true;
-            lblPendingInvoices.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            lblPendingInvoices.Location = new Point(152, 55);
-            lblPendingInvoices.Name = "lblPendingInvoices";
-            lblPendingInvoices.Size = new Size(88, 21);
-            lblPendingInvoices.TabIndex = 2;
-            lblPendingInvoices.Text = "All Invoices";
-            lblPendingInvoices.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel4
-            // 
-            panel4.BackColor = Color.White;
-            panel4.Controls.Add(button6);
-            panel4.Controls.Add(labelPaidInvoices);
-            panel4.Controls.Add(button3);
-            panel4.Controls.Add(label7);
-            panel4.Controls.Add(label8);
-            panel4.Controls.Add(lblPaidInvoices);
-            panel4.Dock = DockStyle.Fill;
-            panel4.Location = new Point(935, 13);
-            panel4.Margin = new Padding(11, 13, 11, 13);
-            panel4.Name = "panel4";
-            panel4.Size = new Size(440, 191);
-            panel4.TabIndex = 2;
-            // 
-            // button6
-            // 
-            button6.FlatAppearance.BorderSize = 0;
-            button6.FlatStyle = FlatStyle.Flat;
-            button6.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            button6.Location = new Point(141, 48);
-            button6.Margin = new Padding(3, 4, 3, 4);
-            button6.Name = "button6";
-            button6.Size = new Size(159, 51);
-            button6.TabIndex = 6;
-            button6.Text = "Synced Invoices";
-            button6.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button6.UseVisualStyleBackColor = true;
+            panelPaid.BackColor = Color.White;
+            panelPaid.Controls.Add(labelPaidInvoices);
+            panelPaid.Controls.Add(lblPaidTitle);
+            panelPaid.Dock = DockStyle.Fill;
+            panelPaid.Location = new Point(608, 18);
+            panelPaid.Margin = new Padding(8);
+            panelPaid.Name = "panelPaid";
+            panelPaid.Padding = new Padding(12);
+            panelPaid.Size = new Size(279, 100);
+            panelPaid.TabIndex = 2;
             // 
             // labelPaidInvoices
             // 
             labelPaidInvoices.AutoSize = true;
-            labelPaidInvoices.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            labelPaidInvoices.Location = new Point(151, 104);
+            labelPaidInvoices.Dock = DockStyle.Fill;
+            labelPaidInvoices.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            labelPaidInvoices.ForeColor = Color.FromArgb(40, 40, 40);
+            labelPaidInvoices.Location = new Point(12, 37);
             labelPaidInvoices.Name = "labelPaidInvoices";
-            labelPaidInvoices.Size = new Size(118, 28);
-            labelPaidInvoices.TabIndex = 5;
-            labelPaidInvoices.Text = "20,000,000";
+            labelPaidInvoices.Size = new Size(43, 50);
+            labelPaidInvoices.TabIndex = 0;
+            labelPaidInvoices.Text = "0";
+            labelPaidInvoices.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // button3
+            // lblPaidTitle
             // 
-            button3.FlatAppearance.BorderSize = 0;
-            button3.FlatStyle = FlatStyle.Flat;
-            button3.Location = new Point(147, 48);
-            button3.Margin = new Padding(3, 4, 3, 4);
-            button3.Name = "button3";
-            button3.Size = new Size(135, 51);
-            button3.TabIndex = 4;
-            button3.Text = "All Invoices";
-            button3.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button3.UseVisualStyleBackColor = true;
+            lblPaidTitle.AutoSize = true;
+            lblPaidTitle.Dock = DockStyle.Top;
+            lblPaidTitle.Font = new Font("Segoe UI", 11F);
+            lblPaidTitle.ForeColor = Color.DimGray;
+            lblPaidTitle.Location = new Point(12, 12);
+            lblPaidTitle.Name = "lblPaidTitle";
+            lblPaidTitle.Size = new Size(144, 25);
+            lblPaidTitle.TabIndex = 1;
+            lblPaidTitle.Text = "Synced Invoices";
             // 
-            // label7
+            // panelInProgress
             // 
-            label7.AutoSize = true;
-            label7.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label7.Location = new Point(158, 104);
-            label7.Name = "label7";
-            label7.Size = new Size(118, 28);
-            label7.TabIndex = 3;
-            label7.Text = "20,000,000";
-            // 
-            // label8
-            // 
-            label8.AutoSize = true;
-            label8.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label8.Location = new Point(152, 97);
-            label8.Name = "label8";
-            label8.Size = new Size(118, 28);
-            label8.TabIndex = 1;
-            label8.Text = "20,000,000";
-            // 
-            // lblPaidInvoices
-            // 
-            lblPaidInvoices.AutoSize = true;
-            lblPaidInvoices.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            lblPaidInvoices.Location = new Point(152, 55);
-            lblPaidInvoices.Name = "lblPaidInvoices";
-            lblPaidInvoices.Size = new Size(88, 21);
-            lblPaidInvoices.TabIndex = 2;
-            lblPaidInvoices.Text = "All Invoices";
-            lblPaidInvoices.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel5
-            // 
-            panel5.BackColor = Color.White;
-            panel5.Controls.Add(button7);
-            panel5.Controls.Add(labelInProgressInvc);
-            panel5.Controls.Add(button4);
-            panel5.Controls.Add(label9);
-            panel5.Controls.Add(label10);
-            panel5.Controls.Add(lblInProgressInvoices);
-            panel5.Dock = DockStyle.Fill;
-            panel5.Location = new Point(1397, 13);
-            panel5.Margin = new Padding(11, 13, 11, 13);
-            panel5.Name = "panel5";
-            panel5.Size = new Size(441, 191);
-            panel5.TabIndex = 2;
-            // 
-            // button7
-            // 
-            button7.FlatAppearance.BorderSize = 0;
-            button7.FlatStyle = FlatStyle.Flat;
-            button7.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            button7.Location = new Point(142, 48);
-            button7.Margin = new Padding(3, 4, 3, 4);
-            button7.Name = "button7";
-            button7.Size = new Size(219, 51);
-            button7.TabIndex = 6;
-            button7.Text = "In Progress Invoices";
-            button7.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button7.UseVisualStyleBackColor = true;
+            panelInProgress.BackColor = Color.White;
+            panelInProgress.Controls.Add(labelInProgressInvc);
+            panelInProgress.Controls.Add(lblInProgressTitle);
+            panelInProgress.Dock = DockStyle.Fill;
+            panelInProgress.Location = new Point(903, 18);
+            panelInProgress.Margin = new Padding(8);
+            panelInProgress.Name = "panelInProgress";
+            panelInProgress.Padding = new Padding(12);
+            panelInProgress.Size = new Size(279, 100);
+            panelInProgress.TabIndex = 3;
             // 
             // labelInProgressInvc
             // 
             labelInProgressInvc.AutoSize = true;
-            labelInProgressInvc.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            labelInProgressInvc.Location = new Point(152, 104);
+            labelInProgressInvc.Dock = DockStyle.Fill;
+            labelInProgressInvc.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            labelInProgressInvc.ForeColor = Color.FromArgb(40, 40, 40);
+            labelInProgressInvc.Location = new Point(12, 37);
             labelInProgressInvc.Name = "labelInProgressInvc";
-            labelInProgressInvc.Size = new Size(118, 28);
-            labelInProgressInvc.TabIndex = 5;
-            labelInProgressInvc.Text = "20,000,000";
+            labelInProgressInvc.Size = new Size(43, 50);
+            labelInProgressInvc.TabIndex = 0;
+            labelInProgressInvc.Text = "0";
+            labelInProgressInvc.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // button4
+            // lblInProgressTitle
             // 
-            button4.FlatAppearance.BorderSize = 0;
-            button4.FlatStyle = FlatStyle.Flat;
-            button4.Location = new Point(149, 48);
-            button4.Margin = new Padding(3, 4, 3, 4);
-            button4.Name = "button4";
-            button4.Size = new Size(135, 51);
-            button4.TabIndex = 4;
-            button4.Text = "All Invoices";
-            button4.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button4.UseVisualStyleBackColor = true;
+            lblInProgressTitle.AutoSize = true;
+            lblInProgressTitle.Dock = DockStyle.Top;
+            lblInProgressTitle.Font = new Font("Segoe UI", 11F);
+            lblInProgressTitle.ForeColor = Color.DimGray;
+            lblInProgressTitle.Location = new Point(12, 12);
+            lblInProgressTitle.Name = "lblInProgressTitle";
+            lblInProgressTitle.Size = new Size(106, 25);
+            lblInProgressTitle.TabIndex = 1;
+            lblInProgressTitle.Text = "In Progress";
             // 
-            // label9
+            // tableLayoutPanelMain
             // 
-            label9.AutoSize = true;
-            label9.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label9.Location = new Point(159, 104);
-            label9.Name = "label9";
-            label9.Size = new Size(118, 28);
-            label9.TabIndex = 3;
-            label9.Text = "20,000,000";
+            tableLayoutPanelMain.ColumnCount = 1;
+            tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanelMain.Controls.Add(panelInvoices, 0, 0);
+            tableLayoutPanelMain.Controls.Add(panelLogs, 0, 1);
+            tableLayoutPanelMain.Dock = DockStyle.Fill;
+            tableLayoutPanelMain.Location = new Point(0, 136);
+            tableLayoutPanelMain.Margin = new Padding(0);
+            tableLayoutPanelMain.Name = "tableLayoutPanelMain";
+            tableLayoutPanelMain.Padding = new Padding(10);
+            tableLayoutPanelMain.RowCount = 2;
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 65F));
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 35F));
+            tableLayoutPanelMain.Size = new Size(1200, 764);
+            tableLayoutPanelMain.TabIndex = 0;
             // 
-            // label10
+            // panelInvoices
             // 
-            label10.AutoSize = true;
-            label10.Font = new Font("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label10.Location = new Point(153, 97);
-            label10.Name = "label10";
-            label10.Size = new Size(118, 28);
-            label10.TabIndex = 1;
-            label10.Text = "20,000,000";
-            // 
-            // lblInProgressInvoices
-            // 
-            lblInProgressInvoices.AutoSize = true;
-            lblInProgressInvoices.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            lblInProgressInvoices.Location = new Point(153, 55);
-            lblInProgressInvoices.Name = "lblInProgressInvoices";
-            lblInProgressInvoices.Size = new Size(88, 21);
-            lblInProgressInvoices.TabIndex = 2;
-            lblInProgressInvoices.Text = "All Invoices";
-            lblInProgressInvoices.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // tableLayoutPanel1
-            // 
-            tableLayoutPanel1.ColumnCount = 4;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
-            tableLayoutPanel1.Controls.Add(panel2, 0, 0);
-            tableLayoutPanel1.Controls.Add(panel3, 1, 0);
-            tableLayoutPanel1.Controls.Add(panel4, 2, 0);
-            tableLayoutPanel1.Controls.Add(panel5, 3, 0);
-            tableLayoutPanel1.Dock = DockStyle.Top;
-            tableLayoutPanel1.Location = new Point(0, 0);
-            tableLayoutPanel1.Margin = new Padding(3, 4, 3, 4);
-            tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 1;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(1849, 217);
-            tableLayoutPanel1.TabIndex = 3;
-            // 
-            // tableLayoutPanel2
-            // 
-            tableLayoutPanel2.ColumnCount = 1;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.Controls.Add(panel7, 0, 1);
-            tableLayoutPanel2.Controls.Add(panel6, 0, 0);
-            tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(0, 217);
-            tableLayoutPanel2.Margin = new Padding(3, 4, 3, 4);
-            tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 2;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-            tableLayoutPanel2.Size = new Size(1849, 838);
-            tableLayoutPanel2.TabIndex = 4;
-            // 
-            // panel7
-            // 
-            panel7.BackColor = Color.White;
-            panel7.Controls.Add(LogsDataGridView);
-            panel7.Controls.Add(label3);
-            panel7.Dock = DockStyle.Fill;
-            panel7.Location = new Point(3, 506);
-            panel7.Margin = new Padding(3, 4, 3, 4);
-            panel7.Name = "panel7";
-            panel7.Size = new Size(1843, 328);
-            panel7.TabIndex = 1;
-            // 
-            // LogsDataGridView
-            // 
-            LogsDataGridView.AllowUserToAddRows = false;
-            LogsDataGridView.AllowUserToDeleteRows = false;
-            LogsDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            LogsDataGridView.Columns.AddRange(new DataGridViewColumn[] { colMessage, SyncedStatus });
-            LogsDataGridView.Dock = DockStyle.Bottom;
-            LogsDataGridView.Location = new Point(0, 72);
-            LogsDataGridView.Margin = new Padding(3, 4, 3, 4);
-            LogsDataGridView.Name = "LogsDataGridView";
-            LogsDataGridView.ReadOnly = true;
-            LogsDataGridView.RowHeadersVisible = false;
-            LogsDataGridView.RowHeadersWidth = 51;
-            LogsDataGridView.Size = new Size(1843, 256);
-            LogsDataGridView.TabIndex = 3;
-            // 
-            // colMessage
-            // 
-            colMessage.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colMessage.DataPropertyName = "colMessage";
-            colMessage.HeaderText = "Message";
-            colMessage.MinimumWidth = 6;
-            colMessage.Name = "colMessage";
-            colMessage.ReadOnly = true;
-            colMessage.Resizable = DataGridViewTriState.True;
-            colMessage.SortMode = DataGridViewColumnSortMode.NotSortable;
-            // 
-            // SyncedStatus
-            // 
-            SyncedStatus.DataPropertyName = "SyncedStatus";
-            SyncedStatus.HeaderText = "Invoice Synced";
-            SyncedStatus.MinimumWidth = 6;
-            SyncedStatus.Name = "SyncedStatus";
-            SyncedStatus.ReadOnly = true;
-            SyncedStatus.Width = 250;
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Dock = DockStyle.Top;
-            label3.Font = new Font("Segoe UI", 16F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label3.Location = new Point(0, 0);
-            label3.Name = "label3";
-            label3.Size = new Size(45, 21);
-            label3.TabIndex = 2;
-            label3.Text = "Logs";
-            // 
-            // panel6
-            // 
-            panel6.BackColor = Color.White;
-            panel6.Controls.Add(btnNewInvoice);
-            panel6.Controls.Add(label2);
-            panel6.Controls.Add(InvoicesDataGridView);
-            panel6.Dock = DockStyle.Fill;
-            panel6.Location = new Point(3, 4);
-            panel6.Margin = new Padding(3, 4, 3, 4);
-            panel6.Name = "panel6";
-            panel6.Size = new Size(1843, 494);
-            panel6.TabIndex = 2;
-            // 
-            // btnNewInvoice
-            // 
-            btnNewInvoice.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnNewInvoice.BackColor = Color.FromArgb(104, 109, 244);
-            btnNewInvoice.FlatAppearance.BorderSize = 0;
-            btnNewInvoice.FlatStyle = FlatStyle.Flat;
-            btnNewInvoice.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            btnNewInvoice.ForeColor = Color.White;
-            btnNewInvoice.Location = new Point(1668, 4);
-            btnNewInvoice.Margin = new Padding(3, 4, 3, 4);
-            btnNewInvoice.Name = "btnNewInvoice";
-            btnNewInvoice.Size = new Size(165, 51);
-            btnNewInvoice.TabIndex = 2;
-            btnNewInvoice.Text = "+ New Invoice";
-            btnNewInvoice.UseVisualStyleBackColor = false;
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Dock = DockStyle.Top;
-            label2.Font = new Font("Segoe UI", 16F, FontStyle.Bold, GraphicsUnit.Pixel);
-            label2.Location = new Point(0, 0);
-            label2.Name = "label2";
-            label2.Size = new Size(128, 21);
-            label2.TabIndex = 1;
-            label2.Text = "Invoices Listing";
+            panelInvoices.BackColor = Color.White;
+            panelInvoices.Controls.Add(InvoicesDataGridView);
+            panelInvoices.Controls.Add(labelInvoicesTitle);
+            panelInvoices.Dock = DockStyle.Fill;
+            panelInvoices.Location = new Point(16, 16);
+            panelInvoices.Margin = new Padding(6);
+            panelInvoices.Name = "panelInvoices";
+            panelInvoices.Padding = new Padding(8);
+            panelInvoices.Size = new Size(1168, 471);
+            panelInvoices.TabIndex = 0;
             // 
             // InvoicesDataGridView
             // 
             InvoicesDataGridView.AllowUserToAddRows = false;
             InvoicesDataGridView.AllowUserToDeleteRows = false;
             InvoicesDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[] { colAll, colSrNo, colInvoiceNo, colPosId, colInvoiceSynced, colDueDate, colTotal, colStatus });
-            InvoicesDataGridView.Dock = DockStyle.Bottom;
-            InvoicesDataGridView.Location = new Point(0, 110);
+            InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[] { colId, colPosId, colInvoiceData, colInvoiceNumber, colIsSynced, colAttemptCount, colDateCreated });
+            InvoicesDataGridView.Dock = DockStyle.Fill;
+            InvoicesDataGridView.Location = new Point(8, 57);
             InvoicesDataGridView.Margin = new Padding(3, 4, 3, 4);
             InvoicesDataGridView.Name = "InvoicesDataGridView";
             InvoicesDataGridView.ReadOnly = true;
             InvoicesDataGridView.RowHeadersVisible = false;
             InvoicesDataGridView.RowHeadersWidth = 51;
-            InvoicesDataGridView.Size = new Size(1843, 384);
+            InvoicesDataGridView.Size = new Size(1152, 406);
             InvoicesDataGridView.TabIndex = 0;
             // 
-            // colAll
+            // colId
             // 
-            colAll.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.NullValue = false;
-            colAll.DefaultCellStyle = dataGridViewCellStyle1;
-            colAll.HeaderText = "All";
-            colAll.MinimumWidth = 6;
-            colAll.Name = "colAll";
-            colAll.ReadOnly = true;
-            colAll.Width = 33;
-            // 
-            // colSrNo
-            // 
-            colSrNo.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colSrNo.HeaderText = "Sr. No.";
-            colSrNo.MinimumWidth = 6;
-            colSrNo.Name = "colSrNo";
-            colSrNo.ReadOnly = true;
-            // 
-            // colInvoiceNo
-            // 
-            colInvoiceNo.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colInvoiceNo.HeaderText = "Invoice#";
-            colInvoiceNo.MinimumWidth = 6;
-            colInvoiceNo.Name = "colInvoiceNo";
-            colInvoiceNo.ReadOnly = true;
+            colId.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colId.HeaderText = "ID";
+            colId.MinimumWidth = 6;
+            colId.Name = "colId";
+            colId.ReadOnly = true;
             // 
             // colPosId
             // 
@@ -574,117 +361,155 @@ namespace POSPRA_WinFormsUI.Forms
             colPosId.Name = "colPosId";
             colPosId.ReadOnly = true;
             // 
-            // colInvoiceSynced
+            // colInvoiceData
             // 
-            colInvoiceSynced.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colInvoiceSynced.HeaderText = "Invoice Synced";
-            colInvoiceSynced.MinimumWidth = 6;
-            colInvoiceSynced.Name = "colInvoiceSynced";
-            colInvoiceSynced.ReadOnly = true;
+            colInvoiceData.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colInvoiceData.HeaderText = "Invoice Data";
+            colInvoiceData.MinimumWidth = 6;
+            colInvoiceData.Name = "colInvoiceData";
+            colInvoiceData.ReadOnly = true;
             // 
-            // colDueDate
+            // colInvoiceNumber
             // 
-            colDueDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colDueDate.HeaderText = "Due Date";
-            colDueDate.MinimumWidth = 6;
-            colDueDate.Name = "colDueDate";
-            colDueDate.ReadOnly = true;
+            colInvoiceNumber.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colInvoiceNumber.HeaderText = "Invoice Number";
+            colInvoiceNumber.MinimumWidth = 6;
+            colInvoiceNumber.Name = "colInvoiceNumber";
+            colInvoiceNumber.ReadOnly = true;
             // 
-            // colTotal
+            // colIsSynced
             // 
-            colTotal.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colTotal.HeaderText = "Total";
-            colTotal.MinimumWidth = 6;
-            colTotal.Name = "colTotal";
-            colTotal.ReadOnly = true;
+            colIsSynced.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colIsSynced.HeaderText = "Invoice Synced";
+            colIsSynced.MinimumWidth = 6;
+            colIsSynced.Name = "colIsSynced";
+            colIsSynced.ReadOnly = true;
             // 
-            // colStatus
+            // colAttemptCount
             // 
-            colStatus.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colStatus.HeaderText = "Status";
-            colStatus.MinimumWidth = 6;
-            colStatus.Name = "colStatus";
-            colStatus.ReadOnly = true;
+            colAttemptCount.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colAttemptCount.HeaderText = "Attempt Count";
+            colAttemptCount.MinimumWidth = 6;
+            colAttemptCount.Name = "colAttemptCount";
+            colAttemptCount.ReadOnly = true;
+            // 
+            // colDateCreated
+            // 
+            colDateCreated.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colDateCreated.HeaderText = "Date Created";
+            colDateCreated.MinimumWidth = 6;
+            colDateCreated.Name = "colDateCreated";
+            colDateCreated.ReadOnly = true;
+            // 
+            // labelInvoicesTitle
+            // 
+            labelInvoicesTitle.AutoSize = true;
+            labelInvoicesTitle.Dock = DockStyle.Top;
+            labelInvoicesTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+            labelInvoicesTitle.ForeColor = Color.FromArgb(30, 30, 30);
+            labelInvoicesTitle.Location = new Point(8, 8);
+            labelInvoicesTitle.Name = "labelInvoicesTitle";
+            labelInvoicesTitle.Padding = new Padding(6, 6, 0, 6);
+            labelInvoicesTitle.Size = new Size(221, 49);
+            labelInvoicesTitle.TabIndex = 1;
+            labelInvoicesTitle.Text = "Invoices Listing";
+            // 
+            // panelLogs
+            // 
+            panelLogs.BackColor = Color.White;
+            panelLogs.Controls.Add(LogsDataGridView);
+            panelLogs.Controls.Add(labelLogsTitle);
+            panelLogs.Dock = DockStyle.Fill;
+            panelLogs.Location = new Point(16, 499);
+            panelLogs.Margin = new Padding(6);
+            panelLogs.Name = "panelLogs";
+            panelLogs.Padding = new Padding(8);
+            panelLogs.Size = new Size(1168, 249);
+            panelLogs.TabIndex = 1;
+            // 
+            // LogsDataGridView
+            // 
+            LogsDataGridView.AllowUserToAddRows = false;
+            LogsDataGridView.AllowUserToDeleteRows = false;
+            LogsDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            LogsDataGridView.Dock = DockStyle.Fill;
+            LogsDataGridView.Location = new Point(8, 57);
+            LogsDataGridView.Margin = new Padding(3, 4, 3, 4);
+            LogsDataGridView.Name = "LogsDataGridView";
+            LogsDataGridView.ReadOnly = true;
+            LogsDataGridView.RowHeadersVisible = false;
+            LogsDataGridView.RowHeadersWidth = 51;
+            LogsDataGridView.Size = new Size(1152, 184);
+            LogsDataGridView.TabIndex = 0;
+            // 
+            // colMessage
+            // 
+            colMessage.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colMessage.HeaderText = "Message";
+            colMessage.MinimumWidth = 6;
+            colMessage.Name = "colMessage";
+            colMessage.ReadOnly = true;
+            // 
+            // colException
+            // 
+            colException.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colException.HeaderText = "Type";
+            colException.MinimumWidth = 6;
+            colException.Name = "colException";
+            colException.ReadOnly = true;
+            // 
+            // SyncedStatus
+            // 
+            SyncedStatus.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            SyncedStatus.HeaderText = "Invoice Synced";
+            SyncedStatus.MinimumWidth = 6;
+            SyncedStatus.Name = "SyncedStatus";
+            SyncedStatus.ReadOnly = true;
+            SyncedStatus.Width = 150;
+            // 
+            // labelLogsTitle
+            // 
+            labelLogsTitle.AutoSize = true;
+            labelLogsTitle.Dock = DockStyle.Top;
+            labelLogsTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+            labelLogsTitle.ForeColor = Color.FromArgb(30, 30, 30);
+            labelLogsTitle.Location = new Point(8, 8);
+            labelLogsTitle.Name = "labelLogsTitle";
+            labelLogsTitle.Padding = new Padding(6, 6, 0, 6);
+            labelLogsTitle.Size = new Size(83, 49);
+            labelLogsTitle.TabIndex = 1;
+            labelLogsTitle.Text = "Logs";
             // 
             // DashboardForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1849, 1055);
-            Controls.Add(tableLayoutPanel2);
-            Controls.Add(tableLayoutPanel1);
-            Margin = new Padding(3, 4, 3, 4);
+            ClientSize = new Size(1200, 900);
+            Controls.Add(tableLayoutPanelMain);
+            Controls.Add(tableLayoutPanelTop);
             Name = "DashboardForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Dashboard";
-            Load += DashboardForm_Load;
-            panel2.ResumeLayout(false);
-            panel2.PerformLayout();
-            panel3.ResumeLayout(false);
-            panel3.PerformLayout();
-            panel4.ResumeLayout(false);
-            panel4.PerformLayout();
-            panel5.ResumeLayout(false);
-            panel5.PerformLayout();
-            tableLayoutPanel1.ResumeLayout(false);
-            tableLayoutPanel2.ResumeLayout(false);
-            panel7.ResumeLayout(false);
-            panel7.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)LogsDataGridView).EndInit();
-            panel6.ResumeLayout(false);
-            panel6.PerformLayout();
+            tableLayoutPanelTop.ResumeLayout(false);
+            panelAll.ResumeLayout(false);
+            panelAll.PerformLayout();
+            panelPending.ResumeLayout(false);
+            panelPending.PerformLayout();
+            panelPaid.ResumeLayout(false);
+            panelPaid.PerformLayout();
+            panelInProgress.ResumeLayout(false);
+            panelInProgress.PerformLayout();
+            tableLayoutPanelMain.ResumeLayout(false);
+            panelInvoices.ResumeLayout(false);
+            panelInvoices.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)InvoicesDataGridView).EndInit();
+            panelLogs.ResumeLayout(false);
+            panelLogs.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)LogsDataGridView).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
+
         #endregion
-
-        public DashboardForm(string arg)
-        {
-
-        }
-        private ToolStripMenuItem settings;
-        private ToolStripMenuItem logout;
-        private Panel panel2;
-        private Panel panel3;
-        private Panel panel4;
-        private Panel panel5;
-        private TableLayoutPanel tableLayoutPanel1;
-        private TableLayoutPanel tableLayoutPanel2;
-        private Panel panel7;
-        private Panel panel6;
-        private DataGridView InvoicesDataGridView;
-        private Label label3;
-        private Label label2;
-        private DataGridView LogsDataGridView;
-        private Button btnNewInvoice;
-        private DataGridViewCheckBoxColumn colAll;
-        private DataGridViewTextBoxColumn colSrNo;
-        private DataGridViewTextBoxColumn colInvoiceNo;
-        private DataGridViewTextBoxColumn colPosId;
-        private DataGridViewTextBoxColumn colInvoiceSynced;
-        private DataGridViewTextBoxColumn colDueDate;
-        private DataGridViewTextBoxColumn colTotal;
-        private DataGridViewTextBoxColumn colStatus;
-        private Label labelAllInvoices;
-        private Label label6;
-        private Label lblPendingInvoices;
-        private Label label8;
-        private Label lblPaidInvoices;
-        private Label label10;
-        private Label lblInProgressInvoices;
-        private Button button1;
-        private Button button2;
-        private Label label4;
-        private Button button3;
-        private Label label7;
-        private Button button4;
-        private Label label9;
-        private Button button5;
-        private Label labelPendingInvoice;
-        private Button button6;
-        private Label labelPaidInvoices;
-        private Button button7;
-        private Label labelInProgressInvc;
-        private DataGridViewTextBoxColumn colMessage;
-        private DataGridViewTextBoxColumn SyncedStatus;
     }
 }

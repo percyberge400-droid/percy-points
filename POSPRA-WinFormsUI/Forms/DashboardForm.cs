@@ -1,40 +1,34 @@
-﻿using Microsoft.Azure.Documents;
-using POSPRA.Application.Services.FiscalService;
+﻿using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.POSService;
-using POSPRA.Application.Utility;
-using POSPRA.Domain.Entities;
-using POSPRA.DTOs.InvoiceDTOs;
-using POSPRA.DTOs.LogDTOs;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Data;
-using System.Diagnostics;
-using System.Windows.Forms;
 
 namespace POSPRA_WinFormsUI.Forms
 {
-
     public partial class DashboardForm : Form
     {
         private readonly IServiceProvider _provider;
         private readonly ILogService _logService;
-
         private readonly IFiscalService _fiscalService;
-
-
 
         public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService)
         {
+            InitializeComponent();
+            this.Load += DashboardForm_Load;
+
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.AutoScroll = true;
+            this.MinimumSize = new Size(1024, 600);
 
             _provider = provider;
+            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
+            _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+
+            // Remove form chrome
             this.FormBorderStyle = FormBorderStyle.None;
             this.ControlBox = false;
             this.ShowIcon = false;
             this.Text = string.Empty;
-            InitializeComponent();
-
-            _fiscalService = fiscalService;
-            _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         }
 
         private void LogoutUser(object sender, EventArgs e)
@@ -49,13 +43,21 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void DashboardForm_Load(object sender, EventArgs e)
         {
-            //var logs = await _logservice.GetLogs();
-            var invoices = await _fiscalService.GetAllAsync();
-            await LoadAndShowInvoicesAsync();
-            await LoadAndShowLogsAsync();
+            try
+            {
+                // Load data into grids
+                await LoadAndShowInvoicesAsync();
+                await LoadAndShowLogsAsync();
 
-            InvoicesDataGridView.DataError += dataGridView_DataError;
-            LogsDataGridView.DataError += dataGridView_DataError;
+                // Handle grid errors gracefully
+                InvoicesDataGridView.DataError += dataGridView_DataError;
+                LogsDataGridView.DataError += dataGridView_DataError;
+            }
+            catch (Exception ex)
+            {
+                WindowsLocalAppNotification.Show("Dashboard Error", $"Error loading dashboard: {ex.Message}");
+                AlertManager.ShowError($"Error loading dashboard: {ex.Message}");
+            }
         }
 
         private async Task LoadAndShowInvoicesAsync()
@@ -66,50 +68,56 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (response?.Data == null || !response.Data.Any())
                 {
-                    MessageBox.Show("No invoices found.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    WindowsLocalAppNotification.Show("Invoices", "No invoices found.");
+                    AlertManager.ShowWarning("No invoices found.");
                     return;
                 }
 
-
                 InvoicesDataGridView.Rows.Clear();
 
-                int srNo = 1;
                 foreach (var inv in response.Data.OrderByDescending(i => i.DateCreated))
                 {
                     int rowIndex = InvoicesDataGridView.Rows.Add();
                     DataGridViewRow row = InvoicesDataGridView.Rows[rowIndex];
 
+                    // Map entity fields to grid columns
+                    row.Cells["colId"].Value = inv.ID;
+                    row.Cells["colPosId"].Value = inv.POSID;
+                    row.Cells["colInvoiceData"].Value = inv.InvoiceData ?? "N/A";
+                    row.Cells["colInvoiceNumber"].Value = inv.InvoiceNumber ?? "N/A";
+                    row.Cells["colIsSynced"].Value = inv.IsSynced == 1 ? "Yes" : "No";
+                    row.Cells["colAttemptCount"].Value = inv.AttemptCount;
+                    row.Cells["colDateCreated"].Value = inv.DateCreated.ToString("yyyy-MM-dd");
 
-                    row.Cells["colSrNo"].Value = srNo++;
-                    row.Cells["colInvoiceNo"].Value = inv.InvoiceNumber ?? "N/A";
-                    row.Cells["colPOSID"].Value = inv.POSID;
-                    row.Cells["colInvoiceSynced"].Value = inv.IsSynced == 1 ? "Yes" : "No";
-                    row.Cells["colDueDate"].Value = inv.DateCreated.ToString("yyyy-MM-dd");
-                    //row.Cells["colTotal"].Value = inv.colTotal(ToString());// filerecord DTO doesnot contain the colTotal
-                    row.Cells["colStatus"].Value = inv.AttemptCount > 0 ? "Retrying" : "New";
-                    //row.Cells["colSyncStatus"].Value = inv.IsSynced == 1 ? "Synced" : "Pending";
-
-
+                    // Keep useful flags in row.Tag
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
                 }
 
-
+                // Update dashboard summary labels
                 labelAllInvoices.Text = InvoicesDataGridView.Rows.Count.ToString();
+
                 labelPendingInvoice.Text = InvoicesDataGridView.Rows
                     .Cast<DataGridViewRow>()
-                    .Count(r => ((dynamic)r.Tag).IsSynced == 0).ToString();
+                    .Count(r => ((dynamic)r.Tag).IsSynced == 0)
+                    .ToString();
 
                 labelPaidInvoices.Text = InvoicesDataGridView.Rows
                     .Cast<DataGridViewRow>()
-                    .Count(r => ((dynamic)r.Tag).IsSynced == 1).ToString();
+                    .Count(r => ((dynamic)r.Tag).IsSynced == 1)
+                    .ToString();
 
                 labelInProgressInvc.Text = InvoicesDataGridView.Rows
                     .Cast<DataGridViewRow>()
-                    .Count(r => ((dynamic)r.Tag).AttemptCount > 0).ToString();
+                    .Count(r => ((dynamic)r.Tag).AttemptCount > 0)
+                    .ToString();
+
+                WindowsLocalAppNotification.Show("Invoices", "Invoices loaded successfully");
+                AlertManager.ShowSuccess("Invoices loaded successfully");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading invoices: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                WindowsLocalAppNotification.Show("Invoices Error", $"Error loading invoices: {ex.Message}");
+                AlertManager.ShowError($"Error loading invoices: {ex.Message}");
             }
         }
 
@@ -119,61 +127,45 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 var response = await _logService.GetAllAsync();
 
-                //Local App notiofication call
-                WindowsLocalAppNotification.Show("Logs Loaded", $"Successfully loaded log entries");
-                AlertManager.ShowSuccess("Successfuly loaded Log data");
-
-
-
                 if (response?.Data != null && response.Data.Any())
                 {
-                    var logGridData = response.Data
-                        .Select(log => new
-                        {
-                            colMessage = log.Message ?? "No message",
-                            SyncedStatus = "N/A" // Placeholder, adjust if LogDto has something useful
-                        })
-                        .ToList();
+                    LogsDataGridView.Rows.Clear();
 
-                    LogsDataGridView.AutoGenerateColumns = false;
-                    LogsDataGridView.DataSource = logGridData;
+                    foreach (var log in response.Data)
+                    {
+                        int rowIndex = LogsDataGridView.Rows.Add();
+                        var row = LogsDataGridView.Rows[rowIndex];
+                        row.Cells["colID"].Value = log.Id;
+                        row.Cells["colMessage"].Value = log.Message ?? "No message";
+                        row.Cells["colException"].Value = log.Type;
+                        row.Cells["SyncedStatus"].Value = log.IsSynced == 1 ? "Yes" : "No";
+                    }
+
+                    WindowsLocalAppNotification.Show("Logs", "Logs loaded successfully");
+                    AlertManager.ShowSuccess("Logs loaded successfully");
                 }
                 else
                 {
                     LogsDataGridView.DataSource = null;
-                    MessageBox.Show("No logs available to display.", "Logs",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    WindowsLocalAppNotification.Show("Logs", "No logs available to display");
+                    AlertManager.ShowWarning("No logs available to display");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading logs:\n{ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                WindowsLocalAppNotification.Show("Logs Error", $"Error loading logs: {ex.Message}");
+                AlertManager.ShowError($"Error loading logs: {ex.Message}");
             }
         }
 
         private void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-
             e.ThrowException = false;
-
 
             if (sender is DataGridView grid && e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
-                var cell = grid.Rows[e.RowIndex].Cells[e.ColumnIndex];
-
-                cell.Value = "N/A";
-
+                grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = "N/A";
             }
-        }
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void InvoicesDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
         }
     }
 }
