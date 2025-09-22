@@ -25,7 +25,7 @@ namespace POSPRA.Worker
             _serviceProvider = serviceProvider;
             _mapper = mapper;
             _httpService = httpService;
-            _baseUrl = options.Value.BaseUrl.TrimEnd('/');
+            _baseUrl = options.Value.BaseUrl;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -126,8 +126,8 @@ namespace POSPRA.Worker
                 WorkerEvent = workerEvent,
                 ResponseStatusCode = statusCode,
                 StackTrace = stackTrace,
-                WorkerStartedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Startup) ? DateTime.UtcNow : null,
-                WorkerStoppedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Shutdown) ? DateTime.UtcNow : null
+                WorkerStartedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Startup) ? DateTime.Now : null,
+                WorkerStoppedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Shutdown) ? DateTime.Now : null
             };
 
             await logService.LogAsync(_mapper.Map<Logs>(logDto));

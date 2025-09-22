@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
-using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDTOs;
 using POSPRA.DTOs.LogDTOs;
-using POSPRA.DTOs.PosDTOs;
 
 namespace POSPRA.Application.AutoMapperProfile
 {
@@ -23,12 +21,12 @@ namespace POSPRA.Application.AutoMapperProfile
             CreateMap<WorkerLogDTO, Logs>();
             CreateMap<Logs, WorkerLogDTO>();
 
-            CreateMap<PosConfigurationDto, PosConfiguration>();
-            CreateMap<PosConfiguration, PosConfigurationDto>();
+            //CreateMap<Dictionary<string, object>, ResponseConfigurationDto>()
+            //  .ConvertUsing<DictionaryToDtoConverter<ResponseConfigurationDto>>();
 
-            // ✅ Add this for POSVerificationDTO
-            CreateMap<Dictionary<string, object>, POSVerificationDTO>()
-                .ConvertUsing<DictionaryToDtoConverter<POSVerificationDTO>>();
+            //// ✅ Add this for POSVerificationDTO
+            //CreateMap<Dictionary<string, object>, POSVerificationDTO>()
+            //    .ConvertUsing<DictionaryToDtoConverter<POSVerificationDTO>>();
         }
     }
 }
