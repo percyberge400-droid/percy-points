@@ -84,8 +84,8 @@ namespace POSPRA.Application.Services.FiscalService
                         if (!String.IsNullOrEmpty(result))
                         {
                             return new ApiResponse<InvoiceDto>(
-                                statusCode: GlobalEnums.StatusCodes.Code_100.ToString(),
-                                message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_100),
+                                statusCode: ApiStatusCode.Success.ToString(),
+                                message: ResponseMessages.RecordSaved,
                                 data: null, null);
                         }
                         else
@@ -98,8 +98,8 @@ namespace POSPRA.Application.Services.FiscalService
                                  action: nameof(CreateAsync)));
 
                             return new ApiResponse<InvoiceDto>(
-                                statusCode: GlobalEnums.StatusCodes.Code_101.ToString(),
-                                message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_101),
+                                statusCode: ApiStatusCode.Error.ToString(),
+                                message: ResponseMessages.UnknownError,
                                 data: null, null);
                         }
                     }
