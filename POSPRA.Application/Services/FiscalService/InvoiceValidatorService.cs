@@ -40,78 +40,78 @@ namespace POSPRA.Application.Services.FiscalService
                 AddError("Invalid Invoice Type!");
 
             // -------- Date ----------
-            if (invoice.InvoiceDate == DateTime.MinValue)
-                AddError("Invalid Invoice Date!");
+            //if (invoice.InvoiceDate == DateTime.MinValue)
+            //    AddError("Invalid Invoice Date!");
 
             // -------- NTN / CNIC ----
-            var ntn = TrimSafe(invoice.NTN_CNIC);
-            if (ntn.Length == 0)
-                AddError("Invalid NTN/CNIC!");
-            else if (ntn.Length < 7 || ntn.Length > 13)
-                AddError("NTN/CNIC should be between 7 and 13 characters.");
+            //var ntn = TrimSafe(invoice.NTN_CNIC);
+            //if (ntn.Length == 0)
+            //    AddError("Invalid NTN/CNIC!");
+            //else if (ntn.Length < 7 || ntn.Length > 13)
+            //    AddError("NTN/CNIC should be between 7 and 13 characters.");
 
             // -------- Buyer/Seller --
-            if (IsEmpty(invoice.BuyerSellerName))
-                AddError("Invalid Buyer/Seller Name!");
+            //if (IsEmpty(invoice.BuyerSellerName))
+            //    AddError("Invalid Buyer/Seller Name!");
 
-            if (IsEmpty(invoice.DestinationAddress))
-                AddError("Invalid Destination Address!");
+            //if (IsEmpty(invoice.DestinationAddress))
+            //    AddError("Invalid Destination Address!");
 
             // -------- Sale Type & Price
-            if (invoice.SaleType <= 0)
-                AddError("Invalid Sale Type!");
+            //if (invoice.SaleType <= 0)
+            //    AddError("Invalid Sale Type!");
 
-            if (invoice.TotalRetailPrice == 0)
-                AddError("Invalid Total Retail Price!");
+            //if (invoice.TotalRetailPrice == 0)
+            //    AddError("Invalid Total Retail Price!");
 
             // -------- Distributor ----
-            var distNtn = TrimSafe(invoice.Distributor_NTN_CNIC);
-            if (!IsEmpty(distNtn))
-            {
-                if (distNtn.Length < 7 || distNtn.Length > 13)
-                    AddError("Invalid Distributor NTN/CNIC!");
-                if (IsEmpty(invoice.DistributorName))
-                    AddError("Invalid Distributor Name!");
-            }
+            //var distNtn = TrimSafe(invoice.Distributor_NTN_CNIC);
+            //if (!IsEmpty(distNtn))
+            //{
+            //    if (distNtn.Length < 7 || distNtn.Length > 13)
+            //        AddError("Invalid Distributor NTN/CNIC!");
+            //    if (IsEmpty(invoice.DistributorName))
+            //        AddError("Invalid Distributor Name!");
+            //}
 
             // -------- Items ---------
-            if (invoice.InvoiceItemDetails.Count == 0)
-            {
-                AddError("Invoice Items Not Found!");
-            }
-            else
-            {
-                foreach (var item in invoice.InvoiceItemDetails)
-                {
-                    var hs = TrimSafe(item.HSCode);
-                    if (hs.Length == 0)
-                        AddError("Invoice Item: HS Code Not Found!");
-                    else if (hs.Length != 8)
-                        AddError("Invoice Item: Invalid HS Code!");
+            //if (invoice.InvoiceItemDetails.Count == 0)
+            //{
+            //    AddError("Invoice Items Not Found!");
+            //}
+            //else
+            //{
+            //    foreach (var item in invoice.incoi)
+            //    {
+            //        var hs = TrimSafe(item.HSCode);
+            //        if (hs.Length == 0)
+            //            AddError("Invoice Item: HS Code Not Found!");
+            //        else if (hs.Length != 8)
+            //            AddError("Invoice Item: Invalid HS Code!");
 
-                    if (IsEmpty(item.ProductCode))
-                        AddError("Invoice Item: Product Code Not Found!");
+            //        if (IsEmpty(item.ProductCode))
+            //            AddError("Invoice Item: Product Code Not Found!");
 
-                    if (IsEmpty(item.ProductDescription))
-                        AddError("Invoice Item: Product Description Not Found!");
+            //        if (IsEmpty(item.ProductDescription))
+            //            AddError("Invoice Item: Product Description Not Found!");
 
-                    if (item.Rate <= 0)
-                        AddError("Invoice Item: Rate should be greater than zero!");
-                    if (item.UoM <= 0)
-                        AddError("Invoice Item: Invalid UoM!");
-                    if (item.Quantity <= 0)
-                        AddError("Invoice Item: Invalid Quantity!");
-                    if (item.ValueSalesExcludingST <= 0)
-                        AddError("Invoice Item: Invalid Value of Sales Excluding ST!");
-                    if (item.SalesTaxApplicable <= 0)
-                    {
-                        AddError("Invoice Item: Invalid Value of Sales Tax Applicable!");
-                        AddError("Invoice Item: Invalid ST Withheld At Source!");
-                    }
-                    if (item.RetailPrice <= 0)
-                        AddError("Invoice Item: Invalid Retail Price!");
-                }
-            }
+            //        if (item.Rate <= 0)
+            //            AddError("Invoice Item: Rate should be greater than zero!");
+            //        if (item.UoM <= 0)
+            //            AddError("Invoice Item: Invalid UoM!");
+            //        if (item.Quantity <= 0)
+            //            AddError("Invoice Item: Invalid Quantity!");
+            //        if (item.ValueSalesExcludingST <= 0)
+            //            AddError("Invoice Item: Invalid Value of Sales Excluding ST!");
+            //        if (item.SalesTaxApplicable <= 0)
+            //        {
+            //            AddError("Invoice Item: Invalid Value of Sales Tax Applicable!");
+            //            AddError("Invoice Item: Invalid ST Withheld At Source!");
+            //        }
+            //        if (item.RetailPrice <= 0)
+            //            AddError("Invoice Item: Invalid Retail Price!");
+            //    }
+            //}
 
             // -------- Final result --
             string message = errors.Count > 0

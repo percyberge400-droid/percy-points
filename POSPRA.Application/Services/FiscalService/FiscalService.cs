@@ -78,9 +78,11 @@ namespace POSPRA.Application.Services.FiscalService
                     // _mapper injected via constructor
                     var invoiceEntity = _mapper.Map<Invoice>(dto);
                     var validationResult = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
+                    string result = await CreateFiscalInvoiceAsync(invoiceEntity);
+                    // send Invoice to live
+                    //await _sendInvoiceToLiveService.CreateAsync(invoiceEntity);
                     if (validationResult.IsValid)
                     {
-                        string result = await CreateFiscalInvoiceAsync(invoiceEntity);
                         if (!String.IsNullOrEmpty(result))
                         {
                             return new ApiResponse<InvoiceDto>(
@@ -112,7 +114,6 @@ namespace POSPRA.Application.Services.FiscalService
                              module: "Invoice",
                              action: nameof(CreateAsync)));
 
-                        string result = await CreateFiscalInvoiceAsync(invoiceEntity);
                     }
                 }
 
@@ -222,7 +223,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// <returns>
         /// The ID of the newly created FileRecord if successful; otherwise, 0.
         /// </returns>
-        private async Task<int> InsertInvoiceAsync(int posId, string encryptedData, string invoiceNumber)
+        private async Task<int> InsertInvoiceAsync(long posId, string encryptedData, string invoiceNumber)
         {
             try
             {
@@ -250,5 +251,26 @@ namespace POSPRA.Application.Services.FiscalService
                 return 0;
             }
         }
+
+        public string DecryptFiscalInvoice(string encryptedPackage)
+        {
+            // Split cipherText, nonce, tag
+            var parts = encryptedPackage.Split(':');
+            if (parts.Length != 3)
+                throw new InvalidOperationException("Invalid encrypted package format.");
+
+            string cipherText = parts[0];
+            string nonce = parts[1];
+            string tag = parts[2];
+
+            // Recreate AES key (must match CreateFiscalInvoiceAsync)
+            byte[] aesKey = Encoding.UTF8.GetBytes(_settings.EC.PadRight(32).Substring(0, 32));
+
+            // Decrypt
+            string decryptedText = ModernAESEncryption.Decrypt(cipherText, _settings.EC);
+
+            return decryptedText; // "{invoiceJson}|false|Latest|{signatureBase64}"
+        }
+
     }
 }

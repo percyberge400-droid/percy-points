@@ -3,7 +3,7 @@
     public class InvoiceDto
     {
         public int BPOSID { get; set; }
-        public short InvoiceType { get; set; }
+        public int InvoiceType { get; set; }
         public DateTime InvoiceDate { get; set; }
         public string? NTN_CNIC { get; set; }
         public string? BuyerSellerName { get; set; }

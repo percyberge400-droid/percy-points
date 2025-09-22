@@ -1,12 +1,9 @@
 ﻿using System.Drawing.Drawing2D;
-using System.Net.Http.Json;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
-using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDTOs;
-using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
 {
@@ -22,11 +19,11 @@ namespace POSPRA_WinFormsUI
         private bool _originalLayoutCaptured = false;
 
         // Session data (persisted across instances)
-        private static List<InvoiceItemDetail> _sessionItems = new();
+        private static List<InvoiceItems> _sessionItems = new();
 
         // Current invoice & item list
         public static Invoice CurrentInvoice;
-        private readonly List<InvoiceItemDetail> addedItems;
+        private readonly List<InvoiceItems> addedItems;
         private readonly IFiscalService _fiscalService;
 
         #endregion
@@ -79,9 +76,9 @@ namespace POSPRA_WinFormsUI
             dataGridView1.ContextMenuStrip = contextMenu;
         }
 
-        private InvoiceItemDetail GetTextboxData()
+        private InvoiceItems GetTextboxData()
         {
-            return new InvoiceItemDetail
+            return new InvoiceItems
             {
                 ProductCode = ProductCode.Text.Trim(),
                 UoM = int.TryParse(uom.Text, out var uomVal) ? uomVal : 0,
@@ -106,7 +103,7 @@ namespace POSPRA_WinFormsUI
             };
         }
 
-        private bool ValidateItemEntry(InvoiceItemDetail inputData)
+        private bool ValidateItemEntry(InvoiceItems inputData)
         {
             // Product Code
             if (string.IsNullOrWhiteSpace(inputData.ProductCode))
@@ -177,7 +174,7 @@ namespace POSPRA_WinFormsUI
                 // ensure CurrentInvoice updated with header values
                 CurrentInvoice = CollectInvoiceData();
 
-                InvoiceItemDetail inputData = GetTextboxData();
+                InvoiceItems inputData = GetTextboxData();
 
                 if (!ValidateItemEntry(inputData))
                     return;
@@ -380,7 +377,7 @@ namespace POSPRA_WinFormsUI
                 TotalValue.Text = item.TotalValues.ToString("F2");
                 SalesTaxApplicable.Text = item.SalesTaxApplicable.ToString("F2");
                 extratax.Text = item.ExtraTax?.ToString("F2") ?? "";
-                furturetax.Text = item.FurtherTax?.ToString("F2") ?? "";
+                furturetax.Text = item.FurtherTax.ToString() ?? null;
                 SroScheduleNo.Text = item.SroScheduleNo?.ToString() ?? "";
                 hscode.Text = item.HSCode ?? "";
                 qty.Text = item.Quantity.ToString();
@@ -416,7 +413,7 @@ namespace POSPRA_WinFormsUI
 
         #region Grid Edit / Remove Helpers
 
-        private void UpdateExistingItem(DataGridViewRow row, InvoiceItemDetail inputData)
+        private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
         {
             // Update cells with all form fields using correct property names and data types
             row.Cells["colProductCode"].Value = inputData.ProductCode?.ToString() ?? "";
@@ -560,7 +557,7 @@ namespace POSPRA_WinFormsUI
             }
         }
 
-        private void AddItemToDataGrid(InvoiceItemDetail item)
+        private void AddItemToDataGrid(InvoiceItems item)
         {
             int rowIndex = dataGridView1.Rows.Add();
             var row = dataGridView1.Rows[rowIndex];
@@ -580,7 +577,7 @@ namespace POSPRA_WinFormsUI
 
             // For nullable numeric fields → "0" if null
             row.Cells["colExtraTax"].Value = item.ExtraTax?.ToString("0.##") ?? "0";
-            row.Cells["colFutureTax"].Value = item.FurtherTax?.ToString("0.##") ?? "0";
+            row.Cells["colFutureTax"].Value = item.FurtherTax.ToString() ?? "0";
             row.Cells["colSROSNo"].Value = item.SroScheduleNo?.ToString() ?? "0";
             row.Cells["colCVT"].Value = item.CVT?.ToString("0.##") ?? "0";
             row.Cells["colSalesTaxWithheldAtSource"].Value = item.STWithheldAtSource?.ToString("0.##") ?? "0";
@@ -822,58 +819,6 @@ namespace POSPRA_WinFormsUI
         #endregion
 
         private void extratax_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        public class InvoicePoster
-        {
-            private readonly HttpClient _httpClient;
-            public InvoicePoster(IHttpClientFactory factory)
-            {
-                _httpClient = factory.CreateClient("SelfHostedApi");
-            }
-
-            public async Task<bool> PostInvoiceAsync(InvoiceDto dto)
-            {
-                try
-                {
-                    var response = await _httpClient.PostAsJsonAsync("api/Fiscal/Create", dto);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var apiResult = await response.Content
-                                                      .ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
-
-                        MessageBox.Show(apiResult?.Message ?? "Invoice created successfully!",
-                                        "Success",
-                                        MessageBoxButtons.OK,
-                                        MessageBoxIcon.Information);
-
-                        // You can use apiResult?.Data if needed
-                        return true;
-                    }
-
-                    // Non-success HTTP status
-                    var error = await response.Content.ReadAsStringAsync();
-                    MessageBox.Show($"Error from API: {response.StatusCode}\n{error}",
-                                    "Error",
-                                    MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error posting invoice: {ex.Message}",
-                                    "Error",
-                                    MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
-                    return false;
-                }
-            }
-        }
-
-        private void btnSave_Click_1(object sender, EventArgs e)
         {
 
         }

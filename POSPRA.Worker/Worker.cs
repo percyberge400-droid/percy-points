@@ -1,10 +1,13 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
+using POSPRA.DTOs.InvoiceDTOs;
 using POSPRA.DTOs.LogDTOs;
 
 namespace POSPRA.Worker
@@ -83,34 +86,72 @@ namespace POSPRA.Worker
             }
         }
 
-        private async Task<bool> PostEncryptedDataAsync(string workerInstanceId, string payload, CancellationToken token)
+        private async Task<bool> PostEncryptedDataAsync(
+      string workerInstanceId,
+      string rawJson,
+      CancellationToken token)
         {
             try
             {
-                // Encrypt the payload
-                string encryptedPayload = payload;
+                // Deserialize the envelope and extract only the data list
+                var envelope = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDTO>>>(
+                    rawJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                var content = new StringContent(encryptedPayload, System.Text.Encoding.UTF8, "application/json");
+                if (envelope?.Data == null || envelope.Data.Count == 0)
+                {
+                    await LogAsync(AlertType.Warning,
+                                   "No records found in provided JSON.",
+                                   workerInstanceId,
+                                   "NoData");
+                    return false;
+                }
 
-                var postResponse = await _httpService.PostAsync($"{_baseUrl}{Endpoints.PostData}", content, token);
+                // Serialize the list back to a plain JSON array for the API
+                var jsonBody = JsonSerializer.Serialize(envelope.Data);
+                using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                // Build endpoint URL
+                var url = $"{_baseUrl.TrimEnd('/')}/{Endpoints.SaveData.TrimStart('/')}";
+
+                using var postResponse = await _httpService.PostAsync(url, content, token);
 
                 if (postResponse.IsSuccessStatusCode)
                 {
                     Console.WriteLine("POST request successful.");
                     return true;
                 }
-                else
-                {
-                    //await LogAsync(AlertType.Warning, $"POST failed with status {postResponse.StatusCode}", workerInstanceId, "PostFailed", (int)postResponse.StatusCode);
-                    return false;
-                }
+
+                // Read response body safely on all .NET versions
+                var errorBody = await postResponse.Content.ReadAsStringAsync();
+                await LogAsync(AlertType.Warning,
+                               $"POST failed {postResponse.StatusCode}: {errorBody}",
+                               workerInstanceId,
+                               "PostFailed",
+                               (int)postResponse.StatusCode);
+
+                return false;
+            }
+            catch (OperationCanceledException)
+            {
+                await LogAsync(AlertType.Warning,
+                               "POST request was canceled.",
+                               workerInstanceId,
+                               "PostCanceled");
+                return false;
             }
             catch (Exception ex)
             {
-                await LogAsync(AlertType.Exception, ex.Message, workerInstanceId, "PostException", null, ex.StackTrace);
+                await LogAsync(AlertType.Exception,
+                               ex.Message,
+                               workerInstanceId,
+                               "PostException",
+                               null,
+                               ex.StackTrace);
                 return false;
             }
         }
+
 
         private async Task LogAsync(string type, string message, string workerInstanceId, string workerEvent, int? statusCode = null, string? stackTrace = null)
         {

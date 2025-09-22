@@ -10,7 +10,7 @@ namespace POSPRA.Application.AutoMapperProfile
         public PosProfile()
         {
             CreateMap<InvoiceDto, Invoice>();
-            CreateMap<InvoiceItemDetailDto, InvoiceItemDetail>();
+            CreateMap<InvoiceItemDetailDto, InvoiceItems>();
 
             CreateMap<FileRecordDTO, FileRecord>();
             CreateMap<FileRecord, FileRecordDTO>();
