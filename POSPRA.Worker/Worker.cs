@@ -126,8 +126,8 @@ namespace POSPRA.Worker
                 WorkerEvent = workerEvent,
                 ResponseStatusCode = statusCode,
                 StackTrace = stackTrace,
-                WorkerStartedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Startup) ? DateTime.UtcNow : null,
-                WorkerStoppedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Shutdown) ? DateTime.UtcNow : null
+                WorkerStartedAtUtc = DateTime.Now,
+                WorkerStoppedAtUtc = DateTime.Now
             };
 
             await logService.LogAsync(_mapper.Map<Logs>(logDto));
