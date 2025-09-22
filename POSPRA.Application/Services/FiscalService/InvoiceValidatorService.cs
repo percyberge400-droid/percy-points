@@ -30,10 +30,10 @@ namespace POSPRA.Application.Services.FiscalService
             static string TrimSafe(string? s) => s?.Trim() ?? string.Empty;
 
             // -------- BPOSID --------
-            if (invoice.BPOSID == 0)
-                AddError("Invalid BPOSID!");
-            else if (invoice.BPOSID.ToString().Length != 6)
-                AddError("Invalid BPOSID should be of 6 digits!");
+            if (invoice.POSID == 0)
+                AddError("Invalid POSID!");
+            else if (invoice.POSID.ToString().Length != 6)
+                AddError("Invalid POSID should be of 6 digits!");
 
             // -------- InvoiceType ---
             if (invoice.InvoiceType < 1 || invoice.InvoiceType > 4)

@@ -40,151 +40,91 @@ namespace POSPRA.Application.Services.LiveService
         }
 
 
-        public async Task<ApiResponse<FileRecordDTO>> SaveInvoicData(List<FileRecordDTO> dto)
+        public async Task<ApiResponse<FileRecordDTO>> DecryptAndSaveInvoicesAsync(List<FileRecordDTO> dtos)
         {
-            if (!dto.Any())
+            // 🟢 Guard-clause: no input
+            if (dtos == null || dtos.Count == 0)
+            {
                 return new ApiResponse<FileRecordDTO>(
-                    statusCode: ApiStatusCode.Error.ToString(),
-                    message: ResponseMessages.DataNotFound,
-                    data: null
-                );
+                    ApiStatusCode.Error.ToString(),
+                    ResponseMessages.DataNotFound,
+                    null);
+            }
 
             try
             {
-                await CreateDecryptedInvoice(dto);
-            }
-            catch (Exception ex)
-            {
-                return new ApiResponse<FileRecordDTO>(
-                statusCode: ApiStatusCode.Error.ToString(),
-                message: ResponseMessages.RecordSaved,
-                data: null
-                );
-            }
-
-            return new ApiResponse<FileRecordDTO>(
-                    statusCode: ApiStatusCode.Success.ToString(),
-                    message: ResponseMessages.RecordSaved,
-                    data: null
-            );
-        }
-
-        private async Task<ApiResponse<Invoice>> CreateDecryptedInvoice(List<FileRecordDTO> dTOs)
-        {
-            try
-            {
-                foreach (var item in dTOs)
+                foreach (var item in dtos)
                 {
-                    var decryptedInvoice = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
+                    // 1️⃣  Decrypt the payload
+                    var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
+                    if (string.IsNullOrWhiteSpace(decrypted))
+                        continue;
 
-                    var parts = decryptedInvoice.Split('|');
+                    // 2️⃣  Get the JSON part
+                    var jsonPart = decrypted.Split('|')[0];
+                    if (string.IsNullOrWhiteSpace(jsonPart))
+                        continue;
 
-                    // 2. The first part is the JSON
-                    var jsonPart = parts[0];
+                    // 3️⃣  Deserialize to DTO
+                    var invoiceDto = JsonSerializer.Deserialize<InvoiceDto>(
+                        jsonPart,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                    // 3. Deserialize to your object
-                    var invoiceDto = JsonSerializer.Deserialize<InvoiceDto>(jsonPart);
+                    if (invoiceDto == null)
+                        continue;
 
-                    var Invoice = await SaveInvoiceWithItems(invoiceDto);
-
-                    //if (!response.success)
-                    //{
-                    //    return new ApiResponse<Invoice>(
-                    //        statusCode: ApiStatusCode.Success.ToString(),
-                    //        message: ResponseMessages.RecordSaved,
-                    //        data: null
-                    //    );
-                    //}
-                    var fileRecord = await _fiscalRepository.FirstOrDefaultAsync(x => x.ID == item.ID && x.IsSynced == 0);
-                    if (fileRecord != null)
+                    // 4️⃣  Save invoice & items
+                    var response = await CreateInvoiceWithItemsAsync(invoiceDto);
+                    if (string.Equals(response.StatusCode,
+                                      ApiStatusCode.Success.ToString(),
+                                      StringComparison.OrdinalIgnoreCase))
                     {
-                        fileRecord.IsSynced = 1;
-                        await _sqliteUnitOfWork.SaveChangesAsync();
+                        return new ApiResponse<FileRecordDTO>(
+                            ApiStatusCode.Success.ToString(),
+                            ResponseMessages.RecordSaved,
+                            null);
                     }
-
                 }
+
+                // No invoice succeeded
+                return new ApiResponse<FileRecordDTO>(
+                    ApiStatusCode.Error.ToString(),
+                    ResponseMessages.UnknownError,
+                    null);
             }
             catch (Exception ex)
             {
-
+                return new ApiResponse<FileRecordDTO>(
+                    ApiStatusCode.Error.ToString(),
+                    ex.Message,
+                    null);
             }
-            return new ApiResponse<Invoice>(
-                statusCode: ApiStatusCode.Success.ToString(),
-                message: ResponseMessages.RecordSaved,
-                data: null
-            );
         }
 
-        private async Task<ApiResponse<Invoice>> SaveInvoiceWithItems(InvoiceDto dto)
+        private async Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto)
         {
             try
             {
-                // 1️⃣ Save invoice first
-                var invoice = new Invoice
-                {
-                    BPOSID = dto.BPOSID,
-                    InvoiceType = dto.InvoiceType,
-                    InvoiceDate = dto.InvoiceDate >= new DateTime(1753, 1, 1) ? dto.InvoiceDate : DateTime.Now,
-                    NTN_CNIC = dto.NTN_CNIC,
-                    BuyerSellerName = dto.BuyerSellerName,
-                    DestinationAddress = dto.DestinationAddress,
-                    SaleType = dto.SaleType,
-                    TotalSalesTaxApplicable = dto.TotalSalesTaxApplicable,
-                    TotalRetailPrice = dto.TotalRetailPrice,
-                    TotalSTWithheldAtSource = dto.TotalSTWithheldAtSource,
-                    TotalExtraTax = dto.TotalExtraTax,
-                    TotalFEDPayable = dto.TotalFEDPayable,
-                    TotalWithheldIncomeTax = dto.TotalWithheldIncomeTax,
-                    TotalCVT = dto.TotalCVT,
-                    Distributor_NTN_CNIC = dto.Distributor_NTN_CNIC,
-                    DistributorName = dto.DistributorName,
-                    //EntryDate = DateTime.Now,
-                    IsActive = true
-                };
-
+                // Map & save invoice
+                var invoice = _mapper.Map<Invoice>(dto);
                 await _invoiceRepository.AddAsync(invoice);
-                await _sqlServerUnitOfWork.SaveChangesAsync(); // ✅ After this, invoice.InvoiceID is populated
+                await _sqlServerUnitOfWork.SaveChangesAsync();
 
-                if (dto.InvoiceItemDetails!.Any())
+                // Map & save items (if any)
+                if (dto.InvoiceItemDto?.Count > 0)
                 {
-                    var invoiceItemsList = dto.InvoiceItemDetails.Select(items => new InvoiceItems
-                    {
-                        InvoiceID = invoice.InvoiceID, // ← use the generated InvoiceID
-                        HSCode = items.HSCode,
-                        ProductCode = items.ProductCode,
-                        ProductDescription = items.ProductDescription,
-                        Rate = items.Rate,
-                        UoM = items.UoM,
-                        Quantity = items.Quantity,
-                        ValueSalesExcludingST = items.ValueSalesExcludingST,
-                        SalesTaxApplicable = items.SalesTaxApplicable,
-                        RetailPrice = items.RetailPrice,
-                        STWithheldAtSource = items.STWithheldAtSource,
-                        ExtraTax = items.ExtraTax,
-                        FurtherTax = items.FurtherTax,
-                        SroScheduleNo = items.SroScheduleNo,
-                        FedPayable = items.FedPayable,
-                        CVT = items.CVT,
-                        WHIT_1 = items.WHIT_1,
-                        WHIT_2 = items.WHIT_2,
-                        WHIT_Section_1 = items.WHIT_Section_1,
-                        WHIT_Section_2 = items.WHIT_Section_2,
-                        TotalValues = items.TotalValues,
-                        EntryDate = DateTime.Now,
-                        IsActive = true
-                    }).ToList();
+                    var items = _mapper.Map<List<InvoiceItems>>(dto.InvoiceItemDto);
+                    // Assign the generated InvoiceID to each item
+                    items.ForEach(i => i.InvoiceID = invoice.InvoiceID);
 
-                    await _invoiceItemsRepository.AddRangeAsync(invoiceItemsList);
+                    await _invoiceItemsRepository.AddRangeAsync(items);
                     await _sqlServerUnitOfWork.SaveChangesAsync();
                 }
 
-
-
                 return new ApiResponse<Invoice>(
-                    statusCode: ApiStatusCode.Success.ToString(),
-                    message: ResponseMessages.RecordSaved,
-                    data: invoice
-                );
+                    ApiStatusCode.Success.ToString(),
+                    ResponseMessages.RecordSaved,
+                    invoice);
             }
             catch (Exception ex)
             {
@@ -195,6 +135,5 @@ namespace POSPRA.Application.Services.LiveService
                 );
             }
         }
-
     }
 }

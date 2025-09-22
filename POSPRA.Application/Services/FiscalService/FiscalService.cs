@@ -177,7 +177,7 @@ namespace POSPRA.Application.Services.FiscalService
                 string encryptedPackage = $"{encryptedData.cipherText}:{encryptedData.nonce}:{encryptedData.tag}";
 
                 // 9️ Insert invoice and return invoice number
-                int invoiceId = await InsertInvoiceAsync(invoice.BPOSID, encryptedPackage, invoiceNumber);
+                int invoiceId = await InsertInvoiceAsync(invoice.POSID, encryptedPackage, invoiceNumber);
 
                 // You can return encryptedPackage if needed for fiscal system
                 return invoiceId > 0 ? encryptedPackage : string.Empty;

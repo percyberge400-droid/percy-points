@@ -3,43 +3,80 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace POSPRA.Domain.Entities
 {
-    [Table("InvoiceNew")]
+    [Table("Invoice")]
     public class Invoice
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long InvoiceID { get; set; }   // Primary Key
+        public long InvoiceID { get; set; }
 
-        public long BPOSID { get; set; }      // bigint
-        public int? InvoiceType { get; set; }  // int
-        public DateTime? InvoiceDate { get; set; }
+        [Required, StringLength(30)]
+        public string FBRInvoiceNumber { get; set; } = null!;
 
-        [MaxLength(50)]
-        public string? NTN_CNIC { get; set; }
+        [Required]
+        public long POSID { get; set; }
 
-        [MaxLength(200)]
-        public string? BuyerSellerName { get; set; }
+        [Required, StringLength(50)]
+        public string USIN { get; set; } = null!;
 
-        [MaxLength(300)]
-        public string? DestinationAddress { get; set; }
+        [Required]
+        public DateTime DateTime { get; set; }
 
-        public int? SaleType { get; set; }
+        [StringLength(150)]
+        public string? BuyerName { get; set; }
 
-        public decimal? TotalSalesTaxApplicable { get; set; }
-        public decimal TotalRetailPrice { get; set; }
-        public decimal? TotalSTWithheldAtSource { get; set; }
-        public decimal? TotalExtraTax { get; set; }
-        public decimal? TotalFEDPayable { get; set; }
-        public decimal? TotalWithheldIncomeTax { get; set; }
-        public decimal? TotalCVT { get; set; }
+        [StringLength(20)]
+        public string? BuyerPhoneNumber { get; set; }
 
-        [MaxLength(50)]
-        public string? Distributor_NTN_CNIC { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TotalSaleValue { get; set; }
 
-        [MaxLength(200)]
-        public string? DistributorName { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TotalQuantity { get; set; }
 
-        public bool IsActive { get; set; } = true;   // Common for entities
-        public DateTime? EntryDate { get; set; } = DateTime.Now;
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TotalTaxCharged { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? Discount { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? TotalBillAmount { get; set; }
+
+        [Required]
+        public int PaymentMode { get; set; }
+
+        [Required]
+        public DateTime EntryDate { get; set; }
+
+        [Required]
+        public bool IsActive { get; set; }
+
+        public byte? RequestFrom { get; set; }
+
+        public byte? InvoiceType { get; set; }
+
+        [StringLength(50)]
+        public string? RefUSIN { get; set; }
+
+        public bool? IsValidCalculation { get; set; }
+
+        public bool? IsImport { get; set; }
+
+        [StringLength(20)]
+        public string? Version { get; set; }
+
+        [StringLength(9)]
+        public string? BuyerNTN { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? FurtherTax { get; set; }
+
+        [StringLength(13)]
+        public string? BuyerCNIC { get; set; }
+
+        public short? StatusID { get; set; }
+
+        [StringLength(4000)]
+        public string? Remarks { get; set; }
     }
 }

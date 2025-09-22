@@ -1,54 +1,48 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using POSPRA.Domain.Entities;
 
-namespace POSPRA.Domain.Entities
+[Table("InvoiceItems")]
+public class InvoiceItems
 {
-    [Table("InvoiceItemNew")]
-    public class InvoiceItems
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long InvoiceItemId { get; set; }   // Primary Key
+    [Key]
+    public long InvoiceItemId { get; set; }
 
-        public long InvoiceID { get; set; }       // Foreign Key -> Invoice
+    [Required]
+    [ForeignKey("Invoice")]
+    public long InvoiceID { get; set; }
 
-        [MaxLength(50)]
-        public string? HSCode { get; set; }
+    [Required, StringLength(50)]
+    public string ItemCode { get; set; } = string.Empty;
 
-        [MaxLength(50)]
-        public string? ProductCode { get; set; }
+    [Required, StringLength(150)]
+    public string ItemName { get; set; } = string.Empty;
 
-        [MaxLength(300)]
-        public string? ProductDescription { get; set; }
+    [StringLength(50)]
+    public string? PCTCode { get; set; }
 
-        public decimal Rate { get; set; }
-        public int UoM { get; set; }
-        public decimal Quantity { get; set; }
-        public decimal ValueSalesExcludingST { get; set; }
-        public decimal SalesTaxApplicable { get; set; }
-        public decimal RetailPrice { get; set; }
-        public decimal? STWithheldAtSource { get; set; }
-        public decimal? ExtraTax { get; set; }
-        public decimal? FurtherTax { get; set; }
-        public int? SroScheduleNo { get; set; }
-        public decimal? FedPayable { get; set; }
-        public decimal? CVT { get; set; }
-        public decimal? WHIT_1 { get; set; }
-        public decimal? WHIT_2 { get; set; }
+    public decimal? Quantity { get; set; }
 
-        [MaxLength(50)]
-        public string? WHIT_Section_1 { get; set; }
+    public double TaxRate { get; set; }
 
-        [MaxLength(50)]
-        public string? WHIT_Section_2 { get; set; }
+    public decimal? SaleValue { get; set; }
 
-        public decimal TotalValues { get; set; }
+    public decimal? TaxCharged { get; set; }
 
-        // Common fields
-        public bool IsActive { get; set; } = true;
-        public DateTime EntryDate { get; set; } = DateTime.Now;
+    public decimal? TotalAmount { get; set; }
 
-        // Navigation property
-        public virtual Invoice Invoice { get; set; } = null!;
-    }
+    public bool IsActive { get; set; }
+
+    public DateTime EntryDate { get; set; }
+
+    public byte? InvoiceType { get; set; }
+
+    [StringLength(50)]
+    public string? RefUSIN { get; set; }
+
+    public decimal? Discount { get; set; }
+
+    public decimal? FurtherTax { get; set; }
+
+    public Invoice? Invoice { get; set; }
 }

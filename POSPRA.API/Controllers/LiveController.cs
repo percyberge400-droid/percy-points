@@ -16,6 +16,6 @@ namespace POSPRA.API.Controllers
 
         [HttpPost("SaveData")]
         public async Task<IActionResult> Create([FromBody] List<FileRecordDTO> dto) =>
-        Ok(await _liveService.SaveInvoicData(dto));
+        Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto));
     }
 }

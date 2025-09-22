@@ -9,9 +9,6 @@ namespace POSPRA.Application.AutoMapperProfile
     {
         public PosProfile()
         {
-            CreateMap<InvoiceDto, Invoice>();
-            CreateMap<InvoiceItemDetailDto, InvoiceItems>();
-
             CreateMap<FileRecordDTO, FileRecord>();
             CreateMap<FileRecord, FileRecordDTO>();
 
@@ -21,12 +18,13 @@ namespace POSPRA.Application.AutoMapperProfile
             CreateMap<WorkerLogDTO, Logs>();
             CreateMap<Logs, WorkerLogDTO>();
 
-            //CreateMap<Dictionary<string, object>, ResponseConfigurationDto>()
-            //  .ConvertUsing<DictionaryToDtoConverter<ResponseConfigurationDto>>();
+            // DTO ➜ Entity
+            CreateMap<InvoiceDto, Invoice>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
 
-            //// ✅ Add this for POSVerificationDTO
-            //CreateMap<Dictionary<string, object>, POSVerificationDTO>()
-            //    .ConvertUsing<DictionaryToDtoConverter<POSVerificationDTO>>();
+            CreateMap<InvoiceItemDto, InvoiceItems>()
+                .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.Now))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
         }
     }
 }
