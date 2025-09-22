@@ -131,14 +131,15 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     LogsDataGridView.Rows.Clear();
 
-                    foreach (var log in response.Data)
+                    // Order logs by Id descending
+                    foreach (var log in response.Data.OrderByDescending(l => l.Id))
                     {
                         int rowIndex = LogsDataGridView.Rows.Add();
                         var row = LogsDataGridView.Rows[rowIndex];
                         row.Cells["colID"].Value = log.Id;
                         row.Cells["colMessage"].Value = log.Message ?? "No message";
-                        row.Cells["colException"].Value = log.Type;
-                        row.Cells["logdatetime"].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss"); // formatted
+                        row.Cells["colException"].Value = log.Type ?? "N/A";
+                        row.Cells["logdatetime"].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss");
                     }
 
                     WindowsLocalAppNotification.Show("Logs", "Logs loaded successfully");
@@ -146,7 +147,7 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else
                 {
-                    LogsDataGridView.DataSource = null;
+                    LogsDataGridView.Rows.Clear(); // better than null to avoid DataError
                     WindowsLocalAppNotification.Show("Logs", "No logs available to display");
                     AlertManager.ShowWarning("No logs available to display");
                 }
@@ -157,6 +158,7 @@ namespace POSPRA_WinFormsUI.Forms
                 AlertManager.ShowError($"Error loading logs: {ex.Message}");
             }
         }
+
 
         private void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
