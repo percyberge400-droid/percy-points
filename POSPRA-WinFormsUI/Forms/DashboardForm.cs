@@ -197,7 +197,9 @@ namespace POSPRA_WinFormsUI.Forms
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() => _ = LogAndNotifyAsync(title, message, alertType)));
+                //this.Invoke(new Action(() => _ = LogAndNotifyAsync(title, message, alertType)));
+                this.BeginInvoke(new Action(async () =>
+                    await LogAndNotifyAsync(title, message, alertType)));
                 return;
             }
 
@@ -226,6 +228,7 @@ namespace POSPRA_WinFormsUI.Forms
                     break;
                 
             }
+            await Task.CompletedTask;
 
             // 3. Log
 
