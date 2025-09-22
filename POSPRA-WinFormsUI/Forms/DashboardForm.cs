@@ -64,6 +64,10 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 var response = await _fiscalService.GetAllAsync();
 
+                //Local App notiofication call
+                WindowsLocalAppNotification.Show("Invoices Loaded", $"Successfully loaded log entries");
+                AlertManager.ShowSuccess("Successfuly loaded Invoice data");
+
                 if (response?.Data == null || !response.Data.Any())
                 {
                     MessageBox.Show("No invoices found.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
