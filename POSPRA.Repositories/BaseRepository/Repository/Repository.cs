@@ -77,6 +77,14 @@ namespace POSPRA.Repositories.BaseRepository.Repository
             await _dbSet.FirstOrDefaultAsync(predicate);
 
         /// <summary>
+        /// Updates a collection of entities in a single call.
+        /// Marks all entities as Modified so they are persisted on SaveChanges.
+        /// </summary>
+        /// <param name="entities">Entities to update.</param>
+        public void UpdateRange(IEnumerable<T> entities) =>
+            _dbSet.UpdateRange(entities);
+
+        /// <summary>
         /// Executes a raw SQL command or stored procedure that does not return rows.
         /// </summary>
         /// <param name="procedureName">The SQL or procedure name to execute.</param>

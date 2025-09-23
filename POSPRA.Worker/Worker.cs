@@ -2,8 +2,10 @@
 using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Options;
+using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
@@ -12,166 +14,190 @@ using POSPRA.DTOs.LogDtos;
 
 namespace POSPRA.Worker
 {
+    /// <summary>
+    /// Background service that periodically checks a remote endpoint for unsynced file records,
+    /// posts them to a decrypt/save API, and updates the local database.
+    /// </summary>
     public class Worker : BackgroundService
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _services;
         private readonly IMapper _mapper;
-        private readonly HttpService _httpService;
+        private readonly HttpService _http;
         private readonly string _baseUrl;
-
-        public Worker(
-            IServiceProvider serviceProvider,
-            IMapper mapper,
-            HttpService httpService,
-            IOptions<AppSettings> options)
+        private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
+        private readonly INetworkService _networkService;
+        public Worker(IServiceProvider services, IMapper mapper, HttpService http, IOptions<AppSettings> opts, INetworkService networkService)
         {
-            _serviceProvider = serviceProvider;
+            _services = services;
             _mapper = mapper;
-            _httpService = httpService;
-            _baseUrl = options.Value.BaseUrl;
+            _http = http;
+            _baseUrl = opts.Value.BaseUrl.TrimEnd('/');
+            _networkService = networkService;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        /// <summary>
+        /// Main entry point for the background worker.
+        /// Starts the loop that performs periodic health checks until the service is stopped.
+        /// </summary>
+        protected override async Task ExecuteAsync(CancellationToken token)
         {
-            var workerInstanceId = Guid.NewGuid().ToString();
+            var id = Guid.NewGuid().ToString();
+            await LogAsync(AlertType.Information, "Worker service started.", id, AlertType.Startup);
 
-            // Log service start
-            await LogAsync(AlertType.Information, "Worker service started.", workerInstanceId, AlertType.Startup);
+            bool wasInternetAvailable = true; // Track previous state to reduce repeated logs
 
             try
             {
-                while (!stoppingToken.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
-                    await ProcessHealthCheck(workerInstanceId, stoppingToken);
-                    await Task.Delay(1000, stoppingToken);
+                    bool isInternetAvailable = await _networkService.IsInternetAvailableAsync();
+
+                    if (isInternetAvailable)
+                    {
+                        // Internet is back or still available
+                        if (!wasInternetAvailable)
+                        {
+                            await LogAsync(AlertType.Information, "Internet connection restored.", id, "InternetRestored");
+                        }
+
+                        wasInternetAvailable = true;
+
+                        await ProcessHealthCheck(id, token);
+
+                        // Normal loop delay
+                        await Task.Delay(1000, token);
+                    }
+                    else
+                    {
+                        // Internet is down
+                        if (wasInternetAvailable)
+                        {
+                            // Log only when state changes
+                            await LogAsync(AlertType.Warning, "Internet not available. Skipping health check.", id, "NoInternet");
+                        }
+
+                        wasInternetAvailable = false;
+
+                        // Longer delay when offline to avoid busy loop
+                        await Task.Delay(5000, token);
+                    }
                 }
             }
             finally
             {
-                // Log service stop
-                await LogAsync(AlertType.Information, "Worker service stopped.", workerInstanceId, AlertType.Shutdown);
+                await LogAsync(AlertType.Information, "Worker service stopped.", id, AlertType.Shutdown);
             }
         }
 
-        private async Task ProcessHealthCheck(string workerInstanceId, CancellationToken token)
+
+        /// <summary>
+        /// Performs a single health check:  
+        /// 1) Calls the GetAllUnsynced endpoint.  
+        /// 2) Posts retrieved data to the decrypt/save endpoint.  
+        /// 3) Updates the local database if records are returned.
+        /// </summary>
+        private async Task ProcessHealthCheck(string id, CancellationToken token)
         {
             try
             {
-                var response = await _httpService.GetAsync($"{_baseUrl}{Endpoints.GetAll}", token);
-
-                if (response.IsSuccessStatusCode)
+                var resp = await _http.GetAsync($"{_baseUrl}{Endpoints.GetAllUnsyncedAsync}", token);
+                if (!resp.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Health response: {content}");
-
-                    // ✅ Call POST with encrypted data
-                    // Call POST and check result
-                    bool postSuccess = await PostEncryptedDataAsync(workerInstanceId, content, token);
-                    if (postSuccess)
-                    {
-                        // ✅ Call your service method on POST success
-                        //using var scope = _serviceProvider.CreateScope();
-                        //var myService = scope.ServiceProvider.GetRequiredService<IMyService>();
-                        //await myService.OnPostSuccessAsync(content, token);
-                    }
+                    await LogAsync(AlertType.Warning, $"Health check failed: {resp.StatusCode}", id, "HealthCheckFailed", (int)resp.StatusCode);
+                    return;
                 }
-                else
+
+                var raw = await resp.Content.ReadAsStringAsync();
+                Console.WriteLine($"Health response: {raw}");
+
+                using var post = await PostEncryptedDataAsync(id, raw, token);
+                if (post is null || !post.IsSuccessStatusCode) return;
+
+                var postJson = await post.Content.ReadAsStringAsync();
+                var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
+                var files = apiResp?.Data ?? new();
+
+                if (files.Count > 0)
                 {
-                    await LogAsync(AlertType.Warning, $"Failed health check with status {response.StatusCode}", workerInstanceId, "HealthCheckFailed", (int)response.StatusCode);
+                    using var scope = _services.CreateScope();
+                    var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
+                    await fiscal.UpdateFileRecordsAsync(files);
                 }
             }
             catch (Exception ex)
             {
-                await LogAsync(AlertType.Exception, ex.Message, workerInstanceId, "LoopException", null, ex.StackTrace);
+                await LogAsync(AlertType.Exception, ex.Message, id, "LoopException", null, ex.StackTrace);
             }
         }
 
-        private async Task<bool> PostEncryptedDataAsync(
-      string workerInstanceId,
-      string rawJson,
-      CancellationToken token)
+        /// <summary>
+        /// Sends encrypted data to the DecryptSave API endpoint.
+        /// Returns the HTTP response so the caller can inspect status and content.
+        /// Logs warnings or exceptions when the operation fails.
+        /// </summary>
+        private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, string rawJson, CancellationToken token)
         {
             try
             {
-                // Deserialize the envelope and extract only the data list
-                var envelope = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(
-                    rawJson,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (envelope?.Data == null || envelope.Data.Count == 0)
+                var envelope = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(rawJson, JsonOpts);
+                if (envelope?.Data is null || envelope.Data.Count == 0)
                 {
-                    await LogAsync(AlertType.Warning,
-                                   "No records found in provided JSON.",
-                                   workerInstanceId,
-                                   "NoData");
-                    return false;
+                    await LogAsync(AlertType.Warning, "No records in JSON.", id, "NoData");
+                    return null;
                 }
 
-                // Serialize the list back to a plain JSON array for the API
                 var jsonBody = JsonSerializer.Serialize(envelope.Data);
-                using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                var url = $"{_baseUrl}/{Endpoints.DecryptSave.TrimStart('/')}";
 
-                // Build endpoint URL
-                var url = $"{_baseUrl.TrimEnd('/')}/{Endpoints.SaveData.TrimStart('/')}";
-
-                using var postResponse = await _httpService.PostAsync(url, content, token);
-
-                if (postResponse.IsSuccessStatusCode)
+                var resp = await _http.PostAsync(url, content, token);
+                if (!resp.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("POST request successful.");
-                    return true;
+                    var err = await resp.Content.ReadAsStringAsync();
+                    await LogAsync(AlertType.Warning, $"POST failed {resp.StatusCode}: {err}", id, "PostFailed", (int)resp.StatusCode);
                 }
-
-                // Read response body safely on all .NET versions
-                var errorBody = await postResponse.Content.ReadAsStringAsync();
-                await LogAsync(AlertType.Warning,
-                               $"POST failed {postResponse.StatusCode}: {errorBody}",
-                               workerInstanceId,
-                               "PostFailed",
-                               (int)postResponse.StatusCode);
-
-                return false;
+                return resp;
             }
             catch (OperationCanceledException)
             {
-                await LogAsync(AlertType.Warning,
-                               "POST request was canceled.",
-                               workerInstanceId,
-                               "PostCanceled");
-                return false;
+                await LogAsync(AlertType.Warning, "POST request canceled.", id, "PostCanceled");
             }
             catch (Exception ex)
             {
-                await LogAsync(AlertType.Exception,
-                               ex.Message,
-                               workerInstanceId,
-                               "PostException",
-                               null,
-                               ex.StackTrace);
-                return false;
+                await LogAsync(AlertType.Exception, ex.Message, id, "PostException", null, ex.StackTrace);
             }
+            return null;
         }
 
-
-        private async Task LogAsync(string type, string message, string workerInstanceId, string workerEvent, int? statusCode = null, string? stackTrace = null)
+        /// <summary>
+        /// Writes a log entry to the database using the ILogService.
+        /// Supports information, warning, and exception logs with optional status code and stack trace.
+        /// </summary>
+        private async Task LogAsync(
+            string type,
+            string message,
+            string workerId,
+            string evt,
+            int? statusCode = null,
+            string? stackTrace = null)
         {
-            using var scope = _serviceProvider.CreateScope();
-            var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
+            using var scope = _services.CreateScope();
+            var logSvc = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-            var logDto = new WorkerLogDto
+            var log = new WorkerLogDto
             {
                 Message = message,
                 Type = type,
-                WorkerName = "POSPRA.Worker",
-                WorkerInstanceId = workerInstanceId,
-                WorkerEvent = workerEvent,
+                WorkerName = nameof(Worker),
+                WorkerInstanceId = workerId,
+                WorkerEvent = evt,
                 ResponseStatusCode = statusCode,
                 StackTrace = stackTrace,
-                WorkerStartedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Startup) ? DateTime.Now : null,
-                WorkerStoppedAtUtc = type == AlertType.Information && workerEvent.Equals(AlertType.Shutdown) ? DateTime.Now : null
+                WorkerStartedAtUtc = type == AlertType.Information && evt == AlertType.Startup ? DateTime.Now : null,
+                WorkerStoppedAtUtc = type == AlertType.Information && evt == AlertType.Shutdown ? DateTime.Now : null
             };
 
-            await logService.LogAsync(_mapper.Map<Logs>(logDto));
+            await logSvc.LogAsync(_mapper.Map<Logs>(log));
         }
     }
 }

@@ -36,5 +36,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// An <see cref="ApiResponse{T}"/> containing the created <see cref="Invoice"/> and operation status.
         /// </returns>
         Task<ApiResponse<InvoiceDto>> CreateAsync(InvoiceDto dto);
+
+        Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos);
     }
 }

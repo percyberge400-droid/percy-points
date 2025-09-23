@@ -1,10 +1,12 @@
-﻿namespace POSPRA.DTOs.InvoiceDtos
+﻿using System.Text.Json.Serialization;
+
+namespace POSPRA.DTOs.InvoiceDtos
 {
     public class InvoiceDto
     {
         public long POSID { get; set; }
 
-        public string InvoiceNumber { get; set; } = string.Empty;
+        public string FBRInvoiceNumber { get; set; } = string.Empty;
 
         public string USIN { get; set; } = string.Empty;
 
@@ -36,6 +38,7 @@
 
         public DateTime DateTime { get; set; }
 
+        [JsonPropertyName("invoiceItems")]   // match the JSON array name
         public List<InvoiceItemDto>? InvoiceItemDto { get; set; }
     }
 }

@@ -37,6 +37,12 @@ namespace POSPRA.Infrastructure.Context
 
             //Add Fluent API configurations here if needed
             modelBuilder.Entity<PosClients>().HasNoKey();
+
+            modelBuilder.Entity<Invoice>()
+            .HasMany(i => i.InvoiceItems)
+            .WithOne(ii => ii.Invoice)
+            .HasForeignKey(ii => ii.InvoiceID)
+            .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

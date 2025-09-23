@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.NetworkService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -50,11 +53,13 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<IFiscalRepository, FiscalRepository>();
         services.AddScoped<IPosClientRepository, PosClientRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
+        services.AddScoped<IRequestHeaderService, RequestHeaderService>();
 
         // Services
-        services.AddScoped<ILogService, LogService>();
         services.AddScoped<ILiveService, LiveService>();   // <-- add
-
+        services.AddScoped<IFiscalService, FiscalService>();
+        services.AddScoped<InvoiceValidatorService>(); // <-- Add this
+        services.AddSingleton<INetworkService, NetworkService>();
 
         services.AddHttpClient<HttpService>();
 
