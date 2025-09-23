@@ -271,6 +271,5 @@ namespace POSPRA.Application.Services.FiscalService
 
             return decryptedText; // "{invoiceJson}|false|Latest|{signatureBase64}"
         }
-
     }
 }
