@@ -180,10 +180,10 @@
             // salevalue
             // 
             salevalue.Font = new Font("Microsoft Sans Serif", 9F);
-            salevalue.Location = new Point(920, 111);
+            salevalue.Location = new Point(465, 42);
             salevalue.Name = "salevalue";
             salevalue.PlaceholderText = "Sale Value";
-            salevalue.Size = new Size(183, 24);
+            salevalue.Size = new Size(194, 24);
             salevalue.TabIndex = 28;
             salevalue.Text = "78";
             // 
@@ -191,7 +191,7 @@
             // 
             salevaluelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             salevaluelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            salevaluelbl.Location = new Point(920, 88);
+            salevaluelbl.Location = new Point(465, 17);
             salevaluelbl.Name = "salevaluelbl";
             salevaluelbl.Size = new Size(95, 20);
             salevaluelbl.TabIndex = 44;
@@ -212,7 +212,7 @@
             itemDiscount.Location = new Point(920, 42);
             itemDiscount.Name = "itemDiscount";
             itemDiscount.PlaceholderText = "Discount";
-            itemDiscount.Size = new Size(183, 24);
+            itemDiscount.Size = new Size(197, 24);
             itemDiscount.TabIndex = 23;
             // 
             // itemDiscountlbl
@@ -229,7 +229,7 @@
             // totalamount
             // 
             totalamount.Font = new Font("Microsoft Sans Serif", 9F);
-            totalamount.Location = new Point(465, 42);
+            totalamount.Location = new Point(923, 113);
             totalamount.Name = "totalamount";
             totalamount.PlaceholderText = "Total Amount";
             totalamount.Size = new Size(194, 24);
@@ -335,7 +335,7 @@
             totalamountlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             totalamountlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             totalamountlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            totalamountlbl.Location = new Point(462, 17);
+            totalamountlbl.Location = new Point(920, 88);
             totalamountlbl.Name = "totalamountlbl";
             totalamountlbl.Size = new Size(197, 20);
             totalamountlbl.TabIndex = 38;
@@ -389,8 +389,21 @@
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.BorderStyle = BorderStyle.None;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.White;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle1.SelectionBackColor = Color.White;
+            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
             dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.White;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
             dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
@@ -404,25 +417,6 @@
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.Size = new Size(1145, 239);
             dataGridView1.TabIndex = 43;
-            // 
-            // dataGridViewCellStyle1
-            // 
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.White;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
-            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            // 
-            // dataGridViewCellStyle2
-            // 
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
             // 
             // lblInvoicesListing
             // 
@@ -874,7 +868,6 @@
             pnlBasicInfo.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             contentPanel.ResumeLayout(false);
-            panel1.ResumeLayout(false);
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ResumeLayout(false);
