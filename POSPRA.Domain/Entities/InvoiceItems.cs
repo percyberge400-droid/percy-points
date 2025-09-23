@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using POSPRA.Domain.Entities;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using POSPRA.Domain.Entities;
 
 [Table("InvoiceItems")]
 public class InvoiceItems
