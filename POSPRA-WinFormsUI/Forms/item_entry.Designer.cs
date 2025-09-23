@@ -213,7 +213,7 @@
             itemDiscount.Location = new Point(920, 42);
             itemDiscount.Name = "itemDiscount";
             itemDiscount.PlaceholderText = "Discount";
-            itemDiscount.Size = new Size(183, 24);
+            itemDiscount.Size = new Size(197, 24);
             itemDiscount.TabIndex = 23;
             // 
             // itemDiscountlbl
@@ -230,7 +230,7 @@
             // totalamount
             // 
             totalamount.Font = new Font("Microsoft Sans Serif", 9F);
-            totalamount.Location = new Point(465, 42);
+            totalamount.Location = new Point(923, 113);
             totalamount.Name = "totalamount";
             totalamount.PlaceholderText = "Total Amount";
             totalamount.Size = new Size(194, 24);
@@ -336,7 +336,7 @@
             totalamountlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             totalamountlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             totalamountlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            totalamountlbl.Location = new Point(462, 17);
+            totalamountlbl.Location = new Point(920, 88);
             totalamountlbl.Name = "totalamountlbl";
             totalamountlbl.Size = new Size(197, 20);
             totalamountlbl.TabIndex = 38;

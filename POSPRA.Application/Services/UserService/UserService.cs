@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using POSPRA.Domain.Entities;
-using POSPRA.DTOs.UserDTOs;
+using POSPRA.DTOs.UserDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.UnitOfWork;
 
@@ -29,18 +29,18 @@ namespace POSPRA.Application.Services.UserService
             _mapper = mapper;
         }
 
-        public async Task<UserDTO> CreateUserAsync(UserDTO dto)
+        public async Task<UserDto> CreateUserAsync(UserDto dto)
         {
             var user = _mapper.Map<User>(dto);
             await _userRepository.AddAsync(user);
             await _sqliteUnitOfWork.SaveChangesAsync();
-            return _mapper.Map<UserDTO>(user);
+            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<List<UserDTO>> GetUsersAsync()
+        public async Task<List<UserDto>> GetUsersAsync()
         {
             var users = await _userRepository.GetAllAsync();
-            return _mapper.Map<List<UserDTO>>(users).ToList();
+            return _mapper.Map<List<UserDto>>(users).ToList();
         }
     }
 }

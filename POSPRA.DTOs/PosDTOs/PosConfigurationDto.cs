@@ -1,4 +1,4 @@
-﻿namespace POSPRA.DTOs.PosDTOs
+﻿namespace POSPRA.DTOs.PosDtos
 {
     public class PosConfigurationDto
     {

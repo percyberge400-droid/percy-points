@@ -1,4 +1,4 @@
-﻿namespace POSPRA.DTOs.LogDTOs
+﻿namespace POSPRA.DTOs.LogDtos
 {
     public class LogDto
     {

@@ -4,7 +4,7 @@ using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.PosDTOs;
+using POSPRA.DTOs.PosDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.PosRepository;
 using POSPRA.Repositories.UnitOfWork;

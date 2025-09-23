@@ -1,6 +1,6 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.LogDTOs;
+using POSPRA.DTOs.LogDtos;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -31,6 +31,6 @@ namespace POSPRA.Application.Services.LogService
         /// Persists an error log entry to the **SQL Server** database.
         /// </summary>
         /// 
-        Task SaveErrorLogAsync(ErrorLogDTO dto);
+        Task SaveErrorLogAsync(ErrorLogDto dto);
     }
 }

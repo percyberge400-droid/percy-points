@@ -1,71 +1,72 @@
 ﻿using System.Text.Json;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
 
 namespace POSPRA.Application.Services.LiveService
 {
-    public class LiveService : ILiveService
+    /// <summary>
+    /// Provides live operations such as decrypting incoming invoice data,
+    /// saving invoices and their items to SQL Server, and exporting
+    /// filtered invoices as CSV.
+    /// </summary>
+    public class LiveService(
+        IOptions<AppSettings> options,
+        SqlServerRepository<Invoice> invoiceRepository,
+        SqlServerRepository<InvoiceItems> invoiceItemsRepository,
+        IMapper mapper,
+        ISqlServerUnitOfWork sqlServerUnitOfWork,
+        ISqliteUnitOfWork sqliteUnitOfWork,
+        IFiscalRepository fiscalRepository) : ILiveService
     {
-        private readonly AppSettings _settings;
-        private readonly SqlServerRepository<Invoice> _invoiceRepository;
-        private readonly SqlServerRepository<InvoiceItems> _invoiceItemsRepository;
-        private readonly AutoMapper.IMapper _mapper;
-        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
-        private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
-        private readonly IFiscalRepository _fiscalRepository;
+        private readonly AppSettings _settings = options.Value;
+        private readonly SqlServerRepository<Invoice> _invoiceRepository = invoiceRepository;
+        private readonly SqlServerRepository<InvoiceItems> _invoiceItemsRepository = invoiceItemsRepository;
+        private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork = sqlServerUnitOfWork;
+        private readonly ISqliteUnitOfWork _sqliteUnitOfWork = sqliteUnitOfWork;
+        private readonly IFiscalRepository _fiscalRepository = fiscalRepository;
 
-        public LiveService(
-            IOptions<AppSettings> options,
-            SqlServerRepository<Invoice> invoiceRepository,
-            SqlServerRepository<InvoiceItems> invoiceItemsRepository,
-            IMapper mapper,
-            ISqlServerUnitOfWork sqlServerUnitOfWork,
-            ISqliteUnitOfWork sqliteUnitOfWork,
-            IFiscalRepository fiscalRepository)
-        {
-            _settings = options.Value;          // ← this should have EC populated
-            _invoiceRepository = invoiceRepository;
-            _invoiceItemsRepository = invoiceItemsRepository;
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _sqlServerUnitOfWork = sqlServerUnitOfWork;
-            _sqliteUnitOfWork = sqliteUnitOfWork;
-            _fiscalRepository = fiscalRepository;
-        }
-
-
-        public async Task<ApiResponse<FileRecordDTO>> DecryptAndSaveInvoicesAsync(List<FileRecordDTO> dtos)
+        /// <summary>
+        /// Decrypts a list of incoming <see cref="FileRecordDTO"/> objects,
+        /// extracts invoice data, and saves each valid invoice (with items) to the database.
+        /// </summary>
+        /// <param name="dtos">List of encrypted file record DTOs containing invoice data.</param>
+        /// <returns>
+        /// An <see cref="ApiResponse{FileRecordDTO}"/> indicating success or failure of the save operation.
+        /// </returns>
+        public async Task<ApiResponse<FileRecordDto>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos)
         {
             // 🟢 Guard-clause: no input
             if (dtos == null || dtos.Count == 0)
-            {
-                return new ApiResponse<FileRecordDTO>(
+                return new ApiResponse<FileRecordDto>(
                     ApiStatusCode.Error.ToString(),
                     ResponseMessages.DataNotFound,
                     null);
-            }
 
             try
             {
                 foreach (var item in dtos)
                 {
-                    // 1️⃣  Decrypt the payload
+                    //   Decrypt the payload
                     var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
                     if (string.IsNullOrWhiteSpace(decrypted))
                         continue;
 
-                    // 2️⃣  Get the JSON part
+                    //   Get the JSON part
                     var jsonPart = decrypted.Split('|')[0];
                     if (string.IsNullOrWhiteSpace(jsonPart))
                         continue;
 
-                    // 3️⃣  Deserialize to DTO
+                    //   Deserialize to DTO
                     var invoiceDto = JsonSerializer.Deserialize<InvoiceDto>(
                         jsonPart,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -73,13 +74,13 @@ namespace POSPRA.Application.Services.LiveService
                     if (invoiceDto == null)
                         continue;
 
-                    // 4️⃣  Save invoice & items
+                    //   Save invoice & items
                     var response = await CreateInvoiceWithItemsAsync(invoiceDto);
                     if (string.Equals(response.StatusCode,
                                       ApiStatusCode.Success.ToString(),
                                       StringComparison.OrdinalIgnoreCase))
                     {
-                        return new ApiResponse<FileRecordDTO>(
+                        return new ApiResponse<FileRecordDto>(
                             ApiStatusCode.Success.ToString(),
                             ResponseMessages.RecordSaved,
                             null);
@@ -87,20 +88,29 @@ namespace POSPRA.Application.Services.LiveService
                 }
 
                 // No invoice succeeded
-                return new ApiResponse<FileRecordDTO>(
+                return new ApiResponse<FileRecordDto>(
                     ApiStatusCode.Error.ToString(),
                     ResponseMessages.UnknownError,
                     null);
             }
             catch (Exception ex)
             {
-                return new ApiResponse<FileRecordDTO>(
+                return new ApiResponse<FileRecordDto>(
                     ApiStatusCode.Error.ToString(),
                     ex.Message,
                     null);
             }
         }
 
+        /// <summary>
+        /// Creates a single invoice record along with any associated
+        /// invoice items, saving both to the SQL Server database.
+        /// </summary>
+        /// <param name="dto">The invoice data transfer object to persist.</param>
+        /// <returns>
+        /// An <see cref="ApiResponse{Invoice}"/> indicating success or failure,
+        /// including the saved <see cref="Invoice"/> entity when successful.
+        /// </returns>
         private async Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto)
         {
             try
@@ -133,6 +143,57 @@ namespace POSPRA.Application.Services.LiveService
                     message: ex.Message,
                     data: null
                 );
+            }
+        }
+
+        /// <summary>
+        /// Retrieves filtered invoices and converts them into a CSV-formatted string.
+        /// </summary>
+        /// <param name="dto">Filter criteria such as POS ID and date range.</param>
+        /// <returns>
+        /// An <see cref="ApiResponse{String}"/> containing the CSV representation of the invoices.
+        /// </returns>
+        public async Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto)
+        {
+            // Get the filtered invoices
+            var invoices = await GetInvoicesAsync(dto);
+
+            // Convert to CSV
+            var csv = CsvUtility.ToCsv(invoices);
+
+            // Wrap in your ApiResponse<T>
+            return new ApiResponse<string>(
+                ApiStatusCode.Success.ToString(),
+                ResponseMessages.RecordFound,
+                csv
+            );
+        }
+
+        /// <summary>
+        /// Applies filters to retrieve invoices from the SQL Server repository.
+        /// </summary>
+        /// <param name="dto">Filter object containing POS ID and optional date range.</param>
+        /// <returns>A filtered collection of <see cref="Invoice"/> entities.</returns>
+        private async Task<IEnumerable<Invoice>> GetInvoicesAsync(InvoiceFilterDto dto)
+        {
+            try
+            {
+                IQueryable<Invoice> query = _invoiceRepository.Query();
+
+                // Always restrict by the current POS (logged-in user)
+                query = query.Where(i => i.POSID == dto.PosId);
+
+                if (dto.FromDate.HasValue)
+                    query = query.Where(i => i.EntryDate >= dto.FromDate.Value);
+
+                if (dto.ToDate.HasValue)
+                    query = query.Where(i => i.EntryDate <= dto.ToDate.Value);
+
+                return await query.ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
     }

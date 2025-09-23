@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.UserService;
 using POSPRA.Domain.Entities;
-using POSPRA.DTOs.UserDTOs;
+using POSPRA.DTOs.UserDtos;
 
 namespace POSPRA.API.Controllers
 {
@@ -17,7 +17,7 @@ namespace POSPRA.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserDTO>> CreateUser([FromBody] UserDTO dto)
+        public async Task<ActionResult<UserDto>> CreateUser([FromBody] UserDto dto)
         {
             var created = await _userService.CreateUserAsync(dto);
             return Ok(created); // returns DTO instead of entity

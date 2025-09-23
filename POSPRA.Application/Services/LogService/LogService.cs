@@ -5,7 +5,7 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
-using POSPRA.DTOs.LogDTOs;
+using POSPRA.DTOs.LogDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
@@ -208,7 +208,7 @@ namespace POSPRA.Application.Services.LogService
 
 
         // ✅ 2. Central SQL Server error log
-        public async Task SaveErrorLogAsync(ErrorLogDTO dto)
+        public async Task SaveErrorLogAsync(ErrorLogDto dto)
         {
             try
             {

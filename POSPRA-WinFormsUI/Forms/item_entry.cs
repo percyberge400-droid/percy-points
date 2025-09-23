@@ -1,7 +1,7 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using System.Drawing.Drawing2D;
+using POSPRA.Application.Services.FiscalService;
 using POSPRA.Domain.Entities;
-using POSPRA.DTOs.InvoiceDTOs;
-using System.Drawing.Drawing2D;
+using POSPRA.DTOs.InvoiceDtos;
 
 namespace POSPRA_WinFormsUI
 {

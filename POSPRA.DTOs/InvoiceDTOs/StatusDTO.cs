@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.InvoiceDTOs
+﻿namespace POSPRA.DTOs.InvoiceDtos
 {
-    public class StatusDTO
+    public class StatusDto
     {
         public int ID { get; set; }
         public string? Message { get; set; }

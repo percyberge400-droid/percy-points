@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.InvoiceDTOs
+﻿namespace POSPRA.DTOs.InvoiceDtos
 {
-    public class POSVerificationDTO
+    public class POSVerificationDto
     {
         public int POSID { get; set; }
         public int POSComputer_no { get; set; }

@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using POSPRA.Domain.Entities;
-using POSPRA.DTOs.InvoiceDTOs;
-using POSPRA.DTOs.LogDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.LogDtos;
 
 namespace POSPRA.Application.AutoMapperProfile
 {
@@ -9,14 +10,14 @@ namespace POSPRA.Application.AutoMapperProfile
     {
         public PosProfile()
         {
-            CreateMap<FileRecordDTO, FileRecord>();
-            CreateMap<FileRecord, FileRecordDTO>();
+            CreateMap<FileRecordDto, FileRecord>();
+            CreateMap<FileRecord, FileRecordDto>();
 
             CreateMap<LogDto, Logs>();
             CreateMap<Logs, LogDto>();
 
-            CreateMap<WorkerLogDTO, Logs>();
-            CreateMap<Logs, WorkerLogDTO>();
+            CreateMap<WorkerLogDto, Logs>();
+            CreateMap<Logs, WorkerLogDto>();
 
             // DTO ➜ Entity
             CreateMap<InvoiceDto, Invoice>()

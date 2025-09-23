@@ -10,6 +10,8 @@ namespace POSPRA.Repositories.BaseRepository.Repository
     /// <typeparam name="T">The type of the entity.</typeparam>
     public class Repository<T> : IRepository<T> where T : class
     {
+        public IQueryable<T> Query() => _dbSet.AsQueryable();
+
         /// <summary>
         /// The DbContext instance used by this repository.
         /// </summary>

@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.LogDTOs
+﻿namespace POSPRA.DTOs.LogDtos
 {
-    public class WorkerLogDTO
+    public class WorkerLogDto
     {
         // ---------- Worker Service ----------
         /// <summary>
