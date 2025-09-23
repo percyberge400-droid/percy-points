@@ -1,9 +1,9 @@
-﻿using System.Drawing.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
@@ -18,6 +18,7 @@ using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
+using System.Drawing.Text;
 
 // ✅ IMPORTANT: Add a reference to the Web API project (right-click WinForms project → Add → Project Reference…)
 
@@ -70,7 +71,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
-
+            services.AddScoped<ILiveService, LiveService>();
             services.AddSingleton<IConfiguration>(configuration);
             services.AddHttpContextAccessor();
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));

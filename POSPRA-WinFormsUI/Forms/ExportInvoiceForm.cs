@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http.Extensions;
+using POSPRA.Application.Services;
+using POSPRA.Application.Services.LiveService;
+using POSPRA.DTOs.InvoiceDtos;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -6,17 +10,19 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Windows.Forms;            // InvoiceFilterDto
+using POSPRA.DTOs;
 
 namespace POSPRA_WinFormsUI.Forms
 {
     public partial class ExportInvoiceForm : Form
     {
-
+        private readonly ILiveService _liveService;
         //private ProgressBar progressBarExport;
-        public ExportInvoiceForm()
+        public ExportInvoiceForm(ILiveService liveService)
         {
             InitializeComponent();
+            _liveService = liveService ?? throw new ArgumentNullException(nameof(liveService));
 
             dateTimePickerTo.MaxDate = DateTime.Today;
 
@@ -98,26 +104,69 @@ namespace POSPRA_WinFormsUI.Forms
             }
 
 
-            progressBarExport.Visible = true;
-            progressBarExport.Style = ProgressBarStyle.Marquee; // continuous style while working
-            ExportInvoiceBtn.Enabled = false; // disable button to prevent double click
+            
+            try
+            {
+                progressBarExport.Visible = true;
+                progressBarExport.Style = ProgressBarStyle.Marquee; // continuous style while working
+                ExportInvoiceBtn.Enabled = false; // disable button to prevent double click
 
-            await Task.Delay(100);
-            progressBarExport.Refresh();
+                await Task.Delay(100);
+                progressBarExport.Refresh();
 
-            await Task.Delay(2000);
-            // Step 4: Hide progress bar
-            progressBarExport.Visible = false;
-            ExportInvoiceBtn.Enabled = true;
+                ExportInvoiceBtn.Enabled = false;
+                progressBarExport.Visible = true;
+                progressBarExport.Style = ProgressBarStyle.Marquee;
 
+                // Build DTO (POSID is auto-handled in service)
+                var filter = new InvoiceFilterDto
+                {
+                    FromDate = dateTimePickerFrom.Value.Date,
+                    ToDate = dateTimePickerTo.Value.Date
+                };
 
-            // Step 3: Simulate API/Export work
-            //await Task.Run(() =>
-            //{
-            //    // simulate long task (e.g., API call)
-            //    System.Threading.Thread.Sleep(3000);
-            //});
+                // ✅ Call the service method
+                var response = await _liveService.GetInvoicesCsvAsync(filter);
+                
 
+                // ✅ Handle the response
+                if (response == null)
+                {
+                    lblExportStatus.Text = "❌ No response from service.";
+                    lblExportStatus.ForeColor = Color.Red;
+                }
+                else if (response.StatusCode != "200")
+                {
+                    lblExportStatus.Text = $"❌ Failed: {response.Message}";
+                    lblExportStatus.ForeColor = Color.Red;
+                }
+                else if (string.IsNullOrWhiteSpace(response.Data))
+                {
+                    lblExportStatus.Text = "⚠ No invoices found for the selected date range.";
+                    lblExportStatus.ForeColor = Color.Orange;
+                }
+                else
+                {
+                    // ✅ You now have CSV data in response.Data
+                    // Here you can forward it, or just confirm success
+                    lblExportStatus.Text =
+                        $"✅ Invoices exported successfully ({dateTimePickerFrom.Value:dd-MMM-yyyy} to {dateTimePickerTo.Value:dd-MMM-yyyy}).";
+                    lblExportStatus.ForeColor = Color.Green;
+                }
+            }
+            catch (Exception ex)
+            {
+                lblExportStatus.Text = $"❌ Error: {ex.Message}";
+                lblExportStatus.ForeColor = Color.Red;
+            }
+
+            finally
+            {
+                // Step 4: Hide progress bar
+                progressBarExport.Visible = false;
+                ExportInvoiceBtn.Enabled = true;
+
+            }
 
 
 

@@ -224,17 +224,15 @@ namespace POSPRA_WinFormsUI.Forms
         public void LoadView(string v)
         {
             // Close current active MDI child if any
-            if (this.ActiveMdiChild != null)
-                this.ActiveMdiChild.Close();
+            this.ActiveMdiChild?.Close();
 
-            Form childForm = v switch
+            Form childForm = null;
+
+            switch (v)
             {
-                "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
-                "Invoice Entry" => _provider.GetRequiredService<item_entry>(),
-                _ => null
-            };
-
-            if (childForm == null) return;
+                case "Dashboard":
+                    childForm = _provider.GetRequiredService<DashboardForm>();
+                    break;
 
                 case "Invoice Entry":
                     childForm = _provider.GetRequiredService<item_entry>();
@@ -243,24 +241,37 @@ namespace POSPRA_WinFormsUI.Forms
                 case "Invoice Export":
                     childForm = _provider.GetRequiredService<ExportInvoiceForm>();
                     break;
+
+                default:
+                    // Unknown option → do nothing
+                    return;
             }
 
+            // ✅ Show the new child form as MDI
             if (childForm != null)
             {
-                childForm.TopLevel = false; // remove title bar
-                childForm.FormBorderStyle = FormBorderStyle.None;
-                childForm.ControlBox = false;
-                childForm.MaximizeBox = false;
-                childForm.MinimizeBox = false;
-                childForm.ShowInTaskbar = false;
-                childForm.Text = "";
-                childForm.Dock = DockStyle.Fill;
-                childForm.WindowState = FormWindowState.Maximized;
-
-                // Set as MDI child
                 childForm.MdiParent = this;
-                childForm.Dock = DockStyle.Fill;
+                childForm.WindowState = FormWindowState.Maximized;
                 childForm.Show();
+
+
+                if (childForm != null)
+                {
+                    childForm.TopLevel = false; // remove title bar
+                    childForm.FormBorderStyle = FormBorderStyle.None;
+                    childForm.ControlBox = false;
+                    childForm.MaximizeBox = false;
+                    childForm.MinimizeBox = false;
+                    childForm.ShowInTaskbar = false;
+                    childForm.Text = "";
+                    childForm.Dock = DockStyle.Fill;
+                    childForm.WindowState = FormWindowState.Maximized;
+
+                    // Set as MDI child
+                    childForm.MdiParent = this;
+                    childForm.Dock = DockStyle.Fill;
+                    childForm.Show();
+                }
             }
         }
 
