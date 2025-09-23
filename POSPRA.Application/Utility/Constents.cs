@@ -54,6 +54,7 @@
         public const string RecordDeleted = "Record deleted successfully.";
         public const string DataSynchronized = "Data synchronized successfully.";
         public const string BackupCompleted = "Backup completed successfully.";
+        public const string RecordFound = "Record Found.";
 
         // ===== Generic Error =====
         public const string UnknownError = "An unexpected error occurred. Please try again.";
