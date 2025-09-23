@@ -1,6 +1,7 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
 
 namespace POSPRA.Application.Services.FiscalService
 {
@@ -16,7 +17,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// An <see cref="ApiResponse{T}"/> containing a list of all
         /// <see cref="FileRecordDTO"/> objects.
         /// </returns>
-        Task<ApiResponse<List<FileRecordDTO>>> GetAllAsync();
+        Task<ApiResponse<List<FileRecordDto>>> GetAllAsync();
 
         /// <summary>
         /// Retrieves only the file records that have **not** been synced yet.
@@ -25,7 +26,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// An <see cref="ApiResponse{T}"/> containing a list of unsynced
         /// <see cref="FileRecordDTO"/> objects.
         /// </returns>
-        Task<ApiResponse<List<FileRecordDTO>>> GetAllUnsyncedAsync();
+        Task<ApiResponse<List<FileRecordDto>>> GetAllUnsyncedAsync();
 
         /// <summary>
         /// Creates a new invoice record asynchronously.

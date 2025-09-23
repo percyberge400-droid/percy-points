@@ -1,5 +1,6 @@
 ﻿using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
 
 namespace POSPRA.Application.Services.LiveService
 {
@@ -14,14 +15,14 @@ namespace POSPRA.Application.Services.LiveService
         /// the contained invoices (and their items) to the database.
         /// </summary>
         /// <param name="dto">
-        /// A collection of <see cref="FileRecordDTO"/> objects containing
+        /// A collection of <see cref="FileRecordDto"/> objects containing
         /// encrypted invoice data to be processed and saved.
         /// </param>
         /// <returns>
-        /// An <see cref="ApiResponse{FileRecordDTO}"/> indicating whether
+        /// An <see cref="ApiResponse{FileRecordDto}"/> indicating whether
         /// the operation succeeded or failed, along with optional details.
         /// </returns>
-        Task<ApiResponse<FileRecordDTO>> DecryptAndSaveInvoicesAsync(List<FileRecordDTO> dto);
+        Task<ApiResponse<FileRecordDto>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dto);
 
         /// <summary>
         /// Retrieves invoices filtered by the specified criteria

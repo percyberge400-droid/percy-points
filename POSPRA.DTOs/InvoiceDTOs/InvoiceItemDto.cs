@@ -1,4 +1,4 @@
-﻿namespace POSPRA.DTOs.InvoiceDTOs
+﻿namespace POSPRA.DTOs.InvoiceDtos
 {
     public class InvoiceItemDto
     {

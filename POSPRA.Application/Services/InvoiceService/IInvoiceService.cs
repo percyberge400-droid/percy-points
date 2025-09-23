@@ -1,10 +1,10 @@
 ﻿using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.InvoiceDtos;
 
 namespace POSPRA.Application.Services.InvoiceService
 {
     public interface IInvoiceService
     {
-        Task<ApiResponse<List<POSVerificationDTO>>> POS_VerificationAsync(string bodyPosIds);
+        Task<ApiResponse<List<POSVerificationDto>>> POS_VerificationAsync(string bodyPosIds);
     }
 }

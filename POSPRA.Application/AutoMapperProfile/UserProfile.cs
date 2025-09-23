@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using POSPRA.Domain.Entities;
-using POSPRA.DTOs.UserDTOs;
+using POSPRA.DTOs.UserDtos;
 
 namespace POSPRA.Application.AutoMapperProfile
 {
@@ -9,10 +9,10 @@ namespace POSPRA.Application.AutoMapperProfile
         public UserProfile()
         {
             // DTO -> Entity
-            CreateMap<UserDTO, User>();
+            CreateMap<UserDto, User>();
 
             // Entity -> DTO (useful if you return DTOs later)
-            CreateMap<User, UserDTO>();
+            CreateMap<User, UserDto>();
         }
     }
 }

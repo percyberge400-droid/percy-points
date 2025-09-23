@@ -7,8 +7,8 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
-using POSPRA.DTOs.LogDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.LogDtos;
 
 namespace POSPRA.Worker
 {
@@ -94,7 +94,7 @@ namespace POSPRA.Worker
             try
             {
                 // Deserialize the envelope and extract only the data list
-                var envelope = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDTO>>>(
+                var envelope = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(
                     rawJson,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -158,7 +158,7 @@ namespace POSPRA.Worker
             using var scope = _serviceProvider.CreateScope();
             var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-            var logDto = new WorkerLogDTO
+            var logDto = new WorkerLogDto
             {
                 Message = message,
                 Type = type,

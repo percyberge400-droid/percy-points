@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
 
 namespace POSPRA.API.Controllers
 {
@@ -27,7 +28,7 @@ namespace POSPRA.API.Controllers
         /// An <see cref="IActionResult"/> with the service response after saving the invoices.
         /// </returns>
         [HttpPost("decrypt-save")]
-        public async Task<IActionResult> Create([FromBody] List<FileRecordDTO> dto) =>
+        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto) =>
             Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto));
 
         /// <summary>

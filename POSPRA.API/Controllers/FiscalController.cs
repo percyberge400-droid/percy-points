@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.FiscalService;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.InvoiceDtos;
 
 [Route("api/[controller]")]
 [ApiController]

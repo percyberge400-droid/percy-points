@@ -5,7 +5,8 @@ using Microsoft.Extensions.Options;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
@@ -42,11 +43,11 @@ namespace POSPRA.Application.Services.LiveService
         /// <returns>
         /// An <see cref="ApiResponse{FileRecordDTO}"/> indicating success or failure of the save operation.
         /// </returns>
-        public async Task<ApiResponse<FileRecordDTO>> DecryptAndSaveInvoicesAsync(List<FileRecordDTO> dtos)
+        public async Task<ApiResponse<FileRecordDto>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos)
         {
             // 🟢 Guard-clause: no input
             if (dtos == null || dtos.Count == 0)
-                return new ApiResponse<FileRecordDTO>(
+                return new ApiResponse<FileRecordDto>(
                     ApiStatusCode.Error.ToString(),
                     ResponseMessages.DataNotFound,
                     null);
@@ -79,7 +80,7 @@ namespace POSPRA.Application.Services.LiveService
                                       ApiStatusCode.Success.ToString(),
                                       StringComparison.OrdinalIgnoreCase))
                     {
-                        return new ApiResponse<FileRecordDTO>(
+                        return new ApiResponse<FileRecordDto>(
                             ApiStatusCode.Success.ToString(),
                             ResponseMessages.RecordSaved,
                             null);
@@ -87,14 +88,14 @@ namespace POSPRA.Application.Services.LiveService
                 }
 
                 // No invoice succeeded
-                return new ApiResponse<FileRecordDTO>(
+                return new ApiResponse<FileRecordDto>(
                     ApiStatusCode.Error.ToString(),
                     ResponseMessages.UnknownError,
                     null);
             }
             catch (Exception ex)
             {
-                return new ApiResponse<FileRecordDTO>(
+                return new ApiResponse<FileRecordDto>(
                     ApiStatusCode.Error.ToString(),
                     ex.Message,
                     null);

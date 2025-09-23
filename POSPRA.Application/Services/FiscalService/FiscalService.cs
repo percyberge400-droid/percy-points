@@ -7,7 +7,8 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
 using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
@@ -202,12 +203,12 @@ namespace POSPRA.Application.Services.FiscalService
         /// An <see cref="ApiResponse{T}"/> containing a list of all
         /// <see cref="FileRecordDTO"/> objects.
         /// </returns>
-        public async Task<ApiResponse<List<FileRecordDTO>>> GetAllAsync()
+        public async Task<ApiResponse<List<FileRecordDto>>> GetAllAsync()
         {
             var output = await _fileRecordRepository.GetAllAsync();
-            var fileRecrodDTO = _mapper.Map<List<FileRecordDTO>>(output);
+            var fileRecrodDTO = _mapper.Map<List<FileRecordDto>>(output);
 
-            return new ApiResponse<List<FileRecordDTO>>(null, null, fileRecrodDTO, null);
+            return new ApiResponse<List<FileRecordDto>>(null, null, fileRecrodDTO, null);
         }
 
         /// <summary>
@@ -223,7 +224,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// An <see cref="ApiResponse{T}"/> containing a list of unsynced
         /// <see cref="FileRecordDTO"/> objects.
         /// </returns>
-        public async Task<ApiResponse<List<FileRecordDTO>>> GetAllUnsyncedAsync()
+        public async Task<ApiResponse<List<FileRecordDto>>> GetAllUnsyncedAsync()
         {
             // Await the repository call directly (don't use .Result)
             var allRecords = await _fileRecordRepository.GetAllAsync();
@@ -234,9 +235,9 @@ namespace POSPRA.Application.Services.FiscalService
                 .ToList();
 
             // Map to DTOs
-            var fileRecordDtos = _mapper.Map<List<FileRecordDTO>>(unsynced);
+            var fileRecordDtos = _mapper.Map<List<FileRecordDto>>(unsynced);
 
-            return new ApiResponse<List<FileRecordDTO>>(null, null, fileRecordDtos, null);
+            return new ApiResponse<List<FileRecordDto>>(null, null, fileRecordDtos, null);
         }
 
         /// <summary>
