@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
@@ -28,6 +29,7 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly AppSettings _settings;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly AutoMapper.IMapper _mapper;
+        private readonly IRequestHeaderService _requestHeaderService;
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
@@ -35,7 +37,8 @@ namespace POSPRA.Application.Services.FiscalService
             ISqliteUnitOfWork sqliteUnitOfWork,
             IOptions<AppSettings> options,
             AutoMapper.IMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IRequestHeaderService requestHeaderService)
         {
             _invoiceValidatorService = invoiceValidatorService;
             _logService = logService;
@@ -43,6 +46,7 @@ namespace POSPRA.Application.Services.FiscalService
             _settings = options.Value;
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _requestHeaderService = requestHeaderService;
         }
 
         /// <summary>
@@ -148,8 +152,9 @@ namespace POSPRA.Application.Services.FiscalService
         {
             try
             {
+                //var posId = _requestHeaderService.GetPosId();
                 // 1️ Generate invoice number
-                string invoiceNumber = GlobalMethods.InvoiceNumber(_settings.POS);
+                string invoiceNumber = GlobalMethods.InvoiceNumber(123111);
                 //invoice.InvoiceNumber = invoiceNumber;
 
                 // 2️ Serialize invoice
@@ -276,6 +281,35 @@ namespace POSPRA.Application.Services.FiscalService
                 await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
                 return 0;
             }
+        }
+
+        public async Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos)
+        {
+            if (fileRecordDtos == null || fileRecordDtos.Count == 0)
+            {
+                return new ApiResponse<List<FileRecordDto>>(
+                    ApiStatusCode.Error.ToString(),
+                    ResponseMessages.DataNotFound,
+                    null,
+                    null);
+            }
+
+            // Map DTOs to entities (assuming you have AutoMapper or manual mapping)
+            var entities = _mapper.Map<List<FileRecord>>(fileRecordDtos);
+
+            // Bulk update using the repository
+            _fileRecordRepository.UpdateRange(entities);
+            await _sqliteUnitOfWork.SaveChangesAsync();
+
+            // Optionally map back to DTOs to return updated state
+            var updatedDtos = _mapper.Map<List<FileRecordDto>>(entities);
+
+            // ✅ Return in the same style you requested
+            return new ApiResponse<List<FileRecordDto>>(
+                ApiStatusCode.Success.ToString(),
+                ResponseMessages.RecordSaved,
+                updatedDtos,
+                null);
         }
     }
 }

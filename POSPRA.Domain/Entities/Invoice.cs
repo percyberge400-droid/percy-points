@@ -78,5 +78,8 @@ namespace POSPRA.Domain.Entities
 
         [StringLength(4000)]
         public string? Remarks { get; set; }
+
+        // 🔑 One invoice → many items
+        public ICollection<InvoiceItems> InvoiceItems { get; set; } = new List<InvoiceItems>();
     }
 }

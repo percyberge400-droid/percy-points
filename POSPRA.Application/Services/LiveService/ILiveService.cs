@@ -22,7 +22,7 @@ namespace POSPRA.Application.Services.LiveService
         /// An <see cref="ApiResponse{FileRecordDto}"/> indicating whether
         /// the operation succeeded or failed, along with optional details.
         /// </returns>
-        Task<ApiResponse<FileRecordDto>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dto);
+        Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dto);
 
         /// <summary>
         /// Retrieves invoices filtered by the specified criteria

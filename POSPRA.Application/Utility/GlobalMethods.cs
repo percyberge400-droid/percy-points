@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using POSPRA.Domain.ValueObjects;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.ServiceProcess;
+using Newtonsoft.Json;
+using POSPRA.Domain.ValueObjects;
 
 namespace POSPRA.Application.Utility
 {
@@ -30,10 +30,10 @@ namespace POSPRA.Application.Utility
         /// </summary>
         /// <param name="POSID"></param>
         /// <returns></returns>
-        public static string InvoiceNumber(int POSID)
+        public static string InvoiceNumber(long POSID)
         {
             string number = null;
-            Random rand = new Random();
+            Random rand = new();
             string year = DateTime.Now.Year.ToString().Substring(2, 2);
             switch (DateTime.Now.Year.ToString().Substring(2, 2))
             {
@@ -629,7 +629,7 @@ namespace POSPRA.Application.Utility
             try
             {
                 //Kepp Updater Service Up and running
-                ServiceController controller = new ServiceController("ServiceUpdater");
+                ServiceController controller = new("ServiceUpdater");
                 if (controller.Status == ServiceControllerStatus.Stopped)
                 {
                     controller.Start();
@@ -645,13 +645,13 @@ namespace POSPRA.Application.Utility
             try
             {
 
-                ProcessStartInfo procStartInfo = new ProcessStartInfo("cmd", "/c " + command)
+                ProcessStartInfo procStartInfo = new("cmd", "/c " + command)
                 {
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
-                System.Diagnostics.Process proc = new System.Diagnostics.Process
+                System.Diagnostics.Process proc = new()
                 {
                     StartInfo = procStartInfo
                 };
@@ -694,7 +694,7 @@ namespace POSPRA.Application.Utility
         {
             try
             {
-                DirectoryInfo parentDirectoryInfo = new DirectoryInfo(@GlobalVariables.FOLDER_PATH);
+                DirectoryInfo parentDirectoryInfo = new(@GlobalVariables.FOLDER_PATH);
                 ClearReadOnly(parentDirectoryInfo);
             }
             catch (Exception) { }
@@ -736,7 +736,7 @@ namespace POSPRA.Application.Utility
 
         public static void DeleteLogFile()
         {
-            DirectoryInfo parentDirectory = new DirectoryInfo(@GlobalVariables.FOLDER_PATH);
+            DirectoryInfo parentDirectory = new(@GlobalVariables.FOLDER_PATH);
             if (parentDirectory != null)
             {
                 parentDirectory.Attributes = FileAttributes.Normal;
