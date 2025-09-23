@@ -52,6 +52,14 @@ namespace POSPRA_WinFormsUI.Forms
         private System.Windows.Forms.DataGridViewTextBoxColumn colException;
         private System.Windows.Forms.DataGridViewTextBoxColumn logdatetime;
 
+        // Invoices panel
+        private System.Windows.Forms.DateTimePicker dtpInvoicesStart;
+        private System.Windows.Forms.DateTimePicker dtpInvoicesEnd;
+        private System.Windows.Forms.Button btnFilterInvoices;
+
+
+        private System.Windows.Forms.Button btnToday;
+
         #endregion
 
         /// <summary> 
@@ -87,6 +95,12 @@ namespace POSPRA_WinFormsUI.Forms
             lblInProgressTitle = new Label();
             tableLayoutPanelMain = new TableLayoutPanel();
             panelInvoices = new Panel();
+            btnFilterSynced = new Button();
+            btnClearFilter = new Button();
+            btnToday = new Button();
+            dtpInvoicesStart = new DateTimePicker();
+            dtpInvoicesEnd = new DateTimePicker();
+            btnFilterInvoices = new Button();
             InvoicesDataGridView = new DataGridView();
             colId = new DataGridViewTextBoxColumn();
             colPosId = new DataGridViewTextBoxColumn();
@@ -96,6 +110,7 @@ namespace POSPRA_WinFormsUI.Forms
             colDateCreated = new DataGridViewTextBoxColumn();
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();
+            btnRefresh = new Button();
             LogsDataGridView = new DataGridView();
             colLogID = new DataGridViewTextBoxColumn();
             colMessage = new DataGridViewTextBoxColumn();
@@ -319,6 +334,12 @@ namespace POSPRA_WinFormsUI.Forms
             // panelInvoices
             // 
             panelInvoices.BackColor = Color.White;
+            panelInvoices.Controls.Add(btnFilterSynced);
+            panelInvoices.Controls.Add(btnClearFilter);
+            panelInvoices.Controls.Add(btnToday);
+            panelInvoices.Controls.Add(dtpInvoicesStart);
+            panelInvoices.Controls.Add(dtpInvoicesEnd);
+            panelInvoices.Controls.Add(btnFilterInvoices);
             panelInvoices.Controls.Add(InvoicesDataGridView);
             panelInvoices.Controls.Add(labelInvoicesTitle);
             panelInvoices.Dock = DockStyle.Fill;
@@ -328,6 +349,63 @@ namespace POSPRA_WinFormsUI.Forms
             panelInvoices.Padding = new Padding(8);
             panelInvoices.Size = new Size(1168, 471);
             panelInvoices.TabIndex = 0;
+            // 
+            // btnFilterSynced
+            // 
+            btnFilterSynced.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnFilterSynced.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnFilterSynced.Location = new Point(379, 23);
+            btnFilterSynced.Name = "btnFilterSynced";
+            btnFilterSynced.Size = new Size(108, 27);
+            btnFilterSynced.TabIndex = 5;
+            btnFilterSynced.Text = "Filter Synced";
+            // 
+            // btnClearFilter
+            // 
+            btnClearFilter.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnClearFilter.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnClearFilter.Location = new Point(985, 23);
+            btnClearFilter.Name = "btnClearFilter";
+            btnClearFilter.Size = new Size(99, 27);
+            btnClearFilter.TabIndex = 4;
+            btnClearFilter.Text = "Clear Filter";
+            // 
+            // btnToday
+            // 
+            btnToday.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnToday.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnToday.Location = new Point(1087, 23);
+            btnToday.Name = "btnToday";
+            btnToday.Size = new Size(70, 27);
+            btnToday.TabIndex = 3;
+            btnToday.Text = "Today";
+            btnToday.TextAlign = ContentAlignment.BottomCenter;
+            // 
+            // dtpInvoicesStart
+            // 
+            dtpInvoicesStart.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            dtpInvoicesStart.Location = new Point(493, 23);
+            dtpInvoicesStart.Name = "dtpInvoicesStart";
+            dtpInvoicesStart.Size = new Size(200, 27);
+            dtpInvoicesStart.TabIndex = 0;
+            // 
+            // dtpInvoicesEnd
+            // 
+            dtpInvoicesEnd.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            dtpInvoicesEnd.Location = new Point(703, 23);
+            dtpInvoicesEnd.Name = "dtpInvoicesEnd";
+            dtpInvoicesEnd.Size = new Size(200, 27);
+            dtpInvoicesEnd.TabIndex = 1;
+            // 
+            // btnFilterInvoices
+            // 
+            btnFilterInvoices.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnFilterInvoices.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnFilterInvoices.Location = new Point(909, 23);
+            btnFilterInvoices.Name = "btnFilterInvoices";
+            btnFilterInvoices.Size = new Size(70, 27);
+            btnFilterInvoices.TabIndex = 2;
+            btnFilterInvoices.Text = "Filter";
             // 
             // InvoicesDataGridView
             // 
@@ -410,6 +488,7 @@ namespace POSPRA_WinFormsUI.Forms
             // panelLogs
             // 
             panelLogs.BackColor = Color.White;
+            panelLogs.Controls.Add(btnRefresh);
             panelLogs.Controls.Add(LogsDataGridView);
             panelLogs.Controls.Add(labelLogsTitle);
             panelLogs.Dock = DockStyle.Fill;
@@ -419,6 +498,17 @@ namespace POSPRA_WinFormsUI.Forms
             panelLogs.Padding = new Padding(8);
             panelLogs.Size = new Size(1168, 249);
             panelLogs.TabIndex = 1;
+            // 
+            // btnRefresh
+            // 
+            btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnRefresh.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnRefresh.Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnRefresh.Location = new Point(1023, 11);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(137, 39);
+            btnRefresh.TabIndex = 5;
+            btnRefresh.Text = "Refresh";
             // 
             // LogsDataGridView
             // 
@@ -514,5 +604,9 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         #endregion
+
+        private Button btnClearFilter;
+        private Button btnRefresh;
+        private Button btnFilterSynced;
     }
 }

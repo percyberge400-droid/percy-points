@@ -137,7 +137,7 @@
             TaxChargedlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             TaxChargedlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             TaxChargedlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TaxChargedlbl.Location = new Point(920, 90);
+            TaxChargedlbl.Location = new Point(920, 92);
             TaxChargedlbl.Name = "TaxChargedlbl";
             TaxChargedlbl.Size = new Size(137, 20);
             TaxChargedlbl.TabIndex = 56;
@@ -151,7 +151,7 @@
             TaxCharged.Name = "TaxCharged";
             TaxCharged.PlaceholderText = "Tax Charged";
             TaxCharged.ReadOnly = true;
-            TaxCharged.Size = new Size(183, 24);
+            TaxCharged.Size = new Size(197, 24);
             TaxCharged.TabIndex = 57;
             // 
             // pctCode
@@ -230,7 +230,7 @@
             // totalamount
             // 
             totalamount.Font = new Font("Microsoft Sans Serif", 9F);
-            totalamount.Location = new Point(923, 113);
+            totalamount.Location = new Point(468, 42);
             totalamount.Name = "totalamount";
             totalamount.PlaceholderText = "Total Amount";
             totalamount.Size = new Size(194, 24);
@@ -336,7 +336,7 @@
             totalamountlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             totalamountlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             totalamountlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            totalamountlbl.Location = new Point(920, 88);
+            totalamountlbl.Location = new Point(465, 17);
             totalamountlbl.Name = "totalamountlbl";
             totalamountlbl.Size = new Size(197, 20);
             totalamountlbl.TabIndex = 38;
