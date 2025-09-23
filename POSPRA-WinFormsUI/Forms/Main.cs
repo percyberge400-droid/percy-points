@@ -81,7 +81,7 @@ namespace POSPRA_WinFormsUI.Forms
                     break;
 
                 case "Invoice Export":
-                    //childForm = new InvoiceExportForm();
+                    childForm = _provider.GetRequiredService<ExportInvoiceForm>();
                     break;
             }
 
@@ -118,6 +118,7 @@ namespace POSPRA_WinFormsUI.Forms
             ResetNavStyles();
             btnExportInvoice.ForeColor = ColorTranslator.FromHtml("#686DF4");
             panExportInvoice.Visible = true;
+            LoadView("Invoice Export");
         }
 
         private void btnItemEntry_Click(object sender, EventArgs e)
