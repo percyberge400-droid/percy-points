@@ -31,52 +31,26 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
-            WHIT_Section_2lbl = new Label();
-            WHIT_Section_2 = new TextBox();
-            WHIT_Section_1lbl = new Label();
-            WHIT_Section_1 = new TextBox();
-            CVTlbl = new Label();
-            TotalValuelbl = new Label();
-            TotalValue = new TextBox();
-            whit1 = new TextBox();
-            whit2 = new TextBox();
-            whit2lbl = new Label();
-            whit1lbl = new Label();
-            RetailPrice = new TextBox();
-            label16 = new Label();
-            SalesTaxApplicablelbl = new Label();
-            SalesTaxApplicable = new TextBox();
-            uom = new TextBox();
-            label11 = new Label();
-            ProductDescription = new TextBox();
-            label14 = new Label();
-            SalesValueExclST = new TextBox();
-            label6 = new Label();
-            extratax = new TextBox();
-            furturetax = new TextBox();
-            label8 = new Label();
-            textBox4 = new TextBox();
-            textBox5 = new TextBox();
-            label7 = new Label();
-            rate = new TextBox();
-            label5 = new Label();
-            label2 = new Label();
-            label1 = new Label();
-            ProductCode = new TextBox();
-            lblSellerBusiness = new Label();
-            STWithheldatSourcelbl = new Label();
-            SalesTaxWithheldatSource = new TextBox();
-            hscode = new TextBox();
-            lblBasicInfo = new Label();
-            fed = new TextBox();
-            ProductCodelbl = new Label();
+            TaxChargedlbl = new Label();
+            TaxCharged = new TextBox();
+            pctCode = new TextBox();
+            TaxRatelbl = new Label();
+            salevalue = new TextBox();
+            salevaluelbl = new Label();
+            TaxRatebox = new TextBox();
+            itemDiscount = new TextBox();
+            itemDiscountlbl = new Label();
+            totalamount = new TextBox();
+            ItemCode = new TextBox();
+            ItemNamelbl = new Label();
+            FurtureTaxlbl = new Label();
+            FurtureTax = new TextBox();
+            ItemName = new TextBox();
+            ItemCodelbl = new Label();
             lblSellerAddress = new Label();
             qty = new TextBox();
             lblCustomerRegType = new Label();
-            lblBuyerRegNo = new Label();
-            SroScheduleNolbl = new Label();
-            SroScheduleNo = new TextBox();
-            cvt = new TextBox();
+            totalamountlbl = new Label();
             lblItemEntry = new Label();
             btnEdit = new Button();
             btnSave = new Button();
@@ -104,45 +78,44 @@
             colTotalValuePayable = new DataGridViewTextBoxColumn();
             colWHITSection1 = new DataGridViewTextBoxColumn();
             colWHITSection2 = new DataGridViewTextBoxColumn();
-            lblTotalItems = new Label();
             lblInvoicesListing = new Label();
             btn_remove = new Button();
             btnProceed = new Button();
             contentPanel = new Panel();
             panel1 = new Panel();
-            TotalCVTlbl = new Label();
-            TotalCVT = new TextBox();
-            TotalWithheldIncomeTaxlbl = new Label();
-            TotalWithheldIncomeTax = new TextBox();
-            TotalFEDPayablelbl = new Label();
-            TotalFEDPayable = new TextBox();
-            TotalExtraTaxlbl = new Label();
-            TotalExtraTax = new TextBox();
-            TotalSTWithheldlbl = new Label();
-            TotalSTWithheld = new TextBox();
-            TotalRetailPricelbl = new Label();
-            TotalRetailPrice = new TextBox();
-            TotalSalesTaxApplicablelbl = new Label();
-            STapplicable = new TextBox();
-            SaleType = new TextBox();
-            SaleTypelbl = new Label();
-            DestinationAddresslbl = new Label();
-            DestinationAddress = new TextBox();
+            paymentmode = new ComboBox();
+            invoicetype = new ComboBox();
+            refUSIN = new TextBox();
+            refUSINlbl = new Label();
+            paymentmodelbl = new Label();
+            TotalSaleValuelbl = new Label();
+            TotalSaleValue = new TextBox();
+            TotalQuantitylbl = new Label();
+            TotalQuantity = new TextBox();
+            totalFurtherTaxlbl = new Label();
+            TotalFurtherTax = new TextBox();
+            Discountlbl = new Label();
+            Discount = new TextBox();
+            TotalTaxChargedlbl = new Label();
+            TotalTaxCharged = new TextBox();
+            TotalBillAmountlbl = new Label();
+            TotalBillAmount = new TextBox();
+            USIN = new TextBox();
+            USINlbl = new Label();
+            InvoiceNumberlbl = new Label();
+            InvoiceNumber = new TextBox();
             invoicetypelbl = new Label();
-            chkUnregistered = new CheckBox();
-            chkRegistered = new CheckBox();
-            buyerBnamelbl = new Label();
-            buyerBname = new TextBox();
+            buyerphonelbl = new Label();
+            buyerphone = new TextBox();
             sellerBnamelbl = new Label();
-            sellerBname = new TextBox();
+            BuyerBname = new TextBox();
             buyerntnlabel = new Label();
             buyerntn = new TextBox();
-            sellerntnlabel = new Label();
+            buyercniclabel = new Label();
             posid = new TextBox();
-            sellerntn = new TextBox();
+            buyercnic = new TextBox();
             label15 = new Label();
             label31 = new Label();
-            extraTaxlbl = new Label();
             pnlBasicInfo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             contentPanel.SuspendLayout();
@@ -155,465 +128,206 @@
             pnlBasicInfo.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             pnlBasicInfo.BackColor = Color.White;
             pnlBasicInfo.BackgroundImageLayout = ImageLayout.None;
-            pnlBasicInfo.Controls.Add(extraTaxlbl);
-            pnlBasicInfo.Controls.Add(WHIT_Section_2lbl);
-            pnlBasicInfo.Controls.Add(WHIT_Section_2);
-            pnlBasicInfo.Controls.Add(WHIT_Section_1lbl);
-            pnlBasicInfo.Controls.Add(WHIT_Section_1);
-            pnlBasicInfo.Controls.Add(CVTlbl);
-            pnlBasicInfo.Controls.Add(TotalValuelbl);
-            pnlBasicInfo.Controls.Add(TotalValue);
-            pnlBasicInfo.Controls.Add(whit1);
-            pnlBasicInfo.Controls.Add(whit2);
-            pnlBasicInfo.Controls.Add(whit2lbl);
-            pnlBasicInfo.Controls.Add(whit1lbl);
-            pnlBasicInfo.Controls.Add(RetailPrice);
-            pnlBasicInfo.Controls.Add(label16);
-            pnlBasicInfo.Controls.Add(SalesTaxApplicablelbl);
-            pnlBasicInfo.Controls.Add(SalesTaxApplicable);
-            pnlBasicInfo.Controls.Add(uom);
-            pnlBasicInfo.Controls.Add(label11);
-            pnlBasicInfo.Controls.Add(ProductDescription);
-            pnlBasicInfo.Controls.Add(label14);
-            pnlBasicInfo.Controls.Add(SalesValueExclST);
-            pnlBasicInfo.Controls.Add(label6);
-            pnlBasicInfo.Controls.Add(extratax);
-            pnlBasicInfo.Controls.Add(furturetax);
-            pnlBasicInfo.Controls.Add(label8);
-            pnlBasicInfo.Controls.Add(textBox4);
-            pnlBasicInfo.Controls.Add(textBox5);
-            pnlBasicInfo.Controls.Add(label7);
-            pnlBasicInfo.Controls.Add(rate);
-            pnlBasicInfo.Controls.Add(label5);
-            pnlBasicInfo.Controls.Add(label2);
-            pnlBasicInfo.Controls.Add(label1);
-            pnlBasicInfo.Controls.Add(ProductCode);
-            pnlBasicInfo.Controls.Add(lblSellerBusiness);
-            pnlBasicInfo.Controls.Add(STWithheldatSourcelbl);
-            pnlBasicInfo.Controls.Add(SalesTaxWithheldatSource);
-            pnlBasicInfo.Controls.Add(hscode);
-            pnlBasicInfo.Controls.Add(lblBasicInfo);
-            pnlBasicInfo.Controls.Add(fed);
-            pnlBasicInfo.Controls.Add(ProductCodelbl);
+            pnlBasicInfo.Controls.Add(TaxChargedlbl);
+            pnlBasicInfo.Controls.Add(TaxCharged);
+            pnlBasicInfo.Controls.Add(pctCode);
+            pnlBasicInfo.Controls.Add(TaxRatelbl);
+            pnlBasicInfo.Controls.Add(salevalue);
+            pnlBasicInfo.Controls.Add(salevaluelbl);
+            pnlBasicInfo.Controls.Add(TaxRatebox);
+            pnlBasicInfo.Controls.Add(itemDiscount);
+            pnlBasicInfo.Controls.Add(itemDiscountlbl);
+            pnlBasicInfo.Controls.Add(totalamount);
+            pnlBasicInfo.Controls.Add(ItemCode);
+            pnlBasicInfo.Controls.Add(ItemNamelbl);
+            pnlBasicInfo.Controls.Add(FurtureTaxlbl);
+            pnlBasicInfo.Controls.Add(FurtureTax);
+            pnlBasicInfo.Controls.Add(ItemName);
+            pnlBasicInfo.Controls.Add(ItemCodelbl);
             pnlBasicInfo.Controls.Add(lblSellerAddress);
             pnlBasicInfo.Controls.Add(qty);
             pnlBasicInfo.Controls.Add(lblCustomerRegType);
-            pnlBasicInfo.Controls.Add(lblBuyerRegNo);
-            pnlBasicInfo.Controls.Add(SroScheduleNolbl);
-            pnlBasicInfo.Controls.Add(SroScheduleNo);
+            pnlBasicInfo.Controls.Add(totalamountlbl);
             pnlBasicInfo.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             pnlBasicInfo.Location = new Point(30, 354);
             pnlBasicInfo.Margin = new Padding(10, 0, 10, 0);
             pnlBasicInfo.Name = "pnlBasicInfo";
-            pnlBasicInfo.Size = new Size(1145, 270);
+            pnlBasicInfo.Size = new Size(1145, 168);
             pnlBasicInfo.TabIndex = 6;
             // 
-            // WHIT_Section_2lbl
-            // 
-            WHIT_Section_2lbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            WHIT_Section_2lbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            WHIT_Section_2lbl.ForeColor = Color.FromArgb(75, 85, 99);
-            WHIT_Section_2lbl.Location = new Point(937, 204);
-            WHIT_Section_2lbl.Name = "WHIT_Section_2lbl";
-            WHIT_Section_2lbl.Size = new Size(191, 20);
-            WHIT_Section_2lbl.TabIndex = 54;
-            WHIT_Section_2lbl.Text = "WHIT-Section-2";
-            // 
-            // WHIT_Section_2
-            // 
-            WHIT_Section_2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            WHIT_Section_2.Font = new Font("Microsoft Sans Serif", 9F);
-            WHIT_Section_2.Location = new Point(937, 227);
-            WHIT_Section_2.Name = "WHIT_Section_2";
-            WHIT_Section_2.PlaceholderText = "WHIT Section-2";
-            WHIT_Section_2.Size = new Size(200, 24);
-            WHIT_Section_2.TabIndex = 38;
-            // 
-            // WHIT_Section_1lbl
-            // 
-            WHIT_Section_1lbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            WHIT_Section_1lbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            WHIT_Section_1lbl.ForeColor = Color.FromArgb(75, 85, 99);
-            WHIT_Section_1lbl.Location = new Point(718, 202);
-            WHIT_Section_1lbl.Name = "WHIT_Section_1lbl";
-            WHIT_Section_1lbl.Size = new Size(212, 20);
-            WHIT_Section_1lbl.TabIndex = 52;
-            WHIT_Section_1lbl.Text = "WHIT Section-1";
-            // 
-            // WHIT_Section_1
-            // 
-            WHIT_Section_1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            WHIT_Section_1.Font = new Font("Microsoft Sans Serif", 9F);
-            WHIT_Section_1.Location = new Point(718, 225);
-            WHIT_Section_1.Name = "WHIT_Section_1";
-            WHIT_Section_1.PlaceholderText = "WHIT Section-1";
-            WHIT_Section_1.Size = new Size(200, 24);
-            WHIT_Section_1.TabIndex = 37;
-            // 
-            // CVTlbl
-            // 
-            CVTlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            CVTlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            CVTlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            CVTlbl.Location = new Point(1041, 65);
-            CVTlbl.Name = "CVTlbl";
-            CVTlbl.Size = new Size(96, 20);
-            CVTlbl.TabIndex = 3;
-            CVTlbl.Text = "CVT";
-            // 
-            // TotalValuelbl
-            // 
-            TotalValuelbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            TotalValuelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalValuelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalValuelbl.Location = new Point(586, 202);
-            TotalValuelbl.Name = "TotalValuelbl";
-            TotalValuelbl.Size = new Size(107, 20);
-            TotalValuelbl.TabIndex = 50;
-            TotalValuelbl.Text = "Total Value";
-            // 
-            // TotalValue
-            // 
-            TotalValue.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            TotalValue.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalValue.Location = new Point(583, 225);
-            TotalValue.Name = "TotalValue";
-            TotalValue.PlaceholderText = "Total Value";
-            TotalValue.Size = new Size(100, 24);
-            TotalValue.TabIndex = 36;
-            // 
-            // whit1
-            // 
-            whit1.Font = new Font("Microsoft Sans Serif", 9F);
-            whit1.Location = new Point(940, 159);
-            whit1.Name = "whit1";
-            whit1.PlaceholderText = "WHIT-1";
-            whit1.Size = new Size(90, 24);
-            whit1.TabIndex = 31;
-            // 
-            // whit2
-            // 
-            whit2.Font = new Font("Microsoft Sans Serif", 9F);
-            whit2.Location = new Point(1041, 159);
-            whit2.Name = "whit2";
-            whit2.PlaceholderText = "WHIT-2";
-            whit2.Size = new Size(87, 24);
-            whit2.TabIndex = 32;
-            // 
-            // whit2lbl
-            // 
-            whit2lbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            whit2lbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            whit2lbl.ForeColor = Color.FromArgb(75, 85, 99);
-            whit2lbl.Location = new Point(1035, 134);
-            whit2lbl.Name = "whit2lbl";
-            whit2lbl.Size = new Size(90, 20);
-            whit2lbl.TabIndex = 48;
-            whit2lbl.Text = "WHIT-2";
-            // 
-            // whit1lbl
-            // 
-            whit1lbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            whit1lbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            whit1lbl.ForeColor = Color.FromArgb(75, 85, 99);
-            whit1lbl.Location = new Point(937, 134);
-            whit1lbl.Name = "whit1lbl";
-            whit1lbl.Size = new Size(90, 20);
-            whit1lbl.TabIndex = 49;
-            whit1lbl.Text = "WHIT-1";
-            // 
-            // RetailPrice
-            // 
-            RetailPrice.Font = new Font("Microsoft Sans Serif", 9F);
-            RetailPrice.Location = new Point(343, 159);
-            RetailPrice.Name = "RetailPrice";
-            RetailPrice.PlaceholderText = "RetailPrice";
-            RetailPrice.Size = new Size(97, 24);
-            RetailPrice.TabIndex = 28;
-            RetailPrice.Text = "78";
-            // 
-            // label16
-            // 
-            label16.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            label16.ForeColor = Color.FromArgb(75, 85, 99);
-            label16.Location = new Point(343, 136);
-            label16.Name = "label16";
-            label16.Size = new Size(95, 20);
-            label16.TabIndex = 44;
-            label16.Text = "Retail Price";
-            // 
-            // SalesTaxApplicablelbl
-            // 
-            SalesTaxApplicablelbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SalesTaxApplicablelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            SalesTaxApplicablelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            SalesTaxApplicablelbl.Location = new Point(477, 136);
-            SalesTaxApplicablelbl.Name = "SalesTaxApplicablelbl";
-            SalesTaxApplicablelbl.Size = new Size(212, 20);
-            SalesTaxApplicablelbl.TabIndex = 42;
-            SalesTaxApplicablelbl.Text = "Sales Tax Applicable";
-            // 
-            // SalesTaxApplicable
-            // 
-            SalesTaxApplicable.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SalesTaxApplicable.Font = new Font("Microsoft Sans Serif", 9F);
-            SalesTaxApplicable.Location = new Point(477, 159);
-            SalesTaxApplicable.Name = "SalesTaxApplicable";
-            SalesTaxApplicable.PlaceholderText = "Sales Tax Applicable";
-            SalesTaxApplicable.Size = new Size(200, 24);
-            SalesTaxApplicable.TabIndex = 29;
-            SalesTaxApplicable.Text = "87";
-            // 
-            // uom
-            // 
-            uom.Font = new Font("Microsoft Sans Serif", 9F);
-            uom.Location = new Point(343, 90);
-            uom.Name = "uom";
-            uom.PlaceholderText = "uom";
-            uom.Size = new Size(97, 24);
-            uom.TabIndex = 19;
-            uom.Text = "68";
-            // 
-            // label11
-            // 
-            label11.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            label11.ForeColor = Color.FromArgb(75, 85, 99);
-            label11.Location = new Point(20, 204);
-            label11.Name = "label11";
-            label11.Size = new Size(156, 20);
-            label11.TabIndex = 2;
-            label11.Text = "Product Description";
-            // 
-            // ProductDescription
-            // 
-            ProductDescription.Font = new Font("Microsoft Sans Serif", 9F);
-            ProductDescription.Location = new Point(20, 227);
-            ProductDescription.Name = "ProductDescription";
-            ProductDescription.PlaceholderText = "Product Description";
-            ProductDescription.Size = new Size(200, 24);
-            ProductDescription.TabIndex = 33;
-            ProductDescription.Text = "87";
-            // 
-            // label14
-            // 
-            label14.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            label14.ForeColor = Color.FromArgb(75, 85, 99);
-            label14.Location = new Point(240, 204);
-            label14.Name = "label14";
-            label14.Size = new Size(200, 20);
-            label14.TabIndex = 8;
-            label14.Text = "Sales Value Excluding ST";
-            // 
-            // SalesValueExclST
-            // 
-            SalesValueExclST.Font = new Font("Microsoft Sans Serif", 9F);
-            SalesValueExclST.Location = new Point(240, 227);
-            SalesValueExclST.Name = "SalesValueExclST";
-            SalesValueExclST.PlaceholderText = "Sales Value Excluding ST";
-            SalesValueExclST.Size = new Size(200, 24);
-            SalesValueExclST.TabIndex = 34;
-            SalesValueExclST.Text = "87";
-            // 
-            // label6
-            // 
-            label6.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label6.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            label6.ForeColor = Color.FromArgb(75, 85, 99);
-            label6.Location = new Point(480, 202);
-            label6.Name = "label6";
-            label6.Size = new Size(107, 20);
-            label6.TabIndex = 10;
-            label6.Text = "Fed Payable";
-            // 
-            // extratax
-            // 
-            extratax.Font = new Font("Microsoft Sans Serif", 9F);
-            extratax.Location = new Point(718, 90);
-            extratax.Name = "extratax";
-            extratax.PlaceholderText = "Extra Tax";
-            extratax.Size = new Size(90, 24);
-            extratax.TabIndex = 22;
-            // 
-            // furturetax
-            // 
-            furturetax.Font = new Font("Microsoft Sans Serif", 9F);
-            furturetax.Location = new Point(824, 90);
-            furturetax.Name = "furturetax";
-            furturetax.PlaceholderText = "Furture Tax";
-            furturetax.Size = new Size(87, 24);
-            furturetax.TabIndex = 23;
-            // 
-            // label8
-            // 
-            label8.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label8.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            label8.ForeColor = Color.FromArgb(75, 85, 99);
-            label8.Location = new Point(818, 65);
-            label8.Name = "label8";
-            label8.Size = new Size(103, 20);
-            label8.TabIndex = 14;
-            label8.Text = "Furture Tax";
-            // 
-            // textBox4
-            // 
-            textBox4.Font = new Font("Microsoft Sans Serif", 9F);
-            textBox4.Location = new Point(480, 88);
-            textBox4.Name = "textBox4";
-            textBox4.PlaceholderText = "Total Value";
-            textBox4.Size = new Size(90, 24);
-            textBox4.TabIndex = 20;
-            textBox4.Text = "8";
-            // 
-            // textBox5
-            // 
-            textBox5.Font = new Font("Microsoft Sans Serif", 9F);
-            textBox5.Location = new Point(581, 88);
-            textBox5.Name = "textBox5";
-            textBox5.PlaceholderText = "Sales Tax";
-            textBox5.Size = new Size(87, 24);
-            textBox5.TabIndex = 21;
-            textBox5.Text = "78";
-            // 
-            // label7
-            // 
-            label7.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label7.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            label7.ForeColor = Color.FromArgb(75, 85, 99);
-            label7.Location = new Point(575, 63);
-            label7.Name = "label7";
-            label7.Size = new Size(90, 20);
-            label7.TabIndex = 18;
-            label7.Text = "Sales Tax";
-            // 
-            // rate
-            // 
-            rate.Font = new Font("Microsoft Sans Serif", 9F);
-            rate.Location = new Point(240, 90);
-            rate.Name = "rate";
-            rate.PlaceholderText = "--%";
-            rate.Size = new Size(80, 24);
-            rate.TabIndex = 18;
-            rate.Text = "15";
-            // 
-            // label5
-            // 
-            label5.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            label5.ForeColor = Color.FromArgb(75, 85, 99);
-            label5.Location = new Point(343, 67);
-            label5.Name = "label5";
-            label5.Size = new Size(58, 20);
-            label5.TabIndex = 21;
-            label5.Text = "UOM";
-            // 
-            // label2
-            // 
-            label2.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label2.ForeColor = Color.FromArgb(17, 24, 39);
-            label2.Location = new Point(479, 27);
-            label2.Name = "label2";
-            label2.Size = new Size(198, 25);
-            label2.TabIndex = 24;
-            label2.Text = "Sales Tax Information";
-            // 
-            // label1
-            // 
-            label1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.ForeColor = Color.FromArgb(17, 24, 39);
-            label1.Location = new Point(237, 27);
-            label1.Name = "label1";
-            label1.Size = new Size(186, 25);
-            label1.TabIndex = 25;
-            label1.Text = "Pricing Information";
-            // 
-            // ProductCode
-            // 
-            ProductCode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            ProductCode.BackColor = Color.White;
-            ProductCode.Font = new Font("Microsoft Sans Serif", 9F);
-            ProductCode.ImeMode = ImeMode.Disable;
-            ProductCode.Location = new Point(17, 88);
-            ProductCode.Name = "ProductCode";
-            ProductCode.PlaceholderText = "Product Code";
-            ProductCode.Size = new Size(171, 24);
-            ProductCode.TabIndex = 17;
-            ProductCode.Text = "78";
-            // 
-            // lblSellerBusiness
-            // 
-            lblSellerBusiness.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            lblSellerBusiness.ForeColor = Color.FromArgb(75, 85, 99);
-            lblSellerBusiness.Location = new Point(20, 136);
-            lblSellerBusiness.Name = "lblSellerBusiness";
-            lblSellerBusiness.Size = new Size(88, 20);
-            lblSellerBusiness.TabIndex = 27;
-            lblSellerBusiness.Text = "HS Code";
-            // 
-            // STWithheldatSourcelbl
-            // 
-            STWithheldatSourcelbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            STWithheldatSourcelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            STWithheldatSourcelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            STWithheldatSourcelbl.Location = new Point(715, 136);
-            STWithheldatSourcelbl.Name = "STWithheldatSourcelbl";
-            STWithheldatSourcelbl.Size = new Size(212, 20);
-            STWithheldatSourcelbl.TabIndex = 28;
-            STWithheldatSourcelbl.Text = "Sales Tax Withheld at Source";
-            // 
-            // SalesTaxWithheldatSource
-            // 
-            SalesTaxWithheldatSource.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SalesTaxWithheldatSource.Font = new Font("Microsoft Sans Serif", 9F);
-            SalesTaxWithheldatSource.Location = new Point(715, 159);
-            SalesTaxWithheldatSource.Name = "SalesTaxWithheldatSource";
-            SalesTaxWithheldatSource.PlaceholderText = "Sales Tax Withheld at Source";
-            SalesTaxWithheldatSource.Size = new Size(200, 24);
-            SalesTaxWithheldatSource.TabIndex = 30;
-            // 
-            // hscode
-            // 
-            hscode.Font = new Font("Microsoft Sans Serif", 9F);
-            hscode.Location = new Point(20, 159);
-            hscode.Name = "hscode";
-            hscode.PlaceholderText = "HS Code";
-            hscode.Size = new Size(200, 24);
-            hscode.TabIndex = 26;
-            hscode.Text = "12345678";
-            // 
-            // lblBasicInfo
-            // 
-            lblBasicInfo.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblBasicInfo.ForeColor = Color.FromArgb(17, 24, 39);
-            lblBasicInfo.Location = new Point(17, 27);
-            lblBasicInfo.Name = "lblBasicInfo";
-            lblBasicInfo.Size = new Size(186, 25);
-            lblBasicInfo.TabIndex = 32;
-            lblBasicInfo.Text = "Basic Information";
-            // 
-            // fed
-            // 
-            fed.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            fed.Font = new Font("Microsoft Sans Serif", 9F);
-            fed.Location = new Point(477, 225);
-            fed.Name = "fed";
-            fed.PlaceholderText = "FED Payable";
-            fed.Size = new Size(100, 24);
-            fed.TabIndex = 35;
-            // 
-            // ProductCodelbl
-            // 
-            ProductCodelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            ProductCodelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            ProductCodelbl.Location = new Point(20, 65);
-            ProductCodelbl.Name = "ProductCodelbl";
-            ProductCodelbl.Size = new Size(120, 20);
-            ProductCodelbl.TabIndex = 34;
-            ProductCodelbl.Text = "Product Code";
+            // TaxChargedlbl
+            // 
+            TaxChargedlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            TaxChargedlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            TaxChargedlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            TaxChargedlbl.Location = new Point(462, 88);
+            TaxChargedlbl.Name = "TaxChargedlbl";
+            TaxChargedlbl.Size = new Size(209, 20);
+            TaxChargedlbl.TabIndex = 56;
+            TaxChargedlbl.Text = "Tax Charged";
+            // 
+            // TaxCharged
+            // 
+            TaxCharged.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            TaxCharged.Font = new Font("Microsoft Sans Serif", 9F);
+            TaxCharged.Location = new Point(462, 111);
+            TaxCharged.Name = "TaxCharged";
+            TaxCharged.PlaceholderText = "Tax Charged";
+            TaxCharged.Size = new Size(197, 24);
+            TaxCharged.TabIndex = 57;
+            // 
+            // pctCode
+            // 
+            pctCode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            pctCode.BackColor = Color.White;
+            pctCode.Font = new Font("Microsoft Sans Serif", 9F);
+            pctCode.ImeMode = ImeMode.Disable;
+            pctCode.Location = new Point(240, 42);
+            pctCode.Name = "pctCode";
+            pctCode.PlaceholderText = "PCT Code";
+            pctCode.Size = new Size(197, 24);
+            pctCode.TabIndex = 55;
+            pctCode.Text = "78";
+            // 
+            // TaxRatelbl
+            // 
+            TaxRatelbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            TaxRatelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            TaxRatelbl.ForeColor = Color.FromArgb(75, 85, 99);
+            TaxRatelbl.Location = new Point(682, 19);
+            TaxRatelbl.Name = "TaxRatelbl";
+            TaxRatelbl.Size = new Size(93, 20);
+            TaxRatelbl.TabIndex = 19;
+            TaxRatelbl.Text = "Tax Rate";
+            // 
+            // salevalue
+            // 
+            salevalue.Font = new Font("Microsoft Sans Serif", 9F);
+            salevalue.Location = new Point(920, 111);
+            salevalue.Name = "salevalue";
+            salevalue.PlaceholderText = "Sale Value";
+            salevalue.Size = new Size(183, 24);
+            salevalue.TabIndex = 28;
+            salevalue.Text = "78";
+            // 
+            // salevaluelbl
+            // 
+            salevaluelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            salevaluelbl.ForeColor = Color.FromArgb(75, 85, 99);
+            salevaluelbl.Location = new Point(920, 88);
+            salevaluelbl.Name = "salevaluelbl";
+            salevaluelbl.Size = new Size(95, 20);
+            salevaluelbl.TabIndex = 44;
+            salevaluelbl.Text = "Sale Value";
+            // 
+            // TaxRatebox
+            // 
+            TaxRatebox.Font = new Font("Microsoft Sans Serif", 9F);
+            TaxRatebox.Location = new Point(685, 44);
+            TaxRatebox.Name = "TaxRatebox";
+            TaxRatebox.PlaceholderText = "Tax Rate";
+            TaxRatebox.Size = new Size(197, 24);
+            TaxRatebox.TabIndex = 22;
+            // 
+            // itemDiscount
+            // 
+            itemDiscount.Font = new Font("Microsoft Sans Serif", 9F);
+            itemDiscount.Location = new Point(920, 42);
+            itemDiscount.Name = "itemDiscount";
+            itemDiscount.PlaceholderText = "Discount";
+            itemDiscount.Size = new Size(183, 24);
+            itemDiscount.TabIndex = 23;
+            // 
+            // itemDiscountlbl
+            // 
+            itemDiscountlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            itemDiscountlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            itemDiscountlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            itemDiscountlbl.Location = new Point(920, 17);
+            itemDiscountlbl.Name = "itemDiscountlbl";
+            itemDiscountlbl.Size = new Size(172, 20);
+            itemDiscountlbl.TabIndex = 14;
+            itemDiscountlbl.Text = "Discount";
+            // 
+            // totalamount
+            // 
+            totalamount.Font = new Font("Microsoft Sans Serif", 9F);
+            totalamount.Location = new Point(465, 42);
+            totalamount.Name = "totalamount";
+            totalamount.PlaceholderText = "Total Amount";
+            totalamount.Size = new Size(194, 24);
+            totalamount.TabIndex = 20;
+            totalamount.Text = "8";
+            // 
+            // ItemCode
+            // 
+            ItemCode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            ItemCode.BackColor = Color.White;
+            ItemCode.Font = new Font("Microsoft Sans Serif", 9F);
+            ItemCode.ImeMode = ImeMode.Disable;
+            ItemCode.Location = new Point(17, 42);
+            ItemCode.Name = "ItemCode";
+            ItemCode.PlaceholderText = "Item Code";
+            ItemCode.Size = new Size(200, 24);
+            ItemCode.TabIndex = 17;
+            ItemCode.Text = "78";
+            // 
+            // ItemNamelbl
+            // 
+            ItemNamelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            ItemNamelbl.ForeColor = Color.FromArgb(75, 85, 99);
+            ItemNamelbl.Location = new Point(20, 90);
+            ItemNamelbl.Name = "ItemNamelbl";
+            ItemNamelbl.Size = new Size(88, 20);
+            ItemNamelbl.TabIndex = 27;
+            ItemNamelbl.Text = "Item Name";
+            // 
+            // FurtureTaxlbl
+            // 
+            FurtureTaxlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            FurtureTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            FurtureTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            FurtureTaxlbl.Location = new Point(682, 90);
+            FurtureTaxlbl.Name = "FurtureTaxlbl";
+            FurtureTaxlbl.Size = new Size(212, 20);
+            FurtureTaxlbl.TabIndex = 28;
+            FurtureTaxlbl.Text = "Further Tax";
+            // 
+            // FurtureTax
+            // 
+            FurtureTax.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            FurtureTax.Font = new Font("Microsoft Sans Serif", 9F);
+            FurtureTax.Location = new Point(682, 113);
+            FurtureTax.Name = "FurtureTax";
+            FurtureTax.PlaceholderText = "Furture Tax";
+            FurtureTax.Size = new Size(200, 24);
+            FurtureTax.TabIndex = 30;
+            // 
+            // ItemName
+            // 
+            ItemName.Font = new Font("Microsoft Sans Serif", 9F);
+            ItemName.Location = new Point(20, 113);
+            ItemName.Name = "ItemName";
+            ItemName.PlaceholderText = "Item Name";
+            ItemName.Size = new Size(197, 24);
+            ItemName.TabIndex = 26;
+            ItemName.Text = "12345678";
+            // 
+            // ItemCodelbl
+            // 
+            ItemCodelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            ItemCodelbl.ForeColor = Color.FromArgb(75, 85, 99);
+            ItemCodelbl.Location = new Point(20, 19);
+            ItemCodelbl.Name = "ItemCodelbl";
+            ItemCodelbl.Size = new Size(120, 20);
+            ItemCodelbl.TabIndex = 34;
+            ItemCodelbl.Text = "Item Code";
             // 
             // lblSellerAddress
             // 
             lblSellerAddress.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             lblSellerAddress.ForeColor = Color.FromArgb(75, 85, 99);
-            lblSellerAddress.Location = new Point(240, 136);
+            lblSellerAddress.Location = new Point(240, 90);
             lblSellerAddress.Name = "lblSellerAddress";
             lblSellerAddress.Size = new Size(74, 20);
             lblSellerAddress.TabIndex = 35;
@@ -622,10 +336,10 @@
             // qty
             // 
             qty.Font = new Font("Microsoft Sans Serif", 9F);
-            qty.Location = new Point(240, 159);
+            qty.Location = new Point(240, 113);
             qty.Name = "qty";
             qty.PlaceholderText = "QUANTITY";
-            qty.Size = new Size(80, 24);
+            qty.Size = new Size(197, 24);
             qty.TabIndex = 27;
             qty.Text = "78";
             // 
@@ -633,53 +347,22 @@
             // 
             lblCustomerRegType.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             lblCustomerRegType.ForeColor = Color.FromArgb(75, 85, 99);
-            lblCustomerRegType.Location = new Point(240, 65);
+            lblCustomerRegType.Location = new Point(240, 19);
             lblCustomerRegType.Name = "lblCustomerRegType";
-            lblCustomerRegType.Size = new Size(58, 20);
+            lblCustomerRegType.Size = new Size(106, 20);
             lblCustomerRegType.TabIndex = 37;
-            lblCustomerRegType.Text = "Rate";
+            lblCustomerRegType.Text = "PCT Code";
             // 
-            // lblBuyerRegNo
+            // totalamountlbl
             // 
-            lblBuyerRegNo.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lblBuyerRegNo.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            lblBuyerRegNo.ForeColor = Color.FromArgb(75, 85, 99);
-            lblBuyerRegNo.Location = new Point(477, 63);
-            lblBuyerRegNo.Name = "lblBuyerRegNo";
-            lblBuyerRegNo.Size = new Size(90, 20);
-            lblBuyerRegNo.TabIndex = 38;
-            lblBuyerRegNo.Text = "Total Value";
-            // 
-            // SroScheduleNolbl
-            // 
-            SroScheduleNolbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SroScheduleNolbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            SroScheduleNolbl.ForeColor = Color.FromArgb(75, 85, 99);
-            SroScheduleNolbl.Location = new Point(939, 65);
-            SroScheduleNolbl.Name = "SroScheduleNolbl";
-            SroScheduleNolbl.Size = new Size(93, 20);
-            SroScheduleNolbl.TabIndex = 39;
-            SroScheduleNolbl.Text = "SRO S No";
-            // 
-            // SroScheduleNo
-            // 
-            SroScheduleNo.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SroScheduleNo.Font = new Font("Microsoft Sans Serif", 9F);
-            SroScheduleNo.Location = new Point(937, 90);
-            SroScheduleNo.Name = "SroScheduleNo";
-            SroScheduleNo.PlaceholderText = "SRO Schedule No";
-            SroScheduleNo.Size = new Size(90, 24);
-            SroScheduleNo.TabIndex = 24;
-            // 
-            // cvt
-            // 
-            cvt.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cvt.Font = new Font("Microsoft Sans Serif", 9F);
-            cvt.Location = new Point(1071, 442);
-            cvt.Name = "cvt";
-            cvt.PlaceholderText = "Capital Value Tax";
-            cvt.Size = new Size(96, 24);
-            cvt.TabIndex = 25;
+            totalamountlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            totalamountlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            totalamountlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            totalamountlbl.Location = new Point(462, 17);
+            totalamountlbl.Name = "totalamountlbl";
+            totalamountlbl.Size = new Size(197, 20);
+            totalamountlbl.TabIndex = 38;
+            totalamountlbl.Text = "Total Amount";
             // 
             // lblItemEntry
             // 
@@ -699,7 +382,7 @@
             btnEdit.FlatStyle = FlatStyle.Flat;
             btnEdit.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEdit.ForeColor = Color.Transparent;
-            btnEdit.Location = new Point(859, 635);
+            btnEdit.Location = new Point(859, 527);
             btnEdit.Name = "btnEdit";
             btnEdit.Size = new Size(155, 44);
             btnEdit.TabIndex = 41;
@@ -714,252 +397,93 @@
             btnSave.FlatStyle = FlatStyle.Flat;
             btnSave.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnSave.ForeColor = Color.Transparent;
-            btnSave.Location = new Point(1020, 635);
+            btnSave.Location = new Point(1020, 527);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(155, 44);
             btnSave.TabIndex = 42;
             btnSave.Text = "💾 Save";
             btnSave.UseVisualStyleBackColor = false;
-            //btnSave.Click += btnSave_Click_1;
-            // 
-            // dataGridView1
-            // 
-            dataGridView1.AllowUserToAddRows = false;
-            dataGridView1.AllowUserToDeleteRows = false;
-            dataGridView1.AllowUserToResizeRows = false;
-            dataGridView1.BackgroundColor = Color.White;
-            dataGridView1.BorderStyle = BorderStyle.None;
-            dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.White;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
-            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colSrNo, colProductCode, colHSCode, colProductDescription, colUOM, colQuantity, colRate, colRetailPrice, colSalesValueExcST, colTotalValue, colSalesTax, colExtraTax, colFutureTax, colSROSNo, colCVT, colSalesTaxApplicable, colSalesTaxWithheldAtSource, colWHIT1, colWHIT2, colFedPayable, colTotalValuePayable, colWHITSection1, colWHITSection2 });
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
-            dataGridView1.EnableHeadersVisualStyles = false;
-            dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
-            dataGridView1.Location = new Point(30, 703);
-            dataGridView1.MultiSelect = false;
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.ReadOnly = true;
-            dataGridView1.RowHeadersVisible = false;
-            dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.RowTemplate.Height = 50;
-            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridView1.Size = new Size(1145, 153);
-            dataGridView1.TabIndex = 43;
-            // 
-            // colSrNo
-            // 
-            colSrNo.HeaderText = "Sr. No.";
-            colSrNo.MinimumWidth = 6;
-            colSrNo.Name = "colSrNo";
-            colSrNo.ReadOnly = true;
-            colSrNo.Width = 80;
-            // 
-            // colProductCode
-            // 
-            colProductCode.HeaderText = "Item Code";
-            colProductCode.MinimumWidth = 6;
-            colProductCode.Name = "colProductCode";
-            colProductCode.ReadOnly = true;
-            colProductCode.Width = 120;
-            // 
-            // colHSCode
-            // 
-            colHSCode.HeaderText = "HS Code";
-            colHSCode.MinimumWidth = 6;
-            colHSCode.Name = "colHSCode";
-            colHSCode.ReadOnly = true;
-            colHSCode.Width = 125;
-            // 
-            // colProductDescription
-            // 
-            colProductDescription.HeaderText = "Item Name";
-            colProductDescription.MinimumWidth = 6;
-            colProductDescription.Name = "colProductDescription";
-            colProductDescription.ReadOnly = true;
-            colProductDescription.Width = 200;
-            // 
-            // colUOM
-            // 
-            colUOM.HeaderText = "UOM";
-            colUOM.MinimumWidth = 6;
-            colUOM.Name = "colUOM";
-            colUOM.ReadOnly = true;
-            colUOM.Width = 80;
-            // 
-            // colQuantity
-            // 
-            colQuantity.HeaderText = "Quantity";
-            colQuantity.MinimumWidth = 6;
-            colQuantity.Name = "colQuantity";
-            colQuantity.ReadOnly = true;
-            colQuantity.Width = 125;
-            // 
-            // colRate
-            // 
-            colRate.HeaderText = "Rate";
-            colRate.MinimumWidth = 6;
-            colRate.Name = "colRate";
-            colRate.ReadOnly = true;
-            colRate.Width = 125;
-            // 
-            // colRetailPrice
-            // 
-            colRetailPrice.HeaderText = "Retail Price";
-            colRetailPrice.MinimumWidth = 6;
-            colRetailPrice.Name = "colRetailPrice";
-            colRetailPrice.ReadOnly = true;
-            colRetailPrice.Width = 120;
-            // 
-            // colSalesValueExcST
-            // 
-            colSalesValueExcST.HeaderText = "Sales Value Exc ST";
-            colSalesValueExcST.MinimumWidth = 6;
-            colSalesValueExcST.Name = "colSalesValueExcST";
-            colSalesValueExcST.ReadOnly = true;
-            colSalesValueExcST.Width = 150;
-            // 
-            // colTotalValue
-            // 
-            colTotalValue.HeaderText = "Total Value";
-            colTotalValue.MinimumWidth = 6;
-            colTotalValue.Name = "colTotalValue";
-            colTotalValue.ReadOnly = true;
-            colTotalValue.Width = 120;
-            // 
-            // colSalesTax
-            // 
-            colSalesTax.HeaderText = "Sales Tax";
-            colSalesTax.MinimumWidth = 6;
-            colSalesTax.Name = "colSalesTax";
-            colSalesTax.ReadOnly = true;
-            colSalesTax.Width = 120;
-            // 
-            // colExtraTax
-            // 
-            colExtraTax.HeaderText = "Extra Tax";
-            colExtraTax.MinimumWidth = 6;
-            colExtraTax.Name = "colExtraTax";
-            colExtraTax.ReadOnly = true;
-            colExtraTax.Width = 120;
-            // 
-            // colFutureTax
-            // 
-            colFutureTax.HeaderText = "Future Tax";
-            colFutureTax.MinimumWidth = 6;
-            colFutureTax.Name = "colFutureTax";
-            colFutureTax.ReadOnly = true;
-            colFutureTax.Width = 120;
-            // 
-            // colSROSNo
-            // 
-            colSROSNo.HeaderText = "SRO S No";
-            colSROSNo.MinimumWidth = 6;
-            colSROSNo.Name = "colSROSNo";
-            colSROSNo.ReadOnly = true;
-            colSROSNo.Width = 125;
-            // 
-            // colCVT
-            // 
-            colCVT.HeaderText = "CVT";
-            colCVT.MinimumWidth = 6;
-            colCVT.Name = "colCVT";
-            colCVT.ReadOnly = true;
-            colCVT.Width = 125;
-            // 
-            // colSalesTaxApplicable
-            // 
-            colSalesTaxApplicable.HeaderText = "Sales Tax Applicable";
-            colSalesTaxApplicable.MinimumWidth = 6;
-            colSalesTaxApplicable.Name = "colSalesTaxApplicable";
-            colSalesTaxApplicable.ReadOnly = true;
-            colSalesTaxApplicable.Width = 150;
-            // 
-            // colSalesTaxWithheldAtSource
-            // 
-            colSalesTaxWithheldAtSource.HeaderText = "ST Withheld at Source";
-            colSalesTaxWithheldAtSource.MinimumWidth = 6;
-            colSalesTaxWithheldAtSource.Name = "colSalesTaxWithheldAtSource";
-            colSalesTaxWithheldAtSource.ReadOnly = true;
-            colSalesTaxWithheldAtSource.Width = 160;
-            // 
-            // colWHIT1
-            // 
-            colWHIT1.HeaderText = "WHIT-1";
-            colWHIT1.MinimumWidth = 6;
-            colWHIT1.Name = "colWHIT1";
-            colWHIT1.ReadOnly = true;
-            colWHIT1.Width = 125;
-            // 
-            // colWHIT2
-            // 
-            colWHIT2.HeaderText = "WHIT-2";
-            colWHIT2.MinimumWidth = 6;
-            colWHIT2.Name = "colWHIT2";
-            colWHIT2.ReadOnly = true;
-            colWHIT2.Width = 125;
-            // 
-            // colFedPayable
-            // 
-            colFedPayable.HeaderText = "Fed Payable";
-            colFedPayable.MinimumWidth = 6;
-            colFedPayable.Name = "colFedPayable";
-            colFedPayable.ReadOnly = true;
-            colFedPayable.Width = 120;
-            // 
-            // colTotalValuePayable
-            // 
-            colTotalValuePayable.HeaderText = "Total Value Payable";
-            colTotalValuePayable.MinimumWidth = 6;
-            colTotalValuePayable.Name = "colTotalValuePayable";
-            colTotalValuePayable.ReadOnly = true;
-            colTotalValuePayable.Width = 150;
-            // 
-            // colWHITSection1
-            // 
-            colWHITSection1.HeaderText = "WHIT Section-1";
-            colWHITSection1.MinimumWidth = 6;
-            colWHITSection1.Name = "colWHITSection1";
-            colWHITSection1.ReadOnly = true;
-            colWHITSection1.Width = 130;
-            // 
-            // colWHITSection2
-            // 
-            colWHITSection2.HeaderText = "WHIT Section-2";
-            colWHITSection2.MinimumWidth = 6;
-            colWHITSection2.Name = "colWHITSection2";
-            colWHITSection2.ReadOnly = true;
-            colWHITSection2.Width = 130;
-            // 
-            // lblTotalItems
-            // 
-            lblTotalItems.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lblTotalItems.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotalItems.ForeColor = Color.Blue;
-            lblTotalItems.Location = new Point(962, 860);
-            lblTotalItems.Name = "lblTotalItems";
-            lblTotalItems.Size = new Size(211, 25);
-            lblTotalItems.TabIndex = 1;
-            lblTotalItems.TextAlign = ContentAlignment.MiddleRight;
+            // common cell styles
+var headerStyle = new DataGridViewCellStyle
+{
+    Alignment = DataGridViewContentAlignment.MiddleLeft,
+    BackColor = Color.White,
+    Font = new Font("Microsoft Sans Serif", 9F),
+    ForeColor = Color.FromArgb(107, 114, 128),
+    SelectionBackColor = Color.White,
+    SelectionForeColor = Color.FromArgb(107, 114, 128)
+};
+
+var rowStyle = new DataGridViewCellStyle
+{
+    Alignment = DataGridViewContentAlignment.MiddleLeft,
+    BackColor = Color.White,
+    Font = new Font("Microsoft Sans Serif", 9F),
+    ForeColor = Color.FromArgb(75, 85, 99),
+    SelectionBackColor = Color.FromArgb(248, 250, 252),
+    SelectionForeColor = Color.FromArgb(75, 85, 99),
+    WrapMode = DataGridViewTriState.False
+};
+
+dataGridView1.AllowUserToAddRows = false;
+dataGridView1.AllowUserToDeleteRows = false;
+dataGridView1.AllowUserToResizeRows = false;
+dataGridView1.BackgroundColor = Color.White;
+dataGridView1.BorderStyle = BorderStyle.None;
+dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+dataGridView1.ColumnHeadersDefaultCellStyle = headerStyle;
+dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+dataGridView1.DefaultCellStyle = rowStyle;
+dataGridView1.EnableHeadersVisualStyles = false;
+dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
+dataGridView1.Location = new Point(30, 649);
+dataGridView1.MultiSelect = false;
+dataGridView1.Name = "dataGridView1";
+dataGridView1.ReadOnly = true;
+dataGridView1.RowHeadersVisible = false;
+dataGridView1.RowHeadersWidth = 51;
+dataGridView1.RowTemplate.Height = 50;
+dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+dataGridView1.Size = new Size(1145, 239);
+dataGridView1.TabIndex = 43;
+
+// Clear any existing columns (safe if this code runs on InitializeComponent replacement)
+dataGridView1.Columns.Clear();
+
+// Add only the columns that match InvoiceItemDto / InvoiceItems
+dataGridView1.Columns.AddRange(new DataGridViewColumn[]
+{
+    new DataGridViewTextBoxColumn { Name = "colSrNo", HeaderText = "Sr. No.", ReadOnly = true, MinimumWidth = 60, Width = 60 },
+    new DataGridViewTextBoxColumn { Name = "colProductCode", HeaderText = "Item Code", ReadOnly = true, MinimumWidth = 80, Width = 120 },
+    new DataGridViewTextBoxColumn { Name = "colHSCode", HeaderText = "HS Code", ReadOnly = true, MinimumWidth = 80, Width = 125 },
+    new DataGridViewTextBoxColumn { Name = "colProductDescription", HeaderText = "Item Name", ReadOnly = true, MinimumWidth = 120, Width = 200 },
+    new DataGridViewTextBoxColumn { Name = "colUOM", HeaderText = "UOM", ReadOnly = true, MinimumWidth = 60, Width = 60 },
+
+    // quantities and prices (numeric -> format as 2 decimals)
+    new DataGridViewTextBoxColumn { Name = "colQuantity", HeaderText = "Quantity", ReadOnly = true, MinimumWidth = 80, Width = 100, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+    new DataGridViewTextBoxColumn { Name = "colRate", HeaderText = "Rate", ReadOnly = true, MinimumWidth = 80, Width = 100, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+    new DataGridViewTextBoxColumn { Name = "colDiscount", HeaderText = "Discount (Amt)", ReadOnly = true, MinimumWidth = 90, Width = 110, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+
+    new DataGridViewTextBoxColumn { Name = "colSalesValueExcST", HeaderText = "Sales Value (exc ST)", ReadOnly = true, MinimumWidth = 100, Width = 130, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+
+    new DataGridViewTextBoxColumn { Name = "colTotalValue", HeaderText = "Total Value", ReadOnly = true, MinimumWidth = 100, Width = 120, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+
+    // tax fields
+    new DataGridViewTextBoxColumn { Name = "colSalesTax", HeaderText = "Tax Rate (%)", ReadOnly = true, MinimumWidth = 80, Width = 100, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+    new DataGridViewTextBoxColumn { Name = "colExtraTax", HeaderText = "Tax Charged", ReadOnly = true, MinimumWidth = 100, Width = 120, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+    new DataGridViewTextBoxColumn { Name = "colFutureTax", HeaderText = "Further Tax", ReadOnly = true, MinimumWidth = 90, Width = 110, DefaultCellStyle = { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight } },
+
+    // invoice-level small fields (optional, visible but narrow)
+    new DataGridViewTextBoxColumn { Name = "colInvoiceType", HeaderText = "Inv Type", ReadOnly = true, MinimumWidth = 60, Width = 80 },
+    new DataGridViewTextBoxColumn { Name = "colRefUSIN", HeaderText = "Ref USIN", ReadOnly = true, MinimumWidth = 100, Width = 120 }
+});
+
             // 
             // lblInvoicesListing
             // 
             lblInvoicesListing.Font = new Font("Microsoft Sans Serif", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblInvoicesListing.ForeColor = Color.FromArgb(17, 24, 39);
-            lblInvoicesListing.Location = new Point(30, 663);
+            lblInvoicesListing.Location = new Point(30, 555);
             lblInvoicesListing.Name = "lblInvoicesListing";
             lblInvoicesListing.Size = new Size(191, 37);
             lblInvoicesListing.TabIndex = 0;
@@ -973,13 +497,12 @@
             btn_remove.FlatStyle = FlatStyle.Flat;
             btn_remove.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btn_remove.ForeColor = Color.Transparent;
-            btn_remove.Location = new Point(698, 635);
+            btn_remove.Location = new Point(698, 527);
             btn_remove.Name = "btn_remove";
             btn_remove.Size = new Size(155, 44);
             btn_remove.TabIndex = 40;
             btn_remove.Text = "➖ Remove Item";
             btn_remove.UseVisualStyleBackColor = false;
-            btn_remove.Click += btn_remove_Click;
             // 
             // btnProceed
             // 
@@ -989,7 +512,7 @@
             btnProceed.FlatStyle = FlatStyle.Flat;
             btnProceed.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnProceed.ForeColor = Color.Transparent;
-            btnProceed.Location = new Point(537, 635);
+            btnProceed.Location = new Point(537, 527);
             btnProceed.Name = "btnProceed";
             btnProceed.Size = new Size(155, 44);
             btnProceed.TabIndex = 39;
@@ -1004,12 +527,10 @@
             contentPanel.Controls.Add(btnProceed);
             contentPanel.Controls.Add(btn_remove);
             contentPanel.Controls.Add(lblInvoicesListing);
-            contentPanel.Controls.Add(lblTotalItems);
             contentPanel.Controls.Add(dataGridView1);
             contentPanel.Controls.Add(btnSave);
             contentPanel.Controls.Add(btnEdit);
             contentPanel.Controls.Add(lblItemEntry);
-            contentPanel.Controls.Add(cvt);
             contentPanel.Controls.Add(pnlBasicInfo);
             contentPanel.Dock = DockStyle.Fill;
             contentPanel.Location = new Point(0, 0);
@@ -1020,280 +541,300 @@
             // panel1
             // 
             panel1.BackColor = Color.White;
-            panel1.Controls.Add(TotalCVTlbl);
-            panel1.Controls.Add(TotalCVT);
-            panel1.Controls.Add(TotalWithheldIncomeTaxlbl);
-            panel1.Controls.Add(TotalWithheldIncomeTax);
-            panel1.Controls.Add(TotalFEDPayablelbl);
-            panel1.Controls.Add(TotalFEDPayable);
-            panel1.Controls.Add(TotalExtraTaxlbl);
-            panel1.Controls.Add(TotalExtraTax);
-            panel1.Controls.Add(TotalSTWithheldlbl);
-            panel1.Controls.Add(TotalSTWithheld);
-            panel1.Controls.Add(TotalRetailPricelbl);
-            panel1.Controls.Add(TotalRetailPrice);
-            panel1.Controls.Add(TotalSalesTaxApplicablelbl);
-            panel1.Controls.Add(STapplicable);
-            panel1.Controls.Add(SaleType);
-            panel1.Controls.Add(SaleTypelbl);
-            panel1.Controls.Add(DestinationAddresslbl);
-            panel1.Controls.Add(DestinationAddress);
+            panel1.Controls.Add(paymentmode);
+            panel1.Controls.Add(invoicetype);
+            panel1.Controls.Add(refUSIN);
+            panel1.Controls.Add(refUSINlbl);
+            panel1.Controls.Add(paymentmodelbl);
+            panel1.Controls.Add(TotalSaleValuelbl);
+            panel1.Controls.Add(TotalSaleValue);
+            panel1.Controls.Add(TotalQuantitylbl);
+            panel1.Controls.Add(TotalQuantity);
+            panel1.Controls.Add(totalFurtherTaxlbl);
+            panel1.Controls.Add(TotalFurtherTax);
+            panel1.Controls.Add(Discountlbl);
+            panel1.Controls.Add(Discount);
+            panel1.Controls.Add(TotalTaxChargedlbl);
+            panel1.Controls.Add(TotalTaxCharged);
+            panel1.Controls.Add(TotalBillAmountlbl);
+            panel1.Controls.Add(TotalBillAmount);
+            panel1.Controls.Add(USIN);
+            panel1.Controls.Add(USINlbl);
+            panel1.Controls.Add(InvoiceNumberlbl);
+            panel1.Controls.Add(InvoiceNumber);
             panel1.Controls.Add(invoicetypelbl);
-            panel1.Controls.Add(chkUnregistered);
-            panel1.Controls.Add(chkRegistered);
-            panel1.Controls.Add(buyerBnamelbl);
-            panel1.Controls.Add(buyerBname);
+            panel1.Controls.Add(buyerphonelbl);
+            panel1.Controls.Add(buyerphone);
             panel1.Controls.Add(sellerBnamelbl);
-            panel1.Controls.Add(sellerBname);
+            panel1.Controls.Add(BuyerBname);
             panel1.Controls.Add(buyerntnlabel);
             panel1.Controls.Add(buyerntn);
-            panel1.Controls.Add(sellerntnlabel);
+            panel1.Controls.Add(buyercniclabel);
             panel1.Controls.Add(posid);
-            panel1.Controls.Add(sellerntn);
+            panel1.Controls.Add(buyercnic);
             panel1.Controls.Add(label15);
             panel1.Location = new Point(30, 67);
             panel1.Name = "panel1";
             panel1.Size = new Size(1145, 237);
             panel1.TabIndex = 57;
             // 
-            // TotalCVTlbl
+            // paymentmode
             // 
-            TotalCVTlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalCVTlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalCVTlbl.Location = new Point(240, 175);
-            TotalCVTlbl.Name = "TotalCVTlbl";
-            TotalCVTlbl.Size = new Size(142, 20);
-            TotalCVTlbl.TabIndex = 69;
-            TotalCVTlbl.Text = "Total CVT";
+            paymentmode.DropDownStyle = ComboBoxStyle.DropDownList;
+            paymentmode.Items.Clear();
+            paymentmode.Items.Add(new System.Collections.Generic.KeyValuePair<byte, string>(1, "Card"));
+            paymentmode.Items.Add(new System.Collections.Generic.KeyValuePair<byte, string>(2, "Cash"));
+            paymentmode.Items.Add(new System.Collections.Generic.KeyValuePair<byte, string>(3, "Online"));
+            paymentmode.DisplayMember = "Value";
+            paymentmode.ValueMember = "Key";
+            paymentmode.Location = new Point(459, 44);
+            paymentmode.Name = "paymentmode";
+            paymentmode.SelectedIndex = 0;
+            paymentmode.Size = new Size(197, 26);
+            paymentmode.TabIndex = 77;
             // 
-            // TotalCVT
+            // invoicetype
             // 
-            TotalCVT.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalCVT.Location = new Point(237, 198);
-            TotalCVT.Name = "TotalCVT";
-            TotalCVT.PlaceholderText = "Total CVT";
-            TotalCVT.ReadOnly = true;
-            TotalCVT.Size = new Size(200, 24);
-            TotalCVT.TabIndex = 13;
+            invoicetype.DropDownStyle = ComboBoxStyle.DropDownList;
+            invoicetype.Items.Clear();
+            invoicetype.Items.Add(new System.Collections.Generic.KeyValuePair<byte, string>(1, "Sale"));
+            invoicetype.Items.Add(new System.Collections.Generic.KeyValuePair<byte, string>(2, "Purchase"));
+            invoicetype.Items.Add(new System.Collections.Generic.KeyValuePair<byte, string>(3, "Debit"));
+            invoicetype.Items.Add(new System.Collections.Generic.KeyValuePair<byte, string>(4, "Credit"));
+            invoicetype.DisplayMember = "Value";
+            invoicetype.ValueMember = "Key";
+            invoicetype.SelectedIndex = 0;
+            invoicetype.Location = new Point(240, 44);
+            invoicetype.Name = "invoicetype";
+            invoicetype.Size = new Size(197, 26);
+            invoicetype.TabIndex = 76;
             // 
-            // TotalWithheldIncomeTaxlbl
+            // refUSIN
             // 
-            TotalWithheldIncomeTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalWithheldIncomeTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalWithheldIncomeTaxlbl.Location = new Point(20, 177);
-            TotalWithheldIncomeTaxlbl.Name = "TotalWithheldIncomeTaxlbl";
-            TotalWithheldIncomeTaxlbl.Size = new Size(203, 20);
-            TotalWithheldIncomeTaxlbl.TabIndex = 67;
-            TotalWithheldIncomeTaxlbl.Text = "Total Withheld Income Tax";
+            refUSIN.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            refUSIN.BackColor = Color.White;
+            refUSIN.Font = new Font("Microsoft Sans Serif", 9F);
+            refUSIN.ImeMode = ImeMode.Disable;
+            refUSIN.Location = new Point(788, 44);
+            refUSIN.Name = "refUSIN";
+            refUSIN.PlaceholderText = "Ref USIN";
+            refUSIN.Size = new Size(91, 24);
+            refUSIN.TabIndex = 74;
+            refUSIN.Text = "1";
             // 
-            // TotalWithheldIncomeTax
+            // refUSINlbl
             // 
-            TotalWithheldIncomeTax.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalWithheldIncomeTax.Location = new Point(17, 200);
-            TotalWithheldIncomeTax.Name = "TotalWithheldIncomeTax";
-            TotalWithheldIncomeTax.PlaceholderText = "Total Withheld Income Tax";
-            TotalWithheldIncomeTax.ReadOnly = true;
-            TotalWithheldIncomeTax.Size = new Size(200, 24);
-            TotalWithheldIncomeTax.TabIndex = 12;
+            refUSINlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            refUSINlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            refUSINlbl.Location = new Point(791, 21);
+            refUSINlbl.Name = "refUSINlbl";
+            refUSINlbl.Size = new Size(88, 20);
+            refUSINlbl.TabIndex = 75;
+            refUSINlbl.Text = "Ref USIN";
             // 
-            // TotalFEDPayablelbl
+            // paymentmodelbl
             // 
-            TotalFEDPayablelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalFEDPayablelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalFEDPayablelbl.Location = new Point(906, 175);
-            TotalFEDPayablelbl.Name = "TotalFEDPayablelbl";
-            TotalFEDPayablelbl.Size = new Size(142, 20);
-            TotalFEDPayablelbl.TabIndex = 65;
-            TotalFEDPayablelbl.Text = "Total FED Payable";
+            paymentmodelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            paymentmodelbl.ForeColor = Color.FromArgb(75, 85, 99);
+            paymentmodelbl.Location = new Point(459, 21);
+            paymentmodelbl.Name = "paymentmodelbl";
+            paymentmodelbl.Size = new Size(120, 20);
+            paymentmodelbl.TabIndex = 72;
+            paymentmodelbl.Text = "Payment Mode";
             // 
-            // TotalFEDPayable
+            // TotalSaleValuelbl
             // 
-            TotalFEDPayable.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalFEDPayable.Location = new Point(903, 198);
-            TotalFEDPayable.Name = "TotalFEDPayable";
-            TotalFEDPayable.PlaceholderText = "Total FED Payable";
-            TotalFEDPayable.ReadOnly = true;
-            TotalFEDPayable.Size = new Size(200, 24);
-            TotalFEDPayable.TabIndex = 16;
+            TotalSaleValuelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            TotalSaleValuelbl.ForeColor = Color.FromArgb(75, 85, 99);
+            TotalSaleValuelbl.Location = new Point(240, 175);
+            TotalSaleValuelbl.Name = "TotalSaleValuelbl";
+            TotalSaleValuelbl.Size = new Size(142, 20);
+            TotalSaleValuelbl.TabIndex = 69;
+            TotalSaleValuelbl.Text = "Total Sale Value";
             // 
-            // TotalExtraTaxlbl
+            // TotalSaleValue
             // 
-            TotalExtraTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalExtraTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalExtraTaxlbl.Location = new Point(685, 175);
-            TotalExtraTaxlbl.Name = "TotalExtraTaxlbl";
-            TotalExtraTaxlbl.Size = new Size(142, 20);
-            TotalExtraTaxlbl.TabIndex = 63;
-            TotalExtraTaxlbl.Text = "Total Extra Tax";
+            TotalSaleValue.Font = new Font("Microsoft Sans Serif", 9F);
+            TotalSaleValue.Location = new Point(237, 198);
+            TotalSaleValue.Name = "TotalSaleValue";
+            TotalSaleValue.PlaceholderText = "Total Sale Value";
+            TotalSaleValue.ReadOnly = true;
+            TotalSaleValue.Size = new Size(200, 24);
+            TotalSaleValue.TabIndex = 13;
             // 
-            // TotalExtraTax
+            // TotalQuantitylbl
             // 
-            TotalExtraTax.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalExtraTax.Location = new Point(682, 198);
-            TotalExtraTax.Name = "TotalExtraTax";
-            TotalExtraTax.PlaceholderText = "Total Extra Tax";
-            TotalExtraTax.ReadOnly = true;
-            TotalExtraTax.Size = new Size(200, 24);
-            TotalExtraTax.TabIndex = 15;
+            TotalQuantitylbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            TotalQuantitylbl.ForeColor = Color.FromArgb(75, 85, 99);
+            TotalQuantitylbl.Location = new Point(20, 177);
+            TotalQuantitylbl.Name = "TotalQuantitylbl";
+            TotalQuantitylbl.Size = new Size(203, 20);
+            TotalQuantitylbl.TabIndex = 67;
+            TotalQuantitylbl.Text = "Total Quantity";
             // 
-            // TotalSTWithheldlbl
+            // TotalQuantity
             // 
-            TotalSTWithheldlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalSTWithheldlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalSTWithheldlbl.Location = new Point(465, 177);
-            TotalSTWithheldlbl.Name = "TotalSTWithheldlbl";
-            TotalSTWithheldlbl.Size = new Size(203, 20);
-            TotalSTWithheldlbl.TabIndex = 61;
-            TotalSTWithheldlbl.Text = "Total ST Withheld At Source";
+            TotalQuantity.Font = new Font("Microsoft Sans Serif", 9F);
+            TotalQuantity.Location = new Point(17, 200);
+            TotalQuantity.Name = "TotalQuantity";
+            TotalQuantity.PlaceholderText = "Total Quantity";
+            TotalQuantity.ReadOnly = true;
+            TotalQuantity.Size = new Size(200, 24);
+            TotalQuantity.TabIndex = 12;
             // 
-            // TotalSTWithheld
+            // totalFurtherTaxlbl
             // 
-            TotalSTWithheld.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalSTWithheld.Location = new Point(462, 200);
-            TotalSTWithheld.Name = "TotalSTWithheld";
-            TotalSTWithheld.PlaceholderText = "Total ST Withheld At Source";
-            TotalSTWithheld.ReadOnly = true;
-            TotalSTWithheld.Size = new Size(200, 24);
-            TotalSTWithheld.TabIndex = 14;
+            totalFurtherTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            totalFurtherTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            totalFurtherTaxlbl.Location = new Point(911, 175);
+            totalFurtherTaxlbl.Name = "totalFurtherTaxlbl";
+            totalFurtherTaxlbl.Size = new Size(142, 20);
+            totalFurtherTaxlbl.TabIndex = 65;
+            totalFurtherTaxlbl.Text = "FurtherTax";
             // 
-            // TotalRetailPricelbl
+            // TotalFurtherTax
             // 
-            TotalRetailPricelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalRetailPricelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalRetailPricelbl.Location = new Point(906, 23);
-            TotalRetailPricelbl.Name = "TotalRetailPricelbl";
-            TotalRetailPricelbl.Size = new Size(142, 20);
-            TotalRetailPricelbl.TabIndex = 59;
-            TotalRetailPricelbl.Text = "Total Retail Price";
+            TotalFurtherTax.Font = new Font("Microsoft Sans Serif", 9F);
+            TotalFurtherTax.Location = new Point(908, 198);
+            TotalFurtherTax.Name = "TotalFurtherTax";
+            TotalFurtherTax.PlaceholderText = "Further Tax";
+            TotalFurtherTax.ReadOnly = true;
+            TotalFurtherTax.Size = new Size(195, 24);
+            TotalFurtherTax.TabIndex = 16;
             // 
-            // TotalRetailPrice
+            // Discountlbl
             // 
-            TotalRetailPrice.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalRetailPrice.Location = new Point(903, 46);
-            TotalRetailPrice.Name = "TotalRetailPrice";
-            TotalRetailPrice.PlaceholderText = "Total Retail Price";
-            TotalRetailPrice.ReadOnly = true;
-            TotalRetailPrice.Size = new Size(200, 24);
-            TotalRetailPrice.TabIndex = 6;
+            Discountlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            Discountlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            Discountlbl.Location = new Point(685, 175);
+            Discountlbl.Name = "Discountlbl";
+            Discountlbl.Size = new Size(142, 20);
+            Discountlbl.TabIndex = 63;
+            Discountlbl.Text = "Discount";
             // 
-            // TotalSalesTaxApplicablelbl
+            // Discount
             // 
-            TotalSalesTaxApplicablelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            TotalSalesTaxApplicablelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TotalSalesTaxApplicablelbl.Location = new Point(906, 94);
-            TotalSalesTaxApplicablelbl.Name = "TotalSalesTaxApplicablelbl";
-            TotalSalesTaxApplicablelbl.Size = new Size(214, 20);
-            TotalSalesTaxApplicablelbl.TabIndex = 57;
-            TotalSalesTaxApplicablelbl.Text = "Total Sales Tax Applicable";
+            Discount.Font = new Font("Microsoft Sans Serif", 9F);
+            Discount.Location = new Point(682, 198);
+            Discount.Name = "Discount";
+            Discount.PlaceholderText = "Discount";
+            Discount.ReadOnly = true;
+            Discount.Size = new Size(200, 24);
+            Discount.TabIndex = 15;
             // 
-            // STapplicable
+            // TotalTaxChargedlbl
             // 
-            STapplicable.Font = new Font("Microsoft Sans Serif", 9F);
-            STapplicable.Location = new Point(903, 117);
-            STapplicable.Name = "STapplicable";
-            STapplicable.PlaceholderText = "Total Sales Tax Applicable";
-            STapplicable.ReadOnly = true;
-            STapplicable.Size = new Size(200, 24);
-            STapplicable.TabIndex = 11;
+            TotalTaxChargedlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            TotalTaxChargedlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            TotalTaxChargedlbl.Location = new Point(465, 177);
+            TotalTaxChargedlbl.Name = "TotalTaxChargedlbl";
+            TotalTaxChargedlbl.Size = new Size(194, 20);
+            TotalTaxChargedlbl.TabIndex = 61;
+            TotalTaxChargedlbl.Text = "Total Tax Charged";
             // 
-            // SaleType
+            // TotalTaxCharged
             // 
-            SaleType.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SaleType.BackColor = Color.White;
-            SaleType.Font = new Font("Microsoft Sans Serif", 9F);
-            SaleType.ImeMode = ImeMode.Disable;
-            SaleType.Location = new Point(459, 44);
-            SaleType.Name = "SaleType";
-            SaleType.PlaceholderText = "Sale Type";
-            SaleType.Size = new Size(200, 24);
-            SaleType.TabIndex = 4;
-            SaleType.Text = "1";
+            TotalTaxCharged.Font = new Font("Microsoft Sans Serif", 9F);
+            TotalTaxCharged.Location = new Point(462, 200);
+            TotalTaxCharged.Name = "TotalTaxCharged";
+            TotalTaxCharged.PlaceholderText = "Total Tax Charged";
+            TotalTaxCharged.ReadOnly = true;
+            TotalTaxCharged.Size = new Size(197, 24);
+            TotalTaxCharged.TabIndex = 14;
             // 
-            // SaleTypelbl
+            // TotalBillAmountlbl
             // 
-            SaleTypelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            SaleTypelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            SaleTypelbl.Location = new Point(462, 21);
-            SaleTypelbl.Name = "SaleTypelbl";
-            SaleTypelbl.Size = new Size(197, 20);
-            SaleTypelbl.TabIndex = 56;
-            SaleTypelbl.Text = "Sale Type";
+            TotalBillAmountlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            TotalBillAmountlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            TotalBillAmountlbl.Location = new Point(911, 95);
+            TotalBillAmountlbl.Name = "TotalBillAmountlbl";
+            TotalBillAmountlbl.Size = new Size(142, 20);
+            TotalBillAmountlbl.TabIndex = 59;
+            TotalBillAmountlbl.Text = "Total Bill Amount";
             // 
-            // DestinationAddresslbl
+            // TotalBillAmount
             // 
-            DestinationAddresslbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            DestinationAddresslbl.ForeColor = Color.FromArgb(75, 85, 99);
-            DestinationAddresslbl.Location = new Point(685, 23);
-            DestinationAddresslbl.Name = "DestinationAddresslbl";
-            DestinationAddresslbl.Size = new Size(160, 20);
-            DestinationAddresslbl.TabIndex = 53;
-            DestinationAddresslbl.Text = "Destination Address";
+            TotalBillAmount.Font = new Font("Microsoft Sans Serif", 9F);
+            TotalBillAmount.Location = new Point(911, 118);
+            TotalBillAmount.Name = "TotalBillAmount";
+            TotalBillAmount.PlaceholderText = "Total Bill Amount";
+            TotalBillAmount.ReadOnly = true;
+            TotalBillAmount.Size = new Size(192, 24);
+            TotalBillAmount.TabIndex = 6;
             // 
-            // DestinationAddress
+            // USIN
             // 
-            DestinationAddress.Font = new Font("Microsoft Sans Serif", 9F);
-            DestinationAddress.Location = new Point(682, 46);
-            DestinationAddress.Name = "DestinationAddress";
-            DestinationAddress.PlaceholderText = "Destination Address";
-            DestinationAddress.Size = new Size(197, 24);
-            DestinationAddress.TabIndex = 5;
-            DestinationAddress.Text = "2";
+            USIN.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            USIN.BackColor = Color.White;
+            USIN.Font = new Font("Microsoft Sans Serif", 9F);
+            USIN.ImeMode = ImeMode.Disable;
+            USIN.Location = new Point(682, 44);
+            USIN.Name = "USIN";
+            USIN.PlaceholderText = "USIN";
+            USIN.Size = new Size(91, 24);
+            USIN.TabIndex = 4;
+            USIN.Text = "1";
+            // 
+            // USINlbl
+            // 
+            USINlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            USINlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            USINlbl.Location = new Point(685, 21);
+            USINlbl.Name = "USINlbl";
+            USINlbl.Size = new Size(76, 20);
+            USINlbl.TabIndex = 56;
+            USINlbl.Text = "USIN";
+            USINlbl.Click += SaleTypelbl_Click;
+            // 
+            // InvoiceNumberlbl
+            // 
+            InvoiceNumberlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            InvoiceNumberlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            InvoiceNumberlbl.Location = new Point(911, 23);
+            InvoiceNumberlbl.Name = "InvoiceNumberlbl";
+            InvoiceNumberlbl.Size = new Size(160, 20);
+            InvoiceNumberlbl.TabIndex = 53;
+            InvoiceNumberlbl.Text = "Invoice Number";
+            // 
+            // InvoiceNumber
+            // 
+            InvoiceNumber.Font = new Font("Microsoft Sans Serif", 9F);
+            InvoiceNumber.Location = new Point(908, 46);
+            InvoiceNumber.Name = "InvoiceNumber";
+            InvoiceNumber.PlaceholderText = "Invoice Number";
+            InvoiceNumber.Size = new Size(195, 24);
+            InvoiceNumber.TabIndex = 5;
+            InvoiceNumber.Text = "2";
             // 
             // invoicetypelbl
             // 
             invoicetypelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             invoicetypelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            invoicetypelbl.Location = new Point(200, 21);
+            invoicetypelbl.Location = new Point(240, 21);
             invoicetypelbl.Name = "invoicetypelbl";
             invoicetypelbl.Size = new Size(120, 20);
             invoicetypelbl.TabIndex = 52;
             invoicetypelbl.Text = "Invoice Type";
             // 
-            // chkUnregistered
+            // buyerphonelbl
             // 
-            chkUnregistered.AutoSize = true;
-            chkUnregistered.Font = new Font("Microsoft Sans Serif", 9F);
-            chkUnregistered.ForeColor = Color.FromArgb(75, 85, 99);
-            chkUnregistered.Location = new Point(324, 43);
-            chkUnregistered.Name = "chkUnregistered";
-            chkUnregistered.Size = new Size(114, 22);
-            chkUnregistered.TabIndex = 3;
-            chkUnregistered.Text = "Unregistered";
-            chkUnregistered.UseVisualStyleBackColor = true;
+            buyerphonelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            buyerphonelbl.ForeColor = Color.FromArgb(75, 85, 99);
+            buyerphonelbl.Location = new Point(682, 94);
+            buyerphonelbl.Name = "buyerphonelbl";
+            buyerphonelbl.Size = new Size(174, 20);
+            buyerphonelbl.TabIndex = 48;
+            buyerphonelbl.Text = "Buyer Phone number";
             // 
-            // chkRegistered
+            // buyerphone
             // 
-            chkRegistered.AutoSize = true;
-            chkRegistered.Checked = true;
-            chkRegistered.CheckState = CheckState.Checked;
-            chkRegistered.Font = new Font("Microsoft Sans Serif", 9F);
-            chkRegistered.ForeColor = Color.FromArgb(75, 85, 99);
-            chkRegistered.Location = new Point(200, 46);
-            chkRegistered.Name = "chkRegistered";
-            chkRegistered.Size = new Size(101, 22);
-            chkRegistered.TabIndex = 2;
-            chkRegistered.Text = "Registered";
-            chkRegistered.UseVisualStyleBackColor = true;
-            // 
-            // buyerBnamelbl
-            // 
-            buyerBnamelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            buyerBnamelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            buyerBnamelbl.Location = new Point(682, 94);
-            buyerBnamelbl.Name = "buyerBnamelbl";
-            buyerBnamelbl.Size = new Size(142, 20);
-            buyerBnamelbl.TabIndex = 48;
-            buyerBnamelbl.Text = "Buyer Name";
-            // 
-            // buyerBname
-            // 
-            buyerBname.Font = new Font("Microsoft Sans Serif", 9F);
-            buyerBname.Location = new Point(679, 117);
-            buyerBname.Name = "buyerBname";
-            buyerBname.PlaceholderText = "Buyer Name";
-            buyerBname.Size = new Size(200, 24);
-            buyerBname.TabIndex = 10;
-            buyerBname.Text = "5";
+            buyerphone.Font = new Font("Microsoft Sans Serif", 9F);
+            buyerphone.Location = new Point(679, 117);
+            buyerphone.Name = "buyerphone";
+            buyerphone.PlaceholderText = "Buyer Phone Number";
+            buyerphone.Size = new Size(200, 24);
+            buyerphone.TabIndex = 10;
+            buyerphone.Text = "5";
             // 
             // sellerBnamelbl
             // 
@@ -1303,17 +844,17 @@
             sellerBnamelbl.Name = "sellerBnamelbl";
             sellerBnamelbl.Size = new Size(131, 20);
             sellerBnamelbl.TabIndex = 46;
-            sellerBnamelbl.Text = "Seller Name";
+            sellerBnamelbl.Text = "Buyer Name";
             // 
-            // sellerBname
+            // BuyerBname
             // 
-            sellerBname.Font = new Font("Microsoft Sans Serif", 9F);
-            sellerBname.Location = new Point(459, 119);
-            sellerBname.Name = "sellerBname";
-            sellerBname.PlaceholderText = "Seller Name";
-            sellerBname.Size = new Size(200, 24);
-            sellerBname.TabIndex = 9;
-            sellerBname.Text = "1";
+            BuyerBname.Font = new Font("Microsoft Sans Serif", 9F);
+            BuyerBname.Location = new Point(459, 119);
+            BuyerBname.Name = "BuyerBname";
+            BuyerBname.PlaceholderText = "Buyer Name";
+            BuyerBname.Size = new Size(200, 24);
+            BuyerBname.TabIndex = 9;
+            BuyerBname.Text = "1";
             // 
             // buyerntnlabel
             // 
@@ -1323,27 +864,27 @@
             buyerntnlabel.Name = "buyerntnlabel";
             buyerntnlabel.Size = new Size(142, 20);
             buyerntnlabel.TabIndex = 44;
-            buyerntnlabel.Text = "Buyer NTN/CNIC";
+            buyerntnlabel.Text = "Buyer NTN";
             // 
             // buyerntn
             // 
             buyerntn.Font = new Font("Microsoft Sans Serif", 9F);
             buyerntn.Location = new Point(237, 118);
             buyerntn.Name = "buyerntn";
-            buyerntn.PlaceholderText = "Buyer NTN/CNIC";
+            buyerntn.PlaceholderText = "Buyer NTN";
             buyerntn.Size = new Size(200, 24);
             buyerntn.TabIndex = 8;
             buyerntn.Text = "61101458";
             // 
-            // sellerntnlabel
+            // buyercniclabel
             // 
-            sellerntnlabel.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            sellerntnlabel.ForeColor = Color.FromArgb(75, 85, 99);
-            sellerntnlabel.Location = new Point(20, 97);
-            sellerntnlabel.Name = "sellerntnlabel";
-            sellerntnlabel.Size = new Size(131, 20);
-            sellerntnlabel.TabIndex = 42;
-            sellerntnlabel.Text = "Seller NTN/CNIC";
+            buyercniclabel.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            buyercniclabel.ForeColor = Color.FromArgb(75, 85, 99);
+            buyercniclabel.Location = new Point(20, 97);
+            buyercniclabel.Name = "buyercniclabel";
+            buyercniclabel.Size = new Size(131, 20);
+            buyercniclabel.TabIndex = 42;
+            buyercniclabel.Text = "Buyer CNIC";
             // 
             // posid
             // 
@@ -1354,19 +895,19 @@
             posid.Location = new Point(17, 44);
             posid.Name = "posid";
             posid.PlaceholderText = "POS ID";
-            posid.Size = new Size(123, 24);
+            posid.Size = new Size(200, 24);
             posid.TabIndex = 0;
             posid.Text = "123456";
             // 
-            // sellerntn
+            // buyercnic
             // 
-            sellerntn.Font = new Font("Microsoft Sans Serif", 9F);
-            sellerntn.Location = new Point(17, 120);
-            sellerntn.Name = "sellerntn";
-            sellerntn.PlaceholderText = "Seller NTN/CNIC";
-            sellerntn.Size = new Size(200, 24);
-            sellerntn.TabIndex = 7;
-            sellerntn.Text = "6101589";
+            buyercnic.Font = new Font("Microsoft Sans Serif", 9F);
+            buyercnic.Location = new Point(17, 120);
+            buyercnic.Name = "buyercnic";
+            buyercnic.PlaceholderText = "Buyer CNIC";
+            buyercnic.Size = new Size(200, 24);
+            buyercnic.TabIndex = 7;
+            buyercnic.Text = "6101589";
             // 
             // label15
             // 
@@ -1388,17 +929,6 @@
             label31.TabIndex = 56;
             label31.Text = "Invoice Entry";
             // 
-            // extraTaxlbl
-            // 
-            extraTaxlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            extraTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            extraTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            extraTaxlbl.Location = new Point(715, 65);
-            extraTaxlbl.Name = "extraTaxlbl";
-            extraTaxlbl.Size = new Size(93, 20);
-            extraTaxlbl.TabIndex = 19;
-            extraTaxlbl.Text = "Extra Tax";
-            // 
             // item_entry
             // 
             AutoScaleDimensions = new SizeF(9F, 18F);
@@ -1414,7 +944,6 @@
             pnlBasicInfo.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             contentPanel.ResumeLayout(false);
-            contentPanel.PerformLayout();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ResumeLayout(false);
@@ -1426,41 +955,36 @@
         private System.Windows.Forms.TextBox txtBuyerName;
         private Panel pnlBasicInfo;
         private TextBox uom;
-        private Label label11;
-        private Label CVTlbl;
-        private TextBox cvt;
-        private TextBox ProductDescription;
-        private Label label14;
-        private TextBox SalesValueExclST;
-        private Label label6;
         //private TextBox saletype;
         private TextBox extratax;
-        private TextBox furturetax;
+        private Label itemDiscountlbl;
         private Label label8;
-        private TextBox textBox4;
+        private TextBox totalamount;
+
+        public TextBox PCTCode { get; private set; }
+
         private TextBox textBox5;
         private Label label7;
         private TextBox rate;
         private Label label5;
         private Label label2;
         private Label label1;
-        private TextBox ProductCode;
-        private Label lblSellerBusiness;
-        private Label STWithheldatSourcelbl;
-        private TextBox SalesTaxWithheldatSource;
-        private TextBox hscode;
+        private TextBox ItemCode;
+        private Label ItemNamelbl;
+        private Label FurtureTaxlbl;
+        private TextBox FurtureTax;
+        private TextBox ItemName;
         private Label lblBuyerAddress;
         private Label lblBasicInfo;
-        private TextBox fed;
-        private Label ProductCodelbl;
+        private Label ItemCodelbl;
         private Label lblSellerAddress;
         private TextBox qty;
         private Label lblCustomerRegType;
-        private Label lblBuyerRegNo;
-        private Label SroScheduleNolbl;
-        private TextBox SroScheduleNo;
+        private Label totalamountlbl;
         private Label lblItemEntry;
         private Button btnEdit;
+        private TextBox TaxRatebox;
+        private TextBox itemDiscount;
         private Button btnSave;
         private DataGridView dataGridView1;
         private DataGridViewTextBoxColumn colSrNo;
@@ -1486,7 +1010,6 @@
         private DataGridViewTextBoxColumn colTotalValuePayable;
         private DataGridViewTextBoxColumn colWHITSection1;
         private DataGridViewTextBoxColumn colWHITSection2;
-        private Label lblTotalItems;
         private Label lblInvoicesListing;
         private Button btn_remove;
         private Button btnProceed;
@@ -1497,47 +1020,42 @@
         private Label label15;
         private Label buyerntnlabel;
         private TextBox buyerntn;
-        private Label sellerntnlabel;
-        private TextBox sellerntn;
-        private Label SaleTypelbl;
-        private TextBox SaleType;
-        private Label TotalWithheldIncomeTaxlbl;
-        private TextBox TotalWithheldIncomeTax;
-        private Label buyerBnamelbl;
-        private TextBox buyerBname;
+        private Label buyercniclabel;
+        private TextBox buyercnic;
+        private Label USINlbl;
+        private TextBox USIN;
+        private Label TotalQuantitylbl;
+        private TextBox TotalQuantity;
+        private Label buyerphonelbl;
+        private TextBox buyerphone;
         private Label sellerBnamelbl;
-        private TextBox sellerBname;
+        private TextBox BuyerBname;
         private Label invoicetypelbl;
-        private CheckBox chkUnregistered;
-        private CheckBox chkRegistered;
-        private Label DestinationAddresslbl;
-        private TextBox DestinationAddress;
-        private Label TotalExtraTaxlbl;
-        private TextBox TotalExtraTax;
-        private Label TotalSTWithheldlbl;
-        private TextBox TotalSTWithheld;
-        private Label TotalRetailPricelbl;
-        private TextBox TotalRetailPrice;
-        private Label TotalSalesTaxApplicablelbl;
-        private TextBox STapplicable;
-        private Label TotalFEDPayablelbl;
-        private TextBox TotalFEDPayable;
-        private Label TotalCVTlbl;
-        private TextBox TotalCVT;
+        private Label InvoiceNumberlbl;
+        private TextBox InvoiceNumber;
+        private Label Discountlbl;
+        private TextBox Discount;
+        private Label TotalTaxChargedlbl;
+        private TextBox TotalTaxCharged;
+        private Label TotalBillAmountlbl;
+        private TextBox TotalBillAmount;
+        private Label totalFurtherTaxlbl;
+        private TextBox TotalFurtherTax;
+        private Label TotalSaleValuelbl;
+        private TextBox TotalSaleValue;
         private Label SalesTaxApplicablelbl;
         private TextBox SalesTaxApplicable;
         private TextBox RetailPrice;
-        private Label label16;
-        private TextBox whit1;
-        private TextBox whit2;
-        private Label whit2lbl;
-        private Label whit1lbl;
-        private Label TotalValuelbl;
-        private TextBox TotalValue;
-        private Label WHIT_Section_1lbl;
-        private TextBox WHIT_Section_1;
-        private Label WHIT_Section_2lbl;
-        private TextBox WHIT_Section_2;
-        private Label extraTaxlbl;
+        private Label salevaluelbl;
+        private TextBox salevalue;
+        private Label TaxRatelbl;
+        private Label paymentmodelbl;
+        private TextBox refUSIN;
+        private Label refUSINlbl;
+        private Label TaxChargedlbl;
+        private TextBox TaxCharged;
+        private TextBox pctCode;
+        private ComboBox paymentmode;
+        private ComboBox invoicetype;
     }
 }
