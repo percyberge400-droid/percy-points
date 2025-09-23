@@ -93,9 +93,14 @@ namespace POSPRA_WinFormsUI
                 TaxRate = double.TryParse(TaxRatebox.Text, out var taxRate) ? taxRate : 0d,
                 TaxCharged = decimal.TryParse(TaxCharged.Text, out var taxCharged) ? taxCharged : 0m,
                 Discount = decimal.TryParse(itemDiscount.Text, out var discount) ? discount : 0m,
-                FurtherTax = decimal.TryParse(FurtureTax.Text, out var furtherTax) ? furtherTax : 0m
+                FurtherTax = decimal.TryParse(FurtureTax.Text, out var furtherTax) ? furtherTax : 0m,
+
+                // NEW FIELDS
+                InvoiceType = GetSelectedInvoiceType(),
+                RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
         }
+
 
         private bool ValidateItemEntry(InvoiceItems inputData)
         {
@@ -250,7 +255,7 @@ namespace POSPRA_WinFormsUI
                     TaxRate = item.TaxRate,
                     Discount = item.Discount ?? 0m,
                     FurtherTax = item.FurtherTax ?? 0m,
-                    InvoiceType = (byte)GetSelectedInvoiceType(),  // int → byte
+                    InvoiceType = (byte)GetSelectedInvoiceType(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
                 }).ToList();
 
@@ -484,7 +489,6 @@ namespace POSPRA_WinFormsUI
             row.Cells["colProductCode"].Value = item.ItemCode ?? "";
             row.Cells["colHSCode"].Value = item.PCTCode ?? "";
             row.Cells["colProductDescription"].Value = item.ItemName ?? "";
-            row.Cells["colUOM"].Value = ""; // fill if you have a UOM field
 
             row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
             row.Cells["colRate"].Value = (item.SaleValue ?? 0m).ToString("0.00");
@@ -502,12 +506,31 @@ namespace POSPRA_WinFormsUI
             row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");    // absolute tax charged
             row.Cells["colFutureTax"].Value = (item.FurtherTax ?? 0m).ToString("0.00");
 
-            row.Cells["colInvoiceType"].Value = (item.InvoiceType != 0 ? item.InvoiceType.ToString() : "");
+            row.Cells["colInvoiceType"].Value = GetInvoiceTypeName(GetSelectedInvoiceType());
+
+
             row.Cells["colRefUSIN"].Value = item.RefUSIN ?? "";
         }
 
 
         #endregion
+
+        #region Helper Methods
+
+        private string GetInvoiceTypeName(byte invoiceType)
+        {
+            return invoiceType switch
+            {
+                1 => "Sale",
+                2 => "Purchase",
+                3 => "Debit",
+                4 => "Credit",
+            };
+        }
+
+
+        #endregion
+
 
         #region Calculations
 
@@ -564,39 +587,23 @@ namespace POSPRA_WinFormsUI
         #endregion
 
         #region Helper Methods for ComboBoxes
-
-        private int GetSelectedInvoiceType()
+        private byte GetSelectedInvoiceType()
         {
-            // Assuming invoicetype ComboBox has items like "Registered" = 1, "Unregistered" = 2
-            if (invoicetype.SelectedItem != null)
-            {
-                string selectedValue = invoicetype.SelectedItem.ToString();
-                return selectedValue.ToLower() switch
-                {
-                    "registered" => 1,
-                    "unregistered" => 2,
-                    _ => 1
-                };
-            }
-            return 1; // Default to registered
+            if (invoicetype.SelectedItem is KeyValuePair<byte, string> kvp)
+                return kvp.Key;
+
+            return 1; // Default to Sale
         }
 
-        private int GetSelectedPaymentMode()
+        private byte GetSelectedPaymentMode()
         {
-            // Assuming paymentmode ComboBox has items like "Cash" = 1, "Card" = 2, "Online" = 3
-            if (paymentmode.SelectedItem != null)
-            {
-                string selectedValue = paymentmode.SelectedItem.ToString();
-                return selectedValue.ToLower() switch
-                {
-                    "cash" => 1,
-                    "card" => 2,
-                    "online" => 3,
-                    _ => 1
-                };
-            }
-            return 1; // Default to cash
+            if (paymentmode.SelectedItem is KeyValuePair<byte, string> kvp)
+                return kvp.Key;
+
+            return 1; // Default to Card
         }
+
+
 
         #endregion
 
@@ -764,15 +771,6 @@ namespace POSPRA_WinFormsUI
                     try { if (font != null) ctrl.Font = font; } catch { }
                 }
             }
-        }
-
-        #endregion
-
-        #region Event Handlers for Miscellaneous UI Events
-
-        private void SaleTypelbl_Click(object sender, EventArgs e)
-        {
-            // Event handler for label click - can be implemented as needed
         }
 
         #endregion
