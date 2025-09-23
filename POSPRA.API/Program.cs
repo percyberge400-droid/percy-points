@@ -10,6 +10,7 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.UserService;
+using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -17,6 +18,7 @@ using POSPRA.Repositories.BaseRepository.Repository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.PosRepository;
+using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 
@@ -81,6 +83,7 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
             builder.Services.AddScoped<ILogRepository, LogRepository>();
             builder.Services.AddScoped<IPosClientRepository, PosClientRepository>();
+            builder.Services.AddScoped<IProductCatalogueRepository, ProductCatalogueRepository>();
 
             // Application services
             builder.Services.AddScoped<IUserService, UserService>();
@@ -90,6 +93,7 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             builder.Services.AddScoped<ILiveService, LiveService>();
+            builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
 
             // Http client
             builder.Services.AddHttpClient<HttpService>();
