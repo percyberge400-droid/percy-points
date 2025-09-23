@@ -84,6 +84,7 @@ namespace POSPRA_WinFormsUI
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
             services.AddTransient<item_entry>();
+            services.AddTransient<ExportInvoiceForm>();
 
             using var provider = services.BuildServiceProvider();
 
