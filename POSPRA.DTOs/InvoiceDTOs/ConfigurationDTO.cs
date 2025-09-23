@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.InvoiceDTOs
+﻿namespace POSPRA.DTOs.InvoiceDtos
 {
-    public class ConfigurationDTO
+    public class ConfigurationDto
     {
         public string? LogInterval { get; set; }
         public string? RecordInterval { get; set; }

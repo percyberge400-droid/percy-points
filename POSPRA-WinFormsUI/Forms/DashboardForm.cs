@@ -83,7 +83,7 @@ namespace POSPRA_WinFormsUI.Forms
                     // Map entity fields to grid columns
                     row.Cells["colId"].Value = inv.ID;
                     row.Cells["colPosId"].Value = inv.POSID;
-                    row.Cells["colInvoiceData"].Value = inv.InvoiceData ?? "N/A";
+                    //row.Cells["colInvoiceData"].Value = inv.InvoiceData ?? "N/A";
                     row.Cells["colInvoiceNumber"].Value = inv.InvoiceNumber ?? "N/A";
                     row.Cells["colIsSynced"].Value = inv.IsSynced == 1 ? "Yes" : "No";
                     row.Cells["colAttemptCount"].Value = inv.AttemptCount;
@@ -136,7 +136,7 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         int rowIndex = LogsDataGridView.Rows.Add();
                         var row = LogsDataGridView.Rows[rowIndex];
-                        row.Cells["colID"].Value = log.Id;
+                        row.Cells["colLogID"].Value = log.Id;
                         row.Cells["colMessage"].Value = log.Message ?? "No message";
                         row.Cells["colException"].Value = log.Type ?? "N/A";
                         row.Cells["logdatetime"].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss");

@@ -3,7 +3,7 @@ using AutoMapper;
 using Microsoft.Data.SqlClient; // ✅ correct namespace
 using POSPRA.Application.Services.HelperService;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.BaseRepository;
 using static POSPRA.Application.Utility.GlobalEnums;
 
@@ -22,7 +22,7 @@ namespace POSPRA.Application.Services.InvoiceService
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<List<POSVerificationDTO>>> POS_VerificationAsync(string bodyPosIds)
+        public async Task<ApiResponse<List<POSVerificationDto>>> POS_VerificationAsync(string bodyPosIds)
         {
             try
             {
@@ -40,9 +40,9 @@ namespace POSPRA.Application.Services.InvoiceService
                     parameters: parameters);
 
                 // ✅ AutoMapper converts dictionary rows to POSVerificationDTO
-                var dtoResults = _mapper.Map<List<POSVerificationDTO>>(rawResults);
+                var dtoResults = _mapper.Map<List<POSVerificationDto>>(rawResults);
 
-                return new ApiResponse<List<POSVerificationDTO>>(
+                return new ApiResponse<List<POSVerificationDto>>(
                     statusCode: ApiStatusCodes.Success,
                     message: dtoResults.Count > 0
                         ? "POS verification records found"
@@ -52,7 +52,7 @@ namespace POSPRA.Application.Services.InvoiceService
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<POSVerificationDTO>>(
+                return new ApiResponse<List<POSVerificationDto>>(
                     statusCode: ApiStatusCodes.Error,
                     message: "Error fetching POS verification: " + ex.Message,
                     data: null

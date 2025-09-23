@@ -1,190 +1,140 @@
 ﻿using System.Text.Json;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
 
 namespace POSPRA.Application.Services.LiveService
 {
-    public class LiveService : ILiveService
+    /// <summary>
+    /// Provides live operations such as decrypting incoming invoice data,
+    /// saving invoices and their items to SQL Server, and exporting
+    /// filtered invoices as CSV.
+    /// </summary>
+    public class LiveService(
+        IOptions<AppSettings> options,
+        SqlServerRepository<Invoice> invoiceRepository,
+        SqlServerRepository<InvoiceItems> invoiceItemsRepository,
+        IMapper mapper,
+        ISqlServerUnitOfWork sqlServerUnitOfWork,
+        ISqliteUnitOfWork sqliteUnitOfWork,
+        IFiscalRepository fiscalRepository) : ILiveService
     {
-        private readonly AppSettings _settings;
-        private readonly SqlServerRepository<Invoice> _invoiceRepository;
-        private readonly SqlServerRepository<InvoiceItems> _invoiceItemsRepository;
-        private readonly AutoMapper.IMapper _mapper;
-        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
-        private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
-        private readonly IFiscalRepository _fiscalRepository;
+        private readonly AppSettings _settings = options.Value;
+        private readonly SqlServerRepository<Invoice> _invoiceRepository = invoiceRepository;
+        private readonly SqlServerRepository<InvoiceItems> _invoiceItemsRepository = invoiceItemsRepository;
+        private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork = sqlServerUnitOfWork;
+        private readonly ISqliteUnitOfWork _sqliteUnitOfWork = sqliteUnitOfWork;
+        private readonly IFiscalRepository _fiscalRepository = fiscalRepository;
 
-        public LiveService(
-            IOptions<AppSettings> options,
-            SqlServerRepository<Invoice> invoiceRepository,
-            SqlServerRepository<InvoiceItems> invoiceItemsRepository,
-            IMapper mapper,
-            ISqlServerUnitOfWork sqlServerUnitOfWork,
-            ISqliteUnitOfWork sqliteUnitOfWork,
-            IFiscalRepository fiscalRepository)
+        /// <summary>
+        /// Decrypts a list of incoming <see cref="FileRecordDTO"/> objects,
+        /// extracts invoice data, and saves each valid invoice (with items) to the database.
+        /// </summary>
+        /// <param name="dtos">List of encrypted file record DTOs containing invoice data.</param>
+        /// <returns>
+        /// An <see cref="ApiResponse{FileRecordDTO}"/> indicating success or failure of the save operation.
+        /// </returns>
+        public async Task<ApiResponse<FileRecordDto>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos)
         {
-            _settings = options.Value;          // ← this should have EC populated
-            _invoiceRepository = invoiceRepository;
-            _invoiceItemsRepository = invoiceItemsRepository;
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _sqlServerUnitOfWork = sqlServerUnitOfWork;
-            _sqliteUnitOfWork = sqliteUnitOfWork;
-            _fiscalRepository = fiscalRepository;
-        }
-
-
-        public async Task<ApiResponse<FileRecordDTO>> SaveInvoicData(List<FileRecordDTO> dto)
-        {
-            if (!dto.Any())
-                return new ApiResponse<FileRecordDTO>(
-                    statusCode: ApiStatusCode.Error.ToString(),
-                    message: ResponseMessages.DataNotFound,
-                    data: null
-                );
+            // 🟢 Guard-clause: no input
+            if (dtos == null || dtos.Count == 0)
+                return new ApiResponse<FileRecordDto>(
+                    ApiStatusCode.Error.ToString(),
+                    ResponseMessages.DataNotFound,
+                    null);
 
             try
             {
-                await CreateDecryptedInvoice(dto);
-            }
-            catch (Exception ex)
-            {
-                return new ApiResponse<FileRecordDTO>(
-                statusCode: ApiStatusCode.Error.ToString(),
-                message: ResponseMessages.RecordSaved,
-                data: null
-                );
-            }
-
-            return new ApiResponse<FileRecordDTO>(
-                    statusCode: ApiStatusCode.Success.ToString(),
-                    message: ResponseMessages.RecordSaved,
-                    data: null
-            );
-        }
-
-        private async Task<ApiResponse<Invoice>> CreateDecryptedInvoice(List<FileRecordDTO> dTOs)
-        {
-            try
-            {
-                foreach (var item in dTOs)
+                foreach (var item in dtos)
                 {
-                    var decryptedInvoice = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
+                    //   Decrypt the payload
+                    var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
+                    if (string.IsNullOrWhiteSpace(decrypted))
+                        continue;
 
-                    var parts = decryptedInvoice.Split('|');
+                    //   Get the JSON part
+                    var jsonPart = decrypted.Split('|')[0];
+                    if (string.IsNullOrWhiteSpace(jsonPart))
+                        continue;
 
-                    // 2. The first part is the JSON
-                    var jsonPart = parts[0];
+                    //   Deserialize to DTO
+                    var invoiceDto = JsonSerializer.Deserialize<InvoiceDto>(
+                        jsonPart,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                    // 3. Deserialize to your object
-                    var invoiceDto = JsonSerializer.Deserialize<InvoiceDto>(jsonPart);
+                    if (invoiceDto == null)
+                        continue;
 
-                    var Invoice = await SaveInvoiceWithItems(invoiceDto);
-
-                    //if (!response.success)
-                    //{
-                    //    return new ApiResponse<Invoice>(
-                    //        statusCode: ApiStatusCode.Success.ToString(),
-                    //        message: ResponseMessages.RecordSaved,
-                    //        data: null
-                    //    );
-                    //}
-                    var fileRecord = await _fiscalRepository.FirstOrDefaultAsync(x => x.ID == item.ID && x.IsSynced == 0);
-                    if (fileRecord != null)
+                    //   Save invoice & items
+                    var response = await CreateInvoiceWithItemsAsync(invoiceDto);
+                    if (string.Equals(response.StatusCode,
+                                      ApiStatusCode.Success.ToString(),
+                                      StringComparison.OrdinalIgnoreCase))
                     {
-                        fileRecord.IsSynced = 1;
-                        await _sqliteUnitOfWork.SaveChangesAsync();
+                        return new ApiResponse<FileRecordDto>(
+                            ApiStatusCode.Success.ToString(),
+                            ResponseMessages.RecordSaved,
+                            null);
                     }
-
                 }
+
+                // No invoice succeeded
+                return new ApiResponse<FileRecordDto>(
+                    ApiStatusCode.Error.ToString(),
+                    ResponseMessages.UnknownError,
+                    null);
             }
             catch (Exception ex)
             {
-
+                return new ApiResponse<FileRecordDto>(
+                    ApiStatusCode.Error.ToString(),
+                    ex.Message,
+                    null);
             }
-            return new ApiResponse<Invoice>(
-                statusCode: ApiStatusCode.Success.ToString(),
-                message: ResponseMessages.RecordSaved,
-                data: null
-            );
         }
 
-        private async Task<ApiResponse<Invoice>> SaveInvoiceWithItems(InvoiceDto dto)
+        /// <summary>
+        /// Creates a single invoice record along with any associated
+        /// invoice items, saving both to the SQL Server database.
+        /// </summary>
+        /// <param name="dto">The invoice data transfer object to persist.</param>
+        /// <returns>
+        /// An <see cref="ApiResponse{Invoice}"/> indicating success or failure,
+        /// including the saved <see cref="Invoice"/> entity when successful.
+        /// </returns>
+        private async Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto)
         {
             try
             {
-                // 1️⃣ Save invoice first
-                var invoice = new Invoice
-                {
-                    BPOSID = dto.BPOSID,
-                    InvoiceType = dto.InvoiceType,
-                    InvoiceDate = dto.InvoiceDate >= new DateTime(1753, 1, 1) ? dto.InvoiceDate : DateTime.Now,
-                    NTN_CNIC = dto.NTN_CNIC,
-                    BuyerSellerName = dto.BuyerSellerName,
-                    DestinationAddress = dto.DestinationAddress,
-                    SaleType = dto.SaleType,
-                    TotalSalesTaxApplicable = dto.TotalSalesTaxApplicable,
-                    TotalRetailPrice = dto.TotalRetailPrice,
-                    TotalSTWithheldAtSource = dto.TotalSTWithheldAtSource,
-                    TotalExtraTax = dto.TotalExtraTax,
-                    TotalFEDPayable = dto.TotalFEDPayable,
-                    TotalWithheldIncomeTax = dto.TotalWithheldIncomeTax,
-                    TotalCVT = dto.TotalCVT,
-                    Distributor_NTN_CNIC = dto.Distributor_NTN_CNIC,
-                    DistributorName = dto.DistributorName,
-                    //EntryDate = DateTime.Now,
-                    IsActive = true
-                };
-
+                // Map & save invoice
+                var invoice = _mapper.Map<Invoice>(dto);
                 await _invoiceRepository.AddAsync(invoice);
-                await _sqlServerUnitOfWork.SaveChangesAsync(); // ✅ After this, invoice.InvoiceID is populated
+                await _sqlServerUnitOfWork.SaveChangesAsync();
 
-                if (dto.InvoiceItemDetails!.Any())
+                // Map & save items (if any)
+                if (dto.InvoiceItemDto?.Count > 0)
                 {
-                    var invoiceItemsList = dto.InvoiceItemDetails.Select(items => new InvoiceItems
-                    {
-                        InvoiceID = invoice.InvoiceID, // ← use the generated InvoiceID
-                        HSCode = items.HSCode,
-                        ProductCode = items.ProductCode,
-                        ProductDescription = items.ProductDescription,
-                        Rate = items.Rate,
-                        UoM = items.UoM,
-                        Quantity = items.Quantity,
-                        ValueSalesExcludingST = items.ValueSalesExcludingST,
-                        SalesTaxApplicable = items.SalesTaxApplicable,
-                        RetailPrice = items.RetailPrice,
-                        STWithheldAtSource = items.STWithheldAtSource,
-                        ExtraTax = items.ExtraTax,
-                        FurtherTax = items.FurtherTax,
-                        SroScheduleNo = items.SroScheduleNo,
-                        FedPayable = items.FedPayable,
-                        CVT = items.CVT,
-                        WHIT_1 = items.WHIT_1,
-                        WHIT_2 = items.WHIT_2,
-                        WHIT_Section_1 = items.WHIT_Section_1,
-                        WHIT_Section_2 = items.WHIT_Section_2,
-                        TotalValues = items.TotalValues,
-                        EntryDate = DateTime.Now,
-                        IsActive = true
-                    }).ToList();
+                    var items = _mapper.Map<List<InvoiceItems>>(dto.InvoiceItemDto);
+                    // Assign the generated InvoiceID to each item
+                    items.ForEach(i => i.InvoiceID = invoice.InvoiceID);
 
-                    await _invoiceItemsRepository.AddRangeAsync(invoiceItemsList);
+                    await _invoiceItemsRepository.AddRangeAsync(items);
                     await _sqlServerUnitOfWork.SaveChangesAsync();
                 }
 
-
-
                 return new ApiResponse<Invoice>(
-                    statusCode: ApiStatusCode.Success.ToString(),
-                    message: ResponseMessages.RecordSaved,
-                    data: invoice
-                );
+                    ApiStatusCode.Success.ToString(),
+                    ResponseMessages.RecordSaved,
+                    invoice);
             }
             catch (Exception ex)
             {
@@ -196,5 +146,55 @@ namespace POSPRA.Application.Services.LiveService
             }
         }
 
+        /// <summary>
+        /// Retrieves filtered invoices and converts them into a CSV-formatted string.
+        /// </summary>
+        /// <param name="dto">Filter criteria such as POS ID and date range.</param>
+        /// <returns>
+        /// An <see cref="ApiResponse{String}"/> containing the CSV representation of the invoices.
+        /// </returns>
+        public async Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto)
+        {
+            // Get the filtered invoices
+            var invoices = await GetInvoicesAsync(dto);
+
+            // Convert to CSV
+            var csv = CsvUtility.ToCsv(invoices);
+
+            // Wrap in your ApiResponse<T>
+            return new ApiResponse<string>(
+                ApiStatusCode.Success.ToString(),
+                ResponseMessages.RecordFound,
+                csv
+            );
+        }
+
+        /// <summary>
+        /// Applies filters to retrieve invoices from the SQL Server repository.
+        /// </summary>
+        /// <param name="dto">Filter object containing POS ID and optional date range.</param>
+        /// <returns>A filtered collection of <see cref="Invoice"/> entities.</returns>
+        private async Task<IEnumerable<Invoice>> GetInvoicesAsync(InvoiceFilterDto dto)
+        {
+            try
+            {
+                IQueryable<Invoice> query = _invoiceRepository.Query();
+
+                // Always restrict by the current POS (logged-in user)
+                query = query.Where(i => i.POSID == dto.PosId);
+
+                if (dto.FromDate.HasValue)
+                    query = query.Where(i => i.EntryDate >= dto.FromDate.Value);
+
+                if (dto.ToDate.HasValue)
+                    query = query.Where(i => i.EntryDate <= dto.ToDate.Value);
+
+                return await query.ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }

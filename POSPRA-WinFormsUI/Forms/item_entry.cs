@@ -1,9 +1,7 @@
 ﻿using System.Drawing.Drawing2D;
 using POSPRA.Application.Services.FiscalService;
-using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
-using POSPRA.Domain.ValueObjects;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.InvoiceDtos;
 
 namespace POSPRA_WinFormsUI
 {
@@ -44,15 +42,21 @@ namespace POSPRA_WinFormsUI
             pnlBasicInfo.Resize += (s, e) => MakeRoundedControl(pnlBasicInfo, 25);
             panel1.Resize += (s, e) => MakeRoundedControl(panel1, 25);
 
-            btnProceed.Click += BtnProceed_Click;      // Add / Update item behaviour (kept name: Proceed)
+            btnProceed.Click += BtnProceed_Click;      // Add / Update item behaviour
             btnSave.Click += BtnSave_Click;            // Persist invoice + items
             btnEdit.Click += btnEdit_Click;
+            btn_remove.Click += btn_remove_Click;
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
-            chkRegistered.CheckedChanged += ChkRegistered_CheckedChanged;
-            chkUnregistered.CheckedChanged += ChkUnregistered_CheckedChanged;
+
+            // Field calculation events
+            qty.TextChanged += CalculateItemTotals;
+            salevalue.TextChanged += CalculateItemTotals;
+            TaxRatebox.TextChanged += CalculateItemTotals;
+            itemDiscount.TextChanged += CalculateItemTotals;
 
             SetupContextMenu();
             CaptureOriginalLayout();
+            InitializeEmptyGrid();
         }
 
         #endregion
@@ -62,8 +66,8 @@ namespace POSPRA_WinFormsUI
         private void InitializeEmptyGrid()
         {
             dataGridView1.Rows.Clear();
-            lblTotalItems.Text = "Total 0 items";
-            ProductCode.Focus();
+            // lblTotalItems.Text = "Total 0 items"; // Commented out - control doesn't exist
+            ItemCode.Focus();
         }
 
         private void SetupContextMenu()
@@ -80,60 +84,39 @@ namespace POSPRA_WinFormsUI
         {
             return new InvoiceItems
             {
-                ProductCode = ProductCode.Text.Trim(),
-                UoM = int.TryParse(uom.Text, out var uomVal) ? uomVal : 0,
-                Rate = decimal.TryParse(rate.Text, out var rateVal) ? rateVal : 0m,
-                ProductDescription = ProductDescription.Text.Trim(),
-                TotalValues = decimal.TryParse(TotalValue.Text, out var totalVal) ? totalVal : 0m,
-                SalesTaxApplicable = decimal.TryParse(SalesTaxApplicable.Text, out var salesTax) ? salesTax : 0m,
-                ExtraTax = decimal.TryParse(extratax.Text, out var extraTax) ? extraTax : (decimal?)null,
-                FurtherTax = decimal.TryParse(furturetax.Text, out var furtherTax) ? furtherTax : (decimal?)null,
-                SroScheduleNo = int.TryParse(SroScheduleNo.Text, out var sroVal) ? sroVal : (int?)null,
-                HSCode = hscode.Text.Trim(),
+                ItemCode = ItemCode.Text.Trim(),
+                ItemName = ItemName.Text.Trim(),
+                PCTCode = pctCode.Text.Trim(),
                 Quantity = decimal.TryParse(qty.Text, out var qtyVal) ? qtyVal : 0m,
-                RetailPrice = decimal.TryParse(RetailPrice.Text, out var retailPrice) ? retailPrice : 0m,
-                FedPayable = decimal.TryParse(fed.Text, out var fedVal) ? fedVal : (decimal?)null,
-                ValueSalesExcludingST = decimal.TryParse(SalesValueExclST.Text, out var exclST) ? exclST : 0m,
-                STWithheldAtSource = decimal.TryParse(SalesTaxWithheldatSource.Text, out var stWithheld) ? stWithheld : (decimal?)null,
-                CVT = decimal.TryParse(cvt.Text, out var cvtVal) ? cvtVal : (decimal?)null,
-                WHIT_1 = decimal.TryParse(whit1.Text, out var whit1Val) ? whit1Val : (decimal?)null,
-                WHIT_2 = decimal.TryParse(whit2.Text, out var whit2Val) ? whit2Val : (decimal?)null,
-                WHIT_Section_1 = WHIT_Section_1.Text.Trim(),
-                WHIT_Section_2 = WHIT_Section_2.Text.Trim(),
+                SaleValue = decimal.TryParse(salevalue.Text, out var saleVal) ? saleVal : 0m,
+                TotalAmount = decimal.TryParse(totalamount.Text, out var totalVal) ? totalVal : 0m,
+                TaxRate = double.TryParse(TaxRatebox.Text, out var taxRate) ? taxRate : 0d,
+                TaxCharged = decimal.TryParse(TaxCharged.Text, out var taxCharged) ? taxCharged : 0m,
+                Discount = decimal.TryParse(itemDiscount.Text, out var discount) ? discount : 0m,
+                FurtherTax = decimal.TryParse(FurtureTax.Text, out var furtherTax) ? furtherTax : 0m,
+
+                // NEW FIELDS
+                InvoiceType = GetSelectedInvoiceType(),
+                RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
         }
 
+
         private bool ValidateItemEntry(InvoiceItems inputData)
         {
-            // Product Code
-            if (string.IsNullOrWhiteSpace(inputData.ProductCode))
+            // Item Code
+            if (string.IsNullOrWhiteSpace(inputData.ItemCode))
             {
-                MessageBox.Show("Please enter a Product Code.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                ProductCode.Focus();
+                MessageBox.Show("Please enter an Item Code.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ItemCode.Focus();
                 return false;
             }
 
-            // UOM
-            if (inputData.UoM <= 0)
+            // Item Name
+            if (string.IsNullOrWhiteSpace(inputData.ItemName))
             {
-                MessageBox.Show("Please enter a valid UOM.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                uom.Focus();
-                return false;
-            }
-
-            // Rate
-            if (inputData.Rate <= 0)
-            {
-                MessageBox.Show("Please enter a valid Rate greater than 0.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                rate.Focus();
-                return false;
-            }
-
-            // Product Description
-            if (string.IsNullOrWhiteSpace(inputData.ProductDescription))
-            {
-                MessageBox.Show("Please enter a Product Description.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                ProductDescription.Focus();
+                MessageBox.Show("Please enter an Item Name.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ItemName.Focus();
                 return false;
             }
 
@@ -145,11 +128,11 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
-            // Value Sales Excluding ST
-            if (inputData.ValueSalesExcludingST < 0)
+            // Sale Value
+            if (inputData.SaleValue <= 0)
             {
-                MessageBox.Show("Please enter a valid Value Sales Excluding ST (0 or higher).", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                SalesValueExclST.Focus();
+                MessageBox.Show("Please enter a valid Sale Value greater than 0.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                salevalue.Focus();
                 return false;
             }
 
@@ -158,7 +141,7 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
-        #region Buttons: Proceed (Add/Update) & Save
+        #region Buttons: Proceed (Add/Update), Save, Edit, Remove
 
         private void BtnProceed_Click(object sender, EventArgs e)
         {
@@ -171,7 +154,7 @@ namespace POSPRA_WinFormsUI
                     if (res == DialogResult.No) return;
                 }
 
-                // ensure CurrentInvoice updated with header values
+                // Ensure CurrentInvoice updated with header values
                 CurrentInvoice = CollectInvoiceData();
 
                 InvoiceItems inputData = GetTextboxData();
@@ -179,14 +162,14 @@ namespace POSPRA_WinFormsUI
                 if (!ValidateItemEntry(inputData))
                     return;
 
-                // FIXED: detect duplicate by ProductCode using correct column name
+                // Check for duplicate by ItemCode
                 var existingRow = dataGridView1.Rows
                     .Cast<DataGridViewRow>()
-                    .FirstOrDefault(r => (r.Cells["colProductCode"].Value?.ToString() ?? "") == inputData.ProductCode);
+                    .FirstOrDefault(r => (r.Cells["colProductCode"].Value?.ToString() ?? "") == inputData.ItemCode);
 
                 if (existingRow != null)
                 {
-                    var result = MessageBox.Show($"Product Code '{inputData.ProductCode}' already exists. Do you want to update it?",
+                    var result = MessageBox.Show($"Item Code '{inputData.ItemCode}' already exists. Do you want to update it?",
                         "Item Exists", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (result == DialogResult.Yes)
@@ -199,23 +182,22 @@ namespace POSPRA_WinFormsUI
                     }
                     else
                     {
-                        ProductCode.Focus();
+                        ItemCode.Focus();
                         return;
                     }
                 }
                 else
                 {
-                    // FIXED: Use AddItemToDataGrid method instead of manual row addition
                     AddItemToDataGrid(inputData);
                     addedItems.Add(inputData);
                 }
 
                 // Update UI
-                lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
+                // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
                 ClearFormFields();
 
-                MessageBox.Show($"Item '{inputData.ProductCode}' added/updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                ProductCode.Focus();
+                MessageBox.Show($"Item '{inputData.ItemCode}' added/updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ItemCode.Focus();
                 UpdateInvoiceTotals();
             }
             catch (Exception ex)
@@ -224,7 +206,6 @@ namespace POSPRA_WinFormsUI
             }
         }
 
-        // Save button: persist invoice + session to service
         private async void BtnSave_Click(object sender, EventArgs e)
         {
             try
@@ -243,7 +224,7 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                // ✅ Ask for confirmation here
+                // Ask for confirmation
                 var confirm = MessageBox.Show(
                     "Are you sure you want to save this invoice?",
                     "Confirm Save",
@@ -252,7 +233,6 @@ namespace POSPRA_WinFormsUI
 
                 if (confirm != DialogResult.Yes)
                 {
-                    // User pressed No → stop execution
                     return;
                 }
 
@@ -262,74 +242,67 @@ namespace POSPRA_WinFormsUI
                     CurrentInvoice = CollectInvoiceData();
                 }
 
-                // Map InvoiceItemDetail -> InvoiceItemDetailDto
-                var itemDtos = addedItems.Select(i => new InvoiceItemDetailDto
+                // Map InvoiceItems to InvoiceItemDto
+                var itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
-                    HSCode = i.HSCode,
-                    ProductCode = i.ProductCode,
-                    ProductDescription = i.ProductDescription,
-                    Rate = i.Rate,
-                    UoM = i.UoM,
-                    Quantity = i.Quantity,
-                    ValueSalesExcludingST = i.ValueSalesExcludingST,
-                    SalesTaxApplicable = i.SalesTaxApplicable,
-                    RetailPrice = i.RetailPrice,
-                    STWithheldAtSource = i.STWithheldAtSource,
-                    ExtraTax = i.ExtraTax,
-                    FurtherTax = i.FurtherTax,
-                    SroScheduleNo = i.SroScheduleNo,
-                    FedPayable = i.FedPayable,
-                    CVT = i.CVT,
-                    WHIT_1 = i.WHIT_1,
-                    WHIT_2 = i.WHIT_2,
-                    WHIT_Section_1 = i.WHIT_Section_1,
-                    WHIT_Section_2 = i.WHIT_Section_2,
-                    TotalValues = i.TotalValues
+                    ItemCode = item.ItemCode,
+                    ItemName = item.ItemName,
+                    PCTCode = item.PCTCode,
+                    Quantity = item.Quantity ?? 0m,           // decimal? → decimal
+                    SaleValue = item.SaleValue ?? 0m,
+                    TotalAmount = item.TotalAmount ?? 0m,
+                    TaxCharged = item.TaxCharged ?? 0m,
+                    TaxRate = item.TaxRate,
+                    Discount = item.Discount ?? 0m,
+                    FurtherTax = item.FurtherTax ?? 0m,
+                    InvoiceType = (byte)GetSelectedInvoiceType(),
+                    RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
                 }).ToList();
 
-                // Map Invoice -> InvoiceDto
-                var dto = new InvoiceDto
+
+                // Map Invoice to InvoiceDto
+                var invoiceDto = new InvoiceDto
                 {
-                    BPOSID = int.TryParse(posid.Text, out var bposId) ? bposId : GlobalVariables.POS_ID,
-                    InvoiceType = chkRegistered.Checked ? (short)1 : (chkUnregistered.Checked ? (short)2 : (short)0),
-                    InvoiceDate = DateTime.Now,
-                    NTN_CNIC = sellerntn.Text,
-                    BuyerSellerName = sellerBname.Text,
-                    DestinationAddress = DestinationAddress.Text,
-                    SaleType = int.TryParse(SaleType.Text, out var saleType) ? saleType : 1,
-                    TotalSalesTaxApplicable = decimal.TryParse(SalesTaxApplicable.Text, out var st) ? st : 0,
-                    TotalRetailPrice = decimal.TryParse(RetailPrice.Text, out var retail) ? retail : itemDtos.Sum(x => x.RetailPrice),
-                    TotalSTWithheldAtSource = decimal.TryParse(TotalSTWithheld.Text, out var withheld) ? withheld : 0,
-                    TotalExtraTax = decimal.TryParse(extratax.Text, out var extraTax) ? extraTax : 0,
-                    TotalFEDPayable = decimal.TryParse(TotalFEDPayable.Text, out var fed) ? fed : 0,
-                    TotalWithheldIncomeTax = decimal.TryParse(TotalWithheldIncomeTax.Text, out var incomeTax) ? incomeTax : 0,
-                    TotalCVT = decimal.TryParse(TotalCVT.Text, out var cvt) ? cvt : 0,
-                    Distributor_NTN_CNIC = buyerntn.Text,
-                    DistributorName = buyerBname.Text,
-                    InvoiceItemDetails = itemDtos
+                    POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
+                    InvoiceNumber = InvoiceNumber.Text.Trim(),
+                    USIN = USIN.Text.Trim(),
+                    RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
+                    InvoiceType = (byte)GetSelectedInvoiceType(),
+                    BuyerNTN = buyerntn.Text.Trim(),
+                    BuyerCNIC = buyercnic.Text.Trim(),
+                    BuyerName = BuyerBname.Text.Trim(),
+                    BuyerPhoneNumber = buyerphone.Text.Trim(),
+                    PaymentMode = GetSelectedPaymentMode(),
+                    TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
+                    TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
+                    TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue),
+                    TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
+                    Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
+                    FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : itemDtos.Sum(x => x.FurtherTax),
+                    DateTime = DateTime.Now,
+                    InvoiceItemDto = itemDtos
                 };
 
-                //await PostInvoiceAsync(dto);
-
                 // Post to fiscal service
-                var output = await _fiscalService.CreateAsync(dto);
-                if (output.StatusCode == ApiStatusCode.Success.ToString())
+                var output = await _fiscalService.CreateAsync(invoiceDto);
+
+                if (output.StatusCode == "Success")
                 {
                     MessageBox.Show(output.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     // Clear session
                     addedItems.Clear();
                     dataGridView1.Rows.Clear();
-                    lblTotalItems.Text = "Total 0 items";
+                    // lblTotalItems.Text = "Total 0 items"; // Commented out - control doesn't exist
                     CurrentInvoice = null;
                     _sessionItems.Clear();
                     UpdateInvoiceTotals();
+                    ClearInvoiceFields();
                 }
                 else
                 {
                     MessageBox.Show(output.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
             }
             catch (Exception ex)
             {
@@ -341,72 +314,54 @@ namespace POSPRA_WinFormsUI
         {
             try
             {
-                // 1) ensure a row is selected
                 if (dataGridView1.SelectedRows.Count == 0)
                 {
                     MessageBox.Show("Please select a row to edit.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // 2) FIXED: get selected row using correct column name
                 var row = dataGridView1.SelectedRows[0];
-                string productCode = row.Cells["colProductCode"].Value?.ToString()?.Trim();
+                string itemCode = row.Cells["colProductCode"].Value?.ToString()?.Trim();
 
-                if (string.IsNullOrEmpty(productCode))
+                if (string.IsNullOrEmpty(itemCode))
                 {
-                    MessageBox.Show("Product code is missing for this row.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Item code is missing for this row.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // 3) find item in list
-                int itemIndex = addedItems.FindIndex(i => string.Equals(i.ProductCode?.Trim(), productCode, StringComparison.OrdinalIgnoreCase));
+                int itemIndex = addedItems.FindIndex(i => string.Equals(i.ItemCode?.Trim(), itemCode, StringComparison.OrdinalIgnoreCase));
 
                 if (itemIndex < 0)
                 {
-                    MessageBox.Show($"Item with Product Code '{productCode}' was not found in the current list.", "Not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"Item with Item Code '{itemCode}' was not found in the current list.", "Not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 var item = addedItems[itemIndex];
 
-                // 4) populate form fields
-                ProductCode.Text = item.ProductCode ?? "";
-                ProductDescription.Text = item.ProductDescription ?? "";
-                uom.Text = item.UoM.ToString();
-                rate.Text = item.Rate.ToString("F2");
-                TotalValue.Text = item.TotalValues.ToString("F2");
-                SalesTaxApplicable.Text = item.SalesTaxApplicable.ToString("F2");
-                extratax.Text = item.ExtraTax?.ToString("F2") ?? "";
-                furturetax.Text = item.FurtherTax.ToString() ?? null;
-                SroScheduleNo.Text = item.SroScheduleNo?.ToString() ?? "";
-                hscode.Text = item.HSCode ?? "";
-                qty.Text = item.Quantity.ToString();
-                RetailPrice.Text = item.RetailPrice.ToString("F2");
-                fed.Text = item.FedPayable?.ToString("F2") ?? "";
-                SalesValueExclST.Text = item.ValueSalesExcludingST.ToString("F2");
-                SalesTaxWithheldatSource.Text = item.STWithheldAtSource?.ToString("F2") ?? "";
-                cvt.Text = item.CVT?.ToString("F2") ?? "";
-                whit1.Text = item.WHIT_1?.ToString("F2") ?? "";
-                whit2.Text = item.WHIT_2?.ToString("F2") ?? "";
-                WHIT_Section_1.Text = item.WHIT_Section_1 ?? "";
-                WHIT_Section_2.Text = item.WHIT_Section_2 ?? "";
+                // Populate form fields
+                LoadItemForEditing(item);
 
-                // 5) remove from memory + grid
+                // Remove from memory + grid
                 addedItems.RemoveAt(itemIndex);
                 dataGridView1.Rows.Remove(row);
 
-                // 6) update UI
+                // Update UI
                 UpdateSerialNumbers();
-                lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
+                // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
                 UpdateInvoiceTotals();
 
-                // 7) focus first field
-                ProductCode.Focus();
+                ItemCode.Focus();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error while trying to edit the item: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btn_remove_Click(object sender, EventArgs e)
+        {
+            RemoveSelectedItem();
         }
 
         #endregion
@@ -415,112 +370,79 @@ namespace POSPRA_WinFormsUI
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
         {
-            // Update cells with all form fields using correct property names and data types
-            row.Cells["colProductCode"].Value = inputData.ProductCode?.ToString() ?? "";
-            row.Cells["colHSCode"].Value = inputData.HSCode?.ToString() ?? "";
-            row.Cells["colProductDescription"].Value = inputData.ProductDescription?.ToString() ?? "";
-            row.Cells["colUOM"].Value = inputData.UoM.ToString(); // int (non-nullable)
-            row.Cells["colQuantity"].Value = inputData.Quantity.ToString(); // decimal (non-nullable)
-            row.Cells["colRate"].Value = inputData.Rate.ToString(); // decimal (non-nullable)
-            row.Cells["colRetailPrice"].Value = inputData.RetailPrice.ToString(); // decimal (non-nullable)
-            row.Cells["colSalesValueExcST"].Value = inputData.ValueSalesExcludingST.ToString(); // decimal (non-nullable)
-            row.Cells["colTotalValue"].Value = inputData.TotalValues.ToString(); // decimal (non-nullable)
-            row.Cells["colSalesTax"].Value = inputData.SalesTaxApplicable.ToString(); // decimal (non-nullable)
-            row.Cells["colExtraTax"].Value = inputData.ExtraTax?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
-            row.Cells["colFutureTax"].Value = inputData.FurtherTax?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
-            row.Cells["colSROSNo"].Value = inputData.SroScheduleNo?.ToString() ?? "0"; // int? (nullable) - show 0 if null
-            row.Cells["colCVT"].Value = inputData.CVT?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
-            row.Cells["colSalesTaxApplicable"].Value = inputData.SalesTaxApplicable.ToString(); // decimal (non-nullable)
-            row.Cells["colSalesTaxWithheldAtSource"].Value = inputData.STWithheldAtSource?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
-            row.Cells["colWHIT1"].Value = inputData.WHIT_1?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
-            row.Cells["colWHIT2"].Value = inputData.WHIT_2?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
-            row.Cells["colFedPayable"].Value = inputData.FedPayable?.ToString() ?? "0"; // decimal? (nullable) - show 0 if null
-            row.Cells["colTotalValuePayable"].Value = inputData.FedPayable?.ToString() ?? "0"; // Note: You have same value for both
-            row.Cells["colWHITSection1"].Value = inputData.WHIT_Section_1?.ToString() ?? ""; // string? (nullable) - keep empty for strings
-            row.Cells["colWHITSection2"].Value = inputData.WHIT_Section_2?.ToString() ?? ""; // string? (nullable) - keep empty for strings
-
+            row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";
+            row.Cells["colProductDescription"].Value = inputData.ItemName ?? "";
+            row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";
+            row.Cells["colQuantity"].Value = inputData.Quantity.ToString();
+            row.Cells["colRate"].Value = inputData.SaleValue.ToString();
+            row.Cells["colTotalValue"].Value = inputData.TotalAmount.ToString();
+            row.Cells["colSalesTax"].Value = inputData.TaxRate.ToString();
+            row.Cells["colExtraTax"].Value = inputData.TaxCharged.ToString();
+            row.Cells["colFutureTax"].Value = inputData.FurtherTax.ToString();
         }
 
         private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0) LoadItemForEditing(e.RowIndex);
+            if (e.RowIndex >= 0)
+            {
+                var row = dataGridView1.Rows[e.RowIndex];
+                string itemCode = row.Cells["colProductCode"].Value?.ToString()?.Trim();
+                var item = addedItems.FirstOrDefault(i => i.ItemCode == itemCode);
+                if (item != null)
+                {
+                    LoadItemForEditing(item);
+                    addedItems.Remove(item);
+                    dataGridView1.Rows.RemoveAt(e.RowIndex);
+                    UpdateSerialNumbers();
+                    // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
+                    UpdateInvoiceTotals();
+                }
+            }
         }
 
-        private void LoadItemForEditing(int rowIndex)
+        private void LoadItemForEditing(InvoiceItems item)
         {
-            if (rowIndex < 0 || rowIndex >= dataGridView1.Rows.Count) return;
-
-            var row = dataGridView1.Rows[rowIndex];
-
-            // Load data back into form fields using correct column names and property mappings
-            ProductCode.Text = row.Cells["colProductCode"].Value?.ToString() ?? "";
-            hscode.Text = row.Cells["colHSCode"].Value?.ToString() ?? "";
-            ProductDescription.Text = row.Cells["colProductDescription"].Value?.ToString() ?? "";
-            uom.Text = row.Cells["colUOM"].Value?.ToString() ?? "";
-            qty.Text = row.Cells["colQuantity"].Value?.ToString() ?? "";
-            rate.Text = row.Cells["colRate"].Value?.ToString() ?? "";
-            RetailPrice.Text = row.Cells["colRetailPrice"].Value?.ToString() ?? "";
-            SalesValueExclST.Text = row.Cells["colSalesValueExcST"].Value?.ToString() ?? "";
-            TotalValue.Text = row.Cells["colTotalValue"].Value?.ToString() ?? "";
-            SalesTaxApplicable.Text = row.Cells["colSalesTax"].Value?.ToString() ?? ""; // Note: colSalesTax maps to SalesTaxApplicable
-            extratax.Text = row.Cells["colExtraTax"].Value?.ToString() ?? "";
-            furturetax.Text = row.Cells["colFutureTax"].Value?.ToString() ?? "";
-            SroScheduleNo.Text = row.Cells["colSROSNo"].Value?.ToString() ?? "";
-            cvt.Text = row.Cells["colCVT"].Value?.ToString() ?? "";
-            // Note: SalesTaxApplicable appears in both colSalesTax and colSalesTaxApplicable - using colSalesTaxApplicable here
-            SalesTaxApplicable.Text = row.Cells["colSalesTaxApplicable"].Value?.ToString() ?? "";
-            SalesTaxWithheldatSource.Text = row.Cells["colSalesTaxWithheldAtSource"].Value?.ToString() ?? "";
-            whit1.Text = row.Cells["colWHIT1"].Value?.ToString() ?? "";
-            whit2.Text = row.Cells["colWHIT2"].Value?.ToString() ?? "";
-            fed.Text = row.Cells["colFedPayable"].Value?.ToString() ?? "";
-            textBox4.Text = row.Cells["colTotalValuePayable"].Value?.ToString() ?? ""; // Total Value Payable
-            WHIT_Section_1.Text = row.Cells["colWHITSection1"].Value?.ToString() ?? "";
-            WHIT_Section_2.Text = row.Cells["colWHITSection2"].Value?.ToString() ?? "";
-
-            // Remove row (user will re-add after editing)
-            dataGridView1.Rows.RemoveAt(rowIndex);
-
-            // Keep the in-memory list in sync
-            if (rowIndex < addedItems.Count)
-                addedItems.RemoveAt(rowIndex);
-
-            UpdateSerialNumbers();
-            lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
-            ProductCode.Focus();
+            ItemCode.Text = item.ItemCode ?? "";
+            ItemName.Text = item.ItemName ?? "";
+            pctCode.Text = item.PCTCode ?? "";
+            qty.Text = item.Quantity.ToString();
+            salevalue.Text = item.SaleValue.ToString();
+            totalamount.Text = item.TotalAmount.ToString();
+            TaxRatebox.Text = item.TaxRate.ToString();
+            TaxCharged.Text = item.TaxCharged.ToString();
+            itemDiscount.Text = item.Discount.ToString();
+            FurtureTax.Text = item.FurtherTax.ToString();
         }
 
         private void ClearFormFields()
         {
-            // Basic Information
-            ProductCode.Clear();       // Product Code
-            hscode.Clear();           // HS Code
-            ProductDescription.Clear(); // Product Description
+            ItemCode.Clear();
+            ItemName.Clear();
+            pctCode.Clear();
+            qty.Clear();
+            salevalue.Clear();
+            totalamount.Clear();
+            TaxRatebox.Clear();
+            TaxCharged.Clear();
+            itemDiscount.Clear();
+            FurtureTax.Clear();
+        }
 
-            // Pricing Information
-            rate.Clear();             // Rate
-            uom.Clear();              // UOM
-            qty.Clear();              // Quantity
-            RetailPrice.Clear();      // Retail Price
-            SalesValueExclST.Clear(); // Sales Value Excluding ST
-
-            // Sales Tax Information
-            TotalValue.Clear();       // Total Value
-            SaleType.Clear();         // Sales Tax (mapped to SaleType)
-            extratax.Clear();         // Extra Tax
-            furturetax.Clear();       // Future Tax
-            SroScheduleNo.Clear();    // SRO Schedule No
-            cvt.Clear();              // CVT
-
-            // Additional fields
-            SalesTaxApplicable.Clear(); // Sales Tax Applicable
-            SalesTaxWithheldatSource.Clear(); // Sales Tax Withheld at Source
-            whit1.Clear();            // WHIT-1
-            whit2.Clear();            // WHIT-2
-            fed.Clear();              // Fed Payable
-            textBox4.Clear();         // Total Value Payable (mapped to textBox4)
-            WHIT_Section_1.Clear();   // WHIT Section-1
-            WHIT_Section_2.Clear();   // WHIT Section-2
-            textBox5.Clear();         // Additional field if needed
+        private void ClearInvoiceFields()
+        {
+            posid.Clear();
+            USIN.Clear();
+            refUSIN.Clear();
+            buyerntn.Clear();
+            buyercnic.Clear();
+            BuyerBname.Clear();
+            buyerphone.Clear();
+            TotalBillAmount.Clear();
+            TotalQuantity.Clear();
+            TotalSaleValue.Clear();
+            TotalTaxCharged.Clear();
+            Discount.Clear();
+            TotalFurtherTax.Clear();
         }
 
         private void RemoveSelectedItem()
@@ -539,7 +461,8 @@ namespace POSPRA_WinFormsUI
 
                     dataGridView1.Rows.RemoveAt(selectedIndex);
                     UpdateSerialNumbers();
-                    lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
+                    // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
+                    UpdateInvoiceTotals();
                 }
             }
             else
@@ -553,7 +476,7 @@ namespace POSPRA_WinFormsUI
         {
             for (int i = 0; i < dataGridView1.Rows.Count; i++)
             {
-                dataGridView1.Rows[i].Cells["colSrNo"].Value = (i + 1).ToString("D2");
+                dataGridView1.Rows[i].Cells["colSrNo"].Value = (i + 1).ToString();
             }
         }
 
@@ -562,76 +485,160 @@ namespace POSPRA_WinFormsUI
             int rowIndex = dataGridView1.Rows.Add();
             var row = dataGridView1.Rows[rowIndex];
 
-            // Set serial number
-            row.Cells["colSrNo"].Value = (rowIndex + 1).ToString("D2");
+            row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
+            row.Cells["colProductCode"].Value = item.ItemCode ?? "";
+            row.Cells["colHSCode"].Value = item.PCTCode ?? "";
+            row.Cells["colProductDescription"].Value = item.ItemName ?? "";
 
-            // For non-nullable numeric fields (decimal, int) → always show numeric value
-            row.Cells["colUOM"].Value = item.UoM.ToString();
-            row.Cells["colQuantity"].Value = item.Quantity.ToString("0.##");
-            row.Cells["colRate"].Value = item.Rate.ToString("0.##");
-            row.Cells["colRetailPrice"].Value = item.RetailPrice.ToString("0.##");
-            row.Cells["colSalesValueExcST"].Value = item.ValueSalesExcludingST.ToString("0.##");
-            row.Cells["colTotalValue"].Value = item.TotalValues.ToString("0.##");
-            row.Cells["colSalesTax"].Value = item.SalesTaxApplicable.ToString("0.##");
-            row.Cells["colSalesTaxApplicable"].Value = item.SalesTaxApplicable.ToString("0.##");
+            row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
+            row.Cells["colRate"].Value = (item.SaleValue ?? 0m).ToString("0.00");
+            row.Cells["colDiscount"].Value = (item.Discount ?? 0m).ToString("0.00");
 
-            // For nullable numeric fields → "0" if null
-            row.Cells["colExtraTax"].Value = item.ExtraTax?.ToString("0.##") ?? "0";
-            row.Cells["colFutureTax"].Value = item.FurtherTax.ToString() ?? "0";
-            row.Cells["colSROSNo"].Value = item.SroScheduleNo?.ToString() ?? "0";
-            row.Cells["colCVT"].Value = item.CVT?.ToString("0.##") ?? "0";
-            row.Cells["colSalesTaxWithheldAtSource"].Value = item.STWithheldAtSource?.ToString("0.##") ?? "0";
-            row.Cells["colWHIT1"].Value = item.WHIT_1?.ToString("0.##") ?? "0";
-            row.Cells["colWHIT2"].Value = item.WHIT_2?.ToString("0.##") ?? "0";
-            row.Cells["colFedPayable"].Value = item.FedPayable?.ToString("0.##") ?? "0";
-            row.Cells["colTotalValuePayable"].Value = item.FedPayable?.ToString("0.##") ?? "0";
+            // Sales value excluding sales tax: subtotal before taxes (quantity * rate - discount)
+            decimal qty = item.Quantity ?? 0m;
+            decimal rate = item.SaleValue ?? 0m;
+            decimal discountAmt = item.Discount ?? 0m;
+            decimal salesValueExcTax = Math.Round(qty * rate - discountAmt, 2);
+            row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
 
-            // For strings → keep empty
-            row.Cells["colProductCode"].Value = item.ProductCode ?? "";
-            row.Cells["colHSCode"].Value = item.HSCode ?? "";
-            row.Cells["colProductDescription"].Value = item.ProductDescription ?? "";
-            row.Cells["colWHITSection1"].Value = item.WHIT_Section_1 ?? "";
-            row.Cells["colWHITSection2"].Value = item.WHIT_Section_2 ?? "";
+            row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
+            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");      // percent
+            row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");    // absolute tax charged
+            row.Cells["colFutureTax"].Value = (item.FurtherTax ?? 0m).ToString("0.00");
+
+            row.Cells["colInvoiceType"].Value = GetInvoiceTypeName(GetSelectedInvoiceType());
 
 
-            lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items";
+            row.Cells["colRefUSIN"].Value = item.RefUSIN ?? "";
         }
+
 
         #endregion
 
-        #region maths 
+        #region Helper Methods
+
+        private string GetInvoiceTypeName(byte invoiceType)
+        {
+            return invoiceType switch
+            {
+                1 => "Sale",
+                2 => "Purchase",
+                3 => "Debit",
+                4 => "Credit",
+            };
+        }
+
+
+        #endregion
+
+
+        #region Calculations
+
+        private void CalculateItemTotals(object sender, EventArgs e)
+        {
+            decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
+            decimal saleVal = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+            decimal taxRate = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m; // percent
+            decimal discountPercent = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m; // percent
+            decimal furtherTax = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m; // absolute
+
+            decimal subtotal = quantity * saleVal;
+            decimal discountAmount = subtotal * (discountPercent / 100m); // absolute discount amount
+            decimal afterDiscount = subtotal - discountAmount;
+            decimal taxAmount = afterDiscount * (taxRate / 100m);
+            decimal total = afterDiscount + taxAmount + furtherTax;
+
+            totalamount.Text = Math.Round(total, 2).ToString("0.00");
+            TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
+        }
+
+
         private void UpdateInvoiceTotals()
         {
             if (addedItems == null || !addedItems.Any())
             {
-                // reset if no items
-                STapplicable.Text = "0.00";
-                TotalRetailPrice.Text = "0.00";
-                TotalSTWithheld.Text = "0.00";
-                TotalFEDPayable.Text = "0.00";
-                TotalWithheldIncomeTax.Text = "0.00";
-                TotalCVT.Text = "0.00";
-                TotalExtraTax.Text = "0.00";
+                TotalQuantity.Text = "0.00";
+                TotalSaleValue.Text = "0.00";
+                TotalTaxCharged.Text = "0.00";
+                TotalBillAmount.Text = "0.00";
+                Discount.Text = "0.00";
+                TotalFurtherTax.Text = "0.00";
                 return;
             }
 
-            // Sum from addedItems
-            decimal totalSalesTax = addedItems.Sum(i => i.SalesTaxApplicable);
-            decimal totalRetail = addedItems.Sum(i => i.RetailPrice);
-            decimal totalWithheld = addedItems.Sum(i => i.STWithheldAtSource ?? 0);
-            decimal totalFED = addedItems.Sum(i => i.FedPayable ?? 0);
-            decimal totalIncomeTax = addedItems.Sum(i => (i.WHIT_1 ?? 0) + (i.WHIT_2 ?? 0));
-            decimal totalCVT = addedItems.Sum(i => i.CVT ?? 0);
-            decimal totalExtraTax = addedItems.Sum(i => i.ExtraTax ?? 0);
+            // Calculate totals based on DTO structure - handle nullable values
+            decimal totalQty = addedItems.Sum(i => i.Quantity ?? 0m);
+            decimal totalSaleVal = addedItems.Sum(i => i.SaleValue ?? 0m);
+            decimal totalTaxCharged = addedItems.Sum(i => i.TaxCharged ?? 0m);
+            decimal totalBillAmt = addedItems.Sum(i => i.TotalAmount ?? 0m);
+            decimal totalDiscount = addedItems.Sum(i => i.Discount ?? 0m);
+            decimal totalFurtherTax = addedItems.Sum(i => i.FurtherTax ?? 0m);
 
-            // Push values to UI textboxes
-            STapplicable.Text = totalSalesTax.ToString("F2");
-            TotalRetailPrice.Text = totalRetail.ToString("F2");
-            TotalSTWithheld.Text = totalWithheld.ToString("F2");
-            TotalFEDPayable.Text = totalFED.ToString("F2");
-            TotalWithheldIncomeTax.Text = totalIncomeTax.ToString("F2");
-            TotalCVT.Text = totalCVT.ToString("F2");
-            TotalExtraTax.Text = totalExtraTax.ToString("F2");
+
+            // Update UI with calculated totals
+            TotalQuantity.Text = totalQty.ToString();
+            TotalSaleValue.Text = totalSaleVal.ToString();
+            TotalTaxCharged.Text = totalTaxCharged.ToString();
+            TotalBillAmount.Text = totalBillAmt.ToString();
+            Discount.Text = totalDiscount.ToString();
+            TotalFurtherTax.Text = totalFurtherTax.ToString();
+        }
+
+        #endregion
+
+        #region Helper Methods for ComboBoxes
+        private byte GetSelectedInvoiceType()
+        {
+            if (invoicetype.SelectedItem is KeyValuePair<byte, string> kvp)
+                return kvp.Key;
+
+            return 1; // Default to Sale
+        }
+
+        private byte GetSelectedPaymentMode()
+        {
+            if (paymentmode.SelectedItem is KeyValuePair<byte, string> kvp)
+                return kvp.Key;
+
+            return 1; // Default to Card
+        }
+
+
+
+        #endregion
+
+        #region Invoice Header Helpers
+
+        private Invoice CollectInvoiceData()
+        {
+            return new Invoice
+            {
+                POSID = int.TryParse(posid.Text, out var posId) ? posId : 0,
+                USIN = USIN.Text.Trim(),
+                RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
+                InvoiceType = (byte)GetSelectedInvoiceType(),
+                BuyerNTN = buyerntn.Text.Trim(),
+                BuyerCNIC = buyercnic.Text.Trim(),
+                BuyerName = BuyerBname.Text.Trim(),
+                BuyerPhoneNumber = buyerphone.Text.Trim(),
+                PaymentMode = GetSelectedPaymentMode(),
+                TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : 0m,
+                TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : 0m,
+                TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : 0m,
+                TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : 0m,
+                Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : 0m,
+                FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : 0m,
+                DateTime = DateTime.Now
+            };
+        }
+
+        private bool AreInvoiceFieldsValid()
+        {
+            if (string.IsNullOrWhiteSpace(posid.Text)) return false;
+            if (string.IsNullOrWhiteSpace(buyerntn.Text)) return false;
+            if (string.IsNullOrWhiteSpace(BuyerBname.Text)) return false;
+            if (string.IsNullOrWhiteSpace(buyerphone.Text)) return false;
+            return true;
         }
 
         #endregion
@@ -646,10 +653,10 @@ namespace POSPRA_WinFormsUI
             if (rect.Width == 0 || rect.Height == 0) return;
 
             var path = new GraphicsPath();
-            path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);                         // Top-left
-            path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);            // Top-right
-            path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90); // Bottom-right
-            path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);            // Bottom-left
+            path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
+            path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
+            path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
             path.CloseFigure();
 
             control.Region = new Region(path);
@@ -767,60 +774,5 @@ namespace POSPRA_WinFormsUI
         }
 
         #endregion
-
-        #region Invoice Header helpers (merged from InvoiceEntry)
-
-        private Invoice CollectInvoiceData()
-        {
-            return new Invoice
-            {
-                //InvoiceType = chkSaleInvoice.Checked ? (short)1 : (short)2,
-                //InvoiceDate = txtInvoiceDate.Value,
-                //BuyerSellerName = txtBuyerBusiness.Text,
-                //DestinationAddress = txtBuyerAddress.Text,
-                //NTN_CNIC = txtBuyerRegNo.Text,
-                //DistributorName = txtSellerBusiness.Text,
-                //Distributor_NTN_CNIC = txtSellerRegNo.Text,
-                //SaleType = chkRegistered.Checked ? 1 : 2,
-                //TotalRetailPrice = 0 // will be computed by service or set before save
-            };
-        }
-
-        private bool AreInvoiceFieldsValid()
-        {
-            //// Basic checks for header completeness (loose - adjust if you want stricter)
-            if (!chkRegistered.Checked && !chkUnregistered.Checked) return false;
-            if (string.IsNullOrWhiteSpace(posid.Text)) return false;
-            if (string.IsNullOrWhiteSpace(buyerntn.Text)) return false;
-            if (string.IsNullOrWhiteSpace(sellerBname.Text)) return false;
-            if (string.IsNullOrWhiteSpace(buyerBname.Text)) return false;
-            //// optional: require provinces if needed
-            return true;
-        }
-        private void ChkRegistered_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkRegistered.Checked) chkUnregistered.Checked = false;
-        }
-
-        private void ChkUnregistered_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkUnregistered.Checked) chkRegistered.Checked = false;
-        }
-
-        #endregion
-
-        #region Misc UI handlers
-
-        private void btn_remove_Click(object sender, EventArgs e)
-        {
-            RemoveSelectedItem();
-        }
-
-        #endregion
-
-        private void extratax_TextChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }

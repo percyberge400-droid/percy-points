@@ -1,48 +1,41 @@
-﻿namespace POSPRA.DTOs.InvoiceDTOs
+﻿namespace POSPRA.DTOs.InvoiceDtos
 {
     public class InvoiceDto
     {
-        public int BPOSID { get; set; }
-        public int InvoiceType { get; set; }
-        public DateTime InvoiceDate { get; set; }
-        public string? NTN_CNIC { get; set; }
-        public string? BuyerSellerName { get; set; }
-        public string? DestinationAddress { get; set; }
-        public int SaleType { get; set; }
-        public decimal? TotalSalesTaxApplicable { get; set; }
-        public decimal TotalRetailPrice { get; set; }
-        public decimal? TotalSTWithheldAtSource { get; set; }
-        public decimal? TotalExtraTax { get; set; }
-        public decimal? TotalFEDPayable { get; set; }
-        public decimal? TotalWithheldIncomeTax { get; set; }
-        public decimal? TotalCVT { get; set; }
-        public string? Distributor_NTN_CNIC { get; set; }
-        public string? DistributorName { get; set; }
+        public long POSID { get; set; }
 
-        public List<InvoiceItemDetailDto>? InvoiceItemDetails { get; set; }
-    }
+        public string InvoiceNumber { get; set; } = string.Empty;
 
-    public class InvoiceItemDetailDto
-    {
-        public string? HSCode { get; set; }
-        public string? ProductCode { get; set; }
-        public string? ProductDescription { get; set; }
-        public decimal Rate { get; set; }
-        public int UoM { get; set; }
-        public decimal Quantity { get; set; }
-        public decimal ValueSalesExcludingST { get; set; }
-        public decimal SalesTaxApplicable { get; set; }
-        public decimal RetailPrice { get; set; }
-        public decimal? STWithheldAtSource { get; set; }
-        public decimal? ExtraTax { get; set; }
-        public decimal? FurtherTax { get; set; }
-        public int? SroScheduleNo { get; set; }
-        public decimal? FedPayable { get; set; }
-        public decimal? CVT { get; set; }
-        public decimal? WHIT_1 { get; set; }
-        public decimal? WHIT_2 { get; set; }
-        public string? WHIT_Section_1 { get; set; }
-        public string? WHIT_Section_2 { get; set; }
-        public decimal TotalValues { get; set; }
+        public string USIN { get; set; } = string.Empty;
+
+        public byte InvoiceType { get; set; }
+
+        public string? BuyerNTN { get; set; }
+
+        public string? BuyerCNIC { get; set; }
+
+        public string? BuyerName { get; set; }
+
+        public string? BuyerPhoneNumber { get; set; }
+
+        public int PaymentMode { get; set; }
+
+        public decimal TotalBillAmount { get; set; }
+
+        public string? RefUSIN { get; set; }
+
+        public decimal TotalQuantity { get; set; }
+
+        public decimal TotalSaleValue { get; set; }
+
+        public decimal TotalTaxCharged { get; set; }
+
+        public decimal Discount { get; set; }
+
+        public decimal FurtherTax { get; set; }
+
+        public DateTime DateTime { get; set; }
+
+        public List<InvoiceItemDto>? InvoiceItemDto { get; set; }
     }
 }

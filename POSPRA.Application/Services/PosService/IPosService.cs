@@ -1,6 +1,6 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.PosDTOs;
+using POSPRA.DTOs.PosDtos;
 
 namespace POSPRA.Application.Services.PosService
 {

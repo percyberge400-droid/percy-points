@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.PosDTOs
+﻿namespace POSPRA.DTOs.PosDtos
 {
-    public class ResponseHeartbeatDTO
+    public class ResponseHeartbeatDto
     {
         string? Result { get; set; }
     }

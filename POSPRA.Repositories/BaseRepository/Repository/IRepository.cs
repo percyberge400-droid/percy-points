@@ -10,6 +10,12 @@ namespace POSPRA.Repositories.BaseRepository.Repository
     public interface IRepository<T> where T : class
     {
         /// <summary>
+        /// Returns an IQueryable for building custom queries.
+        /// No tracking is applied; call AsTracking() if needed.
+        /// </summary>
+        IQueryable<T> Query();
+
+        /// <summary>
         /// Retrieves an entity by its primary key.
         /// </summary>
         Task<T?> GetByIdAsync(object id);

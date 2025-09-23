@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.InvoiceDTOs
+﻿namespace POSPRA.DTOs.FiscalDtos
 {
-    public class FileRecordDTO
+    public class FileRecordDto
     {
         public int ID { get; set; }
         public int POSID { get; set; }

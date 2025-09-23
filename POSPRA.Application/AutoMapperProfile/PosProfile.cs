@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using POSPRA.Domain.Entities;
-using POSPRA.DTOs.InvoiceDTOs;
-using POSPRA.DTOs.LogDTOs;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.LogDtos;
 
 namespace POSPRA.Application.AutoMapperProfile
 {
@@ -9,24 +10,22 @@ namespace POSPRA.Application.AutoMapperProfile
     {
         public PosProfile()
         {
-            CreateMap<InvoiceDto, Invoice>();
-            CreateMap<InvoiceItemDetailDto, InvoiceItems>();
-
-            CreateMap<FileRecordDTO, FileRecord>();
-            CreateMap<FileRecord, FileRecordDTO>();
+            CreateMap<FileRecordDto, FileRecord>();
+            CreateMap<FileRecord, FileRecordDto>();
 
             CreateMap<LogDto, Logs>();
             CreateMap<Logs, LogDto>();
 
-            CreateMap<WorkerLogDTO, Logs>();
-            CreateMap<Logs, WorkerLogDTO>();
+            CreateMap<WorkerLogDto, Logs>();
+            CreateMap<Logs, WorkerLogDto>();
 
-            //CreateMap<Dictionary<string, object>, ResponseConfigurationDto>()
-            //  .ConvertUsing<DictionaryToDtoConverter<ResponseConfigurationDto>>();
+            // DTO ➜ Entity
+            CreateMap<InvoiceDto, Invoice>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
 
-            //// ✅ Add this for POSVerificationDTO
-            //CreateMap<Dictionary<string, object>, POSVerificationDTO>()
-            //    .ConvertUsing<DictionaryToDtoConverter<POSVerificationDTO>>();
+            CreateMap<InvoiceItemDto, InvoiceItems>()
+                .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.Now))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
         }
     }
 }
