@@ -17,8 +17,9 @@
         public const string Configuration = "api/POS/Configuration";
         public const string HeartBeat = "api/POS/HeartBeat";
         public const string DownloadFile = "api/POS/DownloadFile";
-        public const string GetAll = "api/Fiscal/GetAll";
+        public const string GetAll = "api/Fiscal/GetAllUnsyncedAsync";
         public const string PostData = "api/Fiscal/GetAll";
+        public const string SaveData = "api/Live/SaveData";
 
     }
 

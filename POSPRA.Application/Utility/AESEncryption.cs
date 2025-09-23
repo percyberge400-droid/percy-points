@@ -37,6 +37,26 @@ namespace POSPRA.Application.Utility
                     Convert.ToBase64String(tag));
         }
 
+        public static string Decrypt(string encryptedPackage, string EC)
+        {
+            // Split cipherText, nonce, tag
+            var parts = encryptedPackage.Split(':');
+            if (parts.Length != 3)
+                throw new InvalidOperationException("Invalid encrypted package format.");
+
+            string cipherText = parts[0];
+            string nonce = parts[1];
+            string tag = parts[2];
+
+            // Recreate AES key (must match CreateFiscalInvoiceAsync)
+            byte[] aesKey = Encoding.UTF8.GetBytes(EC.PadRight(32).Substring(0, 32));
+
+            // Decrypt
+            string decryptedText = DecryptFiscalInvoice(cipherText, nonce, tag, aesKey);
+
+            return decryptedText; // "{invoiceJson}|false|Latest|{signatureBase64}"
+        }
+
         /// <summary>
         /// Decrypts the specified ciphertext using AES-GCM with the given key, nonce, and authentication tag.
         /// </summary>
@@ -46,7 +66,7 @@ namespace POSPRA.Application.Utility
         /// <param name="key">The 256-bit key used for decryption (32 bytes).</param>
         /// <returns>The decrypted plaintext string.</returns>
         /// <exception cref="CryptographicException">Thrown if authentication fails or decryption fails.</exception>
-        public static string Decrypt(string cipherTextBase64, string nonceBase64, string tagBase64, byte[] key)
+        private static string DecryptFiscalInvoice(string cipherTextBase64, string nonceBase64, string tagBase64, byte[] key)
         {
             using var aes = new AesGcm(key);
 

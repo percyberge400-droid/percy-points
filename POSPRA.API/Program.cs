@@ -5,6 +5,7 @@ using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
+using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
@@ -81,14 +82,18 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             builder.Services.AddScoped<ILogRepository, LogRepository>();
             builder.Services.AddScoped<IPosClientRepository, PosClientRepository>();
 
+            // Application services
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IFiscalService, FiscalService>();
             builder.Services.AddScoped<ILogService, LogService>();
             builder.Services.AddScoped<IPosService, PosService>();
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+            builder.Services.AddScoped<ILiveService, LiveService>();
 
+            // Http client
             builder.Services.AddHttpClient<HttpService>();
+
             builder.Services.AddHttpContextAccessor();
             builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 

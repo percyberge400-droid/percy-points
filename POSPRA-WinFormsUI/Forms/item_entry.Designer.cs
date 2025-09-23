@@ -720,7 +720,7 @@
             btnSave.TabIndex = 42;
             btnSave.Text = "💾 Save";
             btnSave.UseVisualStyleBackColor = false;
-            btnSave.Click += btnSave_Click_1;
+            //btnSave.Click += btnSave_Click_1;
             // 
             // dataGridView1
             // 

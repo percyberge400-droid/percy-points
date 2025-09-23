@@ -4,7 +4,7 @@
     {
         public int ID { get; set; }
         public int POSID { get; set; }
-        public string? InvoiceData { get; set; }
+        public string? InvoiceData { get; set; } //encrpted data 
         public string? InvoiceNumber { get; set; }
         public int IsSynced { get; set; }
         public int AttemptCount { get; set; }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.HttpClientService;
+using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
@@ -42,11 +43,17 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped(typeof(SqlServerRepository<>));
+        services.AddScoped(typeof(SqlServerRepository<>), typeof(SqlServerRepository<>)); // <-- add
+        services.AddScoped(typeof(SqliteRepository<>), typeof(SqliteRepository<>));      // <-- add
         services.AddScoped<ILogRepository, LogRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
         services.AddScoped<IPosClientRepository, PosClientRepository>();
+        services.AddScoped<IFiscalRepository, FiscalRepository>();
+
+        // Services
+        services.AddScoped<ILogService, LogService>();
+        services.AddScoped<ILiveService, LiveService>();   // <-- add
 
 
         services.AddHttpClient<HttpService>();
