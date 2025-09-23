@@ -48,11 +48,12 @@ namespace POSPRA_WinFormsUI
             btn_remove.Click += btn_remove_Click;
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
 
-            // Field calculation events
-            qty.TextChanged += CalculateItemTotals;
-            salevalue.TextChanged += CalculateItemTotals;
-            TaxRatebox.TextChanged += CalculateItemTotals;
-            itemDiscount.TextChanged += CalculateItemTotals;
+            // Field calculation events (only use RecalculateTotals)
+            qty.TextChanged += RecalculateTotals;
+            salevalue.TextChanged += RecalculateTotals;
+            itemDiscount.TextChanged += RecalculateTotals;
+            TaxRatebox.TextChanged += RecalculateTotals;
+            FurtureTax.TextChanged += RecalculateTotals;
 
             SetupContextMenu();
             CaptureOriginalLayout();
@@ -82,20 +83,30 @@ namespace POSPRA_WinFormsUI
 
         private InvoiceItems GetTextboxData()
         {
+            decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
+            decimal saleVal = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+            decimal taxRate = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
+            decimal discountPercent = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m;
+            decimal furtherTax = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
+
+            decimal subtotal = quantity * saleVal;
+            decimal discountAmount = subtotal * (discountPercent / 100m);
+            decimal afterDiscount = subtotal - discountAmount;
+            decimal taxAmount = afterDiscount * (taxRate / 100m);
+            decimal total = afterDiscount + taxAmount + furtherTax;
+
             return new InvoiceItems
             {
                 ItemCode = ItemCode.Text.Trim(),
                 ItemName = ItemName.Text.Trim(),
                 PCTCode = pctCode.Text.Trim(),
-                Quantity = decimal.TryParse(qty.Text, out var qtyVal) ? qtyVal : 0m,
-                SaleValue = decimal.TryParse(salevalue.Text, out var saleVal) ? saleVal : 0m,
-                TotalAmount = decimal.TryParse(totalamount.Text, out var totalVal) ? totalVal : 0m,
-                TaxRate = double.TryParse(TaxRatebox.Text, out var taxRate) ? taxRate : 0d,
-                TaxCharged = decimal.TryParse(TaxCharged.Text, out var taxCharged) ? taxCharged : 0m,
-                Discount = decimal.TryParse(itemDiscount.Text, out var discount) ? discount : 0m,
-                FurtherTax = decimal.TryParse(FurtureTax.Text, out var furtherTax) ? furtherTax : 0m,
-
-                // NEW FIELDS
+                Quantity = quantity,
+                SaleValue = saleVal,
+                Discount = discountPercent,    // store percentage for consistency
+                TaxRate = (double)taxRate,
+                TaxCharged = taxAmount,
+                FurtherTax = furtherTax,
+                TotalAmount = total,
                 InvoiceType = GetSelectedInvoiceType(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
@@ -528,28 +539,47 @@ namespace POSPRA_WinFormsUI
             };
         }
 
-
         #endregion
-
 
         #region Calculations
 
-        private void CalculateItemTotals(object sender, EventArgs e)
+        private void CalculateItemTotals()
         {
             decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
             decimal saleVal = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
             decimal taxRate = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m; // percent
             decimal discountPercent = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m; // percent
-            decimal furtherTax = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m; // absolute
+            decimal furtherTax = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
+            // Subtotal (without tax)
             decimal subtotal = quantity * saleVal;
-            decimal discountAmount = subtotal * (discountPercent / 100m); // absolute discount amount
-            decimal afterDiscount = subtotal - discountAmount;
-            decimal taxAmount = afterDiscount * (taxRate / 100m);
-            decimal total = afterDiscount + taxAmount + furtherTax;
 
+            // Tax before discount
+            decimal taxAmount = subtotal * (taxRate / 100m);
+
+            // Apply discount on tax
+            decimal taxDiscount = taxAmount * (discountPercent / 100m);
+            decimal taxAfterDiscount = taxAmount - taxDiscount;
+
+            // Final total
+            decimal total = subtotal + taxAfterDiscount + furtherTax;
+
+            // Update UI
             totalamount.Text = Math.Round(total, 2).ToString("0.00");
-            TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
+            TaxCharged.Text = Math.Round(taxAfterDiscount, 2).ToString("0.00");
+        }
+
+
+        private void CalculateItemTotals(object sender, EventArgs e)
+        {
+            CalculateItemTotals();
+        }
+
+
+        private void RecalculateTotals(object sender, EventArgs e)
+        {
+            CalculateItemTotals();
+            UpdateInvoiceTotals();
         }
 
 
@@ -566,22 +596,23 @@ namespace POSPRA_WinFormsUI
                 return;
             }
 
-            // Calculate totals based on DTO structure - handle nullable values
             decimal totalQty = addedItems.Sum(i => i.Quantity ?? 0m);
-            decimal totalSaleVal = addedItems.Sum(i => i.SaleValue ?? 0m);
+            decimal totalSaleVal = addedItems.Sum(i => (i.Quantity ?? 0m) * (i.SaleValue ?? 0m));
+            decimal totalDiscount = addedItems.Sum(i =>
+            {
+                var subtotal = (i.Quantity ?? 0m) * (i.SaleValue ?? 0m);
+                return subtotal * ((i.Discount ?? 0m) / 100m);
+            });
             decimal totalTaxCharged = addedItems.Sum(i => i.TaxCharged ?? 0m);
-            decimal totalBillAmt = addedItems.Sum(i => i.TotalAmount ?? 0m);
-            decimal totalDiscount = addedItems.Sum(i => i.Discount ?? 0m);
             decimal totalFurtherTax = addedItems.Sum(i => i.FurtherTax ?? 0m);
+            decimal totalBillAmt = addedItems.Sum(i => i.TotalAmount ?? 0m);
 
-
-            // Update UI with calculated totals
-            TotalQuantity.Text = totalQty.ToString();
-            TotalSaleValue.Text = totalSaleVal.ToString();
-            TotalTaxCharged.Text = totalTaxCharged.ToString();
-            TotalBillAmount.Text = totalBillAmt.ToString();
-            Discount.Text = totalDiscount.ToString();
-            TotalFurtherTax.Text = totalFurtherTax.ToString();
+            TotalQuantity.Text = totalQty.ToString("0.00");
+            TotalSaleValue.Text = totalSaleVal.ToString("0.00");
+            TotalTaxCharged.Text = totalTaxCharged.ToString("0.00");
+            Discount.Text = totalDiscount.ToString("0.00");
+            TotalFurtherTax.Text = totalFurtherTax.ToString("0.00");
+            TotalBillAmount.Text = totalBillAmt.ToString("0.00");
         }
 
         #endregion
