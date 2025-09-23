@@ -55,7 +55,7 @@
             // 
             dateTimePickerFrom.Anchor = AnchorStyles.Top;
             dateTimePickerFrom.Font = new Font("Microsoft Sans Serif", 9F);
-            dateTimePickerFrom.Location = new Point(400, 51);
+            dateTimePickerFrom.Location = new Point(114, 83);
             dateTimePickerFrom.MinDate = new DateTime(1947, 10, 10, 0, 0, 0, 0);
             dateTimePickerFrom.Name = "dateTimePickerFrom";
             dateTimePickerFrom.Size = new Size(253, 24);
@@ -66,7 +66,7 @@
             lblExportStatus.AutoSize = true;
             lblExportStatus.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             lblExportStatus.ForeColor = Color.Green;
-            lblExportStatus.Location = new Point(400, 247);
+            lblExportStatus.Location = new Point(114, 175);
             lblExportStatus.Name = "lblExportStatus";
             lblExportStatus.Size = new Size(0, 18);
             lblExportStatus.TabIndex = 50;
@@ -76,7 +76,7 @@
             DateFromLbl.Anchor = AnchorStyles.Top;
             DateFromLbl.AutoSize = true;
             DateFromLbl.Font = new Font("Microsoft Sans Serif", 9F);
-            DateFromLbl.Location = new Point(400, 30);
+            DateFromLbl.Location = new Point(114, 62);
             DateFromLbl.Name = "DateFromLbl";
             DateFromLbl.Size = new Size(79, 18);
             DateFromLbl.TabIndex = 52;
@@ -85,7 +85,7 @@
             // progressBarExport
             // 
             progressBarExport.ForeColor = Color.FromArgb(128, 255, 128);
-            progressBarExport.Location = new Point(400, 359);
+            progressBarExport.Location = new Point(784, 166);
             progressBarExport.Name = "progressBarExport";
             progressBarExport.Size = new Size(605, 27);
             progressBarExport.TabIndex = 58;
@@ -94,7 +94,7 @@
             // 
             dateTimePickerTo.Anchor = AnchorStyles.Top;
             dateTimePickerTo.Font = new Font("Microsoft Sans Serif", 9F);
-            dateTimePickerTo.Location = new Point(752, 51);
+            dateTimePickerTo.Location = new Point(466, 83);
             dateTimePickerTo.Name = "dateTimePickerTo";
             dateTimePickerTo.Size = new Size(253, 24);
             dateTimePickerTo.TabIndex = 56;
@@ -105,7 +105,7 @@
             ExportInvoiceBtn.BackColor = Color.RoyalBlue;
             ExportInvoiceBtn.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
             ExportInvoiceBtn.ForeColor = Color.Transparent;
-            ExportInvoiceBtn.Location = new Point(752, 140);
+            ExportInvoiceBtn.Location = new Point(1136, 77);
             ExportInvoiceBtn.Name = "ExportInvoiceBtn";
             ExportInvoiceBtn.Size = new Size(253, 40);
             ExportInvoiceBtn.TabIndex = 51;
@@ -116,7 +116,7 @@
             // RegNumNumericUpDown
             // 
             RegNumNumericUpDown.Anchor = AnchorStyles.Top;
-            RegNumNumericUpDown.Location = new Point(400, 148);
+            RegNumNumericUpDown.Location = new Point(784, 85);
             RegNumNumericUpDown.Name = "RegNumNumericUpDown";
             RegNumNumericUpDown.Size = new Size(253, 27);
             RegNumNumericUpDown.TabIndex = 57;
@@ -126,7 +126,7 @@
             label2.Anchor = AnchorStyles.Top;
             label2.AutoSize = true;
             label2.Font = new Font("Microsoft Sans Serif", 9F);
-            label2.Location = new Point(400, 127);
+            label2.Location = new Point(784, 64);
             label2.Name = "label2";
             label2.Size = new Size(144, 18);
             label2.TabIndex = 53;
@@ -137,7 +137,7 @@
             ToDateLbl.Anchor = AnchorStyles.Top;
             ToDateLbl.AutoSize = true;
             ToDateLbl.Font = new Font("Microsoft Sans Serif", 9F);
-            ToDateLbl.Location = new Point(752, 30);
+            ToDateLbl.Location = new Point(466, 62);
             ToDateLbl.Name = "ToDateLbl";
             ToDateLbl.Size = new Size(61, 18);
             ToDateLbl.TabIndex = 54;
