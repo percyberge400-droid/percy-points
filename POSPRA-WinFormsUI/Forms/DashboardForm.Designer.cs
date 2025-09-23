@@ -40,14 +40,14 @@ namespace POSPRA_WinFormsUI.Forms
         // Invoice grid columns
         private System.Windows.Forms.DataGridViewTextBoxColumn colId;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPosId;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colInvoiceData;
+        //private System.Windows.Forms.DataGridViewTextBoxColumn colInvoiceData;
         private System.Windows.Forms.DataGridViewTextBoxColumn colInvoiceNumber;
         private System.Windows.Forms.DataGridViewTextBoxColumn colIsSynced;
         private System.Windows.Forms.DataGridViewTextBoxColumn colAttemptCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn colDateCreated;
 
         // Logs grid columns
-        private System.Windows.Forms.DataGridViewTextBoxColumn colID;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colLogID;
         private System.Windows.Forms.DataGridViewTextBoxColumn colMessage;
         private System.Windows.Forms.DataGridViewTextBoxColumn colException;
         private System.Windows.Forms.DataGridViewTextBoxColumn logdatetime;
@@ -90,7 +90,6 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView = new DataGridView();
             colId = new DataGridViewTextBoxColumn();
             colPosId = new DataGridViewTextBoxColumn();
-            colInvoiceData = new DataGridViewTextBoxColumn();
             colInvoiceNumber = new DataGridViewTextBoxColumn();
             colIsSynced = new DataGridViewTextBoxColumn();
             colAttemptCount = new DataGridViewTextBoxColumn();
@@ -98,7 +97,7 @@ namespace POSPRA_WinFormsUI.Forms
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();
             LogsDataGridView = new DataGridView();
-            colID = new DataGridViewTextBoxColumn();
+            colLogID = new DataGridViewTextBoxColumn();
             colMessage = new DataGridViewTextBoxColumn();
             colException = new DataGridViewTextBoxColumn();
             logdatetime = new DataGridViewTextBoxColumn();
@@ -335,7 +334,7 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.AllowUserToAddRows = false;
             InvoicesDataGridView.AllowUserToDeleteRows = false;
             InvoicesDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[] { colId, colPosId, colInvoiceData, colInvoiceNumber, colIsSynced, colAttemptCount, colDateCreated });
+            InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[] { colId, colPosId, colInvoiceNumber, colIsSynced, colAttemptCount, colDateCreated });
             InvoicesDataGridView.Dock = DockStyle.Fill;
             InvoicesDataGridView.Location = new Point(8, 57);
             InvoicesDataGridView.Margin = new Padding(3, 4, 3, 4);
@@ -362,14 +361,6 @@ namespace POSPRA_WinFormsUI.Forms
             colPosId.MinimumWidth = 6;
             colPosId.Name = "colPosId";
             colPosId.ReadOnly = true;
-            // 
-            // colInvoiceData
-            // 
-            colInvoiceData.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colInvoiceData.HeaderText = "Invoice Data";
-            colInvoiceData.MinimumWidth = 6;
-            colInvoiceData.Name = "colInvoiceData";
-            colInvoiceData.ReadOnly = true;
             // 
             // colInvoiceNumber
             // 
@@ -434,7 +425,7 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.AllowUserToAddRows = false;
             LogsDataGridView.AllowUserToDeleteRows = false;
             LogsDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            LogsDataGridView.Columns.AddRange(new DataGridViewColumn[] { colID, colMessage, colException, logdatetime });
+            LogsDataGridView.Columns.AddRange(new DataGridViewColumn[] { colLogID, colMessage, colException, logdatetime });
             LogsDataGridView.Dock = DockStyle.Fill;
             LogsDataGridView.Location = new Point(8, 57);
             LogsDataGridView.Margin = new Padding(3, 4, 3, 4);
@@ -445,14 +436,14 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.Size = new Size(1152, 184);
             LogsDataGridView.TabIndex = 0;
             // 
-            // colId
+            // colLogID
             // 
-            colID.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colID.HeaderText = "ID";
-            colID.MinimumWidth = 50;
-            colID.Name = "colID";
-            colID.ReadOnly = true;
-            colID.Width = 80;
+            colLogID.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colLogID.HeaderText = "ID";
+            colLogID.MinimumWidth = 50;
+            colLogID.Name = "colLogID";
+            colLogID.ReadOnly = true;
+            colLogID.Width = 80;
             // 
             // colMessage
             // 
@@ -465,7 +456,7 @@ namespace POSPRA_WinFormsUI.Forms
             // colException
             // 
             colException.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colException.HeaderText = "Message";
+            colException.HeaderText = "Type";
             colException.MinimumWidth = 6;
             colException.Name = "colException";
             colException.ReadOnly = true;

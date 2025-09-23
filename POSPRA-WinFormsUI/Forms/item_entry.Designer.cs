@@ -55,7 +55,6 @@
             extratax = new TextBox();
             furturetax = new TextBox();
             label8 = new Label();
-            label9 = new Label();
             textBox4 = new TextBox();
             textBox5 = new TextBox();
             label7 = new Label();
@@ -143,6 +142,7 @@
             sellerntn = new TextBox();
             label15 = new Label();
             label31 = new Label();
+            extraTaxlbl = new Label();
             pnlBasicInfo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             contentPanel.SuspendLayout();
@@ -155,6 +155,7 @@
             pnlBasicInfo.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             pnlBasicInfo.BackColor = Color.White;
             pnlBasicInfo.BackgroundImageLayout = ImageLayout.None;
+            pnlBasicInfo.Controls.Add(extraTaxlbl);
             pnlBasicInfo.Controls.Add(WHIT_Section_2lbl);
             pnlBasicInfo.Controls.Add(WHIT_Section_2);
             pnlBasicInfo.Controls.Add(WHIT_Section_1lbl);
@@ -179,7 +180,6 @@
             pnlBasicInfo.Controls.Add(extratax);
             pnlBasicInfo.Controls.Add(furturetax);
             pnlBasicInfo.Controls.Add(label8);
-            pnlBasicInfo.Controls.Add(label9);
             pnlBasicInfo.Controls.Add(textBox4);
             pnlBasicInfo.Controls.Add(textBox5);
             pnlBasicInfo.Controls.Add(label7);
@@ -453,13 +453,6 @@
             label8.Size = new Size(103, 20);
             label8.TabIndex = 14;
             label8.Text = "Furture Tax";
-            // 
-            // label9
-            // 
-            label9.Location = new Point(0, 0);
-            label9.Name = "label9";
-            label9.Size = new Size(100, 23);
-            label9.TabIndex = 55;
             // 
             // textBox4
             // 
@@ -789,6 +782,7 @@
             colHSCode.MinimumWidth = 6;
             colHSCode.Name = "colHSCode";
             colHSCode.ReadOnly = true;
+            colHSCode.Width = 125;
             // 
             // colProductDescription
             // 
@@ -812,6 +806,7 @@
             colQuantity.MinimumWidth = 6;
             colQuantity.Name = "colQuantity";
             colQuantity.ReadOnly = true;
+            colQuantity.Width = 125;
             // 
             // colRate
             // 
@@ -819,6 +814,7 @@
             colRate.MinimumWidth = 6;
             colRate.Name = "colRate";
             colRate.ReadOnly = true;
+            colRate.Width = 125;
             // 
             // colRetailPrice
             // 
@@ -874,6 +870,7 @@
             colSROSNo.MinimumWidth = 6;
             colSROSNo.Name = "colSROSNo";
             colSROSNo.ReadOnly = true;
+            colSROSNo.Width = 125;
             // 
             // colCVT
             // 
@@ -881,6 +878,7 @@
             colCVT.MinimumWidth = 6;
             colCVT.Name = "colCVT";
             colCVT.ReadOnly = true;
+            colCVT.Width = 125;
             // 
             // colSalesTaxApplicable
             // 
@@ -904,6 +902,7 @@
             colWHIT1.MinimumWidth = 6;
             colWHIT1.Name = "colWHIT1";
             colWHIT1.ReadOnly = true;
+            colWHIT1.Width = 125;
             // 
             // colWHIT2
             // 
@@ -911,6 +910,7 @@
             colWHIT2.MinimumWidth = 6;
             colWHIT2.Name = "colWHIT2";
             colWHIT2.ReadOnly = true;
+            colWHIT2.Width = 125;
             // 
             // colFedPayable
             // 
@@ -1388,6 +1388,17 @@
             label31.TabIndex = 56;
             label31.Text = "Invoice Entry";
             // 
+            // extraTaxlbl
+            // 
+            extraTaxlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            extraTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            extraTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
+            extraTaxlbl.Location = new Point(715, 65);
+            extraTaxlbl.Name = "extraTaxlbl";
+            extraTaxlbl.Size = new Size(93, 20);
+            extraTaxlbl.TabIndex = 19;
+            extraTaxlbl.Text = "Extra Tax";
+            // 
             // item_entry
             // 
             AutoScaleDimensions = new SizeF(9F, 18F);
@@ -1426,7 +1437,6 @@
         private TextBox extratax;
         private TextBox furturetax;
         private Label label8;
-        private Label label9;
         private TextBox textBox4;
         private TextBox textBox5;
         private Label label7;
@@ -1528,5 +1538,6 @@
         private TextBox WHIT_Section_1;
         private Label WHIT_Section_2lbl;
         private TextBox WHIT_Section_2;
+        private Label extraTaxlbl;
     }
 }

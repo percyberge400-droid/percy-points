@@ -30,14 +30,13 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             panel1 = new Panel();
+            lblWorkerService = new Label();
+            lblNetworkStatus = new Label();
             rightMenuPanel = new Panel();
             btnDropDown = new Button();
-            btnNotification = new Button();
             panExportInvoice = new Panel();
             label1 = new Label();
             btnDashboard = new Button();
-            btnItemEntry = new Button();
-            panItemEntry = new Panel();
             btnInvoiceSelection = new Button();
             btnExportInvoice = new Button();
             panDashboard = new Panel();
@@ -49,12 +48,12 @@
             // panel1
             // 
             panel1.BackColor = Color.White;
+            panel1.Controls.Add(lblWorkerService);
+            panel1.Controls.Add(lblNetworkStatus);
             panel1.Controls.Add(rightMenuPanel);
             panel1.Controls.Add(panExportInvoice);
             panel1.Controls.Add(label1);
             panel1.Controls.Add(btnDashboard);
-            panel1.Controls.Add(btnItemEntry);
-            panel1.Controls.Add(panItemEntry);
             panel1.Controls.Add(btnInvoiceSelection);
             panel1.Controls.Add(btnExportInvoice);
             panel1.Controls.Add(panDashboard);
@@ -66,15 +65,34 @@
             panel1.Size = new Size(1507, 85);
             panel1.TabIndex = 4;
             // 
+            // lblWorkerService
+            // 
+            lblWorkerService.AutoSize = true;
+            lblWorkerService.Font = new Font("Segoe UI", 12F);
+            lblWorkerService.Location = new Point(1164, 25);
+            lblWorkerService.Name = "lblWorkerService";
+            lblWorkerService.Size = new Size(91, 28);
+            lblWorkerService.TabIndex = 4;
+            lblWorkerService.Text = "Service: -";
+            // 
+            // lblNetworkStatus
+            // 
+            lblNetworkStatus.AutoSize = true;
+            lblNetworkStatus.Font = new Font("Segoe UI", 12F);
+            lblNetworkStatus.Location = new Point(841, 25);
+            lblNetworkStatus.Name = "lblNetworkStatus";
+            lblNetworkStatus.Size = new Size(162, 28);
+            lblNetworkStatus.TabIndex = 3;
+            lblNetworkStatus.Text = "Network Status: -";
+            // 
             // rightMenuPanel
             // 
             rightMenuPanel.Controls.Add(btnDropDown);
-            rightMenuPanel.Controls.Add(btnNotification);
             rightMenuPanel.Dock = DockStyle.Right;
-            rightMenuPanel.Location = new Point(1329, 0);
+            rightMenuPanel.Location = new Point(1419, 0);
             rightMenuPanel.Margin = new Padding(3, 4, 3, 4);
             rightMenuPanel.Name = "rightMenuPanel";
-            rightMenuPanel.Size = new Size(178, 85);
+            rightMenuPanel.Size = new Size(88, 85);
             rightMenuPanel.TabIndex = 2;
             // 
             // btnDropDown
@@ -84,7 +102,7 @@
             btnDropDown.FlatStyle = FlatStyle.Flat;
             btnDropDown.Image = (Image)resources.GetObject("btnDropDown.Image");
             btnDropDown.ImageAlign = ContentAlignment.MiddleLeft;
-            btnDropDown.Location = new Point(92, 0);
+            btnDropDown.Location = new Point(2, 0);
             btnDropDown.Margin = new Padding(3, 4, 3, 4);
             btnDropDown.Name = "btnDropDown";
             btnDropDown.Size = new Size(86, 85);
@@ -93,23 +111,10 @@
             btnDropDown.TextAlign = ContentAlignment.MiddleRight;
             btnDropDown.UseVisualStyleBackColor = true;
             // 
-            // btnNotification
-            // 
-            btnNotification.Dock = DockStyle.Left;
-            btnNotification.FlatAppearance.BorderSize = 0;
-            btnNotification.FlatStyle = FlatStyle.Flat;
-            //btnNotification.Image = Properties.Resources.notification_filled;
-            btnNotification.Location = new Point(0, 0);
-            btnNotification.Margin = new Padding(3, 4, 3, 4);
-            btnNotification.Name = "btnNotification";
-            btnNotification.Size = new Size(87, 85);
-            btnNotification.TabIndex = 2;
-            btnNotification.UseVisualStyleBackColor = true;
-            // 
             // panExportInvoice
             // 
             panExportInvoice.BackColor = Color.FromArgb(104, 109, 244);
-            panExportInvoice.Location = new Point(647, 79);
+            panExportInvoice.Location = new Point(537, 79);
             panExportInvoice.Margin = new Padding(3, 4, 3, 4);
             panExportInvoice.Name = "panExportInvoice";
             panExportInvoice.Size = new Size(137, 7);
@@ -140,29 +145,6 @@
             btnDashboard.UseVisualStyleBackColor = true;
             btnDashboard.Click += btnDashboard_Click;
             // 
-            // btnItemEntry
-            // 
-            btnItemEntry.FlatAppearance.BorderSize = 0;
-            btnItemEntry.FlatStyle = FlatStyle.Flat;
-            btnItemEntry.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            btnItemEntry.Location = new Point(538, 4);
-            btnItemEntry.Margin = new Padding(3, 4, 3, 4);
-            btnItemEntry.Name = "btnItemEntry";
-            btnItemEntry.Size = new Size(102, 67);
-            btnItemEntry.TabIndex = 1;
-            btnItemEntry.Text = "Item Entry";
-            btnItemEntry.UseVisualStyleBackColor = true;
-            btnItemEntry.Click += btnItemEntry_Click;
-            // 
-            // panItemEntry
-            // 
-            panItemEntry.BackColor = Color.FromArgb(104, 109, 244);
-            panItemEntry.Location = new Point(538, 79);
-            panItemEntry.Margin = new Padding(3, 4, 3, 4);
-            panItemEntry.Name = "panItemEntry";
-            panItemEntry.Size = new Size(102, 7);
-            panItemEntry.TabIndex = 2;
-            // 
             // btnInvoiceSelection
             // 
             btnInvoiceSelection.FlatAppearance.BorderColor = Color.White;
@@ -183,7 +165,7 @@
             btnExportInvoice.FlatAppearance.BorderSize = 0;
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            btnExportInvoice.Location = new Point(647, 4);
+            btnExportInvoice.Location = new Point(537, 4);
             btnExportInvoice.Margin = new Padding(3, 4, 3, 4);
             btnExportInvoice.Name = "btnExportInvoice";
             btnExportInvoice.Size = new Size(137, 67);
@@ -219,7 +201,6 @@
             Margin = new Padding(3, 4, 3, 4);
             Name = "Main";
             Text = "Main";
-            Load += Main_Load;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             rightMenuPanel.ResumeLayout(false);
@@ -231,15 +212,14 @@
         private Panel panel1;
         private Panel rightMenuPanel;
         private Button btnDropDown;
-        private Button btnNotification;
         private Panel panExportInvoice;
         private Label label1;
         private Button btnDashboard;
-        private Button btnItemEntry;
-        private Panel panItemEntry;
         private Button btnInvoiceSelection;
         private Button btnExportInvoice;
         private Panel panDashboard;
         private Panel panInvoiceSelection;
+        private Label lblNetworkStatus;
+        private Label lblWorkerService;
     }
 }
