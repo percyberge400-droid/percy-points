@@ -190,6 +190,18 @@ namespace POSPRA.Application.Services.FiscalService
             }
         }
 
+        /// <summary>
+        /// Retrieves **all** file records from the repository.
+        /// </summary>
+        /// <remarks>
+        /// This method fetches every record regardless of sync status,
+        /// maps them to <see cref="FileRecordDTO"/>, and returns the list
+        /// wrapped in an <see cref="ApiResponse{T}"/>.
+        /// </remarks>
+        /// <returns>
+        /// An <see cref="ApiResponse{T}"/> containing a list of all
+        /// <see cref="FileRecordDTO"/> objects.
+        /// </returns>
         public async Task<ApiResponse<List<FileRecordDTO>>> GetAllAsync()
         {
             var output = await _fileRecordRepository.GetAllAsync();
@@ -198,15 +210,28 @@ namespace POSPRA.Application.Services.FiscalService
             return new ApiResponse<List<FileRecordDTO>>(null, null, fileRecrodDTO, null);
         }
 
+        /// <summary>
+        /// Retrieves only the file records that are **not yet synced**.
+        /// </summary>
+        /// <remarks>
+        /// The method first obtains all records from the repository, filters them
+        /// in memory to include only those whose <c>IsSynced</c> property equals
+        /// <see cref="InvoiceStatus.NotSynced"/>, then maps the result to
+        /// <see cref="FileRecordDTO"/> objects.
+        /// </remarks>
+        /// <returns>
+        /// An <see cref="ApiResponse{T}"/> containing a list of unsynced
+        /// <see cref="FileRecordDTO"/> objects.
+        /// </returns>
         public async Task<ApiResponse<List<FileRecordDTO>>> GetAllUnsyncedAsync()
         {
             // Await the repository call directly (don't use .Result)
             var allRecords = await _fileRecordRepository.GetAllAsync();
 
-            // Filter in memory (if GetAllAsync() already returns an IQueryable, you can filter earlier)
+            // Filter in memory for unsynced records
             var unsynced = allRecords
-                .Where(x => x.IsSynced == (int)InvoiceStatus.NotSynced)   // use !x.IsSynced for clarity
-                .ToList();                 // materialize as a List
+                .Where(x => x.IsSynced == (int)InvoiceStatus.NotSynced)
+                .ToList();
 
             // Map to DTOs
             var fileRecordDtos = _mapper.Map<List<FileRecordDTO>>(unsynced);
@@ -250,26 +275,6 @@ namespace POSPRA.Application.Services.FiscalService
                 await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
                 return 0;
             }
-        }
-
-        public string DecryptFiscalInvoice(string encryptedPackage)
-        {
-            // Split cipherText, nonce, tag
-            var parts = encryptedPackage.Split(':');
-            if (parts.Length != 3)
-                throw new InvalidOperationException("Invalid encrypted package format.");
-
-            string cipherText = parts[0];
-            string nonce = parts[1];
-            string tag = parts[2];
-
-            // Recreate AES key (must match CreateFiscalInvoiceAsync)
-            byte[] aesKey = Encoding.UTF8.GetBytes(_settings.EC.PadRight(32).Substring(0, 32));
-
-            // Decrypt
-            string decryptedText = ModernAESEncryption.Decrypt(cipherText, _settings.EC);
-
-            return decryptedText; // "{invoiceJson}|false|Latest|{signatureBase64}"
         }
     }
 }

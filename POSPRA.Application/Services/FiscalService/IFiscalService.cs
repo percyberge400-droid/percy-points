@@ -9,8 +9,22 @@ namespace POSPRA.Application.Services.FiscalService
     /// </summary>
     public interface IFiscalService
     {
+        /// <summary>
+        /// Retrieves all file records from the data store.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="ApiResponse{T}"/> containing a list of all
+        /// <see cref="FileRecordDTO"/> objects.
+        /// </returns>
         Task<ApiResponse<List<FileRecordDTO>>> GetAllAsync();
 
+        /// <summary>
+        /// Retrieves only the file records that have **not** been synced yet.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="ApiResponse{T}"/> containing a list of unsynced
+        /// <see cref="FileRecordDTO"/> objects.
+        /// </returns>
         Task<ApiResponse<List<FileRecordDTO>>> GetAllUnsyncedAsync();
 
         /// <summary>
