@@ -95,6 +95,7 @@ namespace POSPRA_WinFormsUI.Forms
             lblInProgressTitle = new Label();
             tableLayoutPanelMain = new TableLayoutPanel();
             panelInvoices = new Panel();
+            btnLoadFullData = new Button();
             progressBar = new ProgressBar();
             btnFilterSynced = new Button();
             btnClearFilter = new Button();
@@ -335,6 +336,7 @@ namespace POSPRA_WinFormsUI.Forms
             // panelInvoices
             // 
             panelInvoices.BackColor = Color.White;
+            panelInvoices.Controls.Add(btnLoadFullData);
             panelInvoices.Controls.Add(progressBar);
             panelInvoices.Controls.Add(btnFilterSynced);
             panelInvoices.Controls.Add(btnClearFilter);
@@ -351,6 +353,16 @@ namespace POSPRA_WinFormsUI.Forms
             panelInvoices.Padding = new Padding(8);
             panelInvoices.Size = new Size(1168, 471);
             panelInvoices.TabIndex = 0;
+            // 
+            // btnLoadFullData
+            // 
+            btnLoadFullData.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnLoadFullData.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnLoadFullData.Location = new Point(258, 23);
+            btnLoadFullData.Name = "btnLoadFullData";
+            btnLoadFullData.Size = new Size(115, 27);
+            btnLoadFullData.TabIndex = 6;
+            btnLoadFullData.Text = "Load Full Data";
             // 
             // progressBar
             // 
@@ -622,5 +634,6 @@ namespace POSPRA_WinFormsUI.Forms
         private Button btnRefresh;
         private Button btnFilterSynced;
         private ProgressBar progressBar;
+        private Button btnLoadFullData;
     }
 }
