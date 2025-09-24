@@ -1,4 +1,6 @@
-﻿namespace POSPRA.Application.Services.NetworkService
+﻿using System.Net.NetworkInformation;
+
+namespace POSPRA.Application.Services.NetworkService
 {
     /// <summary>
     /// Default implementation that checks internet availability
@@ -14,14 +16,9 @@
         {
             try
             {
-                using var client = new HttpClient
-                {
-                    Timeout = TimeSpan.FromSeconds(5)
-                };
-
-                // You can replace with your own endpoint
-                using var response = await client.GetAsync("https://www.google.com");
-                return response.IsSuccessStatusCode;
+                using var ping = new Ping();
+                var reply = await ping.SendPingAsync("8.8.8.8", 3000); // Google DNS
+                return reply.Status == IPStatus.Success;
             }
             catch
             {
