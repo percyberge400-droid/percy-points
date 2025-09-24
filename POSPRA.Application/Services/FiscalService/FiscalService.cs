@@ -12,7 +12,6 @@ using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
-using InvoiceStatus = POSPRA.Application.Utility.GlobalEnums.InvoiceStatus;
 
 namespace POSPRA.Application.Services.FiscalService
 {
@@ -66,16 +65,16 @@ namespace POSPRA.Application.Services.FiscalService
                     // Example inside a controller/service where you already have HttpContext
                     await _logService.LogAsync(
                       _logService.BuildLog(
-                          Messages.INVALID_MODEL,
+                          "Invalid model",
                           AlertType.Exception,
                           module: "Invoice",
                           action: nameof(CreateAsync)));
 
 
                     return new ApiResponse<InvoiceDto>(
-                        statusCode: GlobalEnums.StatusCodes.Code_401.ToString(),
-                        message: GlobalEnums.GetEnumDescription(GlobalEnums.StatusCodes.Code_401),
-                        data: null, null
+                        statusCode: ApiStatusCode.Error.ToString(),
+                        message: ResponseMessages.DataNotFound,
+                        data: null, string.Empty
                         );
                 }
                 else
@@ -93,13 +92,13 @@ namespace POSPRA.Application.Services.FiscalService
                             return new ApiResponse<InvoiceDto>(
                                 statusCode: ApiStatusCode.Success.ToString(),
                                 message: ResponseMessages.RecordSaved,
-                                data: null, null);
+                                data: null, string.Empty);
                         }
                         else
                         {
                             await _logService.LogAsync(
                              _logService.BuildLog(
-                                 string.Format(Messages.INVOICE_NOT_AVAILABLE, " for " + dto.InvoiceType),
+                                 string.Format("Invoice not available", " for " + dto.InvoiceType),
                                  AlertType.Exception,
                                  module: "Invoice",
                                  action: nameof(CreateAsync)));
@@ -213,7 +212,7 @@ namespace POSPRA.Application.Services.FiscalService
             var output = await _fileRecordRepository.GetAllAsync();
             var fileRecrodDTO = _mapper.Map<List<FileRecordDto>>(output);
 
-            return new ApiResponse<List<FileRecordDto>>(null, null, fileRecrodDTO, null);
+            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecrodDTO, string.Empty);
         }
 
         /// <summary>
@@ -242,7 +241,7 @@ namespace POSPRA.Application.Services.FiscalService
             // Map to DTOs
             var fileRecordDtos = _mapper.Map<List<FileRecordDto>>(unsynced);
 
-            return new ApiResponse<List<FileRecordDto>>(null, null, fileRecordDtos, null);
+            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
         }
 
         /// <summary>
@@ -288,10 +287,10 @@ namespace POSPRA.Application.Services.FiscalService
             if (fileRecordDtos == null || fileRecordDtos.Count == 0)
             {
                 return new ApiResponse<List<FileRecordDto>>(
-                    ApiStatusCode.Error.ToString(),
+                    ApiStatusCode.Error,
                     ResponseMessages.DataNotFound,
                     null,
-                    null);
+                    string.Empty);
             }
 
             // Map DTOs to entities (assuming you have AutoMapper or manual mapping)
@@ -306,10 +305,10 @@ namespace POSPRA.Application.Services.FiscalService
 
             // ✅ Return in the same style you requested
             return new ApiResponse<List<FileRecordDto>>(
-                ApiStatusCode.Success.ToString(),
+                ApiStatusCode.Success,
                 ResponseMessages.RecordSaved,
                 updatedDtos,
-                null);
+                string.Empty);
         }
     }
 }

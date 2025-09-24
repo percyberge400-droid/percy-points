@@ -2,10 +2,10 @@
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
-using POSPRA.DTOs.InvoiceDTOs;
+using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA.Repositories.ProductCatalogueRepository;
 
-namespace POSPRA.Application.Services.FiscalService
+namespace POSPRA.Application.Services.ProductCatalogService
 {
     public class ProductCatalogueService : IProductCatalogueService
     {
@@ -22,12 +22,12 @@ namespace POSPRA.Application.Services.FiscalService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<ApiResponse<List<ProductCatalogueDTO>>> GetAllAsync()
+        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync()
         {
             var output = await _productCatalogueRepository.QueryProcedureAsync<ProductCatalogue>("GetProductCatalogue") ?? new List<ProductCatalogue>();
-            var productCatalogueDTO = _mapper.Map<List<ProductCatalogueDTO>>(output) ?? new List<ProductCatalogueDTO>();
+            var productCatalogueDTO = _mapper.Map<List<ProductCatalogueDto>>(output) ?? new List<ProductCatalogueDto>();
 
-            return new ApiResponse<List<ProductCatalogueDTO>>(null, null, productCatalogueDTO, null);
+            return new ApiResponse<List<ProductCatalogueDto>>(null, null, productCatalogueDTO, null);
         }
     }
 }
