@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.InvoiceDTOs
+﻿namespace POSPRA.DTOs.ProductCatalogDtos
 {
-    public class ProductCatalogueDTO
+    public class ProductCatalogueDto
     {
 
         public string? ProductCode { get; set; }

@@ -2,10 +2,10 @@
 using AutoMapper;
 using Microsoft.Data.SqlClient; // ✅ correct namespace
 using POSPRA.Application.Services.HelperService;
+using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.BaseRepository;
-using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.InvoiceService
 {
@@ -43,7 +43,7 @@ namespace POSPRA.Application.Services.InvoiceService
                 var dtoResults = _mapper.Map<List<POSVerificationDto>>(rawResults);
 
                 return new ApiResponse<List<POSVerificationDto>>(
-                    statusCode: ApiStatusCodes.Success,
+                    statusCode: ApiStatusCode.Success,
                     message: dtoResults.Count > 0
                         ? "POS verification records found"
                         : "No records found",
@@ -53,7 +53,7 @@ namespace POSPRA.Application.Services.InvoiceService
             catch (Exception ex)
             {
                 return new ApiResponse<List<POSVerificationDto>>(
-                    statusCode: ApiStatusCodes.Error,
+                    statusCode: ApiStatusCode.Error,
                     message: "Error fetching POS verification: " + ex.Message,
                     data: null
                 );

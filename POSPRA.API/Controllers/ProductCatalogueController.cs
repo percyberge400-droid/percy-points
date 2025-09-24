@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.ProductCatalogService;
 
 namespace POSPRA.API.Controllers
 {
@@ -11,7 +11,7 @@ namespace POSPRA.API.Controllers
 
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAll() =>
-        Ok(await _productCatalogueService.GetAllAsync());
+            Ok(await _productCatalogueService.GetAllAsync());
 
     }
 }

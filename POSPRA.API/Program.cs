@@ -9,6 +9,7 @@ using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
+using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;

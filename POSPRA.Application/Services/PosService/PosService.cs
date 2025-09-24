@@ -8,7 +8,6 @@ using POSPRA.DTOs.PosDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.PosRepository;
 using POSPRA.Repositories.UnitOfWork;
-using static POSPRA.Application.Utility.GlobalEnums;
 
 namespace POSPRA.Application.Services.POSService
 {
@@ -49,7 +48,7 @@ namespace POSPRA.Application.Services.POSService
                 var client = await _posClientRepository.FirstOrDefaultAsync(p => p.POSRegistrationNumber == posId);
                 if (client == null)
                     return new ApiResponse<string>(
-                        statusCode: ApiStatusCodes.NotFound,
+                        statusCode: ApiStatusCode.NotFound,
                         message: ResponseMessages.DataNotFound,
                         data: string.Empty
                     );
@@ -61,7 +60,7 @@ namespace POSPRA.Application.Services.POSService
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 return new ApiResponse<string>(
-                    statusCode: ApiStatusCodes.Success,
+                    statusCode: ApiStatusCode.Success,
                     message: ResponseMessages.HeartbeatUpdated,
                     data: string.Empty
                 );
@@ -69,7 +68,7 @@ namespace POSPRA.Application.Services.POSService
             catch (Exception ex)
             {
                 return new ApiResponse<string>(
-                    statusCode: ApiStatusCodes.Error,
+                    statusCode: ApiStatusCode.Error,
                     message: $"{ResponseMessages.ErrorUpdatingHeartbeat}: {ex.Message}",
                     data: string.Empty
                 );
@@ -85,7 +84,7 @@ namespace POSPRA.Application.Services.POSService
                 var posConfigurations = await _posConfigurationRepository.FirstOrDefaultAsync(x => x.POSID == posId && x.IsActive == true);
                 if (posConfigurations == null)
                     return new ApiResponse<List<PosConfigurationDto>>(
-                        statusCode: ApiStatusCodes.NotFound,
+                        statusCode: ApiStatusCode.NotFound,
                         message: ResponseMessages.ConfigurationsNotFound,
                         data: null
                     );
@@ -94,7 +93,7 @@ namespace POSPRA.Application.Services.POSService
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 return new ApiResponse<List<PosConfigurationDto>>(
-                    statusCode: ApiStatusCodes.Success,
+                    statusCode: ApiStatusCode.Success,
                     message: ResponseMessages.RecordSaved,
                     data: null
                 );
@@ -102,7 +101,7 @@ namespace POSPRA.Application.Services.POSService
             catch (Exception ex)
             {
                 return new ApiResponse<List<PosConfigurationDto>>(
-                    statusCode: ApiStatusCodes.NotFound,
+                    statusCode: ApiStatusCode.NotFound,
                     message: $"{ResponseMessages.ConfigurationsFetchError} {ex.Message}",
                     data: null
                 );
@@ -129,7 +128,7 @@ namespace POSPRA.Application.Services.POSService
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 return new ApiResponse<List<PosStatus>>(
-                    statusCode: ApiStatusCodes.Success,
+                    statusCode: ApiStatusCode.Success,
                     message: ResponseMessages.ConfigurationsFound,
                     data: new List<PosStatus> { posStatus }
                 );
@@ -137,7 +136,7 @@ namespace POSPRA.Application.Services.POSService
             catch (Exception ex)
             {
                 return new ApiResponse<List<PosStatus>>(
-                    statusCode: ApiStatusCodes.Error,
+                    statusCode: ApiStatusCode.Error,
                     message: $"{ResponseMessages.ConfigurationsFetchError} {ex.Message}",
                     data: null
                 );
