@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA_WinFormsUI.AlertClasses;
 using System.Net.NetworkInformation;
+using System.ServiceProcess;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -9,7 +11,11 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly IServiceProvider _provider;
         private readonly IFiscalService _fiscalService;
 
+        // -----------------------------
+        // Checkers cancellation tokens
+        // -----------------------------
         private CancellationTokenSource _internetCheckCts;
+        private CancellationTokenSource _workerServiceCts;
 
         // Track non-MDI forms separately
         private readonly List<Form> _independentForms = new List<Form>();
@@ -36,8 +42,9 @@ namespace POSPRA_WinFormsUI.Forms
             // Handle form state changes to manage independent forms
             this.Resize += Main_Resize;
 
-            // Start internet checker
+            // Start internet and worker service checkers
             StartInternetStatusChecker();
+            StartWorkerServiceStatusChecker();
 
             // Placeholder for worker service
             lblWorkerService.Text = "Worker Service: -";
@@ -48,9 +55,10 @@ namespace POSPRA_WinFormsUI.Forms
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
-            _internetCheckCts?.Cancel();
 
-            // Close all independent forms
+            StopInternetStatusChecker();
+            StopWorkerServiceStatusChecker();
+
             foreach (var form in _independentForms.ToArray())
             {
                 if (form != null && !form.IsDisposed)
@@ -60,49 +68,38 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        private void Main_Resize(object sender, EventArgs e)
-        {
-            HandleFormStateChange();
-        }
-
-        private void Main_WindowStateChanged(object sender, EventArgs e)
-        {
-            HandleFormStateChange();
-        }
+        private void Main_Resize(object sender, EventArgs e) => HandleFormStateChange();
+        private void Main_WindowStateChanged(object sender, EventArgs e) => HandleFormStateChange();
 
         private void HandleFormStateChange()
         {
             if (this.WindowState == FormWindowState.Minimized)
             {
-                // When main form is minimized, hide independent forms but don't minimize them
                 foreach (var form in _independentForms)
                 {
                     if (form != null && !form.IsDisposed && form.Visible)
                     {
                         form.Hide();
-                        form.Tag = "was_visible"; // Mark as previously visible
+                        form.Tag = "was_visible";
                     }
                 }
             }
             else if (this.WindowState == FormWindowState.Normal || this.WindowState == FormWindowState.Maximized)
             {
-                // When main form is restored, show previously visible independent forms
                 foreach (var form in _independentForms)
                 {
                     if (form != null && !form.IsDisposed && form.Tag?.ToString() == "was_visible")
                     {
                         form.Show();
                         form.BringToFront();
-                        form.Tag = null; // Clear the marker
+                        form.Tag = null;
                     }
                 }
             }
         }
 
-        // Method to open forms as independent windows (non-MDI)
         private void OpenIndependentForm<T>() where T : Form
         {
-            // Check if form of this type is already open
             foreach (var existingForm in _independentForms)
             {
                 if (existingForm is T && !existingForm.IsDisposed)
@@ -116,25 +113,14 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             }
 
-            // Create new instance if not found
             var newForm = _provider.GetRequiredService<T>();
-
-            // Make the form independent (not MDI)
             newForm.MdiParent = null;
             newForm.ShowInTaskbar = true;
             newForm.StartPosition = FormStartPosition.CenterScreen;
-            newForm.FormBorderStyle = FormBorderStyle.Sizable; // Allow normal window operations
+            newForm.FormBorderStyle = FormBorderStyle.Sizable;
+            newForm.FormClosed += (s, e) => _independentForms.Remove(newForm);
 
-            // Add event handlers to track form lifecycle
-            newForm.FormClosed += (s, e) =>
-            {
-                _independentForms.Remove(newForm);
-            };
-
-            // Add to tracking list
             _independentForms.Add(newForm);
-
-            // Show the form
             newForm.Show();
             newForm.BringToFront();
         }
@@ -142,7 +128,6 @@ namespace POSPRA_WinFormsUI.Forms
         // -----------------------------
         // INTERNET STATUS CHECKER
         // -----------------------------
-
         private void StartInternetStatusChecker()
         {
             _internetCheckCts = new CancellationTokenSource();
@@ -150,15 +135,38 @@ namespace POSPRA_WinFormsUI.Forms
 
             _ = Task.Run(async () =>
             {
-                // Run immediately once
-                await UpdateInternetStatusAsync();
+                bool wasOnline = true;
 
                 while (!ct.IsCancellationRequested)
                 {
                     try
                     {
-                        await Task.Delay(2000, ct); // check every 2s
-                        await UpdateInternetStatusAsync();
+                        bool online = await CheckInternetConnectivityAsync();
+
+                        if (lblNetworkStatus != null && lblNetworkStatus.IsHandleCreated)
+                        {
+                            lblNetworkStatus.BeginInvoke(new Action(() =>
+                            {
+                                lblNetworkStatus.Text = $"Network Status: {(online ? "Online" : "Offline")}";
+                                lblNetworkStatus.Font = new Font(lblNetworkStatus.Font, FontStyle.Bold);
+                                lblNetworkStatus.ForeColor = online ? Color.Green : Color.Red;
+                            }));
+                        }
+
+                        // Only trigger alert if offline continuously for 2 seconds
+                        if (!online && wasOnline)
+                        {
+                            // Wait 2 seconds and check again
+                            await Task.Delay(3000, ct);
+                            bool stillOffline = !await CheckInternetConnectivityAsync();
+
+                            if (stillOffline)
+                                ShowAlert("Internet connection lost!");
+                        }
+
+                        wasOnline = online;
+
+                        await Task.Delay(2000, ct); // normal polling interval
                     }
                     catch (TaskCanceledException)
                     {
@@ -168,35 +176,113 @@ namespace POSPRA_WinFormsUI.Forms
             }, ct);
         }
 
-        private async Task UpdateInternetStatusAsync()
-        {
-            bool online = await CheckInternetConnectivityAsync();
-
-            if (lblNetworkStatus != null && lblNetworkStatus.IsHandleCreated)
-            {
-                lblNetworkStatus.BeginInvoke(new Action(() =>
-                {
-                    lblNetworkStatus.Text = $"Network Status: {(online ? "Online" : "Offline")}";
-                    lblNetworkStatus.Font = new Font(lblNetworkStatus.Font, FontStyle.Bold);
-                    lblNetworkStatus.ForeColor = online ? Color.Green : Color.Red;
-                }));
-            }
-        }
 
         private async Task<bool> CheckInternetConnectivityAsync()
         {
             try
             {
                 using var ping = new Ping();
-                var reply = await ping.SendPingAsync("8.8.8.8", 2000); // 2s timeout
+                var reply = await ping.SendPingAsync("8.8.8.8", 2000);
                 return reply.Status == IPStatus.Success;
             }
-            catch
-            {
-                return false;
-            }
+            catch { return false; }
         }
 
+        private void StopInternetStatusChecker()
+        {
+            _internetCheckCts?.Cancel();
+            _internetCheckCts?.Dispose();
+        }
+
+        // -----------------------------
+        // WORKER SERVICE STATUS CHECKER
+        // -----------------------------
+        private void StartWorkerServiceStatusChecker()
+        {
+            _workerServiceCts = new CancellationTokenSource();
+            CancellationToken ct = _workerServiceCts.Token;
+
+            _ = Task.Run(async () =>
+            {
+                bool wasRunning = true;
+
+                while (!ct.IsCancellationRequested)
+                {
+                    try
+                    {
+                        bool isRunning = await IsWorkerServiceRunningAsync();
+
+                        if (lblWorkerService != null && lblWorkerService.IsHandleCreated)
+                        {
+                            lblWorkerService.BeginInvoke(new Action(() =>
+                            {
+                                lblWorkerService.Text = $"Worker Service: {(isRunning ? "Active" : "Inactive")}";
+                                lblWorkerService.Font = new Font(lblWorkerService.Font, FontStyle.Bold);
+                                lblWorkerService.ForeColor = isRunning ? Color.Green : Color.Red;
+                            }));
+                        }
+
+                        if (!isRunning && wasRunning) ShowAlert("Worker service is inactive!");
+                        wasRunning = isRunning;
+
+                        await Task.Delay(2000, ct);
+                    }
+                    catch (TaskCanceledException) { break; }
+                }
+            }, ct);
+        }
+
+        private Task<bool> IsWorkerServiceRunningAsync()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    using var sc = new ServiceController("POSPRAWorker");
+                    return sc.Status == ServiceControllerStatus.Running;
+                }
+                catch { return false; }
+            });
+        }
+
+        private void StopWorkerServiceStatusChecker()
+        {
+            _workerServiceCts?.Cancel();
+            _workerServiceCts?.Dispose();
+        }
+
+        // -----------------------------
+        // ALERT METHOD
+        // -----------------------------
+        private void ShowAlert(string message, string title = "Alert")
+        {
+            if (!this.IsHandleCreated) return;
+
+            this.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    // Option 1: Windows toast notification (non-blocking)
+                    WindowsLocalAppNotification.Show(title, message);
+
+                    // Option 2: Custom alert manager (non-blocking)
+                    AlertManager.ShowError(message);
+
+                    // Option 3: Fallback MessageBox (blocking, optional)
+                    // MessageBox.Show(this, message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                catch
+                {
+                    // Fallback in case notifications fail
+                    MessageBox.Show(this, message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }));
+        }
+
+
+        // -----------------------------
+        // NAVIGATION AND VIEWS
+        // -----------------------------
         private void ResetNavStyles()
         {
             btnDashboard.ForeColor = Color.Black;
@@ -213,17 +299,32 @@ namespace POSPRA_WinFormsUI.Forms
             ResetNavStyles();
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#686DF4");
             panDashboard.Visible = true;
-
-            // Option 1: Load as MDI child (embedded in main form)
             LoadView("Dashboard");
+        }
 
-            // Option 2: Load as independent window (uncomment the line below and comment the line above)
-            // OpenIndependentForm<DashboardForm>();
+        private void btnInvoiceSelection_Click(object sender, EventArgs e)
+        {
+            ResetNavStyles();
+            btnInvoiceSelection.ForeColor = ColorTranslator.FromHtml("#686DF4");
+            panInvoiceSelection.Visible = true;
+            LoadView("Invoice Entry");
+        }
+
+        private void btnExportInvoice_Click(object sender, EventArgs e)
+        {
+            ResetNavStyles();
+            btnExportInvoice.ForeColor = ColorTranslator.FromHtml("#686DF4");
+            panExportInvoice.Visible = true;
+        }
+
+        private void btnItemEntry_Click(object sender, EventArgs e)
+        {
+            ResetNavStyles();
+            LoadView("Item Entry");
         }
 
         public void LoadView(string v)
         {
-            // Close current active MDI child if any
             if (this.ActiveMdiChild != null)
                 this.ActiveMdiChild.Close();
 
@@ -236,43 +337,12 @@ namespace POSPRA_WinFormsUI.Forms
 
             if (childForm == null) return;
 
-            // Force maximize
             childForm.TopLevel = false;
             childForm.FormBorderStyle = FormBorderStyle.None;
             childForm.MdiParent = this;
-            childForm.Dock = DockStyle.Fill; // still dock to fill
-            childForm.WindowState = FormWindowState.Maximized; // force maximize
+            childForm.Dock = DockStyle.Fill;
+            childForm.WindowState = FormWindowState.Maximized;
             childForm.Show();
-        }
-
-
-        private void btnInvoiceSelection_Click(object sender, EventArgs e)
-        {
-            ResetNavStyles();
-            btnInvoiceSelection.ForeColor = ColorTranslator.FromHtml("#686DF4");
-            panInvoiceSelection.Visible = true;
-
-            // Option 1: Load as MDI child (embedded in main form)
-            LoadView("Invoice Entry");
-
-            // Option 2: Load as independent window (uncomment the line below and comment the line above)
-            // OpenIndependentForm<item_entry>();
-        }
-
-        private void btnExportInvoice_Click(object sender, EventArgs e)
-        {
-            ResetNavStyles();
-            btnExportInvoice.ForeColor = ColorTranslator.FromHtml("#686DF4");
-            panExportInvoice.Visible = true;
-
-            // Add your export invoice logic here
-            // You can either load an MDI child or open an independent form
-        }
-
-        private void btnItemEntry_Click(object sender, EventArgs e)
-        {
-            ResetNavStyles();
-            LoadView("Item Entry");
         }
     }
 }
