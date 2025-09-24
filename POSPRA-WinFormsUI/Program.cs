@@ -1,5 +1,4 @@
-﻿using System.Drawing.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
@@ -21,6 +20,7 @@ using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
+using System.Drawing.Text;
 
 // ✅ IMPORTANT: Add a reference to the Web API project (right-click WinForms project → Add → Project Reference…)
 
@@ -86,6 +86,7 @@ namespace POSPRA_WinFormsUI
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
             services.AddTransient<item_entry>();
+            services.AddTransient<ExportInvoiceForm>();
 
             using var provider = services.BuildServiceProvider();
 
