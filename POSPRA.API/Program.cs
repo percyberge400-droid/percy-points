@@ -94,6 +94,7 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             builder.Services.AddScoped<ILiveService, LiveService>();
+            builder.Services.AddScoped<INetworkService, NetworkService>();
             builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             builder.Services.AddScoped<INetworkService, NetworkService>();
 

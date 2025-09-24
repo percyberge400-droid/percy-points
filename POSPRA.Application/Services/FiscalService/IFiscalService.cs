@@ -49,6 +49,6 @@ namespace POSPRA.Application.Services.FiscalService
         /// <see cref="FileRecordDto"/> objects if the operation succeeds,
         /// or an error response if validation fails or no records are updated.
         /// </returns>
-        Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos);
+        Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos, bool isSingle);
     }
 }

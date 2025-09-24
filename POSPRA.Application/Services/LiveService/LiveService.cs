@@ -83,7 +83,7 @@ namespace POSPRA.Application.Services.LiveService
                     if (string.Equals(response.StatusCode, ApiStatusCode.Success.ToString(), StringComparison.OrdinalIgnoreCase))
                     {
                         anySaved = true;
-                        item.IsSynced = 1;
+                        item.IsSynced = (int)InvoiceStatus.Synced;
                         syncedRecords.Add(item);
                     }
                 }
