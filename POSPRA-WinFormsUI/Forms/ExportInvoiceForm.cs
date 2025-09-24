@@ -98,7 +98,7 @@ namespace POSPRA_WinFormsUI.Forms
             // Step 1: Validation
             if (!ValidateDateRange())
             {
-                lblExportStatus.Text = "❌ Invalid date range.";
+                lblExportStatus.Text = "❌ Invalid date range. Please select a range within 1 month.";
                 lblExportStatus.ForeColor = Color.Red;
                 return; // stop if invalid
             }
