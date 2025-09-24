@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Windows.Forms;            
 using POSPRA.DTOs;
+using ClosedXML.Excel;
+using System.IO;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -133,7 +135,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                 // ✅ Call the service method
                 var response = await _liveService.GetInvoicesCsvAsync(filter);
-                
+
 
                 // ✅ Handle the response
                 if (response == null)
@@ -141,11 +143,11 @@ namespace POSPRA_WinFormsUI.Forms
                     lblExportStatus.Text = "❌ No response from service.";
                     lblExportStatus.ForeColor = Color.Red;
                 }
-                else if (response.StatusCode != "200")
-                {
-                    lblExportStatus.Text = $"❌ Failed: {response.Message}";
-                    lblExportStatus.ForeColor = Color.Red;
-                }
+                //else if (response.StatusCode != "200") //message success
+                //{
+                //    lblExportStatus.Text = $"❌ Failed: {response.Message}";
+                //    lblExportStatus.ForeColor = Color.Red;
+                //}
                 else if (string.IsNullOrWhiteSpace(response.Data))
                 {
                     lblExportStatus.Text = "⚠ No invoices found for the selected date range.";
@@ -153,11 +155,35 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else
                 {
-                    // ✅ You now have CSV data in response.Data
-                    // Here you can forward it, or just confirm success
-                    lblExportStatus.Text =
-                        $"✅ Invoices exported successfully ({dateTimePickerFrom.Value:dd-MMM-yyyy} to {dateTimePickerTo.Value:dd-MMM-yyyy}).";
-                    lblExportStatus.ForeColor = Color.Green;
+                    // Let the user choose where to save
+                    using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+                    {
+                        saveFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+                        saveFileDialog.Title = "Save Invoices CSV";
+                        saveFileDialog.FileName = "Invoices.csv";
+
+                        if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            try
+                            {
+                                // Save the CSV data to the selected file
+                                File.WriteAllText(saveFileDialog.FileName, response.Data, Encoding.UTF8);
+
+                                lblExportStatus.Text = "✅ Invoices exported successfully.";
+                                lblExportStatus.ForeColor = Color.Green;
+                            }
+                            catch (Exception ex)
+                            {
+                                lblExportStatus.Text = $"❌ Error saving file: {ex.Message}";
+                                lblExportStatus.ForeColor = Color.Red;
+                            }
+                        }
+                        else
+                        {
+                            lblExportStatus.Text = "⚠ Export canceled by user.";
+                            lblExportStatus.ForeColor = Color.Orange;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -165,13 +191,10 @@ namespace POSPRA_WinFormsUI.Forms
                 lblExportStatus.Text = $"❌ Error: {ex.Message}";
                 lblExportStatus.ForeColor = Color.Red;
             }
-
             finally
             {
-                // Step 4: Hide progress bar
                 progressBarExport.Visible = false;
                 ExportInvoiceBtn.Enabled = true;
-
             }
 
 
