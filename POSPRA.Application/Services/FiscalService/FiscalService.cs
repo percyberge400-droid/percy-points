@@ -106,7 +106,7 @@ namespace POSPRA.Application.Services.FiscalService
                             return new ApiResponse<InvoiceDto>(
                                 statusCode: ApiStatusCode.Error.ToString(),
                                 message: ResponseMessages.UnknownError,
-                                data: null, null);
+                                data: null, string.Empty);
                         }
                     }
                     else
@@ -117,7 +117,6 @@ namespace POSPRA.Application.Services.FiscalService
                              AlertType.Exception,
                              module: "Invoice",
                              action: nameof(CreateAsync)));
-
                     }
                 }
 
