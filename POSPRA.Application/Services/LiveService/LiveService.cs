@@ -116,7 +116,7 @@ namespace POSPRA.Application.Services.LiveService
         /// An <see cref="ApiResponse{Invoice}"/> indicating success or failure,
         /// including the saved <see cref="Invoice"/> entity when successful.
         /// </returns>
-        private async Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto)
+        public async Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto)
         {
             try
             {

@@ -1,4 +1,5 @@
-﻿using POSPRA.DTOs;
+﻿using POSPRA.Domain.Entities;
+using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 
@@ -35,5 +36,7 @@ namespace POSPRA.Application.Services.LiveService
         /// An <see cref="ApiResponse{String}"/> containing the CSV data of the filtered invoices.
         /// </returns>
         Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto);
+
+        Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto);
     }
 }
