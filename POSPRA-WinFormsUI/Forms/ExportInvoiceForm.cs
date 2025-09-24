@@ -82,7 +82,7 @@ namespace POSPRA_WinFormsUI.Forms
                 return false;
             }
 
-            return true; // ✅ valid
+            return true; //  valid
         }
 
 
@@ -98,7 +98,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void ExportInvoiceBtn_Click(object sender, EventArgs e)
         {
-            // Step 1: Validation
+           
             if (!ValidateDateRange())
             {
                 lblExportStatus.Text = "❌ Invalid date range. Please select a range within 1 month.";
@@ -162,7 +162,7 @@ namespace POSPRA_WinFormsUI.Forms
                         return; // exit here, don’t open SaveFileDialog
                     }
 
-                    // ✅ Proceed with saving only if actual rows exist
+                    //  if actual rows exist
                     using (SaveFileDialog saveFileDialog = new SaveFileDialog())
                     {
                         saveFileDialog.Filter = "Excel Workbook (*.xlsx)|*.xlsx";
