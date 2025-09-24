@@ -108,20 +108,22 @@ namespace POSPRA.Worker
                 }
 
                 var raw = await resp.Content.ReadAsStringAsync();
-                Console.WriteLine($"Health response: {raw}");
-
-                using var post = await PostEncryptedDataAsync(id, raw, token);
-                if (post is null || !post.IsSuccessStatusCode) return;
-
-                var postJson = await post.Content.ReadAsStringAsync();
-                var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
-                var files = apiResp?.Data ?? new();
-
-                if (files.Count > 0)
+                var result = JsonSerializer.Deserialize<ApiResponse<object>>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (result.StatusCode == ApiStatusCode.Success)
                 {
-                    using var scope = _services.CreateScope();
-                    var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
-                    await fiscal.UpdateFileRecordsAsync(files, false);
+                    using var post = await PostEncryptedDataAsync(id, raw, token);
+                    if (post is null || !post.IsSuccessStatusCode) return;
+
+                    var postJson = await post.Content.ReadAsStringAsync();
+                    var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
+                    var files = apiResp?.Data ?? new();
+
+                    if (files.Count > 0)
+                    {
+                        using var scope = _services.CreateScope();
+                        var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
+                        await fiscal.UpdateFileRecordsAsync(files, false);
+                    }
                 }
             }
             catch (Exception ex)
