@@ -10,7 +10,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;            // InvoiceFilterDto
+using System.Configuration;
+using System.Windows.Forms;            
 using POSPRA.DTOs;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -118,9 +119,14 @@ namespace POSPRA_WinFormsUI.Forms
                 progressBarExport.Visible = true;
                 progressBarExport.Style = ProgressBarStyle.Marquee;
 
+
+                // Read POSID from App.config
+                var posId = 0;
+                _ = int.TryParse(ConfigurationManager.AppSettings["Username"], out posId);
                 // Build DTO (POSID is auto-handled in service)
                 var filter = new InvoiceFilterDto
                 {
+                    PosId = posId,
                     FromDate = dateTimePickerFrom.Value.Date,
                     ToDate = dateTimePickerTo.Value.Date
                 };
