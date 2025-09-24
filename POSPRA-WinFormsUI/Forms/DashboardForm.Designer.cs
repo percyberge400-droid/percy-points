@@ -95,6 +95,7 @@ namespace POSPRA_WinFormsUI.Forms
             lblInProgressTitle = new Label();
             tableLayoutPanelMain = new TableLayoutPanel();
             panelInvoices = new Panel();
+            btnRefresh = new Button();
             btnLoadFullData = new Button();
             progressBar = new ProgressBar();
             btnFilterSynced = new Button();
@@ -112,7 +113,6 @@ namespace POSPRA_WinFormsUI.Forms
             colDateCreated = new DataGridViewTextBoxColumn();
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();
-            btnRefresh = new Button();
             LogsDataGridView = new DataGridView();
             colLogID = new DataGridViewTextBoxColumn();
             colMessage = new DataGridViewTextBoxColumn();
@@ -161,7 +161,7 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanelTop.Padding = new Padding(10);
             tableLayoutPanelTop.RowCount = 1;
             tableLayoutPanelTop.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanelTop.Size = new Size(1200, 136);
+            tableLayoutPanelTop.Size = new Size(1538, 136);
             tableLayoutPanelTop.TabIndex = 1;
             // 
             // panelAll
@@ -174,7 +174,7 @@ namespace POSPRA_WinFormsUI.Forms
             panelAll.Margin = new Padding(8);
             panelAll.Name = "panelAll";
             panelAll.Padding = new Padding(12);
-            panelAll.Size = new Size(279, 100);
+            panelAll.Size = new Size(363, 100);
             panelAll.TabIndex = 0;
             // 
             // labelAllInvoices
@@ -208,11 +208,11 @@ namespace POSPRA_WinFormsUI.Forms
             panelPending.Controls.Add(labelPendingInvoice);
             panelPending.Controls.Add(lblPendingTitle);
             panelPending.Dock = DockStyle.Fill;
-            panelPending.Location = new Point(313, 18);
+            panelPending.Location = new Point(397, 18);
             panelPending.Margin = new Padding(8);
             panelPending.Name = "panelPending";
             panelPending.Padding = new Padding(12);
-            panelPending.Size = new Size(279, 100);
+            panelPending.Size = new Size(363, 100);
             panelPending.TabIndex = 1;
             // 
             // labelPendingInvoice
@@ -246,11 +246,11 @@ namespace POSPRA_WinFormsUI.Forms
             panelPaid.Controls.Add(labelPaidInvoices);
             panelPaid.Controls.Add(lblPaidTitle);
             panelPaid.Dock = DockStyle.Fill;
-            panelPaid.Location = new Point(608, 18);
+            panelPaid.Location = new Point(776, 18);
             panelPaid.Margin = new Padding(8);
             panelPaid.Name = "panelPaid";
             panelPaid.Padding = new Padding(12);
-            panelPaid.Size = new Size(279, 100);
+            panelPaid.Size = new Size(363, 100);
             panelPaid.TabIndex = 2;
             // 
             // labelPaidInvoices
@@ -284,11 +284,11 @@ namespace POSPRA_WinFormsUI.Forms
             panelInProgress.Controls.Add(labelInProgressInvc);
             panelInProgress.Controls.Add(lblInProgressTitle);
             panelInProgress.Dock = DockStyle.Fill;
-            panelInProgress.Location = new Point(903, 18);
+            panelInProgress.Location = new Point(1155, 18);
             panelInProgress.Margin = new Padding(8);
             panelInProgress.Name = "panelInProgress";
             panelInProgress.Padding = new Padding(12);
-            panelInProgress.Size = new Size(279, 100);
+            panelInProgress.Size = new Size(365, 100);
             panelInProgress.TabIndex = 3;
             // 
             // labelInProgressInvc
@@ -330,12 +330,13 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanelMain.RowCount = 2;
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 65F));
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 35F));
-            tableLayoutPanelMain.Size = new Size(1200, 764);
+            tableLayoutPanelMain.Size = new Size(1538, 764);
             tableLayoutPanelMain.TabIndex = 0;
             // 
             // panelInvoices
             // 
             panelInvoices.BackColor = Color.White;
+            panelInvoices.Controls.Add(btnRefresh);
             panelInvoices.Controls.Add(btnLoadFullData);
             panelInvoices.Controls.Add(progressBar);
             panelInvoices.Controls.Add(btnFilterSynced);
@@ -351,14 +352,25 @@ namespace POSPRA_WinFormsUI.Forms
             panelInvoices.Margin = new Padding(6);
             panelInvoices.Name = "panelInvoices";
             panelInvoices.Padding = new Padding(8);
-            panelInvoices.Size = new Size(1168, 471);
+            panelInvoices.Size = new Size(1506, 471);
             panelInvoices.TabIndex = 0;
+            // 
+            // btnRefresh
+            // 
+            btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnRefresh.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnRefresh.Font = new Font("Segoe UI", 9F);
+            btnRefresh.Location = new Point(493, 23);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(97, 27);
+            btnRefresh.TabIndex = 5;
+            btnRefresh.Text = "Refresh";
             // 
             // btnLoadFullData
             // 
             btnLoadFullData.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnLoadFullData.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnLoadFullData.Location = new Point(258, 23);
+            btnLoadFullData.Location = new Point(596, 23);
             btnLoadFullData.Name = "btnLoadFullData";
             btnLoadFullData.Size = new Size(115, 27);
             btnLoadFullData.TabIndex = 6;
@@ -368,7 +380,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             progressBar.Anchor = AnchorStyles.None;
             progressBar.ForeColor = Color.SeaGreen;
-            progressBar.Location = new Point(0, 0);
+            progressBar.Location = new Point(169, 0);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(400, 25);
             progressBar.Step = 1;
@@ -379,7 +391,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             btnFilterSynced.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnFilterSynced.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnFilterSynced.Location = new Point(379, 23);
+            btnFilterSynced.Location = new Point(717, 23);
             btnFilterSynced.Name = "btnFilterSynced";
             btnFilterSynced.Size = new Size(108, 27);
             btnFilterSynced.TabIndex = 5;
@@ -389,7 +401,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             btnClearFilter.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnClearFilter.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnClearFilter.Location = new Point(985, 23);
+            btnClearFilter.Location = new Point(1323, 23);
             btnClearFilter.Name = "btnClearFilter";
             btnClearFilter.Size = new Size(99, 27);
             btnClearFilter.TabIndex = 4;
@@ -399,7 +411,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             btnToday.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnToday.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnToday.Location = new Point(1087, 23);
+            btnToday.Location = new Point(1425, 23);
             btnToday.Name = "btnToday";
             btnToday.Size = new Size(70, 27);
             btnToday.TabIndex = 3;
@@ -409,7 +421,7 @@ namespace POSPRA_WinFormsUI.Forms
             // dtpInvoicesStart
             // 
             dtpInvoicesStart.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            dtpInvoicesStart.Location = new Point(493, 23);
+            dtpInvoicesStart.Location = new Point(831, 23);
             dtpInvoicesStart.Name = "dtpInvoicesStart";
             dtpInvoicesStart.Size = new Size(200, 27);
             dtpInvoicesStart.TabIndex = 0;
@@ -417,7 +429,7 @@ namespace POSPRA_WinFormsUI.Forms
             // dtpInvoicesEnd
             // 
             dtpInvoicesEnd.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            dtpInvoicesEnd.Location = new Point(703, 23);
+            dtpInvoicesEnd.Location = new Point(1041, 23);
             dtpInvoicesEnd.Name = "dtpInvoicesEnd";
             dtpInvoicesEnd.Size = new Size(200, 27);
             dtpInvoicesEnd.TabIndex = 1;
@@ -426,7 +438,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             btnFilterInvoices.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnFilterInvoices.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnFilterInvoices.Location = new Point(909, 23);
+            btnFilterInvoices.Location = new Point(1247, 23);
             btnFilterInvoices.Name = "btnFilterInvoices";
             btnFilterInvoices.Size = new Size(70, 27);
             btnFilterInvoices.TabIndex = 2;
@@ -445,7 +457,7 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.ReadOnly = true;
             InvoicesDataGridView.RowHeadersVisible = false;
             InvoicesDataGridView.RowHeadersWidth = 51;
-            InvoicesDataGridView.Size = new Size(1152, 406);
+            InvoicesDataGridView.Size = new Size(1490, 406);
             InvoicesDataGridView.TabIndex = 0;
             // 
             // colId
@@ -513,7 +525,6 @@ namespace POSPRA_WinFormsUI.Forms
             // panelLogs
             // 
             panelLogs.BackColor = Color.White;
-            panelLogs.Controls.Add(btnRefresh);
             panelLogs.Controls.Add(LogsDataGridView);
             panelLogs.Controls.Add(labelLogsTitle);
             panelLogs.Dock = DockStyle.Fill;
@@ -521,19 +532,8 @@ namespace POSPRA_WinFormsUI.Forms
             panelLogs.Margin = new Padding(6);
             panelLogs.Name = "panelLogs";
             panelLogs.Padding = new Padding(8);
-            panelLogs.Size = new Size(1168, 249);
+            panelLogs.Size = new Size(1506, 249);
             panelLogs.TabIndex = 1;
-            // 
-            // btnRefresh
-            // 
-            btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnRefresh.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnRefresh.Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btnRefresh.Location = new Point(1023, 11);
-            btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new Size(137, 39);
-            btnRefresh.TabIndex = 5;
-            btnRefresh.Text = "Refresh";
             // 
             // LogsDataGridView
             // 
@@ -548,7 +548,7 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.ReadOnly = true;
             LogsDataGridView.RowHeadersVisible = false;
             LogsDataGridView.RowHeadersWidth = 51;
-            LogsDataGridView.Size = new Size(1152, 184);
+            LogsDataGridView.Size = new Size(1490, 184);
             LogsDataGridView.TabIndex = 0;
             // 
             // colLogID
@@ -602,7 +602,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1200, 900);
+            ClientSize = new Size(1538, 900);
             Controls.Add(tableLayoutPanelMain);
             Controls.Add(tableLayoutPanelTop);
             Name = "DashboardForm";
