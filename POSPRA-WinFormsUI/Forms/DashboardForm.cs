@@ -130,7 +130,7 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         // ----------------------------------------
-        // Load Invoices
+        // Optimized Load Invoices
         // ----------------------------------------
         private async Task LoadAndShowInvoicesAsync(bool skipDateFilter = false)
         {
@@ -161,54 +161,81 @@ namespace POSPRA_WinFormsUI.Forms
                 var invoicesList = filteredInvoices.OrderByDescending(i => i.DateCreated).ToList();
                 int totalInvoices = invoicesList.Count;
 
-                if (progressBar != null)
+                // Suspend layout to prevent multiple redraws
+                InvoicesDataGridView.SuspendLayout();
+
+                // Optional: Show progress for very large datasets
+                if (progressBar != null && totalInvoices > 100)
                 {
                     progressBar.Style = ProgressBarStyle.Continuous;
                     progressBar.Minimum = 0;
                     progressBar.Maximum = totalInvoices;
                     progressBar.Value = 0;
-                    progressBar.BringToFront();
+                    progressBar.Visible = true;
                 }
 
-                foreach (var inv in invoicesList)
-                {
-                    int rowIndex = InvoicesDataGridView.Rows.Add();
-                    var row = InvoicesDataGridView.Rows[rowIndex];
+                // Batch add rows for better performance
+                var rows = new List<DataGridViewRow>();
+                int syncedCount = 0, pendingCount = 0, inProgressCount = 0;
 
-                    row.Cells["colId"].Value = inv.ID;
-                    row.Cells["colPosId"].Value = inv.POSID;
-                    row.Cells["colInvoiceNumber"].Value = inv.InvoiceNumber ?? "N/A";
-                    row.Cells["colIsSynced"].Value = inv.IsSynced == 1 ? "Yes" : "No";
-                    row.Cells["colAttemptCount"].Value = inv.AttemptCount;
-                    row.Cells["colDateCreated"].Value = inv.DateCreated.ToString("yyyy-MM-dd");
+                for (int i = 0; i < invoicesList.Count; i++)
+                {
+                    var inv = invoicesList[i];
+                    var row = new DataGridViewRow();
+                    row.CreateCells(InvoicesDataGridView);
+
+                    row.Cells[InvoicesDataGridView.Columns["colId"].Index].Value = inv.ID;
+                    row.Cells[InvoicesDataGridView.Columns["colPosId"].Index].Value = inv.POSID;
+                    row.Cells[InvoicesDataGridView.Columns["colInvoiceNumber"].Index].Value = inv.InvoiceNumber ?? "N/A";
+                    row.Cells[InvoicesDataGridView.Columns["colIsSynced"].Index].Value = inv.IsSynced == 1 ? "Yes" : "No";
+                    row.Cells[InvoicesDataGridView.Columns["colAttemptCount"].Index].Value = inv.AttemptCount;
+                    row.Cells[InvoicesDataGridView.Columns["colDateCreated"].Index].Value = inv.DateCreated.ToString("yyyy-MM-dd");
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
 
-                    if (progressBar != null)
-                    {
-                        progressBar.Value = Math.Min(progressBar.Value + 1, progressBar.Maximum);
-                        progressBar.Refresh();
-                    }
+                    rows.Add(row);
 
-                    await Task.Yield();
+                    // Count statistics while we're iterating
+                    if (inv.IsSynced == 1) syncedCount++;
+                    else pendingCount++;
+                    if (inv.AttemptCount > 0) inProgressCount++;
+
+                    // Update progress less frequently for better performance
+                    if (progressBar != null && totalInvoices > 100 && i % 10 == 0)
+                    {
+                        progressBar.Value = Math.Min(i + 1, progressBar.Maximum);
+                        Application.DoEvents(); // Allow UI to update occasionally
+                    }
                 }
 
-                labelAllInvoices.Text = InvoicesDataGridView.Rows.Count.ToString();
-                labelPendingInvoice.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>()
-                    .Count(r => ((dynamic)r.Tag).IsSynced == 0).ToString();
-                labelPaidInvoices.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>()
-                    .Count(r => ((dynamic)r.Tag).IsSynced == 1).ToString();
-                labelInProgressInvc.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>()
-                    .Count(r => ((dynamic)r.Tag).AttemptCount > 0).ToString();
+                // Add all rows at once
+                InvoicesDataGridView.Rows.AddRange(rows.ToArray());
+
+                // Resume layout and refresh
+                InvoicesDataGridView.ResumeLayout(true);
+
+                // Update labels with pre-calculated counts
+                labelAllInvoices.Text = totalInvoices.ToString();
+                labelPendingInvoice.Text = pendingCount.ToString();
+                labelPaidInvoices.Text = syncedCount.ToString();
+                labelInProgressInvc.Text = inProgressCount.ToString();
+
+                if (progressBar != null)
+                {
+                    progressBar.Visible = false;
+                }
             }
             catch (Exception ex)
             {
+                InvoicesDataGridView.ResumeLayout(true);
+                if (progressBar != null) progressBar.Visible = false;
+
                 WindowsLocalAppNotification.Show("Invoices Error", $"Error loading invoices: {ex.Message}");
                 AlertManager.ShowError($"Error loading invoices: {ex.Message}");
             }
         }
 
         // ----------------------------------------
-        // Load Logs
+        // Optimized Load Logs
         // ----------------------------------------
         private async Task LoadAndShowLogsAsync(bool skipDateFilter = false)
         {
@@ -236,36 +263,59 @@ namespace POSPRA_WinFormsUI.Forms
                 var logsList = filteredLogs.OrderByDescending(l => l.Id).ToList();
                 int totalLogs = logsList.Count;
 
-                if (progressBar != null)
+                // Suspend layout to prevent multiple redraws
+                LogsDataGridView.SuspendLayout();
+
+                // Optional: Show progress for very large datasets
+                if (progressBar != null && totalLogs > 100)
                 {
                     progressBar.Style = ProgressBarStyle.Continuous;
                     progressBar.Minimum = 0;
                     progressBar.Maximum = totalLogs;
                     progressBar.Value = 0;
-                    progressBar.BringToFront();
+                    progressBar.Visible = true;
                 }
 
-                foreach (var log in logsList)
+                // Batch add rows for better performance
+                var rows = new List<DataGridViewRow>();
+
+                for (int i = 0; i < logsList.Count; i++)
                 {
-                    int rowIndex = LogsDataGridView.Rows.Add();
-                    var row = LogsDataGridView.Rows[rowIndex];
+                    var log = logsList[i];
+                    var row = new DataGridViewRow();
+                    row.CreateCells(LogsDataGridView);
 
-                    row.Cells["colLogID"].Value = log.Id;
-                    row.Cells["colMessage"].Value = log.Message ?? "No message";
-                    row.Cells["colException"].Value = log.Type ?? "N/A";
-                    row.Cells["logdatetime"].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss");
+                    row.Cells[LogsDataGridView.Columns["colLogID"].Index].Value = log.Id;
+                    row.Cells[LogsDataGridView.Columns["colMessage"].Index].Value = log.Message ?? "No message";
+                    row.Cells[LogsDataGridView.Columns["colException"].Index].Value = log.Type ?? "N/A";
+                    row.Cells[LogsDataGridView.Columns["logdatetime"].Index].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss");
 
-                    if (progressBar != null)
+                    rows.Add(row);
+
+                    // Update progress less frequently for better performance
+                    if (progressBar != null && totalLogs > 100 && i % 10 == 0)
                     {
-                        progressBar.Value = Math.Min(progressBar.Value + 1, progressBar.Maximum);
-                        progressBar.Refresh();
+                        progressBar.Value = Math.Min(i + 1, progressBar.Maximum);
+                        Application.DoEvents(); // Allow UI to update occasionally
                     }
+                }
 
-                    await Task.Yield();
+                // Add all rows at once
+                LogsDataGridView.Rows.AddRange(rows.ToArray());
+
+                // Resume layout and refresh
+                LogsDataGridView.ResumeLayout(true);
+
+                if (progressBar != null)
+                {
+                    progressBar.Visible = false;
                 }
             }
             catch (Exception ex)
             {
+                LogsDataGridView.ResumeLayout(true);
+                if (progressBar != null) progressBar.Visible = false;
+
                 WindowsLocalAppNotification.Show("Logs Error", $"Error loading logs: {ex.Message}");
                 AlertManager.ShowError($"Error loading logs: {ex.Message}");
             }
