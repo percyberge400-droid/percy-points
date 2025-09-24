@@ -31,7 +31,7 @@ namespace POSPRA.Worker
             _services = services;
             _mapper = mapper;
             _http = http;
-            _baseUrl = opts.Value.BaseUrl.TrimEnd('/');
+            _baseUrl = opts.Value.BaseUrl;
             _networkService = networkService;
         }
 

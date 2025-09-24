@@ -14,7 +14,7 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     /// <returns>
     /// A list of all invoices with their fiscal details.
     /// </returns>
-    [HttpGet("GetAll")]
+    [HttpGet("getalls")]
     public async Task<IActionResult> GetAll() =>
         Ok(await _fiscalService.GetAllAsync());
 
@@ -24,7 +24,7 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     /// <returns>
     /// A list of unsynced invoices with their fiscal details.
     /// </returns>
-    [HttpGet("GetAllUnsyncedAsync")]
+    [HttpGet("getallunsynced")]
     public async Task<IActionResult> GetUnSyncedAll() =>
         Ok(await _fiscalService.GetAllUnsyncedAsync());
 
@@ -37,7 +37,7 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     /// <returns>
     /// The result of the create operation, including the saved invoice data.
     /// </returns>
-    [HttpPost("Create")]
+    [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] InvoiceDto dto) =>
         Ok(await _fiscalService.CreateAsync(dto));
 }

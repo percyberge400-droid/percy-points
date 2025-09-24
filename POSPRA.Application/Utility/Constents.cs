@@ -6,11 +6,14 @@
         public const string Configuration = "api/POS/Configuration";
         public const string HeartBeat = "api/POS/HeartBeat";
 
-        public const string GetAllUnsyncedAsync = "api/Fiscal/GetAllUnsyncedAsync";
-        public const string GetAll = "api/Fiscal/GetAll";
-        public const string Create = "api/Fiscal/Create";
-        public const string DecryptSave = "api/Live/decrypt-save";
-        public const string ExportCSV = "api/Live/export-csv";
+        // Fiscal API
+        public const string GetAllUnsyncedAsync = "api/fiscal/getallunsynced";
+        public const string GetAll = "api/fiscal/getall";
+        public const string Create = "api/fiscal/create";
+
+        // Live API
+        public const string DecryptSave = "api/live/decrypt-save";
+        public const string ExportCSV = "api/live/export-csv";
     }
 
     public static class ResponseMessages

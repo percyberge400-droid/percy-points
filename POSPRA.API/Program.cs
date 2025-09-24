@@ -11,7 +11,6 @@ using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.UserService;
-using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -33,7 +32,7 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
         public static async Task Main(string[] args)
         {
             var apiHost = BuildApiHost();
-            apiHost.Urls.Add("http://localhost:5000");
+            apiHost.Urls.Add("http://localhost:5000/");
             await apiHost.StartAsync();
 
             // Wait here until shutdown is triggered (Ctrl+C, SIGTERM)
