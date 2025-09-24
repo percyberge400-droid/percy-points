@@ -7,6 +7,7 @@ using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
@@ -93,6 +94,7 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             builder.Services.AddScoped<ILiveService, LiveService>();
+            builder.Services.AddScoped<INetworkService, NetworkService>();
             builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
 
             // Http client

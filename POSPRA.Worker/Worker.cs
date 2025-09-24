@@ -121,7 +121,7 @@ namespace POSPRA.Worker
                 {
                     using var scope = _services.CreateScope();
                     var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
-                    await fiscal.UpdateFileRecordsAsync(files);
+                    await fiscal.UpdateFileRecordsAsync(files, false);
                 }
             }
             catch (Exception ex)
