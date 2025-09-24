@@ -55,10 +55,10 @@
             dateTimePickerFrom.CalendarFont = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             dateTimePickerFrom.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             dateTimePickerFrom.Format = DateTimePickerFormat.Short;
-            dateTimePickerFrom.Location = new Point(241, 70);
+            dateTimePickerFrom.Location = new Point(230, 70);
             dateTimePickerFrom.MinDate = new DateTime(1947, 10, 10, 0, 0, 0, 0);
             dateTimePickerFrom.Name = "dateTimePickerFrom";
-            dateTimePickerFrom.Size = new Size(129, 24);
+            dateTimePickerFrom.Size = new Size(156, 24);
             dateTimePickerFrom.TabIndex = 55;
             // 
             // lblExportStatus
@@ -75,7 +75,7 @@
             // 
             DateFromLbl.AutoSize = true;
             DateFromLbl.Font = new Font("Microsoft Sans Serif", 9F);
-            DateFromLbl.Location = new Point(241, 48);
+            DateFromLbl.Location = new Point(230, 48);
             DateFromLbl.Name = "DateFromLbl";
             DateFromLbl.Size = new Size(79, 18);
             DateFromLbl.TabIndex = 52;
@@ -95,7 +95,7 @@
             dateTimePickerTo.Format = DateTimePickerFormat.Short;
             dateTimePickerTo.Location = new Point(430, 70);
             dateTimePickerTo.Name = "dateTimePickerTo";
-            dateTimePickerTo.Size = new Size(129, 24);
+            dateTimePickerTo.Size = new Size(156, 24);
             dateTimePickerTo.TabIndex = 56;
             // 
             // ExportInvoiceBtn
@@ -115,7 +115,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Microsoft Sans Serif", 9F);
-            label2.Location = new Point(620, 46);
+            label2.Location = new Point(645, 46);
             label2.Name = "label2";
             label2.Size = new Size(144, 18);
             label2.TabIndex = 53;
@@ -133,7 +133,7 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(620, 70);
+            textBox1.Location = new Point(645, 70);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(253, 24);
             textBox1.TabIndex = 60;
