@@ -126,15 +126,16 @@ namespace POSPRA_WinFormsUI.Forms
                 var posId = 0;
                 _ = int.TryParse(ConfigurationManager.AppSettings["Username"], out posId);
                 // Build DTO (POSID is auto-handled in service)
-                var filter = new InvoiceFilterDto
+                    var filter = new InvoiceFilterDto
                 {
                     PosId = posId,
                     FromDate = dateTimePickerFrom.Value.Date,
                     ToDate = dateTimePickerTo.Value.Date
                 };
 
-                // ✅ Call the service method
+                // ✅ Call the service method    
                 var response = await _liveService.GetInvoicesCsvAsync(filter);
+
 
 
                 // ✅ Handle the response
@@ -143,11 +144,6 @@ namespace POSPRA_WinFormsUI.Forms
                     lblExportStatus.Text = "❌ No response from service.";
                     lblExportStatus.ForeColor = Color.Red;
                 }
-                //else if (response.StatusCode != "200") //message success
-                //{
-                //    lblExportStatus.Text = $"❌ Failed: {response.Message}";
-                //    lblExportStatus.ForeColor = Color.Red;
-                //}
                 else if (string.IsNullOrWhiteSpace(response.Data))
                 {
                     lblExportStatus.Text = "⚠ No invoices found for the selected date range.";
@@ -155,21 +151,47 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else
                 {
-                    // Let the user choose where to save
+                    // Split response into lines
+                    var lines = response.Data.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+                    // ✅ Check if only header is present
+                    if (lines.Length <= 1)
+                    {
+                        lblExportStatus.Text = "⚠ No invoices found for the selected date range.";
+                        lblExportStatus.ForeColor = Color.Orange;
+                        return; // exit here, don’t open SaveFileDialog
+                    }
+
+                    // ✅ Proceed with saving only if actual rows exist
                     using (SaveFileDialog saveFileDialog = new SaveFileDialog())
                     {
-                        saveFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
-                        saveFileDialog.Title = "Save Invoices CSV";
-                        saveFileDialog.FileName = "Invoices.csv";
+                        saveFileDialog.Filter = "Excel Workbook (*.xlsx)|*.xlsx";
+                        saveFileDialog.Title = "Save Invoices Excel";
+                        saveFileDialog.FileName = "Invoices.xlsx";
 
                         if (saveFileDialog.ShowDialog() == DialogResult.OK)
                         {
                             try
                             {
-                                // Save the CSV data to the selected file
-                                File.WriteAllText(saveFileDialog.FileName, response.Data, Encoding.UTF8);
+                                string path = saveFileDialog.FileName;
 
-                                lblExportStatus.Text = "✅ Invoices exported successfully.";
+                                using (var workbook = new XLWorkbook())
+                                {
+                                    var worksheet = workbook.Worksheets.Add("Invoices");
+
+                                    for (int i = 0; i < lines.Length; i++)
+                                    {
+                                        var values = lines[i].Split(',');
+                                        for (int j = 0; j < values.Length; j++)
+                                        {
+                                            worksheet.Cell(i + 1, j + 1).Value = values[j].Trim();
+                                        }
+                                    }
+
+                                    workbook.SaveAs(path);
+                                }
+
+                                lblExportStatus.Text = $"✅ Invoices exported successfully to:\n{path}";
                                 lblExportStatus.ForeColor = Color.Green;
                             }
                             catch (Exception ex)
@@ -199,14 +221,11 @@ namespace POSPRA_WinFormsUI.Forms
 
 
 
-            //MessageBox.Show(
-            //    $"Invoice data from {dateTimePickerFrom.Value:dd-MM-yyyy} " +
-            //    $"to {dateTimePickerTo.Value:dd-MM-yyyy} exported successfully."
-            //    );
+           
 
-            lblExportStatus.Text =
-                $"Invoices data from {dateTimePickerFrom.Value:dd-MMM-yyyy} to {dateTimePickerTo.Value:dd-MMM-yyyy} exported successfully!";
-            lblExportStatus.ForeColor = Color.Green;
+            //lblExportStatus.Text =
+            //    $"Invoices data from {dateTimePickerFrom.Value:dd-MMM-yyyy} to {dateTimePickerTo.Value:dd-MMM-yyyy} exported successfully!";
+            //lblExportStatus.ForeColor = Color.Green;
         }
 
         private void ExportInvoiceForm_Load(object sender, EventArgs e)
