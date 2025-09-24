@@ -148,7 +148,7 @@ namespace POSPRA.Worker
 
                 var jsonBody = JsonSerializer.Serialize(envelope.Data);
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                var url = $"{_baseUrl}/{Endpoints.DecryptSave.TrimStart('/')}";
+                var url = $"{_baseUrl}{Endpoints.DecryptSave.TrimStart('/')}";
 
                 var resp = await _http.PostAsync(url, content, token);
                 if (!resp.IsSuccessStatusCode)
