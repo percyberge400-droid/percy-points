@@ -37,6 +37,18 @@ namespace POSPRA.Application.Services.FiscalService
         /// </returns>
         Task<ApiResponse<InvoiceDto>> CreateAsync(InvoiceDto dto);
 
+        /// <summary>
+        /// Updates multiple <see cref="FileRecordDto"/> objects in the database.
+        /// </summary>
+        /// <param name="fileRecordDtos">
+        /// A list of <see cref="FileRecordDto"/> instances to update.  
+        /// Must not be <c>null</c> or empty.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ApiResponse{T}"/> containing the list of updated
+        /// <see cref="FileRecordDto"/> objects if the operation succeeds,
+        /// or an error response if validation fails or no records are updated.
+        /// </returns>
         Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos);
     }
 }

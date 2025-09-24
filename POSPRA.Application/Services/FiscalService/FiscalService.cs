@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using POSPRA.Application.Services.HelperService;
+using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
@@ -28,7 +29,8 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly AppSettings _settings;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly AutoMapper.IMapper _mapper;
-        private readonly IRequestHeaderService _requestHeaderService;
+        private readonly ILiveService _liveService;
+        private readonly INetworkService _networkService;
 
         public FiscalService(InvoiceValidatorService invoiceValidatorService,
             ILogService logService,
@@ -36,8 +38,10 @@ namespace POSPRA.Application.Services.FiscalService
             ISqliteUnitOfWork sqliteUnitOfWork,
             IOptions<AppSettings> options,
             AutoMapper.IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            IRequestHeaderService requestHeaderService)
+            IHttpContextAccessor httpContextAccessor
+,
+            ILiveService liveService,
+            INetworkService networkService)
         {
             _invoiceValidatorService = invoiceValidatorService;
             _logService = logService;
@@ -45,7 +49,8 @@ namespace POSPRA.Application.Services.FiscalService
             _settings = options.Value;
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _requestHeaderService = requestHeaderService;
+            _liveService = liveService;
+            _networkService = networkService;
         }
 
         /// <summary>
@@ -59,82 +64,63 @@ namespace POSPRA.Application.Services.FiscalService
         {
             try
             {
-                List<string> errors = new();
+                // ✅ 1. Validate input
                 if (dto == null)
                 {
-                    // Example inside a controller/service where you already have HttpContext
-                    await _logService.LogAsync(
-                      _logService.BuildLog(
-                          "Invalid model",
-                          AlertType.Exception,
-                          module: "Invoice",
-                          action: nameof(CreateAsync)));
-
-
-                    return new ApiResponse<InvoiceDto>(
-                        statusCode: ApiStatusCode.Error.ToString(),
-                        message: ResponseMessages.DataNotFound,
-                        data: null, string.Empty
-                        );
+                    await LogError("Invalid model");
+                    return ErrorResponse(ResponseMessages.DataNotFound);
                 }
-                else
+
+                // Map & validate entity
+                var invoiceEntity = _mapper.Map<Invoice>(dto);
+                var validation = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
+                if (!validation.IsValid)
                 {
-                    // _mapper injected via constructor
-                    var invoiceEntity = _mapper.Map<Invoice>(dto);
-                    var validationResult = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
-                    string result = await CreateFiscalInvoiceAsync(invoiceEntity);
-                    // send Invoice to live
-                    //await _sendInvoiceToLiveService.CreateAsync(invoiceEntity);
-                    if (validationResult.IsValid)
-                    {
-                        if (!String.IsNullOrEmpty(result))
-                        {
-                            return new ApiResponse<InvoiceDto>(
-                                statusCode: ApiStatusCode.Success.ToString(),
-                                message: ResponseMessages.RecordSaved,
-                                data: null, string.Empty);
-                        }
-                        else
-                        {
-                            await _logService.LogAsync(
-                             _logService.BuildLog(
-                                 string.Format("Invoice not available", " for " + dto.InvoiceType),
-                                 AlertType.Exception,
-                                 module: "Invoice",
-                                 action: nameof(CreateAsync)));
+                    await LogError(validation.ErrorMessages);
+                    return ErrorResponse(ResponseMessages.UnknownError);
+                }
 
-                            return new ApiResponse<InvoiceDto>(
-                                statusCode: ApiStatusCode.Error.ToString(),
-                                message: ResponseMessages.UnknownError,
-                                data: null, string.Empty);
-                        }
-                    }
-                    else
+                // ✅ 2. Create fiscal invoice
+                var fiscalResponse = await CreateFiscalInvoiceAsync(invoiceEntity);
+                if (fiscalResponse.StatusCode != ApiStatusCode.Success)
+                {
+                    await LogError($"Invoice not available for {dto.InvoiceType}");
+                    return ErrorResponse(ResponseMessages.UnknownError);
+                }
+
+                // ✅ 3. Try to sync with live if internet is available
+                if (await _networkService.IsInternetAvailableAsync())
+                {
+                    var liveResponse = await _liveService.CreateInvoiceWithItemsAsync(dto);
+                    if (liveResponse.StatusCode == ApiStatusCode.Success)
                     {
-                        await _logService.LogAsync(
-                         _logService.BuildLog(
-                             validationResult.ErrorMessages,
-                             AlertType.Exception,
-                             module: "Invoice",
-                             action: nameof(CreateAsync)));
+                        var record = await _fileRecordRepository.GetByIdAsync(fiscalResponse.Data.InvoiceId);
+                        if (record != null)
+                        {
+                            record.IsSynced = (int)InvoiceStatus.Synced;
+                            await UpdateFileRecordAsync(_mapper.Map<FileRecordDto>(record));
+                        }
                     }
                 }
 
-                return new ApiResponse<InvoiceDto>(
-                    statusCode: ApiStatusCode.Success.ToString(),
-                    message: ResponseMessages.RecordSaved,
-                    data: null
-                );
+                // ✅ 4. Done
+                return SuccessResponse();
             }
             catch (Exception ex)
             {
-                return new ApiResponse<InvoiceDto>(
-                    statusCode: ApiStatusCode.Error.ToString(),
-                    message: ResponseMessages.UnknownError,
-                    data: null,
-                    errors: ex.InnerException?.Message ?? ex.Message
-                );
+                return ErrorResponse(ResponseMessages.UnknownError, ex.InnerException?.Message ?? ex.Message);
             }
+
+            // ----- Local helpers -----
+            async Task LogError(string message) =>
+                await _logService.LogAsync(
+                    _logService.BuildLog(message, AlertType.Exception, "Invoice", nameof(CreateAsync)));
+
+            ApiResponse<InvoiceDto> SuccessResponse() =>
+                new(ApiStatusCode.Success.ToString(), ResponseMessages.RecordSaved, null, string.Empty);
+
+            ApiResponse<InvoiceDto> ErrorResponse(string msg, string err = "") =>
+                new(ApiStatusCode.Error.ToString(), msg, null, err);
         }
 
         /// <summary>
@@ -146,7 +132,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// A string containing the encrypted invoice package if successful;
         /// otherwise, an empty string.
         /// </returns>
-        public async Task<string> CreateFiscalInvoiceAsync(Invoice invoice)
+        public async Task<ApiResponse<(string EncryptedPackage, int InvoiceId)>> CreateFiscalInvoiceAsync(Invoice invoice)
         {
             try
             {
@@ -184,13 +170,21 @@ namespace POSPRA.Application.Services.FiscalService
                 int invoiceId = await InsertInvoiceAsync(invoice.POSID, encryptedPackage, invoiceNumber);
 
                 // You can return encryptedPackage if needed for fiscal system
-                return invoiceId > 0 ? encryptedPackage : string.Empty;
+                return new ApiResponse<(string, int)>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordSaved,
+                (encryptedPackage, invoiceId),
+                string.Empty);
             }
             catch (Exception ex)
             {
                 string errorMessage = $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
                 await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
-                return string.Empty;
+                return new ApiResponse<(string, int)>(
+                ApiStatusCode.Error,
+                ResponseMessages.UnknownError,
+                (string.Empty, 0),
+                string.Empty);
             }
         }
 
@@ -281,6 +275,16 @@ namespace POSPRA.Application.Services.FiscalService
             }
         }
 
+        /// <summary>
+        /// Updates multiple <see cref="FileRecordDto"/> objects in the database.
+        /// </summary>
+        /// <param name="fileRecordDtos">
+        /// A list of <see cref="FileRecordDto"/> items to update.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ApiResponse{T}"/> containing a list of updated <see cref="FileRecordDto"/> 
+        /// objects when successful, or an error response if validation fails or no records exist.
+        /// </returns>
         public async Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos)
         {
             if (fileRecordDtos == null || fileRecordDtos.Count == 0)
@@ -292,22 +296,54 @@ namespace POSPRA.Application.Services.FiscalService
                     string.Empty);
             }
 
-            // Map DTOs to entities (assuming you have AutoMapper or manual mapping)
             var entities = _mapper.Map<List<FileRecord>>(fileRecordDtos);
-
-            // Bulk update using the repository
-            _fileRecordRepository.UpdateRange(entities);
+            //_fileRecordRepository.UpdateRange(entities);
             await _sqliteUnitOfWork.SaveChangesAsync();
 
-            // Optionally map back to DTOs to return updated state
             var updatedDtos = _mapper.Map<List<FileRecordDto>>(entities);
 
-            // ✅ Return in the same style you requested
             return new ApiResponse<List<FileRecordDto>>(
                 ApiStatusCode.Success,
                 ResponseMessages.RecordSaved,
                 updatedDtos,
                 string.Empty);
+        }
+
+        /// <summary>
+        /// Updates a single <see cref="FileRecordDto"/> in the database.
+        /// </summary>
+        /// <param name="fileRecordDto">
+        /// The <see cref="FileRecordDto"/> object to update.
+        /// </param>
+        /// <returns>
+        /// An <see cref="ApiResponse{T}"/> containing the updated <see cref="FileRecordDto"/> 
+        /// when successful, or an error response if validation fails or the update does not succeed.
+        /// </returns>
+        public async Task<ApiResponse<FileRecordDto>> UpdateFileRecordAsync(FileRecordDto fileRecordDto)
+        {
+            if (fileRecordDto == null)
+            {
+                return new ApiResponse<FileRecordDto>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null,
+                    string.Empty);
+            }
+
+            var result = await UpdateFileRecordsAsync(new List<FileRecordDto> { fileRecordDto });
+
+            // Return a single item if update succeeded, otherwise an error response
+            return result.StatusCode == ApiStatusCode.Success && result.Data?.Count > 0
+                ? new ApiResponse<FileRecordDto>(
+                    ApiStatusCode.Success,
+                    ResponseMessages.RecordSaved,
+                    result.Data[0],
+                    string.Empty)
+                : new ApiResponse<FileRecordDto>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null,
+                    string.Empty);
         }
     }
 }
