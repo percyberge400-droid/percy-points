@@ -37,7 +37,7 @@
             ExportInvoiceBtn = new Button();
             label2 = new Label();
             ToDateLbl = new Label();
-            textBox1 = new TextBox();
+            RegNoTxtBox = new TextBox();
             SuspendLayout();
             // 
             // label1
@@ -132,19 +132,19 @@
             ToDateLbl.TabIndex = 54;
             ToDateLbl.Text = "To Date";
             // 
-            // textBox1
+            // RegNoTxtBox
             // 
-            textBox1.Location = new Point(572, 74);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(253, 24);
-            textBox1.TabIndex = 60;
+            RegNoTxtBox.Location = new Point(572, 74);
+            RegNoTxtBox.Name = "RegNoTxtBox";
+            RegNoTxtBox.Size = new Size(253, 24);
+            RegNoTxtBox.TabIndex = 60;
             // 
             // ExportInvoiceForm
             // 
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1597, 547);
-            Controls.Add(textBox1);
+            Controls.Add(RegNoTxtBox);
             Controls.Add(lblExportStatus);
             Controls.Add(progressBarExport);
             Controls.Add(ExportInvoiceBtn);
@@ -173,6 +173,6 @@
         private Button ExportInvoiceBtn;
         private Label label2;
         private Label ToDateLbl;
-        private TextBox textBox1;
+        private TextBox RegNoTxtBox;
     }
 }
