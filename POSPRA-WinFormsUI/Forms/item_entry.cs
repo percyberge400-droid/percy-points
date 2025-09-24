@@ -1,4 +1,5 @@
 ﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using System.Drawing.Drawing2D;
@@ -227,7 +228,6 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                // Ensure invoice header is filled before saving
                 if (!AreInvoiceFieldsValid())
                 {
                     MessageBox.Show("Invoice header is incomplete. Please fill in the invoice header before saving.",
@@ -235,31 +235,25 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                // Ask for confirmation
                 var confirm = MessageBox.Show(
                     "Are you sure you want to save this invoice?",
                     "Confirm Save",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question);
 
-                if (confirm != DialogResult.Yes)
-                {
-                    return;
-                }
+                if (confirm != DialogResult.Yes) return;
 
-                // Ensure CurrentInvoice is updated
                 if (CurrentInvoice == null)
                 {
                     CurrentInvoice = CollectInvoiceData();
                 }
 
-                // Map InvoiceItems to InvoiceItemDto
                 var itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
                     ItemCode = item.ItemCode,
                     ItemName = item.ItemName,
                     PCTCode = item.PCTCode,
-                    Quantity = item.Quantity ?? 0m,           // decimal? → decimal
+                    Quantity = item.Quantity ?? 0m,
                     SaleValue = item.SaleValue ?? 0m,
                     TotalAmount = item.TotalAmount ?? 0m,
                     TaxCharged = item.TaxCharged ?? 0m,
@@ -270,8 +264,6 @@ namespace POSPRA_WinFormsUI
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
                 }).ToList();
 
-
-                // Map Invoice to InvoiceDto
                 var invoiceDto = new InvoiceDto
                 {
                     POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
@@ -293,21 +285,23 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
-                // Post to fiscal service
                 var output = await _fiscalService.CreateAsync(invoiceDto);
 
-                if (output.StatusCode == "Success")
+                if (output.StatusCode == ApiStatusCode.Success)
                 {
                     MessageBox.Show(output.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    // Clear session
-                    addedItems.Clear();
-                    dataGridView1.Rows.Clear();
-                    // lblTotalItems.Text = "Total 0 items"; // Commented out - control doesn't exist
-                    CurrentInvoice = null;
-                    _sessionItems.Clear();
-                    UpdateInvoiceTotals();
-                    ClearInvoiceFields();
+                    // -----------------------------
+                    // CLEAR ALL DTOs AND UI FIELDS
+                    // -----------------------------
+                    itemDtos.Clear();
+                    addedItems.Clear();                 // Clear item DTO list
+                    invoiceDto.InvoiceItemDto.Clear();  // Clear DTO inside InvoiceDto
+                    CurrentInvoice = null;              // Clear main invoice DTO
+                    _sessionItems.Clear();              // Clear session list if used
+                    dataGridView1.Rows.Clear();         // Clear grid
+                    ClearInvoiceFields();               // Reset invoice header fields
+                    UpdateInvoiceTotals();              // Reset totals
                 }
                 else
                 {
@@ -319,6 +313,7 @@ namespace POSPRA_WinFormsUI
                 MessageBox.Show($"Error saving invoice: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         private void btnEdit_Click(object sender, EventArgs e)
         {
