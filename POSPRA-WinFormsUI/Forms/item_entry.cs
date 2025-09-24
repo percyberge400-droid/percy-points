@@ -1,4 +1,5 @@
 ﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using System.Drawing.Drawing2D;
@@ -286,7 +287,7 @@ namespace POSPRA_WinFormsUI
 
                 var output = await _fiscalService.CreateAsync(invoiceDto);
 
-                if (output.StatusCode == "200")
+                if (output.StatusCode == ApiStatusCode.Success)
                 {
                     MessageBox.Show(output.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

@@ -285,7 +285,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// An <see cref="ApiResponse{T}"/> containing a list of updated <see cref="FileRecordDto"/> 
         /// objects when successful, or an error response if validation fails or no records exist.
         /// </returns>
-        public async Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos)
+        public async Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos, bool isSingle)
         {
             if (fileRecordDtos == null || fileRecordDtos.Count == 0)
             {
@@ -297,7 +297,8 @@ namespace POSPRA.Application.Services.FiscalService
             }
 
             var entities = _mapper.Map<List<FileRecord>>(fileRecordDtos);
-            //_fileRecordRepository.UpdateRange(entities);
+            if (!isSingle)
+                _fileRecordRepository.UpdateRange(entities);
             await _sqliteUnitOfWork.SaveChangesAsync();
 
             var updatedDtos = _mapper.Map<List<FileRecordDto>>(entities);
@@ -330,7 +331,7 @@ namespace POSPRA.Application.Services.FiscalService
                     string.Empty);
             }
 
-            var result = await UpdateFileRecordsAsync(new List<FileRecordDto> { fileRecordDto });
+            var result = await UpdateFileRecordsAsync(new List<FileRecordDto> { fileRecordDto }, true);
 
             // Return a single item if update succeeded, otherwise an error response
             return result.StatusCode == ApiStatusCode.Success && result.Data?.Count > 0
