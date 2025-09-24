@@ -233,8 +233,10 @@ namespace POSPRA.Application.Services.FiscalService
 
             // Map to DTOs
             var fileRecordDtos = _mapper.Map<List<FileRecordDto>>(unsynced);
+            if (fileRecordDtos.Any())
+                return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
 
-            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
+            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.NotFound.ToString(), ResponseMessages.DataNotFound, null, string.Empty);
         }
 
         /// <summary>
