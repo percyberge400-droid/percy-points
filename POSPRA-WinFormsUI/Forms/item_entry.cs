@@ -275,7 +275,6 @@ namespace POSPRA_WinFormsUI
                 var invoiceDto = new InvoiceDto
                 {
                     POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
-                    InvoiceNumber = InvoiceNumber.Text.Trim(),
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = (byte)GetSelectedInvoiceType(),
