@@ -154,6 +154,15 @@ namespace POSPRA.Application.Services.LiveService
             // Get the filtered invoices
             var invoices = await GetInvoicesAsync(dto);
 
+            if (!invoices.Any())
+            {
+                return new ApiResponse<string>(
+                    ApiStatusCode.Success.ToString(),
+                    ResponseMessages.DataNotFound,
+                    null
+                );
+            }
+
             // Convert to CSV
             var csv = CsvUtility.ToCsv(invoices);
 
@@ -176,21 +185,23 @@ namespace POSPRA.Application.Services.LiveService
             {
                 IQueryable<Invoice> query = _invoiceRepository.Query();
 
-                // Always restrict by the current POS (logged-in user)
-                query = query.Where(i => i.POSID == dto.PosId);
+                // Only filter POS if given
+                if (dto.PosId > 0 && dto.PosId is not null)
+                    query = query.Where(i => i.POSID == dto.PosId);
 
                 if (dto.FromDate.HasValue)
-                    query = query.Where(i => i.EntryDate >= dto.FromDate.Value);
+                    query = query.Where(i => i.EntryDate.Date >= dto.FromDate.Value.Date);
 
                 if (dto.ToDate.HasValue)
-                    query = query.Where(i => i.EntryDate <= dto.ToDate.Value);
+                    query = query.Where(i => i.EntryDate.Date <= dto.ToDate.Value.Date);
 
                 return await query.ToListAsync();
             }
-            catch (Exception)
+            catch
             {
                 throw;
             }
         }
+
     }
 }
