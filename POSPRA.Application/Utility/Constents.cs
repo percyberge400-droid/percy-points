@@ -17,10 +17,12 @@
         public const string Configuration = "api/POS/Configuration";
         public const string HeartBeat = "api/POS/HeartBeat";
         public const string DownloadFile = "api/POS/DownloadFile";
-        public const string GetAll = "api/Fiscal/GetAllUnsyncedAsync";
-        public const string PostData = "api/Fiscal/GetAll";
-        public const string SaveData = "api/Live/SaveData";
 
+        public const string GetAllUnsyncedAsync = "api/Fiscal/GetAllUnsyncedAsync";
+        public const string GetAll = "api/Fiscal/GetAll";
+        public const string Create = "api/Fiscal/Create";
+        public const string DecryptSave = "api/Live/decrypt-save";
+        public const string ExportCSV = "api/Live/export-csv";
     }
 
     public class Messages

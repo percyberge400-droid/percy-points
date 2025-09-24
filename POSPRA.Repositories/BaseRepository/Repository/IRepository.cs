@@ -46,6 +46,12 @@ namespace POSPRA.Repositories.BaseRepository.Repository
         void Update(T entity);
 
         /// <summary>
+        /// Update a collection of entities in a single call.
+        /// Marks all entities as Modified so they are persisted on SaveChanges.
+        /// </summary>
+        void UpdateRange(IEnumerable<T> entities);
+
+        /// <summary>
         /// Removes an entity from the context.
         /// </summary>
         void Remove(T entity);

@@ -20,11 +20,17 @@ namespace POSPRA.Application.AutoMapperProfile
             CreateMap<Logs, WorkerLogDto>();
 
             // DTO ➜ Entity
+            // Parent mapping
             CreateMap<InvoiceDto, Invoice>()
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true))
+                .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                // map child collection explicitly
+                .ForMember(dest => dest.InvoiceItems,
+                           opt => opt.MapFrom(src => src.InvoiceItemDto));
 
+            // Child mapping
             CreateMap<InvoiceItemDto, InvoiceItems>()
-                .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.Now))
+                .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
         }
     }

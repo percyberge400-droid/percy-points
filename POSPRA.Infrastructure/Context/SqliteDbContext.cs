@@ -23,8 +23,6 @@ namespace POSPRA.Infrastructure.Context
         /// <summary>Logs table.</summary>
         public DbSet<Logs> Logs { get; set; } = null!;
 
-        /// <summary>Invoices table. Configured as keyless.</summary>
-        public DbSet<Invoice> Invoices { get; set; } = null!;
 
         private static readonly string DbPath;
 
@@ -61,11 +59,6 @@ namespace POSPRA.Infrastructure.Context
             modelBuilder.Entity<User>().HasData(
                 new User { Id = 1, Username = "admin", Password = "admin123" }
             );
-
-            // Configure Invoice as keyless entity
-            modelBuilder.Entity<Invoice>().HasNoKey();
-
-
         }
 
         /// <summary>

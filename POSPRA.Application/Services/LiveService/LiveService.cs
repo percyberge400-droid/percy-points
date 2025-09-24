@@ -43,59 +43,64 @@ namespace POSPRA.Application.Services.LiveService
         /// <returns>
         /// An <see cref="ApiResponse{FileRecordDTO}"/> indicating success or failure of the save operation.
         /// </returns>
-        public async Task<ApiResponse<FileRecordDto>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos)
+        public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos)
         {
-            // 🟢 Guard-clause: no input
+            // Guard-clause: no input
             if (dtos == null || dtos.Count == 0)
-                return new ApiResponse<FileRecordDto>(
+            {
+                return new ApiResponse<List<FileRecordDto>>(
                     ApiStatusCode.Error.ToString(),
                     ResponseMessages.DataNotFound,
                     null);
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
 
             try
             {
+                var anySaved = false;
+                var syncedRecords = new List<FileRecordDto>();
+
                 foreach (var item in dtos)
                 {
-                    //   Decrypt the payload
+                    // Decrypt
                     var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
-                    if (string.IsNullOrWhiteSpace(decrypted))
-                        continue;
+                    if (string.IsNullOrWhiteSpace(decrypted)) continue;
 
-                    //   Get the JSON part
+                    // Extract JSON
                     var jsonPart = decrypted.Split('|')[0];
-                    if (string.IsNullOrWhiteSpace(jsonPart))
-                        continue;
+                    if (string.IsNullOrWhiteSpace(jsonPart)) continue;
 
-                    //   Deserialize to DTO
-                    var invoiceDto = JsonSerializer.Deserialize<InvoiceDto>(
-                        jsonPart,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    // Deserialize
+                    if (JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto) continue;
 
-                    if (invoiceDto == null)
-                        continue;
-
-                    //   Save invoice & items
+                    // Save invoice & items
                     var response = await CreateInvoiceWithItemsAsync(invoiceDto);
-                    if (string.Equals(response.StatusCode,
-                                      ApiStatusCode.Success.ToString(),
-                                      StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(response.StatusCode, ApiStatusCode.Success.ToString(), StringComparison.OrdinalIgnoreCase))
                     {
-                        return new ApiResponse<FileRecordDto>(
-                            ApiStatusCode.Success.ToString(),
-                            ResponseMessages.RecordSaved,
-                            null);
+                        anySaved = true;
+                        item.IsSynced = 1;
+                        syncedRecords.Add(item);
                     }
                 }
 
-                // No invoice succeeded
-                return new ApiResponse<FileRecordDto>(
-                    ApiStatusCode.Error.ToString(),
-                    ResponseMessages.UnknownError,
-                    null);
+                return anySaved
+                    ? new ApiResponse<List<FileRecordDto>>(
+                        ApiStatusCode.Success.ToString(),
+                        ResponseMessages.RecordSaved,
+                        syncedRecords, null) // or pass syncedRecords if you want to return them
+                    : new ApiResponse<List<FileRecordDto>>(
+                        ApiStatusCode.Error.ToString(),
+                        ResponseMessages.UnknownError,
+                        null);
             }
             catch (Exception ex)
             {
-                return new ApiResponse<FileRecordDto>(
+                return new ApiResponse<List<FileRecordDto>>(
                     ApiStatusCode.Error.ToString(),
                     ex.Message,
                     null);
@@ -117,19 +122,10 @@ namespace POSPRA.Application.Services.LiveService
             {
                 // Map & save invoice
                 var invoice = _mapper.Map<Invoice>(dto);
+                invoice.EntryDate = DateTime.Now;
+                invoice.FBRInvoiceNumber = GlobalMethods.InvoiceNumber(dto.POSID);
                 await _invoiceRepository.AddAsync(invoice);
                 await _sqlServerUnitOfWork.SaveChangesAsync();
-
-                // Map & save items (if any)
-                if (dto.InvoiceItemDto?.Count > 0)
-                {
-                    var items = _mapper.Map<List<InvoiceItems>>(dto.InvoiceItemDto);
-                    // Assign the generated InvoiceID to each item
-                    items.ForEach(i => i.InvoiceID = invoice.InvoiceID);
-
-                    await _invoiceItemsRepository.AddRangeAsync(items);
-                    await _sqlServerUnitOfWork.SaveChangesAsync();
-                }
 
                 return new ApiResponse<Invoice>(
                     ApiStatusCode.Success.ToString(),
@@ -158,6 +154,15 @@ namespace POSPRA.Application.Services.LiveService
             // Get the filtered invoices
             var invoices = await GetInvoicesAsync(dto);
 
+            if (!invoices.Any())
+            {
+                return new ApiResponse<string>(
+                    ApiStatusCode.Success.ToString(),
+                    ResponseMessages.DataNotFound,
+                    null
+                );
+            }
+
             // Convert to CSV
             var csv = CsvUtility.ToCsv(invoices);
 
@@ -180,21 +185,23 @@ namespace POSPRA.Application.Services.LiveService
             {
                 IQueryable<Invoice> query = _invoiceRepository.Query();
 
-                // Always restrict by the current POS (logged-in user)
-                query = query.Where(i => i.POSID == dto.PosId);
+                // Only filter POS if given
+                if (dto.PosId > 0 && dto.PosId is not null)
+                    query = query.Where(i => i.POSID == dto.PosId);
 
                 if (dto.FromDate.HasValue)
-                    query = query.Where(i => i.EntryDate >= dto.FromDate.Value);
+                    query = query.Where(i => i.EntryDate.Date >= dto.FromDate.Value.Date);
 
                 if (dto.ToDate.HasValue)
-                    query = query.Where(i => i.EntryDate <= dto.ToDate.Value);
+                    query = query.Where(i => i.EntryDate.Date <= dto.ToDate.Value.Date);
 
                 return await query.ToListAsync();
             }
-            catch (Exception)
+            catch
             {
                 throw;
             }
         }
+
     }
 }
