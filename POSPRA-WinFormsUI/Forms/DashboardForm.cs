@@ -17,12 +17,26 @@ namespace POSPRA_WinFormsUI.Forms
         private bool _endDateSelected = false;
         private bool _filterSyncedOnly = false;
 
+        // Atomic flag (0 = not loading, 1 = loading)
+        private int _isLoadingFlag = 0;
 
-
-        // 1. CHECK YOUR CONSTRUCTOR - ADD THE MISSING EVENT HANDLER
         public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService)
         {
             InitializeComponent();
+            // Center the progress bar on load
+            // Position progress bar in the center of InvoicesDataGridView
+            this.Load += (s, e) =>
+            {
+                CenterProgressBar();
+            };
+
+            // Keep centered if form resized
+            this.Resize += (s, e) =>
+            {
+                CenterProgressBar();
+            };
+
+
             this.Load += DashboardForm_Load;
 
             this.AutoScaleMode = AutoScaleMode.Dpi;
@@ -53,8 +67,25 @@ namespace POSPRA_WinFormsUI.Forms
             btnToday.Click += btnToday_Click;
             btnClearFilter.Click += btnClearFilter_Click;
             btnRefresh.Click += btnRefresh_Click;
-
             btnFilterSynced.Click += btnFilterSynced_Click;
+
+            if (progressBar != null)
+            {
+                progressBar.Visible = false;
+            }
+        }
+        private void CenterProgressBar()
+        {
+            if (progressBar != null && InvoicesDataGridView != null)
+            {
+                // Get the bounds of the invoices grid
+                var gridBounds = InvoicesDataGridView.Bounds;
+
+                // Center progress bar inside that region
+                progressBar.Left = gridBounds.Left + (gridBounds.Width - progressBar.Width) / 2;
+                progressBar.Top = gridBounds.Top + (gridBounds.Height - progressBar.Height) / 2;
+                progressBar.BringToFront();
+            }
         }
 
         private void dtpInvoicesStart_ValueChanged(object sender, EventArgs e)
@@ -69,20 +100,20 @@ namespace POSPRA_WinFormsUI.Forms
             _endDateSelected = true;
         }
 
-
-
         private async void DashboardForm_Load(object sender, EventArgs e)
         {
             try
             {
-                // Show all records unfiltered initially
-                await LoadAndShowInvoicesAsync(skipDateFilter: true);
-                await LoadAndShowLogsAsync(skipDateFilter: true);
+                await RunSingleLoad(async () =>
+                {
+                    await LoadAndShowInvoicesAsync(skipDateFilter: true);
+                    await LoadAndShowLogsAsync(skipDateFilter: true);
+                });
 
                 InvoicesDataGridView.DataError += dataGridView_DataError;
                 LogsDataGridView.DataError += dataGridView_DataError;
 
-                _isInitialLoad = false; // mark initial load done
+                _isInitialLoad = false;
             }
             catch (Exception ex)
             {
@@ -91,19 +122,48 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // ================== MASTER FILTER BUTTON ==================
-        private async void btnFilterInvoices_Click(object sender, EventArgs e)
+        private async Task RunSingleLoad(Func<Task> work)
         {
-            await LoadAndShowInvoicesAsync();
-            await LoadAndShowLogsAsync();
+            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
+
+            try
+            {
+                if (progressBar != null)
+                {
+                    progressBar.Visible = true;
+                    progressBar.BringToFront();
+                    progressBar.Value = 0;
+                    progressBar.Update();
+                }
+
+                await work();
+            }
+            finally
+            {
+                if (progressBar != null)
+                    progressBar.Visible = false;
+
+                Interlocked.Exchange(ref _isLoadingFlag, 0);
+            }
         }
 
-        // ================== INVOICES GRID ==================
+
+        private async void btnFilterInvoices_Click(object sender, EventArgs e)
+        {
+            await RunSingleLoad(async () =>
+            {
+                await LoadAndShowInvoicesAsync();
+                await LoadAndShowLogsAsync();
+            });
+        }
+
         private async Task LoadAndShowInvoicesAsync(bool skipDateFilter = false)
         {
             try
             {
                 var response = await _fiscalService.GetAllAsync();
+                InvoicesDataGridView.Rows.Clear();
+
                 if (response?.Data == null || !response.Data.Any())
                 {
                     WindowsLocalAppNotification.Show("Invoices", "No invoices found.");
@@ -113,21 +173,26 @@ namespace POSPRA_WinFormsUI.Forms
 
                 var filteredInvoices = skipDateFilter || !_startDateSelected || !_endDateSelected
                     ? response.Data
-                    : response.Data
-                        .Where(i => i.DateCreated >= dtpInvoicesStart.Value.Date &&
-                                    i.DateCreated <= dtpInvoicesEnd.Value.Date.AddDays(1).AddTicks(-1));
+                    : response.Data.Where(i =>
+                        i.DateCreated >= dtpInvoicesStart.Value.Date &&
+                        i.DateCreated <= dtpInvoicesEnd.Value.Date.AddDays(1).AddTicks(-1));
 
-                // Apply synced filter if enabled
                 if (_filterSyncedOnly)
-                {
                     filteredInvoices = filteredInvoices.Where(i => i.IsSynced == 1);
+                var invoicesList = filteredInvoices.OrderByDescending(i => i.DateCreated).ToList();
+                int totalInvoices = invoicesList.Count;
+
+                if (progressBar != null)
+                {
+                    progressBar.Style = ProgressBarStyle.Continuous; // optional, for determinate animation
+                    progressBar.Minimum = 0;
+                    progressBar.Maximum = totalInvoices;
+                    progressBar.Value = 0;
+                    //progressBar.Visible = true;
+                    progressBar.BringToFront();
                 }
 
-                filteredInvoices = filteredInvoices.OrderByDescending(i => i.DateCreated);
-
-                InvoicesDataGridView.Rows.Clear();
-
-                foreach (var inv in filteredInvoices)
+                foreach (var inv in invoicesList)
                 {
                     int rowIndex = InvoicesDataGridView.Rows.Add();
                     var row = InvoicesDataGridView.Rows[rowIndex];
@@ -140,17 +205,37 @@ namespace POSPRA_WinFormsUI.Forms
                     row.Cells["colDateCreated"].Value = inv.DateCreated.ToString("yyyy-MM-dd");
 
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
+
+                    // Update the progress bar
+                    if (progressBar != null)
+                    {
+                        progressBar.Value = Math.Min(progressBar.Value + 1, progressBar.Maximum);
+                        progressBar.Refresh();
+                    }
+
+                    // Yield control so the UI updates (including progress bar animation)
+                    await Task.Yield();
                 }
 
-                // Update top summary labels
+                if (progressBar != null)
+                {
+                    progressBar.Visible = false; // hide when done
+                }
+
+
                 labelAllInvoices.Text = InvoicesDataGridView.Rows.Count.ToString();
-                labelPendingInvoice.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>().Count(r => ((dynamic)r.Tag).IsSynced == 0).ToString();
-                labelPaidInvoices.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>().Count(r => ((dynamic)r.Tag).IsSynced == 1).ToString();
-                labelInProgressInvc.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>().Count(r => ((dynamic)r.Tag).AttemptCount > 0).ToString();
+                labelPendingInvoice.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>()
+                    .Count(r => ((dynamic)r.Tag).IsSynced == 0).ToString();
+                labelPaidInvoices.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>()
+                    .Count(r => ((dynamic)r.Tag).IsSynced == 1).ToString();
+                labelInProgressInvc.Text = InvoicesDataGridView.Rows.Cast<DataGridViewRow>()
+                    .Count(r => ((dynamic)r.Tag).AttemptCount > 0).ToString();
 
                 if (!skipDateFilter)
                 {
-                    string message = _filterSyncedOnly ? "Synced invoices loaded successfully" : "Invoices loaded successfully";
+                    string message = _filterSyncedOnly
+                        ? "Synced invoices loaded successfully"
+                        : "Invoices loaded successfully";
                     WindowsLocalAppNotification.Show("Invoices", message);
                     AlertManager.ShowSuccess(message);
                 }
@@ -162,7 +247,6 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // ================== LOGS GRID ==================
         private async Task LoadAndShowLogsAsync(bool skipDateFilter = false)
         {
             try
@@ -176,38 +260,56 @@ namespace POSPRA_WinFormsUI.Forms
 
                     if (!skipDateFilter)
                     {
-                        // Determine filter bounds
                         DateTime? startDate = dtpInvoicesStart.Format != DateTimePickerFormat.Custom
-                            ? dtpInvoicesStart.Value.Date
-                            : null;
+                            ? dtpInvoicesStart.Value.Date : null;
 
                         DateTime? endDate = dtpInvoicesEnd.Format != DateTimePickerFormat.Custom
-                            ? dtpInvoicesEnd.Value.Date.AddDays(1).AddTicks(-1)
-                            : null;
+                            ? dtpInvoicesEnd.Value.Date.AddDays(1).AddTicks(-1) : null;
 
                         if (startDate.HasValue && endDate.HasValue)
                         {
-                            filteredLogs = filteredLogs.Where(l => l.CreatedAtPk >= startDate.Value && l.CreatedAtPk <= endDate.Value);
+                            filteredLogs = filteredLogs.Where(l =>
+                                l.CreatedAtPk >= startDate.Value &&
+                                l.CreatedAtPk <= endDate.Value);
                         }
                     }
+                    var logsList = filteredLogs.OrderByDescending(l => l.Id).ToList();
+                    int totalLogs = logsList.Count;
 
-                    filteredLogs = filteredLogs.OrderByDescending(l => l.Id);
+                    if (progressBar != null)
+                    {
+                        progressBar.Style = ProgressBarStyle.Continuous;
+                        progressBar.Minimum = 0;
+                        progressBar.Maximum = totalLogs;
+                        progressBar.Value = 0;
+                        //progressBar.Visible = true;
+                        progressBar.BringToFront();
+                    }
 
-                    foreach (var log in filteredLogs)
+                    foreach (var log in logsList)
                     {
                         int rowIndex = LogsDataGridView.Rows.Add();
                         var row = LogsDataGridView.Rows[rowIndex];
+
                         row.Cells["colLogID"].Value = log.Id;
                         row.Cells["colMessage"].Value = log.Message ?? "No message";
                         row.Cells["colException"].Value = log.Type ?? "N/A";
                         row.Cells["logdatetime"].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss");
+
+                        if (progressBar != null)
+                        {
+                            progressBar.Value = Math.Min(progressBar.Value + 1, progressBar.Maximum);
+                            progressBar.Refresh();
+                        }
+
+                        await Task.Yield(); // allow UI to update
                     }
 
-                    if (!_isInitialLoad)
+                    if (progressBar != null)
                     {
-                        WindowsLocalAppNotification.Show("Logs", "Logs loaded successfully");
-                        AlertManager.ShowSuccess("Logs loaded successfully");
+                        progressBar.Visible = false;
                     }
+
                 }
                 else
                 {
@@ -222,14 +324,15 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // ================== SYNC FILTER BUTTON ==================
         private async void btnFilterSynced_Click(object sender, EventArgs e)
         {
-            _filterSyncedOnly = true; // Enable synced filter
-            await LoadAndShowInvoicesAsync();
+            await RunSingleLoad(async () =>
+            {
+                _filterSyncedOnly = true;
+                await LoadAndShowInvoicesAsync();
+            });
         }
 
-        // ================== TODAY BUTTON ==================
         private async void btnToday_Click(object sender, EventArgs e)
         {
             dtpInvoicesStart.ValueChanged -= dtpInvoicesStart_ValueChanged;
@@ -241,51 +344,48 @@ namespace POSPRA_WinFormsUI.Forms
             dtpInvoicesStart.Format = DateTimePickerFormat.Short;
             dtpInvoicesEnd.Format = DateTimePickerFormat.Short;
 
-            // Force them as selected for filtering
             _startDateSelected = true;
             _endDateSelected = true;
 
-            // Reattach events
             dtpInvoicesStart.ValueChanged += dtpInvoicesStart_ValueChanged;
             dtpInvoicesEnd.ValueChanged += dtpInvoicesEnd_ValueChanged;
 
-            // Load filtered data
-            await LoadAndShowInvoicesAsync();
-            await LoadAndShowLogsAsync();
+            await RunSingleLoad(async () =>
+            {
+                await LoadAndShowInvoicesAsync();
+                await LoadAndShowLogsAsync();
+            });
         }
-
-        // ================== CLEAR FILTER BUTTON ==================
 
         private async void btnClearFilter_Click(object sender, EventArgs e)
         {
-            // Reset date pickers
             dtpInvoicesStart.Format = DateTimePickerFormat.Custom;
             dtpInvoicesStart.CustomFormat = "'Select Start Date'";
             dtpInvoicesEnd.Format = DateTimePickerFormat.Custom;
             dtpInvoicesEnd.CustomFormat = "'Select End Date'";
 
-            // Reset flags
             _startDateSelected = false;
             _endDateSelected = false;
-            _filterSyncedOnly = false; // Reset synced filter
+            _filterSyncedOnly = false;
 
-            // Reload all data
-            await LoadAndShowInvoicesAsync(skipDateFilter: true);
-            await LoadAndShowLogsAsync(skipDateFilter: true);
+            await RunSingleLoad(async () =>
+            {
+                await LoadAndShowInvoicesAsync(skipDateFilter: true);
+                await LoadAndShowLogsAsync(skipDateFilter: true);
+            });
         }
-
 
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
-            // Determine if date pickers have a real date selected
             bool skipDateFilter = dtpInvoicesStart.Format == DateTimePickerFormat.Custom
                                   || dtpInvoicesEnd.Format == DateTimePickerFormat.Custom;
 
-            // Reload invoices and logs using current date filter if selected
-            await LoadAndShowInvoicesAsync(skipDateFilter: skipDateFilter);
-            await LoadAndShowLogsAsync(skipDateFilter: skipDateFilter);
+            await RunSingleLoad(async () =>
+            {
+                await LoadAndShowInvoicesAsync(skipDateFilter: skipDateFilter);
+                await LoadAndShowLogsAsync(skipDateFilter: skipDateFilter);
+            });
         }
-
 
         private void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
@@ -295,6 +395,14 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = "N/A";
             }
+        }
+
+        private void UpdateProgress(int value, int max)
+        {
+            if (progressBar == null) return;
+            progressBar.Maximum = max;
+            progressBar.Value = Math.Min(value, max);
+            progressBar.Refresh();
         }
     }
 }
