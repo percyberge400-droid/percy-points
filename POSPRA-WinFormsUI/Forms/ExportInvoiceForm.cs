@@ -28,6 +28,7 @@ namespace POSPRA_WinFormsUI.Forms
             _liveService = liveService ?? throw new ArgumentNullException(nameof(liveService));
 
             dateTimePickerTo.MaxDate = DateTime.Today;
+            dateTimePickerFrom.MaxDate = DateTime.Today;
 
 
             dateTimePickerFrom.Format = DateTimePickerFormat.Custom;
@@ -152,7 +153,9 @@ namespace POSPRA_WinFormsUI.Forms
                 else
                 {
                     // Split response into lines
-                    var lines = response.Data.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    //var lines = response.Data.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    var lines = response.Data.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
 
                     // ✅ Check if only header is present
                     if (lines.Length <= 1)
