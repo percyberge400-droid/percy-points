@@ -381,21 +381,117 @@ namespace POSPRA_WinFormsUI.Forms
             });
         }
 
+        private void ClearDataGridView(DataGridView dataGridView)
+        {
+            if (dataGridView == null) return;
+
+            try
+            {
+                // Suspend layout to prevent flickering
+                dataGridView.SuspendLayout();
+
+                // Clear all data sources
+                dataGridView.DataSource = null;
+
+                // Clear all rows
+                dataGridView.Rows.Clear();
+
+                // Clear selection
+                dataGridView.ClearSelection();
+
+                // Reset current cell
+                dataGridView.CurrentCell = null;
+
+                // Force garbage collection on disposed rows
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                // Force immediate UI update
+                dataGridView.Refresh();
+                dataGridView.Invalidate();
+
+                // Additional refresh
+                Application.DoEvents();
+            }
+            catch (Exception ex)
+            {
+                // Log any errors but don't throw
+                Console.WriteLine($"Error clearing DataGridView: {ex.Message}");
+            }
+            finally
+            {
+                // Always resume layout
+                dataGridView.ResumeLayout(true);
+            }
+        }
+
+        private void ClearAllGrids()
+        {
+            // Clear both grids
+            ClearDataGridView(InvoicesDataGridView);
+            ClearDataGridView(LogsDataGridView);
+
+            // Reset all statistics labels
+            labelAllInvoices.Text = "0";
+            labelPendingInvoice.Text = "0";
+            labelPaidInvoices.Text = "0";
+            labelInProgressInvc.Text = "0";
+
+            // Force form refresh
+            this.Refresh();
+            Application.DoEvents();
+        }
+
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
-            // Reset filters so both grids show full data if dates are not selected
-            bool skipDateFilter = !_startDateSelected || !_endDateSelected;
-
-            // Always run single load to prevent overlapping loads
-            await RunSingleLoad(async () =>
+            try
             {
-                // Reset synced filter for invoices
+                // Show loading indicator
+                if (progressBar != null)
+                {
+                    progressBar.Visible = true;
+                    progressBar.Style = ProgressBarStyle.Marquee;
+                    progressBar.MarqueeAnimationSpeed = 30;
+                }
+
+                // Completely clear all grids first
+                ClearAllGrids();
+
+                // Small delay to ensure UI is cleared
+                await Task.Delay(200);
+
+                // Determine if we should skip date filter
+                bool skipDateFilter = !_startDateSelected || !_endDateSelected;
+
+                // Reset synced filter
                 _filterSyncedOnly = false;
 
-                // Reload both grids
-                await LoadAndShowInvoicesAsync(skipDateFilter);
-                await LoadAndShowLogsAsync(skipDateFilter);
-            });
+                // Always run single load to prevent overlapping loads
+                await RunSingleLoad(async () =>
+                {
+                    // Reload both grids with fresh data
+                    await LoadAndShowInvoicesAsync(skipDateFilter);
+                    await LoadAndShowLogsAsync(skipDateFilter);
+                });
+
+                // Show success notification
+                WindowsLocalAppNotification.Show("Refresh Complete", "Data has been refreshed successfully.");
+            }
+            catch (Exception ex)
+            {
+                // Handle any errors during refresh
+                WindowsLocalAppNotification.Show("Refresh Error", $"Error refreshing data: {ex.Message}");
+                AlertManager.ShowError($"Error refreshing data: {ex.Message}");
+            }
+            finally
+            {
+                // Hide loading indicator
+                if (progressBar != null)
+                {
+                    progressBar.Visible = false;
+                    progressBar.Style = ProgressBarStyle.Continuous;
+                }
+            }
         }
 
 

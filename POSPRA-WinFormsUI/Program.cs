@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
-using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
@@ -73,7 +72,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
-            services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+            //services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddSingleton<IConfiguration>(configuration);

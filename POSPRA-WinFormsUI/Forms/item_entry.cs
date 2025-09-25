@@ -2,6 +2,7 @@
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA_WinFormsUI.AlertClasses;
 using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
@@ -24,6 +25,9 @@ namespace POSPRA_WinFormsUI
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
         private readonly IFiscalService _fiscalService;
+
+        // Save operation flag to prevent multiple saves
+        private bool _isSaving = false;
 
         #endregion
 
@@ -119,7 +123,8 @@ namespace POSPRA_WinFormsUI
             // Item Code
             if (string.IsNullOrWhiteSpace(inputData.ItemCode))
             {
-                MessageBox.Show("Please enter an Item Code.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //WindowsLocalAppNotification.Show("Validation Error", "Please enter an Item Code.");
+                AlertManager.ShowError("Please enter an Item Code.");
                 ItemCode.Focus();
                 return false;
             }
@@ -127,7 +132,8 @@ namespace POSPRA_WinFormsUI
             // Item Name
             if (string.IsNullOrWhiteSpace(inputData.ItemName))
             {
-                MessageBox.Show("Please enter an Item Name.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //WindowsLocalAppNotification.Show("Validation Error", "Please enter an Item Name.");
+                AlertManager.ShowError("Please enter an Item Name.");
                 ItemName.Focus();
                 return false;
             }
@@ -135,7 +141,8 @@ namespace POSPRA_WinFormsUI
             // Quantity
             if (inputData.Quantity <= 0)
             {
-                MessageBox.Show("Please enter a valid Quantity greater than 0.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //WindowsLocalAppNotification.Show("Validation Error", "Please enter a valid Quantity greater than 0.");
+                AlertManager.ShowError("Please enter a valid Quantity greater than 0.");
                 qty.Focus();
                 return false;
             }
@@ -143,7 +150,8 @@ namespace POSPRA_WinFormsUI
             // Sale Value
             if (inputData.SaleValue <= 0)
             {
-                MessageBox.Show("Please enter a valid Sale Value greater than 0.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //WindowsLocalAppNotification.Show("Validation Error", "Please enter a valid Sale Value greater than 0.");
+                AlertManager.ShowError("Please enter a valid Sale Value greater than 0.");
                 salevalue.Focus();
                 return false;
             }
@@ -208,30 +216,45 @@ namespace POSPRA_WinFormsUI
                 // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
                 ClearFormFields();
 
-                MessageBox.Show($"Item '{inputData.ItemCode}' added/updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //WindowsLocalAppNotification.Show("Success", $"Item '{inputData.ItemCode}' added/updated successfully.");
+                AlertManager.ShowSuccess($"Item '{inputData.ItemCode}' added/updated successfully.");
                 ItemCode.Focus();
                 UpdateInvoiceTotals();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error processing item: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //WindowsLocalAppNotification.Show("Error", $"Error processing item: {ex.Message}");
+                AlertManager.ShowError($"Error processing item: {ex.Message}");
             }
         }
 
         private async void BtnSave_Click(object sender, EventArgs e)
         {
+            // Prevent multiple simultaneous saves
+            if (_isSaving)
+            {
+                WindowsLocalAppNotification.Show("Information", "Save operation is already in progress. Please wait...");
+                AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
+                return;
+            }
+
             try
             {
+                _isSaving = true;
+                btnSave.Enabled = false; // Disable the button during save
+                btnSave.Text = "Saving..."; // Visual feedback
+
                 if (addedItems == null || !addedItems.Any())
                 {
-                    MessageBox.Show("Please add at least one item before saving the invoice.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    WindowsLocalAppNotification.Show("Validation Error", "Please add at least one item before saving the invoice.");
+                    AlertManager.ShowError("Please add at least one item before saving the invoice.");
                     return;
                 }
 
                 if (!AreInvoiceFieldsValid())
                 {
-                    MessageBox.Show("Invoice header is incomplete. Please fill in the invoice header before saving.",
-                        "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    WindowsLocalAppNotification.Show("Validation Error", "Invoice header is incomplete. Please fill in the invoice header before saving.");
+                    AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
                     return;
                 }
 
@@ -243,11 +266,10 @@ namespace POSPRA_WinFormsUI
 
                 if (confirm != DialogResult.Yes) return;
 
-                if (CurrentInvoice == null)
-                {
-                    CurrentInvoice = CollectInvoiceData();
-                }
+                // Create a fresh copy of the invoice data
+                CurrentInvoice = CollectInvoiceData();
 
+                // Create item DTOs from current items
                 var itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
                     ItemCode = item.ItemCode,
@@ -285,18 +307,20 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
+                WindowsLocalAppNotification.Show("Information", "Saving invoice...");
+                AlertManager.ShowInfo("Saving invoice...");
+
                 var output = await _fiscalService.CreateAsync(invoiceDto);
 
                 if (output.StatusCode == ApiStatusCode.Success)
                 {
-                    MessageBox.Show(output.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //WindowsLocalAppNotification.Show("Success", output.Message);
+                    AlertManager.ShowSuccess(output.Message);
 
                     // -----------------------------
-                    // CLEAR ALL DTOs AND UI FIELDS
+                    // CLEAR ALL DTOs AND UI FIELDS ONLY AFTER SUCCESSFUL SAVE
                     // -----------------------------
-                    itemDtos.Clear();
                     addedItems.Clear();                 // Clear item DTO list
-                    invoiceDto.InvoiceItemDto.Clear();  // Clear DTO inside InvoiceDto
                     CurrentInvoice = null;              // Clear main invoice DTO
                     _sessionItems.Clear();              // Clear session list if used
                     dataGridView1.Rows.Clear();         // Clear grid
@@ -305,12 +329,21 @@ namespace POSPRA_WinFormsUI
                 }
                 else
                 {
-                    MessageBox.Show(output.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    WindowsLocalAppNotification.Show("Error", output.Message);
+                    AlertManager.ShowError(output.Message);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving invoice: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                WindowsLocalAppNotification.Show("Error", $"Error saving invoice: {ex.Message}");
+                AlertManager.ShowError($"Error saving invoice: {ex.Message}");
+            }
+            finally
+            {
+                // Always restore button state
+                _isSaving = false;
+                btnSave.Enabled = true;
+                btnSave.Text = "Save";
             }
         }
 
@@ -321,7 +354,8 @@ namespace POSPRA_WinFormsUI
             {
                 if (dataGridView1.SelectedRows.Count == 0)
                 {
-                    MessageBox.Show("Please select a row to edit.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //WindowsLocalAppNotification.Show("No Selection", "Please select a row to edit.");
+                    AlertManager.ShowError("Please select a row to edit.");
                     return;
                 }
 
@@ -330,7 +364,8 @@ namespace POSPRA_WinFormsUI
 
                 if (string.IsNullOrEmpty(itemCode))
                 {
-                    MessageBox.Show("Item code is missing for this row.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //WindowsLocalAppNotification.Show("Error", "Item code is missing for this row.");
+                    AlertManager.ShowError("Item code is missing for this row.");
                     return;
                 }
 
@@ -338,7 +373,8 @@ namespace POSPRA_WinFormsUI
 
                 if (itemIndex < 0)
                 {
-                    MessageBox.Show($"Item with Item Code '{itemCode}' was not found in the current list.", "Not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //WindowsLocalAppNotification.Show("Not Found", $"Item with Item Code '{itemCode}' was not found in the current list.");
+                    AlertManager.ShowError($"Item with Item Code '{itemCode}' was not found in the current list.");
                     return;
                 }
 
@@ -360,7 +396,8 @@ namespace POSPRA_WinFormsUI
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error while trying to edit the item: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //WindowsLocalAppNotification.Show("Error", $"Error while trying to edit the item: {ex.Message}");
+                AlertManager.ShowError($"Error while trying to edit the item: {ex.Message}");
             }
         }
 
@@ -472,8 +509,8 @@ namespace POSPRA_WinFormsUI
             }
             else
             {
-                MessageBox.Show("Please select a row to delete.", "No Selection",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //WindowsLocalAppNotification.Show("No Selection", "Please select a row to delete.");
+                AlertManager.ShowError("Please select a row to delete.");
             }
         }
 
