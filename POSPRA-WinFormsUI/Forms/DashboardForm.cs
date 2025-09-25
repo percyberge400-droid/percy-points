@@ -158,7 +158,8 @@ namespace POSPRA_WinFormsUI.Forms
                 if (_filterSyncedOnly)
                     filteredInvoices = filteredInvoices.Where(i => i.IsSynced == 1);
 
-                var invoicesList = filteredInvoices.OrderByDescending(i => i.DateCreated).ToList();
+                // ✅ Order by ID descending instead of DateCreated
+                var invoicesList = filteredInvoices.OrderByDescending(i => i.ID).ToList();
                 int totalInvoices = invoicesList.Count;
 
                 // Suspend layout to prevent multiple redraws
