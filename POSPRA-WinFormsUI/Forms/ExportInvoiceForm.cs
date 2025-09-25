@@ -104,7 +104,7 @@ namespace POSPRA_WinFormsUI.Forms
            
             if (!ValidateDateRange())
             {
-                AlertManager.ShowWarning(" ❌ Invalid date range \n Please select the valid date range.");
+                AlertManager.ShowWarning(" ❌ Invalid date range!");
                 lblExportStatus.Text = "❌ Invalid date range. Please select a range within 1 month.";
                 lblExportStatus.ForeColor = Color.Red;
                 return; // stop if invalid

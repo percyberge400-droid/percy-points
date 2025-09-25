@@ -74,17 +74,17 @@
             // DateFromLbl
             // 
             DateFromLbl.AutoSize = true;
-            DateFromLbl.Font = new Font("Microsoft Sans Serif", 9F);
+            DateFromLbl.Font = new Font("Microsoft Sans Serif", 10.2F);
             DateFromLbl.Location = new Point(222, 50);
             DateFromLbl.Name = "DateFromLbl";
-            DateFromLbl.Size = new Size(79, 18);
+            DateFromLbl.Size = new Size(89, 20);
             DateFromLbl.TabIndex = 52;
             DateFromLbl.Text = "From Date";
             // 
             // progressBarExport
             // 
             progressBarExport.ForeColor = Color.FromArgb(128, 255, 128);
-            progressBarExport.Location = new Point(525, 201);
+            progressBarExport.Location = new Point(525, 214);
             progressBarExport.Name = "progressBarExport";
             progressBarExport.Size = new Size(300, 25);
             progressBarExport.TabIndex = 58;
@@ -101,12 +101,13 @@
             // 
             // ExportInvoiceBtn
             // 
-            ExportInvoiceBtn.BackColor = Color.RoyalBlue;
+            ExportInvoiceBtn.BackColor = Color.MediumSeaGreen;
+            ExportInvoiceBtn.FlatStyle = FlatStyle.Flat;
             ExportInvoiceBtn.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
             ExportInvoiceBtn.ForeColor = Color.Transparent;
-            ExportInvoiceBtn.Location = new Point(841, 65);
+            ExportInvoiceBtn.Location = new Point(851, 63);
             ExportInvoiceBtn.Name = "ExportInvoiceBtn";
-            ExportInvoiceBtn.Size = new Size(188, 43);
+            ExportInvoiceBtn.Size = new Size(175, 50);
             ExportInvoiceBtn.TabIndex = 51;
             ExportInvoiceBtn.Text = "📤 Export Invoices";
             ExportInvoiceBtn.UseVisualStyleBackColor = false;
@@ -115,20 +116,20 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Font = new Font("Microsoft Sans Serif", 9F);
+            label2.Font = new Font("Microsoft Sans Serif", 10.2F);
             label2.Location = new Point(572, 50);
             label2.Name = "label2";
-            label2.Size = new Size(144, 18);
+            label2.Size = new Size(163, 20);
             label2.TabIndex = 53;
             label2.Text = "Registration Number";
             // 
             // ToDateLbl
             // 
             ToDateLbl.AutoSize = true;
-            ToDateLbl.Font = new Font("Microsoft Sans Serif", 9F);
+            ToDateLbl.Font = new Font("Microsoft Sans Serif", 10.2F);
             ToDateLbl.Location = new Point(398, 50);
             ToDateLbl.Name = "ToDateLbl";
-            ToDateLbl.Size = new Size(61, 18);
+            ToDateLbl.Size = new Size(69, 20);
             ToDateLbl.TabIndex = 54;
             ToDateLbl.Text = "To Date";
             // 
