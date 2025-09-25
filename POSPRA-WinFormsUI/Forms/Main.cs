@@ -221,59 +221,59 @@ namespace POSPRA_WinFormsUI.Forms
             // OpenIndependentForm<DashboardForm>();
         }
 
-        public void LoadView(string v)
-        {
-            // Close current active MDI child if any
-            this.ActiveMdiChild?.Close();
+        //public void LoadView(string v)
+        //{
+        //    // Close current active MDI child if any
+        //    this.ActiveMdiChild?.Close();
 
-            Form childForm = null;
+        //    Form childForm = null;
 
-            switch (v)
-            {
-                case "Dashboard":
-                    childForm = _provider.GetRequiredService<DashboardForm>();
-                    break;
+        //    switch (v)
+        //    {
+        //        case "Dashboard":
+        //            childForm = _provider.GetRequiredService<DashboardForm>();
+        //            break;
 
-                case "Invoice Entry":
-                    childForm = _provider.GetRequiredService<item_entry>();
-                    break;
+        //        case "Invoice Entry":
+        //            childForm = _provider.GetRequiredService<item_entry>();
+        //            break;
 
-                case "Invoice Export":
-                    childForm = _provider.GetRequiredService<ExportInvoiceForm>();
-                    break;
+        //        case "Invoice Export":
+        //            childForm = _provider.GetRequiredService<ExportInvoiceForm>();
+        //            break;
 
-                default:
-                    // Unknown option → do nothing
-                    return;
-            }
+        //        default:
+        //            // Unknown option → do nothing
+        //            return;
+        //    }
 
-            // ✅ Show the new child form as MDI
-            if (childForm != null)
-            {
-                childForm.MdiParent = this;
-                childForm.WindowState = FormWindowState.Maximized;
-                childForm.Show();
+        //    // ✅ Show the new child form as MDI
+        //    if (childForm != null)
+        //    {
+        //        childForm.MdiParent = this;
+        //        childForm.WindowState = FormWindowState.Maximized;
+        //        childForm.Show();
 
 
-                if (childForm != null)
-                {
-                    childForm.TopLevel = false; // remove title bar
-                    childForm.FormBorderStyle = FormBorderStyle.None;
-                    childForm.ControlBox = false;
-                    childForm.MaximizeBox = false;
-                    childForm.MinimizeBox = false;
-                    childForm.ShowInTaskbar = false;
-                    childForm.Text = "";
-                    childForm.Dock = DockStyle.Fill;
-                    childForm.WindowState = FormWindowState.Maximized;
+        //        if (childForm != null)
+        //        {
+        //            childForm.TopLevel = false; // remove title bar
+        //            childForm.FormBorderStyle = FormBorderStyle.None;
+        //            childForm.ControlBox = false;
+        //            childForm.MaximizeBox = false;
+        //            childForm.MinimizeBox = false;
+        //            childForm.ShowInTaskbar = false;
+        //            childForm.Text = "";
+        //            childForm.Dock = DockStyle.Fill;
+        //            childForm.WindowState = FormWindowState.Maximized;
 
-                    // Set as MDI child
-                    childForm.MdiParent = this;
-                    childForm.Dock = DockStyle.Fill;
-                    childForm.Show();
-                }
-            }
-        }
+        //            // Set as MDI child
+        //            childForm.MdiParent = this;
+        //            childForm.Dock = DockStyle.Fill;
+        //            childForm.Show();
+        //        }
+        //    }
+        //}
 
 
         private void btnInvoiceSelection_Click(object sender, EventArgs e)
@@ -301,6 +301,48 @@ namespace POSPRA_WinFormsUI.Forms
         {
             ResetNavStyles();
             LoadView("Item Entry");
+        }
+
+        public void LoadView(string v)
+        {
+            this.ActiveMdiChild?.Close();
+
+            Form childForm = null;
+
+            switch (v)
+            {
+                case "Dashboard":
+                    childForm = _provider.GetRequiredService<DashboardForm>();
+                    break;
+
+                case "Invoice Entry":
+                    childForm = _provider.GetRequiredService<item_entry>();
+                    break;
+
+                case "Invoice Export":
+                    childForm = _provider.GetRequiredService<ExportInvoiceForm>();
+                    break;
+
+                default:
+                    // Unknown option â†’ do nothing
+                    return;
+            }
+
+
+            if (this.ActiveMdiChild != null)
+                this.ActiveMdiChild.Close();
+
+            
+
+
+            if (childForm == null) return;
+
+            childForm.TopLevel = false;
+            childForm.FormBorderStyle = FormBorderStyle.None;
+            childForm.MdiParent = this;
+            childForm.Dock = DockStyle.Fill;
+            childForm.WindowState = FormWindowState.Maximized;
+            childForm.Show();
         }
     }
 }
