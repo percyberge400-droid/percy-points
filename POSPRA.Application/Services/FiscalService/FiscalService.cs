@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.LiveService;
@@ -13,6 +12,7 @@ using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Text;
 
 namespace POSPRA.Application.Services.FiscalService
 {
@@ -229,12 +229,15 @@ namespace POSPRA.Application.Services.FiscalService
             // Filter in memory for unsynced records
             var unsynced = allRecords
                 .Where(x => x.IsSynced == (int)InvoiceStatus.NotSynced)
+                .Take(1000)
                 .ToList();
 
             // Map to DTOs
             var fileRecordDtos = _mapper.Map<List<FileRecordDto>>(unsynced);
+            if (fileRecordDtos.Any())
+                return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
 
-            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
+            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.NotFound.ToString(), ResponseMessages.DataNotFound, null, string.Empty);
         }
 
         /// <summary>

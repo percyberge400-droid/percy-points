@@ -26,13 +26,20 @@ namespace POSPRA.Worker
         private readonly string _baseUrl;
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
         private readonly INetworkService _networkService;
-        public Worker(IServiceProvider services, IMapper mapper, HttpService http, IOptions<AppSettings> opts, INetworkService networkService)
+        private readonly AppSettings _settings;
+        public Worker(IServiceProvider services,
+            IMapper mapper,
+            HttpService http,
+            IOptions<AppSettings> opts,
+            INetworkService networkService,
+            IOptions<AppSettings> options)
         {
             _services = services;
             _mapper = mapper;
             _http = http;
             _baseUrl = opts.Value.BaseUrl;
             _networkService = networkService;
+            _settings = options.Value;
         }
 
         /// <summary>
@@ -65,7 +72,7 @@ namespace POSPRA.Worker
                         await ProcessHealthCheck(id, token);
 
                         // Normal loop delay
-                        await Task.Delay(1000, token);
+                        await Task.Delay(_settings.WorkerDelayTime, token);
                     }
                     else
                     {
@@ -108,20 +115,22 @@ namespace POSPRA.Worker
                 }
 
                 var raw = await resp.Content.ReadAsStringAsync();
-                Console.WriteLine($"Health response: {raw}");
-
-                using var post = await PostEncryptedDataAsync(id, raw, token);
-                if (post is null || !post.IsSuccessStatusCode) return;
-
-                var postJson = await post.Content.ReadAsStringAsync();
-                var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
-                var files = apiResp?.Data ?? new();
-
-                if (files.Count > 0)
+                var result = JsonSerializer.Deserialize<ApiResponse<object>>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (result!.StatusCode == ApiStatusCode.Success)
                 {
-                    using var scope = _services.CreateScope();
-                    var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
-                    await fiscal.UpdateFileRecordsAsync(files, false);
+                    using var post = await PostEncryptedDataAsync(id, raw, token);
+                    if (post is null || !post.IsSuccessStatusCode) return;
+
+                    var postJson = await post.Content.ReadAsStringAsync();
+                    var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
+                    var files = apiResp?.Data ?? new();
+
+                    if (files.Count > 0)
+                    {
+                        using var scope = _services.CreateScope();
+                        var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
+                        await fiscal.UpdateFileRecordsAsync(files, false);
+                    }
                 }
             }
             catch (Exception ex)
