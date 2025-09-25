@@ -38,7 +38,7 @@ namespace POSPRA.Repositories.BaseRepository.Repository
 
         /// <inheritdoc/>
         public async Task<IEnumerable<T>> GetAllAsync() =>
-            await _dbSet.ToListAsync();
+            await _dbSet.AsNoTracking().ToListAsync();
 
         /// <inheritdoc/>
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate) =>

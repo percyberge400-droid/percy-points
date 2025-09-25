@@ -86,7 +86,7 @@ namespace POSPRA.Worker
                         wasInternetAvailable = false;
 
                         // Longer delay when offline to avoid busy loop
-                        await Task.Delay(5000, token);
+                        await Task.Delay(1000, token);
                     }
                 }
             }
