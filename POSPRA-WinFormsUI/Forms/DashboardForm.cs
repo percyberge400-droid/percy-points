@@ -383,13 +383,21 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
+            // Reset filters so both grids show full data if dates are not selected
             bool skipDateFilter = !_startDateSelected || !_endDateSelected;
+
+            // Always run single load to prevent overlapping loads
             await RunSingleLoad(async () =>
             {
+                // Reset synced filter for invoices
+                _filterSyncedOnly = false;
+
+                // Reload both grids
                 await LoadAndShowInvoicesAsync(skipDateFilter);
                 await LoadAndShowLogsAsync(skipDateFilter);
             });
         }
+
 
         private void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
