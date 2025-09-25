@@ -40,9 +40,9 @@ namespace POSPRA_WinFormsUI.Forms
             dtpInvoicesEnd.ValueChanged += dtpInvoicesEnd_ValueChanged;
 
             dtpInvoicesStart.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesStart.CustomFormat = "'Select Start Date'";
+            dtpInvoicesStart.CustomFormat = "' Select Start Date'";
             dtpInvoicesEnd.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesEnd.CustomFormat = "'Select End Date'";
+            dtpInvoicesEnd.CustomFormat = "' Select End Date'";
 
             btnFilterInvoices.Click += btnFilterInvoices_Click;
             btnToday.Click += btnToday_Click;
@@ -371,9 +371,9 @@ namespace POSPRA_WinFormsUI.Forms
             _endDateSelected = false;
             _filterSyncedOnly = false;
             dtpInvoicesStart.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesStart.CustomFormat = "'Select Start Date'";
+            dtpInvoicesStart.CustomFormat = "' Select Start Date'";
             dtpInvoicesEnd.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesEnd.CustomFormat = "'Select End Date'";
+            dtpInvoicesEnd.CustomFormat = "' Select End Date'";
 
             await RunSingleLoad(async () =>
             {
