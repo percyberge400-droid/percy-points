@@ -473,14 +473,10 @@ namespace POSPRA_WinFormsUI.Forms
                     await LoadAndShowInvoicesAsync(skipDateFilter);
                     await LoadAndShowLogsAsync(skipDateFilter);
                 });
-
-                // Show success notification
-                WindowsLocalAppNotification.Show("Refresh Complete", "Data has been refreshed successfully.");
             }
             catch (Exception ex)
             {
                 // Handle any errors during refresh
-                WindowsLocalAppNotification.Show("Refresh Error", $"Error refreshing data: {ex.Message}");
                 AlertManager.ShowError($"Error refreshing data: {ex.Message}");
             }
             finally

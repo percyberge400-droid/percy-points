@@ -307,7 +307,7 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
-                WindowsLocalAppNotification.Show("Information", "Saving invoice...");
+                //WindowsLocalAppNotification.Show("Information", "Saving invoice...");
                 AlertManager.ShowInfo("Saving invoice...");
 
                 var output = await _fiscalService.CreateAsync(invoiceDto);
