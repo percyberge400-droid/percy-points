@@ -1,20 +1,23 @@
-﻿using Microsoft.AspNetCore.Http.Extensions;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Azure.Documents.Partitioning;
 using POSPRA.Application.Services;
 using POSPRA.Application.Services.LiveService;
+using POSPRA.Domain.Entities;
+using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA_WinFormsUI.AlertClasses;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Configuration;
 using System.Windows.Forms;            
-using POSPRA.DTOs;
-using ClosedXML.Excel;
-using System.IO;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -101,6 +104,7 @@ namespace POSPRA_WinFormsUI.Forms
            
             if (!ValidateDateRange())
             {
+                AlertManager.ShowWarning(" ❌ Invalid date range \n Please select the valid date range.");
                 lblExportStatus.Text = "❌ Invalid date range. Please select a range within 1 month.";
                 lblExportStatus.ForeColor = Color.Red;
                 return; // stop if invalid
@@ -141,13 +145,16 @@ namespace POSPRA_WinFormsUI.Forms
                 // ✅ Handle the response
                 if (response == null)
                 {
-                    lblExportStatus.Text = "❌ No response from service.";
+                    AlertManager.ShowWarning("⚠ No response from service!");
+                    lblExportStatus.Text = "❌ No response from service!";
                     lblExportStatus.ForeColor = Color.Red;
                 }
                 else if (string.IsNullOrWhiteSpace(response.Data))
                 {
                     lblExportStatus.Text = "⚠ No invoices found for the selected date range.";
                     lblExportStatus.ForeColor = Color.Orange;
+                    WindowsLocalAppNotification.Show("Invoices Not Found", " No invoices found for the selected date range.");
+                    AlertManager.ShowInfo(" No invoices found for the selected date range.");
                 }
                 else
                 {
@@ -159,6 +166,8 @@ namespace POSPRA_WinFormsUI.Forms
                     // ✅ Check if only header is present
                     if (lines.Length <= 1)
                     {
+                        //WindowsLocalAppNotification.Show("Invoices Not Found", " No invoices found for the selected date range.");
+                        AlertManager.ShowInfo(" No invoices found for the selected date range.");
                         lblExportStatus.Text = "⚠ No invoices found for the selected date range.";
                         lblExportStatus.ForeColor = Color.Orange;
                         return; // exit here, don’t open SaveFileDialog
@@ -192,18 +201,23 @@ namespace POSPRA_WinFormsUI.Forms
 
                                     workbook.SaveAs(path);
                                 }
-
+                                WindowsLocalAppNotification.Show("Success.", "Invoices exported successfully");
+                                AlertManager.ShowSuccess($"Invoices exported successfully");
                                 lblExportStatus.Text = $"✅ Invoices exported successfully to:\n{path}";
                                 lblExportStatus.ForeColor = Color.Green;
                             }
                             catch (Exception ex)
                             {
+                                //WindowsLocalAppNotification.Show("Invoices Error", $"Error Saving invoices: {ex.Message}");
+                                AlertManager.ShowError($"Error Saving invoices: {ex.Message}");
                                 lblExportStatus.Text = $"❌ Error saving file: {ex.Message}";
                                 lblExportStatus.ForeColor = Color.Red;
                             }
                         }
                         else
                         {
+                            //WindowsLocalAppNotification.Show("Canceled.", "⚠ Invoices Export canceled by user");
+                            AlertManager.ShowError($"Invoices exported canceled by User");
                             lblExportStatus.Text = "⚠ Export canceled by user.";
                             lblExportStatus.ForeColor = Color.Orange;
                         }
