@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             panel1 = new Panel();
             lblWorkerService = new Label();
             lblNetworkStatus = new Label();
@@ -67,6 +66,7 @@
             // 
             // lblWorkerService
             // 
+            lblWorkerService.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             lblWorkerService.AutoSize = true;
             lblWorkerService.Font = new Font("Segoe UI", 12F);
             lblWorkerService.Location = new Point(1164, 25);
@@ -77,6 +77,7 @@
             // 
             // lblNetworkStatus
             // 
+            lblNetworkStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             lblNetworkStatus.AutoSize = true;
             lblNetworkStatus.Font = new Font("Segoe UI", 12F);
             lblNetworkStatus.Location = new Point(841, 25);
@@ -97,19 +98,11 @@
             // 
             // btnDropDown
             // 
-            btnDropDown.Dock = DockStyle.Right;
-            btnDropDown.FlatAppearance.BorderSize = 0;
-            btnDropDown.FlatStyle = FlatStyle.Flat;
-            btnDropDown.Image = (Image)resources.GetObject("btnDropDown.Image");
-            btnDropDown.ImageAlign = ContentAlignment.MiddleLeft;
-            btnDropDown.Location = new Point(2, 0);
-            btnDropDown.Margin = new Padding(3, 4, 3, 4);
+            btnDropDown.Location = new Point(0, 0);
             btnDropDown.Name = "btnDropDown";
-            btnDropDown.Size = new Size(86, 85);
-            btnDropDown.TabIndex = 2;
-            btnDropDown.Text = "▼";
-            btnDropDown.TextAlign = ContentAlignment.MiddleRight;
-            btnDropDown.UseVisualStyleBackColor = true;
+            btnDropDown.Size = new Size(75, 23);
+            btnDropDown.TabIndex = 0;
+            btnDropDown.Visible = false;
             // 
             // panExportInvoice
             // 
