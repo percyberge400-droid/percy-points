@@ -363,7 +363,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnRefresh.BackColor = Color.SeaGreen;
             btnRefresh.FlatAppearance.BorderSize = 0;
             btnRefresh.FlatStyle = FlatStyle.Flat;
-            btnRefresh.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
+            btnRefresh.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnRefresh.ForeColor = Color.White;
             btnRefresh.Location = new Point(423, 23);
             btnRefresh.Name = "btnRefresh";
@@ -379,7 +379,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnLoadFullData.BackColor = Color.FromArgb(99, 102, 241);
             btnLoadFullData.FlatAppearance.BorderSize = 0;
             btnLoadFullData.FlatStyle = FlatStyle.Flat;
-            btnLoadFullData.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
+            btnLoadFullData.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnLoadFullData.ForeColor = Color.White;
             btnLoadFullData.Location = new Point(552, 23);
             btnLoadFullData.Name = "btnLoadFullData";
@@ -406,7 +406,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.BackColor = Color.DimGray;
             btnFilterSynced.FlatAppearance.BorderSize = 0;
             btnFilterSynced.FlatStyle = FlatStyle.Flat;
-            btnFilterSynced.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
+            btnFilterSynced.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnFilterSynced.ForeColor = Color.White;
             btnFilterSynced.Location = new Point(704, 23);
             btnFilterSynced.Name = "btnFilterSynced";
@@ -422,7 +422,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnClearFilter.BackColor = Color.Red;
             btnClearFilter.FlatAppearance.BorderSize = 0;
             btnClearFilter.FlatStyle = FlatStyle.Flat;
-            btnClearFilter.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
+            btnClearFilter.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnClearFilter.ForeColor = Color.White;
             btnClearFilter.Location = new Point(1367, 23);
             btnClearFilter.Name = "btnClearFilter";
@@ -438,7 +438,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnToday.BackColor = Color.FromArgb(99, 102, 241);
             btnToday.FlatAppearance.BorderSize = 0;
             btnToday.FlatStyle = FlatStyle.Flat;
-            btnToday.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
+            btnToday.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnToday.ForeColor = Color.White;
             btnToday.Location = new Point(1501, 23);
             btnToday.Name = "btnToday";
@@ -471,7 +471,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterInvoices.BackColor = Color.SeaGreen;
             btnFilterInvoices.FlatAppearance.BorderSize = 0;
             btnFilterInvoices.FlatStyle = FlatStyle.Flat;
-            btnFilterInvoices.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
+            btnFilterInvoices.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnFilterInvoices.ForeColor = Color.White;
             btnFilterInvoices.Location = new Point(1255, 23);
             btnFilterInvoices.Name = "btnFilterInvoices";
