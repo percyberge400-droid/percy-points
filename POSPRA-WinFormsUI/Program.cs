@@ -1,10 +1,8 @@
-﻿using System.Drawing.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
-using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
@@ -21,6 +19,7 @@ using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
+using System.Drawing.Text;
 
 // ✅ IMPORTANT: Add a reference to the Web API project (right-click WinForms project → Add → Project Reference…)
 
@@ -73,7 +72,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
-            services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+            //services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddSingleton<IConfiguration>(configuration);
@@ -86,6 +85,7 @@ namespace POSPRA_WinFormsUI
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
             services.AddTransient<item_entry>();
+            services.AddTransient<ExportInvoiceForm>();
 
             using var provider = services.BuildServiceProvider();
 

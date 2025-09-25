@@ -315,6 +315,7 @@ namespace POSPRA_WinFormsUI.Forms
             ResetNavStyles();
             btnExportInvoice.ForeColor = ColorTranslator.FromHtml("#686DF4");
             panExportInvoice.Visible = true;
+            LoadView("Export Invoice");
         }
 
         private void btnItemEntry_Click(object sender, EventArgs e)
@@ -332,6 +333,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
                 "Invoice Entry" => _provider.GetRequiredService<item_entry>(),
+                "Export Invoice" => _provider.GetRequiredService<ExportInvoiceForm>(),
                 _ => null
             };
 
