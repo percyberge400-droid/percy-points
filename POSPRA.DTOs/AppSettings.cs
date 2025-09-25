@@ -23,5 +23,6 @@
         public string IMSServicePath { get; set; } = string.Empty;
         public bool IsProduction { get; set; }
         public int IMSUpdateInterval { get; set; }
+        public int WorkerDelayTime { get; set; }
     }
 }

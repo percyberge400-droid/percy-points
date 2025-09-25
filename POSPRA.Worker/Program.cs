@@ -37,7 +37,7 @@ var builder = Host.CreateDefaultBuilder(args)
         //----------------------------------------------------
         // 🔧 AppSettings / API settings
         //----------------------------------------------------
-        services.Configure<AppSettings>(context.Configuration.GetSection("ApiSettings"));
+        services.Configure<AppSettings>(context.Configuration.GetSection("AppSettings"));
 
         //----------------------------------------------------
         // 🔧 Repository & Unit of Work
