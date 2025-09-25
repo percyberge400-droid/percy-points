@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.LiveService;
@@ -12,7 +13,6 @@ using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
-using System.Text;
 
 namespace POSPRA.Application.Services.FiscalService
 {
