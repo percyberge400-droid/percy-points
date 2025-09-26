@@ -865,7 +865,7 @@ namespace POSPRA_WinFormsUI
                 this.BeginInvoke(new Action(() => buyerntn.Focus()));
                 return false;
             }
-            else if (!buyerntn.Text.All(char.IsDigit) || buyerntn.Text.Length != 7)
+            else if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length != 7)
             {
                 MessageBox.Show("Buyer NTN must be exactly 7 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.BeginInvoke(new Action(() => buyerntn.Focus()));
