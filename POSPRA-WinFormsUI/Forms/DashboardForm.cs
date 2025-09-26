@@ -55,7 +55,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.Click += btnFilterSynced_Click;
             btnLoadFullData.Click += btnLoadFullData_Click;
 
-            btnExportInvoice.Click += btnExportInvoice_Click;
+            btnExportLogs.Click += btnExportLogs_Click;
 
             if (progressBar != null) progressBar.Visible = false;
         }
@@ -344,7 +344,7 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         // Export Invoice Button
         // ----------------------------------------
-        private async void btnExportInvoice_Click(object sender, EventArgs e)
+        private async void btnExportLogs_Click(object sender, EventArgs e)
         {
             try
             {

@@ -99,7 +99,7 @@ namespace POSPRA_WinFormsUI.Forms
             colDateCreated = new DataGridViewTextBoxColumn();
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();
-            btnExportInvoice = new Button();
+            btnExportLogs = new Button();
             LogsDataGridView = new DataGridView();
             colLogID = new DataGridViewTextBoxColumn();
             colMessage = new DataGridViewTextBoxColumn();
@@ -547,7 +547,7 @@ namespace POSPRA_WinFormsUI.Forms
             // panelLogs
             // 
             panelLogs.BackColor = Color.White;
-            panelLogs.Controls.Add(btnExportInvoice);
+            panelLogs.Controls.Add(btnExportLogs);
             panelLogs.Controls.Add(LogsDataGridView);
             panelLogs.Controls.Add(labelLogsTitle);
             panelLogs.Dock = DockStyle.Fill;
@@ -558,21 +558,21 @@ namespace POSPRA_WinFormsUI.Forms
             panelLogs.Size = new Size(1625, 249);
             panelLogs.TabIndex = 1;
             // 
-            // btnExportInvoice
+            // btnExportLogs
             // 
-            btnExportInvoice.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnExportInvoice.BackColor = Color.SeaGreen;
-            btnExportInvoice.FlatAppearance.BorderSize = 0;
-            btnExportInvoice.FlatStyle = FlatStyle.Flat;
-            btnExportInvoice.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
-            btnExportInvoice.ForeColor = Color.White;
-            btnExportInvoice.Location = new Point(1419, 19);
-            btnExportInvoice.Name = "btnExportInvoice";
-            btnExportInvoice.Size = new Size(195, 27);
-            btnExportInvoice.TabIndex = 9;
-            btnExportInvoice.Text = "Export Invoice";
-            btnExportInvoice.UseVisualStyleBackColor = false;
+            btnExportLogs.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnExportLogs.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnExportLogs.BackColor = Color.SeaGreen;
+            btnExportLogs.FlatAppearance.BorderSize = 0;
+            btnExportLogs.FlatStyle = FlatStyle.Flat;
+            btnExportLogs.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
+            btnExportLogs.ForeColor = Color.White;
+            btnExportLogs.Location = new Point(1419, 19);
+            btnExportLogs.Name = "btnExportLogs";
+            btnExportLogs.Size = new Size(195, 27);
+            btnExportLogs.TabIndex = 9;
+            btnExportLogs.Text = "Export Logs";
+            btnExportLogs.UseVisualStyleBackColor = false;
             // 
             // LogsDataGridView
             // 
@@ -674,7 +674,7 @@ namespace POSPRA_WinFormsUI.Forms
         private Button btnFilterSynced;
         private ProgressBar progressBar;
         private Button btnLoadFullData;
-        private Button btnExportInvoice;
+        private Button btnExportLogs;
         private DataGridViewTextBoxColumn colId;
         private DataGridViewTextBoxColumn colPosId;
         private DataGridViewTextBoxColumn colInvoiceNumber;
