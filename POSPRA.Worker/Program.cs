@@ -12,7 +12,6 @@ using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.LogRepository;
-using POSPRA.Repositories.PosRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA.Worker;
@@ -51,7 +50,6 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<ILogRepository, LogRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
-        services.AddScoped<IPosClientRepository, PosClientRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
         services.AddScoped<IRequestHeaderService, RequestHeaderService>();
 

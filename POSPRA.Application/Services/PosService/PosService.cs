@@ -6,7 +6,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.PosDtos;
 using POSPRA.Repositories.BaseRepository;
-using POSPRA.Repositories.PosRepository;
+using POSPRA.Repositories.ClientRepository;
 using POSPRA.Repositories.UnitOfWork;
 
 namespace POSPRA.Application.Services.POSService
@@ -18,7 +18,7 @@ namespace POSPRA.Application.Services.POSService
         private readonly SqlServerRepository<PosConfiguration> _posConfigurationRepository;
         private readonly SqlServerRepository<PosStatus> _posStatusRepository;
 
-        private readonly IPosClientRepository _posClientRepository;
+        private readonly IClientRepository _clientRepository;
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         public readonly IMapper _mapper;
         public PosService(
@@ -26,18 +26,18 @@ namespace POSPRA.Application.Services.POSService
             IRequestHeaderService requestHeaderService,
             IMapper mapper
 ,
-            IPosClientRepository posClientRepository,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
             SqlServerRepository<PosConfiguration> posConfigurationRepository,
-            SqlServerRepository<PosStatus> posStatusRepository)
+            SqlServerRepository<PosStatus> posStatusRepository,
+            IClientRepository clientRepository)
         {
             _sqlServerRepository = sqlServerRepository;
             _requestHeaderService = requestHeaderService;
             _mapper = mapper;
-            _posClientRepository = posClientRepository;
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
             _posConfigurationRepository = posConfigurationRepository;
             _posStatusRepository = posStatusRepository;
+            _clientRepository = clientRepository;
         }
 
         public async Task<ApiResponse<string>> UpdateHeartBeatAsync()
@@ -45,7 +45,7 @@ namespace POSPRA.Application.Services.POSService
             try
             {
                 var posId = _requestHeaderService.GetPosId();
-                var client = await _posClientRepository.FirstOrDefaultAsync(p => p.POSRegistrationNumber == posId);
+                var client = await _clientRepository.FirstOrDefaultAsync(p => p.POSRegistrationNumber == posId);
                 if (client == null)
                     return new ApiResponse<string>(
                         statusCode: ApiStatusCode.NotFound,
