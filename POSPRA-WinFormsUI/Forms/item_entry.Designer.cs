@@ -184,7 +184,7 @@
             salevalue.PlaceholderText = "Sale Value";
             salevalue.Size = new Size(197, 24);
             salevalue.TabIndex = 28;
-            salevalue.Text = "78";
+            salevalue.Text = "100";
             // 
             // salevaluelbl
             // 
@@ -204,6 +204,7 @@
             TaxRatebox.PlaceholderText = "Tax Rate";
             TaxRatebox.Size = new Size(200, 24);
             TaxRatebox.TabIndex = 22;
+            TaxRatebox.Text = "10";
             // 
             // itemDiscount
             // 
@@ -213,6 +214,7 @@
             itemDiscount.PlaceholderText = "Discount";
             itemDiscount.Size = new Size(192, 24);
             itemDiscount.TabIndex = 23;
+            itemDiscount.Text = "50";
             // 
             // itemDiscountlbl
             // 
@@ -233,7 +235,7 @@
             totalamount.PlaceholderText = "Total Amount";
             totalamount.Size = new Size(194, 24);
             totalamount.TabIndex = 20;
-            totalamount.Text = "8";
+            totalamount.Text = "105";
             // 
             // ItemCode
             // 
@@ -317,7 +319,7 @@
             qty.PlaceholderText = "QUANTITY";
             qty.Size = new Size(197, 24);
             qty.TabIndex = 27;
-            qty.Text = "78";
+            qty.Text = "1";
             // 
             // lblCustomerRegType
             // 
@@ -734,7 +736,7 @@
             buyerphone.PlaceholderText = "Buyer Phone Number";
             buyerphone.Size = new Size(200, 24);
             buyerphone.TabIndex = 10;
-            buyerphone.Text = "5";
+            buyerphone.Text = "12345678912";
             // 
             // sellerBnamelbl
             // 
@@ -774,7 +776,7 @@
             buyerntn.PlaceholderText = "Buyer NTN";
             buyerntn.Size = new Size(200, 24);
             buyerntn.TabIndex = 8;
-            buyerntn.Text = "61101458";
+            buyerntn.Text = "1234567";
             // 
             // buyercniclabel
             // 
@@ -807,7 +809,7 @@
             buyercnic.PlaceholderText = "Buyer CNIC";
             buyercnic.Size = new Size(200, 24);
             buyercnic.TabIndex = 7;
-            buyercnic.Text = "6101589";
+            buyercnic.Text = "1234567891234";
             // 
             // label15
             // 
