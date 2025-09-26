@@ -2,7 +2,9 @@
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.ComponentModel;
 using System.Data;
+using System.Text;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -16,6 +18,8 @@ namespace POSPRA_WinFormsUI.Forms
         private bool _startDateSelected = false;
         private bool _endDateSelected = false;
         private bool _filterSyncedOnly = false;
+
+        private bool _isSyncedSortDescending = true; // Default: Yes on top
 
         private int _isLoadingFlag = 0;
 
@@ -50,6 +54,8 @@ namespace POSPRA_WinFormsUI.Forms
             btnRefresh.Click += btnRefresh_Click;
             btnFilterSynced.Click += btnFilterSynced_Click;
             btnLoadFullData.Click += btnLoadFullData_Click;
+
+            btnExportLogs.Click += btnExportLogs_Click;
 
             if (progressBar != null) progressBar.Visible = false;
         }
@@ -158,14 +164,15 @@ namespace POSPRA_WinFormsUI.Forms
                 if (_filterSyncedOnly)
                     filteredInvoices = filteredInvoices.Where(i => i.IsSynced == 1);
 
-                // ✅ Order by ID descending instead of DateCreated
-                var invoicesList = filteredInvoices.OrderByDescending(i => i.ID).ToList();
+                // ✅ Order by most recent (DateCreated DESC)
+                var invoicesList = filteredInvoices
+                    .OrderByDescending(i => i.DateCreated)
+                    .ToList();
+
                 int totalInvoices = invoicesList.Count;
 
-                // Suspend layout to prevent multiple redraws
                 InvoicesDataGridView.SuspendLayout();
 
-                // Optional: Show progress for very large datasets
                 if (progressBar != null && totalInvoices > 100)
                 {
                     progressBar.Style = ProgressBarStyle.Continuous;
@@ -175,7 +182,6 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.Visible = true;
                 }
 
-                // Batch add rows for better performance
                 var rows = new List<DataGridViewRow>();
                 int syncedCount = 0, pendingCount = 0, inProgressCount = 0;
 
@@ -185,7 +191,9 @@ namespace POSPRA_WinFormsUI.Forms
                     var row = new DataGridViewRow();
                     row.CreateCells(InvoicesDataGridView);
 
-                    row.Cells[InvoicesDataGridView.Columns["colId"].Index].Value = inv.ID;
+                    // ✅ Sr No. (1 = most recent invoice)
+                    row.Cells[InvoicesDataGridView.Columns["colId"].Index].Value = i + 1;
+
                     row.Cells[InvoicesDataGridView.Columns["colPosId"].Index].Value = inv.POSID;
                     row.Cells[InvoicesDataGridView.Columns["colInvoiceNumber"].Index].Value = inv.InvoiceNumber ?? "N/A";
                     row.Cells[InvoicesDataGridView.Columns["colIsSynced"].Index].Value = inv.IsSynced == 1 ? "Yes" : "No";
@@ -195,26 +203,21 @@ namespace POSPRA_WinFormsUI.Forms
 
                     rows.Add(row);
 
-                    // Count statistics while we're iterating
                     if (inv.IsSynced == 1) syncedCount++;
                     else pendingCount++;
                     if (inv.AttemptCount > 0) inProgressCount++;
 
-                    // Update progress less frequently for better performance
                     if (progressBar != null && totalInvoices > 100 && i % 10 == 0)
                     {
                         progressBar.Value = Math.Min(i + 1, progressBar.Maximum);
-                        Application.DoEvents(); // Allow UI to update occasionally
+                        Application.DoEvents();
                     }
                 }
 
-                // Add all rows at once
                 InvoicesDataGridView.Rows.AddRange(rows.ToArray());
-
-                // Resume layout and refresh
                 InvoicesDataGridView.ResumeLayout(true);
 
-                // Update labels with pre-calculated counts
+                // ✅ Update summary labels
                 labelAllInvoices.Text = totalInvoices.ToString();
                 labelPendingInvoice.Text = pendingCount.ToString();
                 labelPaidInvoices.Text = syncedCount.ToString();
@@ -261,13 +264,15 @@ namespace POSPRA_WinFormsUI.Forms
                         l.CreatedAtPk <= dtpInvoicesEnd.Value.Date.AddDays(1).AddTicks(-1));
                 }
 
-                var logsList = filteredLogs.OrderByDescending(l => l.Id).ToList();
+                // ✅ Order by CreatedAtPk DESC (latest log first)
+                var logsList = filteredLogs
+                    .OrderByDescending(l => l.CreatedAtPk)
+                    .ToList();
+
                 int totalLogs = logsList.Count;
 
-                // Suspend layout to prevent multiple redraws
                 LogsDataGridView.SuspendLayout();
 
-                // Optional: Show progress for very large datasets
                 if (progressBar != null && totalLogs > 100)
                 {
                     progressBar.Style = ProgressBarStyle.Continuous;
@@ -277,7 +282,6 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.Visible = true;
                 }
 
-                // Batch add rows for better performance
                 var rows = new List<DataGridViewRow>();
 
                 for (int i = 0; i < logsList.Count; i++)
@@ -286,25 +290,23 @@ namespace POSPRA_WinFormsUI.Forms
                     var row = new DataGridViewRow();
                     row.CreateCells(LogsDataGridView);
 
-                    row.Cells[LogsDataGridView.Columns["colLogID"].Index].Value = log.Id;
+                    // ✅ Sr No. (1 = latest log at the top)
+                    row.Cells[LogsDataGridView.Columns["colLogID"].Index].Value = i + 1;
+
                     row.Cells[LogsDataGridView.Columns["colMessage"].Index].Value = log.Message ?? "No message";
                     row.Cells[LogsDataGridView.Columns["colException"].Index].Value = log.Type ?? "N/A";
                     row.Cells[LogsDataGridView.Columns["logdatetime"].Index].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss");
 
                     rows.Add(row);
 
-                    // Update progress less frequently for better performance
                     if (progressBar != null && totalLogs > 100 && i % 10 == 0)
                     {
                         progressBar.Value = Math.Min(i + 1, progressBar.Maximum);
-                        Application.DoEvents(); // Allow UI to update occasionally
+                        Application.DoEvents();
                     }
                 }
 
-                // Add all rows at once
                 LogsDataGridView.Rows.AddRange(rows.ToArray());
-
-                // Resume layout and refresh
                 LogsDataGridView.ResumeLayout(true);
 
                 if (progressBar != null)
@@ -322,11 +324,13 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
+
         // ----------------------------------------
         // Full Data Button
         // ----------------------------------------
         private async void btnLoadFullData_Click(object sender, EventArgs e)
         {
+            ResetSortToDefault();
             _startDateSelected = false;
             _endDateSelected = false;
 
@@ -338,6 +342,79 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         // ----------------------------------------
+        // Export Invoice Button
+        // ----------------------------------------
+        private async void btnExportLogs_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (LogsDataGridView.Rows.Count == 0)
+                {
+                    MessageBox.Show("No logs available to export.", "Export Logs", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                using (SaveFileDialog sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "CSV Files (*.csv)|*.csv";
+                    sfd.FileName = $"Logs_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+
+                    if (sfd.ShowDialog() == DialogResult.OK)
+                    {
+                        StringBuilder csvContent = new StringBuilder();
+
+                        // ✅ Write headers
+                        var headers = LogsDataGridView.Columns
+                            .Cast<DataGridViewColumn>()
+                            .Where(c => c.Visible) // only visible columns
+                            .Select(c => c.HeaderText);
+                        csvContent.AppendLine(string.Join(",", headers));
+
+                        // ✅ Write rows
+                        foreach (DataGridViewRow row in LogsDataGridView.Rows)
+                        {
+                            if (!row.IsNewRow)
+                            {
+                                var cells = row.Cells.Cast<DataGridViewCell>()
+                                    .Where(c => c.OwningColumn.Visible)
+                                    .Select(c => c.Value?.ToString().Replace(",", " ") ?? ""); // prevent CSV break
+                                csvContent.AppendLine(string.Join(",", cells));
+                            }
+                        }
+
+                        // ✅ Save file
+                        await File.WriteAllTextAsync(sfd.FileName, csvContent.ToString(), Encoding.UTF8);
+
+                        MessageBox.Show("Logs exported successfully!", "Export Logs", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error exporting logs: {ex.Message}", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+        // ----------------------------------------
+        // Reset Sort Helper Method
+        // ----------------------------------------
+        private void ResetSortToDefault()
+        {
+            // Clear sort glyphs
+            foreach (DataGridViewColumn col in InvoicesDataGridView.Columns)
+                col.HeaderCell.SortGlyphDirection = SortOrder.None;
+
+            // Sort by ID descending (default)
+            InvoicesDataGridView.Sort(InvoicesDataGridView.Columns["colId"], ListSortDirection.Descending);
+
+            // Reset synced sort state
+            _isSyncedSortDescending = true;
+            btnFilterSynced.Text = "Show Synced First";
+        }
+
+
+        // ----------------------------------------
         // Other Buttons
         // ----------------------------------------
         private async void btnFilterInvoices_Click(object sender, EventArgs e) => await RunSingleLoad(async () =>
@@ -346,14 +423,31 @@ namespace POSPRA_WinFormsUI.Forms
             await LoadAndShowLogsAsync();
         });
 
-        private async void btnFilterSynced_Click(object sender, EventArgs e)
+        private void btnFilterSynced_Click(object sender, EventArgs e)
         {
-            _filterSyncedOnly = true;
-            await RunSingleLoad(async () => await LoadAndShowInvoicesAsync());
+            // Toggle sort order
+            if (_isSyncedSortDescending)
+            {
+                // Yes (synced) on top
+                InvoicesDataGridView.Sort(InvoicesDataGridView.Columns["colIsSynced"], ListSortDirection.Descending);
+                btnFilterSynced.Text = "Show Unsynced First";
+            }
+            else
+            {
+                // No (unsynced) on top
+                InvoicesDataGridView.Sort(InvoicesDataGridView.Columns["colIsSynced"], ListSortDirection.Ascending);
+                btnFilterSynced.Text = "Show Synced First";
+            }
+
+            // Flip flag for next click
+            _isSyncedSortDescending = !_isSyncedSortDescending;
         }
+
+
 
         private async void btnToday_Click(object sender, EventArgs e)
         {
+            ResetSortToDefault();
             dtpInvoicesStart.Value = DateTime.Today;
             dtpInvoicesEnd.Value = DateTime.Today;
             _startDateSelected = true;
@@ -367,9 +461,16 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void btnClearFilter_Click(object sender, EventArgs e)
         {
+            ResetSortToDefault();
             _startDateSelected = false;
             _endDateSelected = false;
             _filterSyncedOnly = false;
+
+            // ✅ Reset backend values safely
+            dtpInvoicesStart.Value = DateTime.Today; // start can default to today
+            dtpInvoicesEnd.Value = DateTime.Today.AddDays(1);
+
+            // ✅ Reset UI placeholders
             dtpInvoicesStart.Format = DateTimePickerFormat.Custom;
             dtpInvoicesStart.CustomFormat = "' Select Start Date'";
             dtpInvoicesEnd.Format = DateTimePickerFormat.Custom;
@@ -382,8 +483,10 @@ namespace POSPRA_WinFormsUI.Forms
             });
         }
 
+
         private void ClearDataGridView(DataGridView dataGridView)
         {
+
             if (dataGridView == null) return;
 
             try
@@ -445,6 +548,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
+            ResetSortToDefault();
             try
             {
                 // Show loading indicator
