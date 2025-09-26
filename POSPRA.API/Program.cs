@@ -150,9 +150,12 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             app.UseHttpsRedirection();
             app.UseAuthorization();
 
-            // ✅ Add this line BEFORE MapControllers (and typically before Authorization if you
-            // want requests validated first)
-            app.UseMiddleware<ValidationMiddleware>();
+            // ✅ Read the flag
+            bool isValidationEnabled = builder.Configuration.GetValue<bool>("Validation:Enabled");
+            // ✅ Only add middleware if the flag is true
+            if (isValidationEnabled)
+                app.UseMiddleware<ValidationMiddleware>();
+
             app.MapControllers();
             app.MapHealthChecks("/health");
 
