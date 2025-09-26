@@ -38,21 +38,6 @@ namespace POSPRA_WinFormsUI.Forms
         private System.Windows.Forms.Label labelLogsTitle;
         private System.Windows.Forms.DataGridView LogsDataGridView;
 
-        // Invoice grid columns
-        private System.Windows.Forms.DataGridViewTextBoxColumn colId;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colPosId;
-        //private System.Windows.Forms.DataGridViewTextBoxColumn colInvoiceData;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colInvoiceNumber;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colIsSynced;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colAttemptCount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colDateCreated;
-
-        // Logs grid columns
-        private System.Windows.Forms.DataGridViewTextBoxColumn colLogID;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colMessage;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colException;
-        private System.Windows.Forms.DataGridViewTextBoxColumn logdatetime;
-
         // Invoices panel
         private System.Windows.Forms.DateTimePicker dtpInvoicesStart;
         private System.Windows.Forms.DateTimePicker dtpInvoicesEnd;
@@ -114,6 +99,7 @@ namespace POSPRA_WinFormsUI.Forms
             colDateCreated = new DataGridViewTextBoxColumn();
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();
+            btnExportInvoice = new Button();
             LogsDataGridView = new DataGridView();
             colLogID = new DataGridViewTextBoxColumn();
             colMessage = new DataGridViewTextBoxColumn();
@@ -365,7 +351,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnRefresh.FlatStyle = FlatStyle.Flat;
             btnRefresh.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnRefresh.ForeColor = Color.White;
-            btnRefresh.Location = new Point(423, 23);
+            btnRefresh.Location = new Point(382, 23);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(123, 27);
             btnRefresh.TabIndex = 0;
@@ -381,7 +367,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnLoadFullData.FlatStyle = FlatStyle.Flat;
             btnLoadFullData.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnLoadFullData.ForeColor = Color.White;
-            btnLoadFullData.Location = new Point(552, 23);
+            btnLoadFullData.Location = new Point(511, 23);
             btnLoadFullData.Name = "btnLoadFullData";
             btnLoadFullData.Size = new Size(146, 27);
             btnLoadFullData.TabIndex = 6;
@@ -408,11 +394,11 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.FlatStyle = FlatStyle.Flat;
             btnFilterSynced.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             btnFilterSynced.ForeColor = Color.White;
-            btnFilterSynced.Location = new Point(704, 23);
+            btnFilterSynced.Location = new Point(663, 23);
             btnFilterSynced.Name = "btnFilterSynced";
-            btnFilterSynced.Size = new Size(134, 27);
+            btnFilterSynced.Size = new Size(175, 27);
             btnFilterSynced.TabIndex = 5;
-            btnFilterSynced.Text = "Filter Synced";
+            btnFilterSynced.Text = "Show Synced First";
             btnFilterSynced.UseVisualStyleBackColor = false;
             // 
             // btnClearFilter
@@ -499,7 +485,7 @@ namespace POSPRA_WinFormsUI.Forms
             // colId
             // 
             colId.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colId.HeaderText = "ID";
+            colId.HeaderText = "Sr. No.";
             colId.MinimumWidth = 50;
             colId.Name = "colId";
             colId.ReadOnly = true;
@@ -561,6 +547,7 @@ namespace POSPRA_WinFormsUI.Forms
             // panelLogs
             // 
             panelLogs.BackColor = Color.White;
+            panelLogs.Controls.Add(btnExportInvoice);
             panelLogs.Controls.Add(LogsDataGridView);
             panelLogs.Controls.Add(labelLogsTitle);
             panelLogs.Dock = DockStyle.Fill;
@@ -570,6 +557,22 @@ namespace POSPRA_WinFormsUI.Forms
             panelLogs.Padding = new Padding(8);
             panelLogs.Size = new Size(1625, 249);
             panelLogs.TabIndex = 1;
+            // 
+            // btnExportInvoice
+            // 
+            btnExportInvoice.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnExportInvoice.BackColor = Color.SeaGreen;
+            btnExportInvoice.FlatAppearance.BorderSize = 0;
+            btnExportInvoice.FlatStyle = FlatStyle.Flat;
+            btnExportInvoice.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
+            btnExportInvoice.ForeColor = Color.White;
+            btnExportInvoice.Location = new Point(1419, 19);
+            btnExportInvoice.Name = "btnExportInvoice";
+            btnExportInvoice.Size = new Size(195, 27);
+            btnExportInvoice.TabIndex = 9;
+            btnExportInvoice.Text = "Export Invoice";
+            btnExportInvoice.UseVisualStyleBackColor = false;
             // 
             // LogsDataGridView
             // 
@@ -590,7 +593,7 @@ namespace POSPRA_WinFormsUI.Forms
             // colLogID
             // 
             colLogID.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colLogID.HeaderText = "ID";
+            colLogID.HeaderText = "Sr. No.";
             colLogID.MinimumWidth = 50;
             colLogID.Name = "colLogID";
             colLogID.ReadOnly = true;
@@ -671,5 +674,16 @@ namespace POSPRA_WinFormsUI.Forms
         private Button btnFilterSynced;
         private ProgressBar progressBar;
         private Button btnLoadFullData;
+        private Button btnExportInvoice;
+        private DataGridViewTextBoxColumn colId;
+        private DataGridViewTextBoxColumn colPosId;
+        private DataGridViewTextBoxColumn colInvoiceNumber;
+        private DataGridViewTextBoxColumn colIsSynced;
+        private DataGridViewTextBoxColumn colAttemptCount;
+        private DataGridViewTextBoxColumn colDateCreated;
+        private DataGridViewTextBoxColumn colLogID;
+        private DataGridViewTextBoxColumn colMessage;
+        private DataGridViewTextBoxColumn colException;
+        private DataGridViewTextBoxColumn logdatetime;
     }
 }
