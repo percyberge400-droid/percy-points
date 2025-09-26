@@ -789,15 +789,15 @@
             // posid
             // 
             posid.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            posid.BackColor = Color.White;
+            posid.BackColor = SystemColors.Control;
             posid.Font = new Font("Microsoft Sans Serif", 9F);
             posid.ImeMode = ImeMode.Disable;
             posid.Location = new Point(17, 44);
             posid.Name = "posid";
             posid.PlaceholderText = "POS ID";
+            posid.ReadOnly = true;
             posid.Size = new Size(200, 24);
             posid.TabIndex = 0;
-            posid.Text = "123456";
             // 
             // buyercnic
             // 

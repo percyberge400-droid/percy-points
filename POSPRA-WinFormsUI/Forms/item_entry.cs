@@ -3,6 +3,7 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
 using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI
@@ -11,22 +12,16 @@ namespace POSPRA_WinFormsUI
     {
         #region Fields
 
-        // Responsive layout capture
         private readonly Dictionary<Control, Rectangle> _originalBounds = new();
         private readonly Dictionary<Control, Size> _originalParentSizes = new();
         private readonly Dictionary<Control, Font> _originalFonts = new();
         private Size _originalClientSize = Size.Empty;
         private bool _originalLayoutCaptured = false;
 
-        // Session data (persisted across instances)
         private static List<InvoiceItems> _sessionItems = new();
-
-        // Current invoice & item list
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
         private readonly IFiscalService _fiscalService;
-
-        // Save operation flag to prevent multiple saves
         private bool _isSaving = false;
 
         #endregion
@@ -39,31 +34,130 @@ namespace POSPRA_WinFormsUI
 
             _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
 
-            // Use static session list
+            // Load POSID from app.config
+            posid.Text = ConfigurationManager.AppSettings["Username"] ?? "0";
+
             addedItems = _sessionItems;
 
-            // UI & event wiring
+            // Event wiring
             this.Resize += Item_entry_Resize;
             pnlBasicInfo.Resize += (s, e) => MakeRoundedControl(pnlBasicInfo, 25);
             panel1.Resize += (s, e) => MakeRoundedControl(panel1, 25);
 
-            btnProceed.Click += BtnProceed_Click;      // Add / Update item behaviour
-            btnSave.Click += BtnSave_Click;            // Persist invoice + items
+            btnProceed.Click += BtnProceed_Click;
+            btnSave.Click += BtnSave_Click;
             btnEdit.Click += btnEdit_Click;
             btn_remove.Click += btn_remove_Click;
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
 
-            // Field calculation events (only use RecalculateTotals)
             qty.TextChanged += RecalculateTotals;
             salevalue.TextChanged += RecalculateTotals;
             itemDiscount.TextChanged += RecalculateTotals;
             TaxRatebox.TextChanged += RecalculateTotals;
             FurtureTax.TextChanged += RecalculateTotals;
 
+            buyercnic.KeyPress += NumericOnlyWithLength_KeyPress;
+            buyerntn.KeyPress += NumericOnlyWithLength_KeyPress;
+            buyerphone.KeyPress += NumericOnlyWithLength_KeyPress;
+
+            // invoice item fields
+            ItemCode.KeyPress += NumericOnlyWithLength_KeyPress;
+            pctCode.KeyPress += NumericOnlyWithLength_KeyPress;
+            totalamount.KeyPress += NumericOnlyWithLength_KeyPress;
+            TaxRatebox.KeyPress += NumericOnlyWithLength_KeyPress;
+            itemDiscount.KeyPress += NumericOnlyWithLength_KeyPress;
+            qty.KeyPress += NumericOnlyWithLength_KeyPress;
+            salevalue.KeyPress += NumericOnlyWithLength_KeyPress;
+            FurtureTax.KeyPress += NumericOnlyWithLength_KeyPress;
+            TaxCharged.KeyPress += NumericOnlyWithLength_KeyPress;
+
+            invoicetype.SelectedIndexChanged += Invoicetype_SelectedIndexChanged;
+
             SetupContextMenu();
             CaptureOriginalLayout();
             InitializeEmptyGrid();
         }
+
+        #endregion
+
+        #region NumericOnly_KeyPress
+        private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            TextBox tb = sender as TextBox;
+
+            // Allow only digits & control keys
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            // Enforce per-field max length
+            if (!char.IsControl(e.KeyChar))
+            {
+                switch (tb.Name)
+                {
+                    case "refUSIN":
+                        if (tb.Text.Length >= 7) e.Handled = true;
+                        break;
+
+                    case "buyercnic":
+                        if (tb.Text.Length >= 13) e.Handled = true;
+                        break;
+
+                    case "buyerphone":
+                        if (tb.Text.Length >= 13) e.Handled = true; // 13 max
+                        break;
+
+                    case "itemcode":
+                        if (tb.Text.Length >= 8) e.Handled = true; // example: 8 digits max
+                        break;
+
+                    case "pctcode":
+                        if (tb.Text.Length >= 8) e.Handled = true;
+                        break;
+
+                    case "quantity":
+                        if (tb.Text.Length >= 5) e.Handled = true; // example: 5-digit limit
+                        break;
+
+                    case "totalamount":
+                    case "salevalue":
+                    case "taxrate":
+                    case "discount":
+                    case "furthertax":
+                    case "taxcharged":
+                        if (tb.Text.Length >= 10) e.Handled = true; // example: 10-digit numeric
+                        break;
+                }
+            }
+        }
+
+        #endregion
+
+
+        #region Invoice Type Logic
+
+        private void Invoicetype_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var type = GetSelectedInvoiceType();
+
+            if (type == 3 || type == 4) // Debit or Credit
+            {
+                refUSIN.ReadOnly = false;
+                refUSIN.BackColor = SystemColors.Window;   // normal white textbox background
+                refUSIN.ForeColor = SystemColors.ControlText;
+            }
+            else
+            {
+                refUSIN.ReadOnly = true;
+                refUSIN.Clear();
+                refUSIN.BackColor = SystemColors.Control;  // gray background (like disabled)
+                refUSIN.ForeColor = SystemColors.GrayText;
+            }
+        }
+
+
 
         #endregion
 
@@ -117,48 +211,6 @@ namespace POSPRA_WinFormsUI
             };
         }
 
-
-        private bool ValidateItemEntry(InvoiceItems inputData)
-        {
-            // Item Code
-            if (string.IsNullOrWhiteSpace(inputData.ItemCode))
-            {
-                //WindowsLocalAppNotification.Show("Validation Error", "Please enter an Item Code.");
-                AlertManager.ShowError("Please enter an Item Code.");
-                ItemCode.Focus();
-                return false;
-            }
-
-            // Item Name
-            if (string.IsNullOrWhiteSpace(inputData.ItemName))
-            {
-                //WindowsLocalAppNotification.Show("Validation Error", "Please enter an Item Name.");
-                AlertManager.ShowError("Please enter an Item Name.");
-                ItemName.Focus();
-                return false;
-            }
-
-            // Quantity
-            if (inputData.Quantity <= 0)
-            {
-                //WindowsLocalAppNotification.Show("Validation Error", "Please enter a valid Quantity greater than 0.");
-                AlertManager.ShowError("Please enter a valid Quantity greater than 0.");
-                qty.Focus();
-                return false;
-            }
-
-            // Sale Value
-            if (inputData.SaleValue <= 0)
-            {
-                //WindowsLocalAppNotification.Show("Validation Error", "Please enter a valid Sale Value greater than 0.");
-                AlertManager.ShowError("Please enter a valid Sale Value greater than 0.");
-                salevalue.Focus();
-                return false;
-            }
-
-            return true;
-        }
-
         #endregion
 
         #region Buttons: Proceed (Add/Update), Save, Edit, Remove
@@ -168,11 +220,23 @@ namespace POSPRA_WinFormsUI
             try
             {
                 // Ensure invoice header is filled enough to create a CurrentInvoice
-                if (!AreInvoiceFieldsValid())
+                // Light-weight check: if header is totally empty, ask user whether to continue adding items.
+                // Do NOT run full validation here and do NOT change focus — full validation happens on Save.
+                if (IsInvoiceHeaderEmptyForAdding())
                 {
-                    var res = MessageBox.Show("Invoice header looks incomplete. Do you want to continue adding items anyway?", "Invoice Header", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    if (res == DialogResult.No) return;
+                    var res = MessageBox.Show(
+                        "Invoice header appears empty. You can add items now and fill header details later before saving. Do you want to continue?",
+                        "Invoice Header Empty",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+
+                    if (res == DialogResult.No)
+                        return;
                 }
+
+                // Ensure CurrentInvoice updated with header values (may be empty)
+                CurrentInvoice = CollectInvoiceData();
+
 
                 // Ensure CurrentInvoice updated with header values
                 CurrentInvoice = CollectInvoiceData();
@@ -314,7 +378,7 @@ namespace POSPRA_WinFormsUI
 
                 if (output.StatusCode == ApiStatusCode.Success)
                 {
-                    //WindowsLocalAppNotification.Show("Success", output.Message);
+                    WindowsLocalAppNotification.Show("Success", output.Message);
                     AlertManager.ShowSuccess(output.Message);
 
                     // -----------------------------
@@ -694,16 +758,129 @@ namespace POSPRA_WinFormsUI
             };
         }
 
+        #endregion
+
+        #region validation
+
+        private bool ValidateItemEntry(InvoiceItems inputData)
+        {
+            // Item Code
+            if (string.IsNullOrWhiteSpace(inputData.ItemCode))
+            {
+                AlertManager.ShowError("Please enter an Item Code.");
+                this.BeginInvoke(new Action(() => ItemCode.Focus()));
+                return false;
+            }
+
+            // Item Name
+            if (string.IsNullOrWhiteSpace(inputData.ItemName))
+            {
+                AlertManager.ShowError("Please enter an Item Name.");
+                this.BeginInvoke(new Action(() => ItemName.Focus()));
+                return false;
+            }
+
+            // Quantity
+            if (inputData.Quantity <= 0)
+            {
+                AlertManager.ShowError("Please enter a valid Quantity greater than 0.");
+                this.BeginInvoke(new Action(() => qty.Focus()));
+                return false;
+            }
+
+            // Sale Value
+            if (inputData.SaleValue <= 0)
+            {
+                AlertManager.ShowError("Please enter a valid Sale Value greater than 0.");
+                this.BeginInvoke(new Action(() => salevalue.Focus()));
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool IsInvoiceHeaderEmptyForAdding()
+        {
+            return string.IsNullOrWhiteSpace(posid.Text)   // posid may be prefilled from config but keep check anyway
+                && string.IsNullOrWhiteSpace(USIN.Text)
+                && string.IsNullOrWhiteSpace(refUSIN.Text)
+                && string.IsNullOrWhiteSpace(buyerntn.Text)
+                && string.IsNullOrWhiteSpace(buyercnic.Text)
+                && string.IsNullOrWhiteSpace(BuyerBname.Text)
+                && string.IsNullOrWhiteSpace(buyerphone.Text);
+        }
+
         private bool AreInvoiceFieldsValid()
         {
-            if (string.IsNullOrWhiteSpace(posid.Text)) return false;
-            if (string.IsNullOrWhiteSpace(buyerntn.Text)) return false;
-            if (string.IsNullOrWhiteSpace(BuyerBname.Text)) return false;
-            if (string.IsNullOrWhiteSpace(buyerphone.Text)) return false;
+            if (string.IsNullOrWhiteSpace(posid.Text))
+            {
+                MessageBox.Show("POS ID is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => posid.Focus()));
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(buyerntn.Text))
+            {
+                MessageBox.Show("Buyer NTN is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => buyerntn.Focus()));
+                return false;
+            }
+            else if (!buyerntn.Text.All(char.IsDigit) || buyerntn.Text.Length != 7)
+            {
+                MessageBox.Show("Buyer NTN must be exactly 7 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => buyerntn.Focus()));
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(BuyerBname.Text))
+            {
+                MessageBox.Show("Buyer Name is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => BuyerBname.Focus()));
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(buyercnic.Text))
+            {
+                MessageBox.Show("Buyer CNIC is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => buyercnic.Focus()));
+                return false;
+            }
+            else if (!buyercnic.Text.All(char.IsDigit) || buyercnic.Text.Length != 13)
+            {
+                MessageBox.Show("Buyer CNIC must be exactly 13 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => buyercnic.Focus()));
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(buyerphone.Text))
+            {
+                MessageBox.Show("Buyer Phone Number is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => buyerphone.Focus()));
+                return false;
+            }
+            else if (!buyerphone.Text.All(char.IsDigit) || !(buyerphone.Text.Length == 11 || buyerphone.Text.Length == 13))
+            {
+                MessageBox.Show("Buyer Phone Number must be 11 or 13 digits long.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.BeginInvoke(new Action(() => buyerphone.Focus()));
+                return false;
+            }
+
+            // RefUSIN (if visible → must be numeric and 7 digits)
+            if (refUSIN.Visible && !string.IsNullOrWhiteSpace(refUSIN.Text))
+            {
+                if (!refUSIN.Text.All(char.IsDigit) || refUSIN.Text.Length != 7)
+                {
+                    MessageBox.Show("Ref USIN must be exactly 7 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.BeginInvoke(new Action(() => refUSIN.Focus()));
+                    return false;
+                }
+            }
+
             return true;
         }
 
         #endregion
+
 
         #region Responsive / Rounded Corners
 
