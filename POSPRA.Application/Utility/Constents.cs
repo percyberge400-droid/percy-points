@@ -46,9 +46,11 @@
     public static class AlertType
     {
         // Generic/common alerts
-        public const string Information = "Information";
+        public const string Info = "Info";
         public const string Warning = "Warning";
         public const string Error = "Error";
+        public const string Success = "Success";
+        public const string Update = "Update";
         public const string Critical = "Critical";
         public const string Exception = "Exception";
         public const string Startup = "Startup";
@@ -65,6 +67,11 @@
         public const string DatabaseInfo = "Database Information";
         public const string Configuration = "Configuration Information";
         public const string InvalidInvoiceModel = "Invalid model received";
+    }
+
+    public static class AlertMessages
+    {
+        public const string Forminitialized = "Form initialized";
     }
 
     public static class ApiStatusCode

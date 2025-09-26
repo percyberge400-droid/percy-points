@@ -16,7 +16,7 @@ namespace POSPRA.Application.Services.LogService
         /// <summary>
         /// Persists a log entry to the **local SQLite** database.
         /// </summary>
-        Task LogAsync(Logs model, int retry = 0);
+        Task LogAsync(Logs model);
 
         Logs BuildLog(
                 string message,

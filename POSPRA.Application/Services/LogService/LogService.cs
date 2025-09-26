@@ -1,6 +1,4 @@
-﻿using System.Data;
-using System.Reflection;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
@@ -9,6 +7,8 @@ using POSPRA.DTOs.LogDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Data;
+using System.Reflection;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -56,22 +56,16 @@ namespace POSPRA.Application.Services.LogService
         /// Logs to local SQLite with retry and fallback-to-file.
         /// Automatically fills CreatedAtUtc/CreatedAtPk in the entity.
         /// </summary>
-        public async Task LogAsync(Logs model, int retry = 0)
+        public async Task LogAsync(Logs model)
         {
-            var user = _httpContextAccessor?.HttpContext?.User?.Identity?.Name
-           ?? "WinFormsUser";
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
             // ensure timestamps always set
-            model.CreatedAtUtc = DateTime.UtcNow;
-            model.CreatedAtPk = TimeZoneInfo.ConvertTimeFromUtc(
-                                        DateTime.UtcNow,
-                                        TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi"));
+            model.CreatedAtPk = DateTime.Now;
 
             try
             {
-                retry++;
                 await _logRepository.AddAsync(model);
                 await _sqliteUnitOfWork.SaveChangesAsync();
             }
@@ -82,7 +76,7 @@ namespace POSPRA.Application.Services.LogService
                     // create an internal log for the failure itself
                     var errorLog = new Logs
                     {
-                        Message = $"{DateTime.UtcNow}: Retry {retry}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
+                        Message = $"{DateTime.UtcNow}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
                         Type = AlertType.Exception,
                         IsSynced = false,
                         Module = "Logging",
@@ -96,15 +90,6 @@ namespace POSPRA.Application.Services.LogService
 
                     await _logRepository.AddAsync(errorLog);
                     await _sqliteUnitOfWork.SaveChangesAsync();
-
-                    // Retry logic: up to 3 attempts
-                    if (retry <= 3)
-                    {
-                        if (retry is 2 or 3)
-                            CreateDatabaseBackup();
-
-                        await LogAsync(model, retry);
-                    }
                 }
                 catch
                 {

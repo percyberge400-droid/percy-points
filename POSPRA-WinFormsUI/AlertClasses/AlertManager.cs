@@ -1,21 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using POSPRA.Application.Utility;
 using System.Drawing.Drawing2D;
-using System.Windows.Forms;
 
 namespace POSPRA_WinFormsUI.AlertClasses
 {
-    public enum AlertType
-    {
-        Success,
-        Error,
-        Warning,
-        Info,
-        Critical,
-        Update,
-        Custom
-    }
+
 
     public class AlertManager : Form
     {
@@ -50,7 +38,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         private const int BottomOffset = 20;
 
         // ------------------ Constructor ------------------
-        public AlertManager(string message, AlertType type = AlertType.Info, int duration = 3000)
+        public AlertManager(string message, string type = AlertType.Info, int duration = 3000)
         {
 
             // base form settings
@@ -113,7 +101,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         }
 
         // ------------------ Public static helpers ------------------
-        public static void ShowMessage(string msg, AlertType type, int duration = 3000)
+        public static void ShowMessage(string msg, string type, int duration = 3000)
         {
             var alert = new AlertManager(msg, type, duration);
             alert.ShowAlert();
@@ -125,14 +113,6 @@ namespace POSPRA_WinFormsUI.AlertClasses
         public static void ShowInfo(string msg, int duration = 3000) => ShowMessage(msg, AlertType.Info, duration);
         public static void ShowCritical(string msg, int duration = 3000) => ShowMessage(msg, AlertType.Critical, duration);
         public static void ShowUpdate(string msg, int duration = 3000) => ShowMessage(msg, AlertType.Update, duration);
-        public static void ShowCustom(string msg, Image icon, Color bg, Color fg, int duration = 3000)
-        {
-            var alert = new AlertManager(msg, AlertType.Custom, duration);
-            alert.iconBox.Image = icon;
-            alert.BackColor = bg;
-            alert.messageLabel.ForeColor = fg;
-            alert.ShowAlert();
-        }
 
         // ------------------ Lifecycle / animation ------------------
         private const int MaxVisibleAlerts = 3;
@@ -267,7 +247,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         }
 
         // ------------------ Style configuration ------------------
-        private void ConfigureStyle(AlertType type)
+        private void ConfigureStyle(string type)
         {
             // default safe values
             backColor = Color.White;
@@ -306,7 +286,6 @@ namespace POSPRA_WinFormsUI.AlertClasses
                     foreColor = Color.FromArgb(50, 0, 120);
                     iconImage = SystemIcons.Application.ToBitmap();
                     break;
-                case AlertType.Custom:
                 default:
                     backColor = Color.White;
                     foreColor = Color.Black;

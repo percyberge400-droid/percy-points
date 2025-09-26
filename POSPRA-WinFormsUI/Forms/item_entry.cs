@@ -1,9 +1,11 @@
 ﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Drawing.Drawing2D;
+using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI
 {
@@ -29,11 +31,14 @@ namespace POSPRA_WinFormsUI
         // Save operation flag to prevent multiple saves
         private bool _isSaving = false;
 
+        //logs
+        private readonly ILogService _logService;
+
         #endregion
 
         #region Constructor / Initialization
 
-        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory)
+        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
         {
             InitializeComponent();
 
@@ -63,6 +68,8 @@ namespace POSPRA_WinFormsUI
             SetupContextMenu();
             CaptureOriginalLayout();
             InitializeEmptyGrid();
+            _logService = logService;
+            _ = createlog();
         }
 
         #endregion
@@ -74,6 +81,15 @@ namespace POSPRA_WinFormsUI
             dataGridView1.Rows.Clear();
             // lblTotalItems.Text = "Total 0 items"; // Commented out - control doesn't exist
             ItemCode.Focus();
+        }
+        private async Task createlog()
+        {
+            Logs log = new()
+            {
+                Message = AlertMessages.Forminitialized,
+                Type = AlertType.Info
+            };
+            await _logService.LogAsync(log);
         }
 
         private void SetupContextMenu()
