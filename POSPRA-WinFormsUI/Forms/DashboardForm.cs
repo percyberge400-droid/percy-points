@@ -198,7 +198,7 @@ namespace POSPRA_WinFormsUI.Forms
                     row.Cells[InvoicesDataGridView.Columns["colInvoiceNumber"].Index].Value = inv.InvoiceNumber ?? "N/A";
                     row.Cells[InvoicesDataGridView.Columns["colIsSynced"].Index].Value = inv.IsSynced == 1 ? "Yes" : "No";
                     row.Cells[InvoicesDataGridView.Columns["colAttemptCount"].Index].Value = inv.AttemptCount;
-                    row.Cells[InvoicesDataGridView.Columns["colDateCreated"].Index].Value = inv.DateCreated.ToString("yyyy-MM-dd");
+                    row.Cells[InvoicesDataGridView.Columns["colDateCreated"].Index].Value = inv.DateCreated.ToString("dd-MM-yyyy HH:mm:ss");
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
 
                     rows.Add(row);

@@ -30,6 +30,8 @@ namespace POSPRA_WinFormsUI.Forms
 
             panInvoiceSelection.Visible = false;
             panExportInvoice.Visible = false;
+            panCatalogView.Visible = false;
+
 
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#686DF4"); // Highlight color
 
@@ -128,6 +130,8 @@ namespace POSPRA_WinFormsUI.Forms
         // -----------------------------
         // INTERNET STATUS CHECKER
         // -----------------------------
+        private bool _internetFirstAlertShown = false;
+
         private void StartInternetStatusChecker()
         {
             _internetCheckCts = new CancellationTokenSource();
@@ -153,12 +157,22 @@ namespace POSPRA_WinFormsUI.Forms
 
                         if (!online)
                         {
-                            ShowAlert("Internet connection lost!");
-                            await Task.Delay(5000, ct); // keep alerting every 3s
+                            if (!_internetFirstAlertShown)
+                            {
+                                WindowsLocalAppNotification.Show("Internet Alert", "Internet connection lost!");
+                                _internetFirstAlertShown = true;
+                            }
+                            else
+                            {
+                                ShowAlert("Internet connection lost!");
+                            }
+
+                            await Task.Delay(5000, ct);
                         }
                         else
                         {
-                            await Task.Delay(2000, ct); // normal interval when online
+                            _internetFirstAlertShown = false; // reset when online
+                            await Task.Delay(2000, ct);
                         }
                     }
                     catch (TaskCanceledException) { break; }
@@ -188,6 +202,8 @@ namespace POSPRA_WinFormsUI.Forms
         // -----------------------------
         // WORKER SERVICE STATUS CHECKER
         // -----------------------------
+        private bool _workerFirstAlertShown = false;
+
         private void StartWorkerServiceStatusChecker()
         {
             _workerServiceCts = new CancellationTokenSource();
@@ -213,13 +229,22 @@ namespace POSPRA_WinFormsUI.Forms
 
                         if (!isRunning)
                         {
-                            // uncomment this when alerts are required
-                            //ShowAlert("Worker service is inactive!");
-                            await Task.Delay(5000, ct); // keep alerting every 3s
+                            if (!_workerFirstAlertShown)
+                            {
+                                WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service is inactive!");
+                                _workerFirstAlertShown = true;
+                            }
+                            else
+                            {
+                                ShowAlert("Worker service is inactive!");
+                            }
+
+                            await Task.Delay(5000, ct);
                         }
                         else
                         {
-                            await Task.Delay(2000, ct); // normal interval when running
+                            _workerFirstAlertShown = false; // reset when back online
+                            await Task.Delay(2000, ct);
                         }
                     }
                     catch (TaskCanceledException) { break; }
@@ -284,10 +309,12 @@ namespace POSPRA_WinFormsUI.Forms
             btnDashboard.ForeColor = Color.Black;
             btnInvoiceSelection.ForeColor = Color.Black;
             btnExportInvoice.ForeColor = Color.Black;
+            btnCatalogView.ForeColor = Color.Black;
 
             panDashboard.Visible = false;
             panInvoiceSelection.Visible = false;
             panExportInvoice.Visible = false;
+            panCatalogView.Visible = false;
         }
 
         private void btnDashboard_Click(object sender, EventArgs e)
@@ -314,11 +341,14 @@ namespace POSPRA_WinFormsUI.Forms
             LoadView("Export Invoice");
         }
 
-        private void btnItemEntry_Click(object sender, EventArgs e)
+        private void btnCatalogView_Click(object sender, EventArgs e)
         {
             ResetNavStyles();
-            LoadView("Item Entry");
+            btnCatalogView.ForeColor = ColorTranslator.FromHtml("#686DF4");
+            panCatalogView.Visible = true;
+            LoadView("Catalog View");
         }
+
 
         public void LoadView(string v)
         {
@@ -330,7 +360,8 @@ namespace POSPRA_WinFormsUI.Forms
                 "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
                 "Invoice Entry" => _provider.GetRequiredService<item_entry>(),
                 "Export Invoice" => _provider.GetRequiredService<ExportInvoiceForm>(),
-                _ => null
+                "Catalog View" => _provider.GetRequiredService<CatalogView>(),
+                _ => throw new NotImplementedException()
             };
 
             if (childForm == null) return;

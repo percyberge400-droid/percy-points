@@ -1,5 +1,4 @@
-﻿using System.Drawing.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
@@ -9,6 +8,7 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
+using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
@@ -17,9 +17,11 @@ using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.LogRepository;
+using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
+using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
 {
@@ -68,6 +70,8 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
+            services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
+            services.AddScoped<IProductCatalogueRepository, ProductCatalogueRepository>();
             // services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
@@ -82,6 +86,7 @@ namespace POSPRA_WinFormsUI
             services.AddTransient<Main>();
             services.AddTransient<item_entry>();
             services.AddTransient<ExportInvoiceForm>();
+            services.AddTransient<CatalogView>();
 
             using var provider = services.BuildServiceProvider();
 
