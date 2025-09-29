@@ -33,7 +33,7 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
         public static async Task Main(string[] args)
         {
             var apiHost = BuildApiHost();
-            apiHost.Urls.Add("http://localhost:5000/");
+            apiHost.Urls.Add("http://localhost:5003/");
             await apiHost.StartAsync();
 
             // Wait here until shutdown is triggered (Ctrl+C, SIGTERM)
@@ -54,7 +54,7 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
                 .PartManager.ApplicationParts.Add(new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(FiscalController).Assembly));
             // Force Kestrel to bind to the URL externally
             // Change this line to:
-            builder.WebHost.UseUrls("http://0.0.0.0:5000");
+            builder.WebHost.UseUrls("http://0.0.0.0:5003");
             //----------------------------------------------------
             // 🔧 Database configuration
             //----------------------------------------------------

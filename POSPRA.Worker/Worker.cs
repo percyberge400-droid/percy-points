@@ -27,14 +27,14 @@ namespace POSPRA.Worker
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
         private readonly INetworkService _networkService;
         private readonly AppSettings _settings;
-        private readonly IFiscalService _fiscalService;
+        private readonly IServiceScopeFactory _scopeFactory;
         public Worker(IServiceProvider services,
             IMapper mapper,
             HttpService http,
             IOptions<AppSettings> opts,
             INetworkService networkService,
             IOptions<AppSettings> options,
-            IFiscalService fiscalService)
+            IServiceScopeFactory scopeFactory)
         {
             _services = services;
             _mapper = mapper;
@@ -42,7 +42,7 @@ namespace POSPRA.Worker
             _baseUrl = opts.Value.BaseUrl;
             _networkService = networkService;
             _settings = options.Value;
-            _fiscalService = fiscalService;
+            _scopeFactory = scopeFactory;
         }
 
         /// <summary>
@@ -99,7 +99,6 @@ namespace POSPRA.Worker
             }
         }
 
-
         /// <summary>
         /// Performs a single health check:  
         /// 1) Calls the GetAllUnsynced endpoint.  
@@ -110,31 +109,53 @@ namespace POSPRA.Worker
         {
             try
             {
-                var response = await _fiscalService.GetAllUnsyncedAsync();
+                // First scope for initial unsynced read
+                using var readScope = _scopeFactory.CreateScope();
+                var fiscalService = readScope.ServiceProvider.GetRequiredService<IFiscalService>();
+
+                var response = await fiscalService.GetAllUnsyncedAsync();
+
                 if (response.StatusCode == ApiStatusCode.Success)
                 {
                     using var post = await PostEncryptedDataAsync(id, response.Data, token);
-                    if (post is null || !post.IsSuccessStatusCode) return;
+                    if (post is null || !post.IsSuccessStatusCode)
+                        return;
 
-                    var postJson = await post.Content.ReadAsStringAsync();
+                    var postJson = await post.Content.ReadAsStringAsync(token);
                     var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
                     var files = apiResp?.Data ?? new();
 
                     if (files.Count > 0)
                     {
-                        using var scope = _services.CreateScope();
-                        var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
+                        // Second scope for updates
+                        using var updateScope = _scopeFactory.CreateScope();
+                        var fiscal = updateScope.ServiceProvider.GetRequiredService<IFiscalService>();
                         await fiscal.UpdateFileRecordsAsync(files, false);
                     }
                 }
-
-                await LogAsync(AlertType.Warning, $"Health check failed: {response.StatusCode}", id, "HealthCheckFailed", Convert.ToInt32(ApiStatusCode.Error));
-
-                return;
+                else
+                {
+                    // Only log a warning if the health check actually failed
+                    await LogAsync(
+                        AlertType.Warning,
+                        $"Health check failed: {response.StatusCode}",
+                        id,
+                        "HealthCheckFailed",
+                        Convert.ToInt32(ApiStatusCode.Error)
+                    );
+                }
             }
             catch (Exception ex)
             {
-                await LogAsync(AlertType.Exception, ex.Message, id, "LoopException", null, ex.StackTrace);
+                // Capture full exception details for easier troubleshooting
+                await LogAsync(
+                    AlertType.Exception,
+                    ex.Message,
+                    id,
+                    "LoopException",
+                    null,
+                    ex.ToString()
+                );
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Drawing.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
@@ -21,7 +22,6 @@ using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
-using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
 {
@@ -30,7 +30,7 @@ namespace POSPRA_WinFormsUI
         private static PrivateFontCollection privateFonts;
 
         [STAThread]
-        static async Task Main()   // ✅ now async so we can await Start/Stop
+        static void Main()   // no longer async, we removed API host start/stop
         {
             // Initialize SQLite database if needed
             DbInitializer.Initialize();
@@ -90,20 +90,13 @@ namespace POSPRA_WinFormsUI
 
             using var provider = services.BuildServiceProvider();
 
-            // ✅ Start the self-hosted Web API
-            var apiHost = POSPRA.API.Program.BuildApiHost();
-            await apiHost.StartAsync();
-
-            // ✅ Launch WinForms UI
+            // ✅ Launch WinForms UI (API is NOT started here)
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             var loginForm = provider.GetRequiredService<LoginForm>();
             Application.Run(loginForm);
-
-            // ✅ Stop the API when the WinForms app exits
-            await apiHost.StopAsync();
         }
     }
 }
