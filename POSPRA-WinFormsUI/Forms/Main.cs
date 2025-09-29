@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
