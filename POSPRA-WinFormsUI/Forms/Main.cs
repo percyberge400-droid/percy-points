@@ -135,8 +135,6 @@ namespace POSPRA_WinFormsUI.Forms
 
             _ = Task.Run(async () =>
             {
-                bool wasOnline = true;
-
                 while (!ct.IsCancellationRequested)
                 {
                     try
@@ -153,28 +151,21 @@ namespace POSPRA_WinFormsUI.Forms
                             }));
                         }
 
-                        // Only trigger alert if offline continuously for 2 seconds
-                        if (!online && wasOnline)
+                        if (!online)
                         {
-                            // Wait 2 seconds and check again
-                            await Task.Delay(3000, ct);
-                            bool stillOffline = !await CheckInternetConnectivityAsync();
-
-                            if (stillOffline)
-                                ShowAlert("Internet connection lost!");
+                            ShowAlert("Internet connection lost!");
+                            await Task.Delay(5000, ct); // keep alerting every 3s
                         }
-
-                        wasOnline = online;
-
-                        await Task.Delay(2000, ct); // normal polling interval
+                        else
+                        {
+                            await Task.Delay(2000, ct); // normal interval when online
+                        }
                     }
-                    catch (TaskCanceledException)
-                    {
-                        break;
-                    }
+                    catch (TaskCanceledException) { break; }
                 }
             }, ct);
         }
+
 
 
         private async Task<bool> CheckInternetConnectivityAsync()
@@ -204,8 +195,6 @@ namespace POSPRA_WinFormsUI.Forms
 
             _ = Task.Run(async () =>
             {
-                bool wasRunning = true;
-
                 while (!ct.IsCancellationRequested)
                 {
                     try
@@ -222,15 +211,22 @@ namespace POSPRA_WinFormsUI.Forms
                             }));
                         }
 
-                        if (!isRunning && wasRunning) ShowAlert("Worker service is inactive!");
-                        wasRunning = isRunning;
-
-                        await Task.Delay(2000, ct);
+                        if (!isRunning)
+                        {
+                            // uncomment this when alerts are required
+                            //ShowAlert("Worker service is inactive!");
+                            await Task.Delay(5000, ct); // keep alerting every 3s
+                        }
+                        else
+                        {
+                            await Task.Delay(2000, ct); // normal interval when running
+                        }
                     }
                     catch (TaskCanceledException) { break; }
                 }
             }, ct);
         }
+
 
         private Task<bool> IsWorkerServiceRunningAsync()
         {
@@ -263,7 +259,7 @@ namespace POSPRA_WinFormsUI.Forms
                 try
                 {
                     // Option 1: Windows toast notification (non-blocking)
-                    WindowsLocalAppNotification.Show(title, message);
+                    //WindowsLocalAppNotification.Show(title, message);
 
                     // Option 2: Custom alert manager (non-blocking)
                     AlertManager.ShowError(message);

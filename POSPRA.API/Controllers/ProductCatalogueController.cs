@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.ProductCatalogService;
+using POSPRA.DTOs.ProductCatalogDtos;
 
 namespace POSPRA.API.Controllers
 {
@@ -9,9 +10,9 @@ namespace POSPRA.API.Controllers
     {
         private readonly IProductCatalogueService _productCatalogueService = productCatalogueService;
 
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll() =>
-            Ok(await _productCatalogueService.GetAllAsync());
+        [HttpPost("GetAll")]
+        public async Task<IActionResult> GetAll(ProductCatalogueQueryDto dto) =>
+            Ok(await _productCatalogueService.GetAllAsync(dto));
 
     }
 }
