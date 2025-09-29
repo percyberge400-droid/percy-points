@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             panel1 = new Panel();
+            panCatalogView = new Panel();
+            btnCatalogView = new Button();
             lblWorkerService = new Label();
             lblNetworkStatus = new Label();
             rightMenuPanel = new Panel();
@@ -47,6 +49,8 @@
             // panel1
             // 
             panel1.BackColor = Color.White;
+            panel1.Controls.Add(panCatalogView);
+            panel1.Controls.Add(btnCatalogView);
             panel1.Controls.Add(lblWorkerService);
             panel1.Controls.Add(lblNetworkStatus);
             panel1.Controls.Add(rightMenuPanel);
@@ -63,6 +67,29 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(1507, 85);
             panel1.TabIndex = 4;
+            // 
+            // panCatalogView
+            // 
+            panCatalogView.BackColor = Color.FromArgb(104, 109, 244);
+            panCatalogView.Location = new Point(680, 79);
+            panCatalogView.Margin = new Padding(3, 4, 3, 4);
+            panCatalogView.Name = "panCatalogView";
+            panCatalogView.Size = new Size(137, 7);
+            panCatalogView.TabIndex = 6;
+            // 
+            // btnCatalogView
+            // 
+            btnCatalogView.FlatAppearance.BorderSize = 0;
+            btnCatalogView.FlatStyle = FlatStyle.Flat;
+            btnCatalogView.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
+            btnCatalogView.Location = new Point(680, 8);
+            btnCatalogView.Margin = new Padding(3, 4, 3, 4);
+            btnCatalogView.Name = "btnCatalogView";
+            btnCatalogView.Size = new Size(137, 67);
+            btnCatalogView.TabIndex = 5;
+            btnCatalogView.Text = "Catalog View";
+            btnCatalogView.UseVisualStyleBackColor = true;
+            btnCatalogView.Click += btnCatalogView_Click;
             // 
             // lblWorkerService
             // 
@@ -129,7 +156,7 @@
             btnDashboard.FlatAppearance.BorderSize = 0;
             btnDashboard.FlatStyle = FlatStyle.Flat;
             btnDashboard.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            btnDashboard.Location = new Point(262, 4);
+            btnDashboard.Location = new Point(262, 8);
             btnDashboard.Margin = new Padding(3, 4, 3, 4);
             btnDashboard.Name = "btnDashboard";
             btnDashboard.Size = new Size(110, 67);
@@ -144,7 +171,7 @@
             btnInvoiceSelection.FlatAppearance.BorderSize = 0;
             btnInvoiceSelection.FlatStyle = FlatStyle.Flat;
             btnInvoiceSelection.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            btnInvoiceSelection.Location = new Point(378, 4);
+            btnInvoiceSelection.Location = new Point(378, 8);
             btnInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             btnInvoiceSelection.Name = "btnInvoiceSelection";
             btnInvoiceSelection.Size = new Size(153, 67);
@@ -158,7 +185,7 @@
             btnExportInvoice.FlatAppearance.BorderSize = 0;
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Pixel);
-            btnExportInvoice.Location = new Point(537, 4);
+            btnExportInvoice.Location = new Point(537, 8);
             btnExportInvoice.Margin = new Padding(3, 4, 3, 4);
             btnExportInvoice.Name = "btnExportInvoice";
             btnExportInvoice.Size = new Size(137, 67);
@@ -214,5 +241,7 @@
         private Panel panInvoiceSelection;
         private Label lblNetworkStatus;
         private Label lblWorkerService;
+        private Panel panCatalogView;
+        private Button btnCatalogView;
     }
 }
