@@ -1,5 +1,6 @@
 ﻿using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.ProductCatalogService;
+using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -15,8 +16,10 @@ namespace POSPRA_WinFormsUI.Forms
             _fiscalService = fiscalService;
             _productCatalogueService = productCatalogueService;
             btnSave.Click += btnSave_Click;
-            loadProductCatalogue();
+
+            this.Load += async (s, e) => await loadProductCatalogue();
         }
+
 
         private void btnSave_Click(object sender, EventArgs e)
         {
@@ -26,7 +29,11 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var response = await _productCatalogueService.GetAllAsync();
+                var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
+                {
+                    numberOfRecords = 1000,
+                    pageNumber = 1
+                });
 
                 ProductCatalogueDataGridView.Rows.Clear();
 
@@ -50,6 +57,7 @@ namespace POSPRA_WinFormsUI.Forms
                         product.SroScheduleNumber,
                         product.ItemSerialNumber
                     );
+                    ProductCatalogueDataGridView.ResumeLayout(true);
                 }
             }
             catch (Exception ex)
