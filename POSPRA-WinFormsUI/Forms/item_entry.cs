@@ -1,9 +1,12 @@
 ﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Drawing.Drawing2D;
+using System.Runtime.Intrinsics.Arm;
+using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI
 {
@@ -29,11 +32,14 @@ namespace POSPRA_WinFormsUI
         // Save operation flag to prevent multiple saves
         private bool _isSaving = false;
 
+        //logs
+        private readonly ILogService _logService;
+
         #endregion
 
         #region Constructor / Initialization
 
-        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory)
+        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
         {
             InitializeComponent();
 
@@ -63,6 +69,9 @@ namespace POSPRA_WinFormsUI
             SetupContextMenu();
             CaptureOriginalLayout();
             InitializeEmptyGrid();
+            _logService = logService;
+            //_ = Createlog();
+            //_ = CreateLog("test", AlertType.Info);
         }
 
         #endregion
@@ -74,6 +83,17 @@ namespace POSPRA_WinFormsUI
             dataGridView1.Rows.Clear();
             // lblTotalItems.Text = "Total 0 items"; // Commented out - control doesn't exist
             ItemCode.Focus();
+        }
+        private async Task CreateLog(string message, string type)
+        {
+            var log = new Logs
+            {
+                Message = message,   // pass any message
+                Type = type,         // comes from AlertType constants
+                 
+            };
+
+            await _logService.LogAsync(log);
         }
 
         private void SetupContextMenu()
@@ -171,6 +191,7 @@ namespace POSPRA_WinFormsUI
                 if (!AreInvoiceFieldsValid())
                 {
                     var res = MessageBox.Show("Invoice header looks incomplete. Do you want to continue adding items anyway?", "Invoice Header", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    _ = CreateLog("Invoice header looks incomplete.", AlertType.Info);
                     if (res == DialogResult.No) return;
                 }
 
@@ -218,6 +239,7 @@ namespace POSPRA_WinFormsUI
 
                 //WindowsLocalAppNotification.Show("Success", $"Item '{inputData.ItemCode}' added/updated successfully.");
                 AlertManager.ShowSuccess($"Item '{inputData.ItemCode}' added/updated successfully.");
+                _ = CreateLog("Item added successfully", AlertType.Success);
                 ItemCode.Focus();
                 UpdateInvoiceTotals();
             }
@@ -237,7 +259,7 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
                 return;
             }
-
+            
             try
             {
                 _isSaving = true;
@@ -248,6 +270,7 @@ namespace POSPRA_WinFormsUI
                 {
                     WindowsLocalAppNotification.Show("Validation Error", "Please add at least one item before saving the invoice.");
                     AlertManager.ShowError("Please add at least one item before saving the invoice.");
+                    _ = CreateLog("Validation Error Item are Not added", AlertType.Error);
                     return;
                 }
 
@@ -255,6 +278,7 @@ namespace POSPRA_WinFormsUI
                 {
                     WindowsLocalAppNotification.Show("Validation Error", "Invoice header is incomplete. Please fill in the invoice header before saving.");
                     AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
+                    _ = CreateLog("Invoice header is incomplete", AlertType.Error);
                     return;
                 }
 
@@ -309,7 +333,7 @@ namespace POSPRA_WinFormsUI
 
                 //WindowsLocalAppNotification.Show("Information", "Saving invoice...");
                 AlertManager.ShowInfo("Saving invoice...");
-
+                _ = CreateLog("Saving  invoice", AlertType.Info);
                 var output = await _fiscalService.CreateAsync(invoiceDto);
 
                 if (output.StatusCode == ApiStatusCode.Success)
@@ -317,6 +341,7 @@ namespace POSPRA_WinFormsUI
                     //WindowsLocalAppNotification.Show("Success", output.Message);
                     AlertManager.ShowSuccess(output.Message);
 
+                    _ = CreateLog(output.Message, AlertType.Info);
                     // -----------------------------
                     // CLEAR ALL DTOs AND UI FIELDS ONLY AFTER SUCCESSFUL SAVE
                     // -----------------------------
@@ -331,12 +356,14 @@ namespace POSPRA_WinFormsUI
                 {
                     WindowsLocalAppNotification.Show("Error", output.Message);
                     AlertManager.ShowError(output.Message);
+                    _ = CreateLog(output.Message, AlertType.Error);
                 }
             }
             catch (Exception ex)
             {
                 WindowsLocalAppNotification.Show("Error", $"Error saving invoice: {ex.Message}");
                 AlertManager.ShowError($"Error saving invoice: {ex.Message}");
+                _ = CreateLog("Error saving invoice", AlertType.Error);
             }
             finally
             {

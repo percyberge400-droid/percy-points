@@ -17,7 +17,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;            
+using System.Windows.Forms;
+using POSPRA.Application.Services.LogService;
+using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -25,7 +27,10 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly ILiveService _liveService;
         //private ProgressBar progressBarExport;
-        public ExportInvoiceForm(ILiveService liveService)
+
+        //logs
+        private readonly ILogService _logService;
+        public ExportInvoiceForm(ILiveService liveService, ILogService logService)
         {
             InitializeComponent();
             _liveService = liveService ?? throw new ArgumentNullException(nameof(liveService));
@@ -47,9 +52,22 @@ namespace POSPRA_WinFormsUI.Forms
             progressBarExport.Location = new Point(20, 70);
             progressBarExport.Size = new Size(300, 20);
             progressBarExport.Visible = false; // hidden by default
+            _logService = logService;
             //this.Controls.Add(progressBarExport);
         }
 
+
+        private async Task CreateLog(string message, string type)
+        {
+            var log = new Logs
+            {
+                Message = message,   // pass any message
+                Type = type,         // comes from AlertType constants
+
+            };
+
+            await _logService.LogAsync(log);
+        }
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
 
@@ -145,7 +163,9 @@ namespace POSPRA_WinFormsUI.Forms
                 // ✅ Handle the response
                 if (response == null)
                 {
+                    _ = CreateLog("NO Response from service", AlertType.Error);
                     AlertManager.ShowWarning("⚠ No response from service!");
+
                     lblExportStatus.Text = "❌ No response from service!";
                     lblExportStatus.ForeColor = Color.Red;
                 }
@@ -155,6 +175,7 @@ namespace POSPRA_WinFormsUI.Forms
                     lblExportStatus.ForeColor = Color.Orange;
                     WindowsLocalAppNotification.Show("Invoices Not Found", " No invoices found for the selected date range.");
                     AlertManager.ShowInfo(" No invoices found for the selected date range.");
+                    _ = CreateLog("Invoices Not Found within Selected date range", AlertType.Info);
                 }
                 else
                 {
@@ -201,6 +222,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                                     workbook.SaveAs(path);
                                 }
+                                _ = CreateLog("Invoices exported successfully", AlertType.Success);
                                 WindowsLocalAppNotification.Show("Success.", "Invoices exported successfully");
                                 AlertManager.ShowSuccess($"Invoices exported successfully");
                                 lblExportStatus.Text = $"✅ Invoices exported successfully to:\n{path}";
@@ -217,6 +239,7 @@ namespace POSPRA_WinFormsUI.Forms
                         else
                         {
                             //WindowsLocalAppNotification.Show("Canceled.", "⚠ Invoices Export canceled by user");
+                            _ = CreateLog("Invoices exported canceled by User", AlertType.Info);
                             AlertManager.ShowError($"Invoices exported canceled by User");
                             lblExportStatus.Text = "⚠ Export canceled by user.";
                             lblExportStatus.ForeColor = Color.Orange;

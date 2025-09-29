@@ -1,8 +1,15 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.POSService;
+using POSPRA.Application.Utility;
+using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
+using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -10,7 +17,8 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly IFiscalService _fiscalService;
-
+        //logs
+        private readonly ILogService _logService;
         // -----------------------------
         // Checkers cancellation tokens
         // -----------------------------
@@ -20,7 +28,7 @@ namespace POSPRA_WinFormsUI.Forms
         // Track non-MDI forms separately
         private readonly List<Form> _independentForms = new List<Form>();
 
-        public Main(IServiceProvider provider, IFiscalService fiscalService)
+        public Main(IServiceProvider provider, IFiscalService fiscalService, ILogService logService)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
@@ -50,6 +58,8 @@ namespace POSPRA_WinFormsUI.Forms
             lblWorkerService.Text = "Worker Service: -";
             lblWorkerService.Font = new Font(lblWorkerService.Font, FontStyle.Italic);
             lblWorkerService.ForeColor = Color.Gray;
+
+            _logService = logService;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -128,6 +138,10 @@ namespace POSPRA_WinFormsUI.Forms
         // -----------------------------
         // INTERNET STATUS CHECKER
         // -----------------------------
+
+        private DateTime? offlineSince = null;
+        private bool? wasOnline = null;
+        private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private void StartInternetStatusChecker()
         {
             _internetCheckCts = new CancellationTokenSource();
@@ -135,7 +149,10 @@ namespace POSPRA_WinFormsUI.Forms
 
             _ = Task.Run(async () =>
             {
-                bool wasOnline = true;
+                //bool wasOnline = true;
+                //bool wasOnline = false;
+                //DateTime? offlineSince = null;
+                
 
                 while (!ct.IsCancellationRequested)
                 {
@@ -154,15 +171,64 @@ namespace POSPRA_WinFormsUI.Forms
                         }
 
                         // Only trigger alert if offline continuously for 2 seconds
-                        if (!online && wasOnline)
-                        {
-                            // Wait 2 seconds and check again
-                            await Task.Delay(3000, ct);
-                            bool stillOffline = !await CheckInternetConnectivityAsync();
+                        //if (!online && wasOnline)
+                        //{
+                        //    // Wait 2 seconds and check again
+                        //    await Task.Delay(3000, ct);
+                        //    bool stillOffline = !await CheckInternetConnectivityAsync();
 
-                            if (stillOffline)
-                                ShowAlert("Internet connection lost!");
+                        //    if (stillOffline)
+                        //        ShowAlert("Internet connection lost!");
+
+                        //    if (!stillOffline)
+                        //        ShowAlert("Internet connection restore!");
+                        //}
+
+                        // State changed
+                        if (wasOnline != null && wasOnline != online)
+                        {
+                            if (!online)
+                            {
+                                // Connection just went offline
+                                offlineSince = DateTime.Now;
+
+                                ShowAlert("Internet connection lost!", "Error", true);
+                                _ = CreateLog("Internet connection lost", AlertType.Error);
+                                lastOfflineAlertTime = DateTime.Now; // reset timer
+                            }
+                            else
+                            {
+                                // Connection just restored
+                                string downtimeMsg = "";
+                                if (offlineSince.HasValue)
+                                {
+                                    TimeSpan downTime = DateTime.Now - offlineSince.Value;
+                                    downtimeMsg = $" (Downtime: {downTime.TotalSeconds:F0} seconds)";
+                                }
+
+                                ShowAlert("Internet connection restored!", "Success",true);
+                                _ = CreateLog("Internet connection restored" + downtimeMsg, AlertType.Success);
+
+                                offlineSince = null;
+                            }
                         }
+                        else if (!online) // still offline
+                        {
+                            // Show repeated alerts every 3 seconds (no log)
+                            if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 3)
+                            {
+                                string msg = "Internet connection still offline";
+                                if (offlineSince.HasValue)
+                                {
+                                    TimeSpan downTime = DateTime.Now - offlineSince.Value;
+                                    msg += $" ({downTime.TotalSeconds:F0} seconds)";
+                                }
+
+                                ShowAlert("Internet connection lost!", "Error",false);
+                                lastOfflineAlertTime = DateTime.Now;
+                            }
+                        }
+
 
                         wasOnline = online;
 
@@ -205,6 +271,8 @@ namespace POSPRA_WinFormsUI.Forms
             _ = Task.Run(async () =>
             {
                 bool wasRunning = true;
+                DateTime? lastOfflineAlertTime = null;
+
 
                 while (!ct.IsCancellationRequested)
                 {
@@ -221,8 +289,31 @@ namespace POSPRA_WinFormsUI.Forms
                                 lblWorkerService.ForeColor = isRunning ? Color.Green : Color.Red;
                             }));
                         }
+                        
+                        if (!isRunning && wasRunning)
+                        {
+                            ShowAlert("Worker service is inactive!", "Error", true);
+                            _ = CreateLog("Worker service stopped", AlertType.Error);
+                            lastOfflineAlertTime = DateTime.Now;
+                            
+                        }
+                        if (isRunning && !wasRunning)
+                        {
+                            ShowAlert("Worker service restored!", "Success", true);
+                            _ = CreateLog("Worker service restored", AlertType.Success);
+                            lastOfflineAlertTime = null; // clear when service restores
+                        }
 
-                        if (!isRunning && wasRunning) ShowAlert("Worker service is inactive!");
+                        // While service stays offline. show alerts every 4 seconds
+                        if (!isRunning)
+                        {
+                            if (lastOfflineAlertTime == null ||
+                                (DateTime.Now - lastOfflineAlertTime.Value).TotalSeconds >= 4)
+                            {
+                                ShowAlert("Worker service is still inactive!", "Error", false);
+                                lastOfflineAlertTime = DateTime.Now;
+                            }
+                        }
                         wasRunning = isRunning;
 
                         await Task.Delay(2000, ct);
@@ -251,10 +342,24 @@ namespace POSPRA_WinFormsUI.Forms
             _workerServiceCts?.Dispose();
         }
 
+
+        //LOGS METHOD
+        private async Task CreateLog(string message, string type)
+        {
+            var log = new Logs
+            {
+                Message = message,   // pass any message
+                Type = type,         // comes from AlertType constants
+
+            };
+
+            await _logService.LogAsync(log);
+        }
+
         // -----------------------------
         // ALERT METHOD
         // -----------------------------
-        private void ShowAlert(string message, string title = "Alert")
+        private void ShowAlert(string message, string alertType, bool isShowWindowsNotification, string title = "Alert")
         {
             if (!this.IsHandleCreated) return;
 
@@ -263,10 +368,18 @@ namespace POSPRA_WinFormsUI.Forms
                 try
                 {
                     // Option 1: Windows toast notification (non-blocking)
-                    WindowsLocalAppNotification.Show(title, message);
+                    if (isShowWindowsNotification)
+                    {
+                        WindowsLocalAppNotification.Show(title, message);
+                    }
 
                     // Option 2: Custom alert manager (non-blocking)
-                    AlertManager.ShowError(message);
+                    if (alertType == nameof(AlertType.Error))
+                        AlertManager.ShowError(message);
+
+                    // Option 2: Custom alert manager (non-blocking)
+                    if (alertType == nameof(AlertType.Success))
+                        AlertManager.ShowSuccess(message);
 
                     // Option 3: Fallback MessageBox (blocking, optional)
                     // MessageBox.Show(this, message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
