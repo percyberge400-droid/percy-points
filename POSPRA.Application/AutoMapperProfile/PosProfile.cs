@@ -3,6 +3,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.DTOs.LogDtos;
+using POSPRA.DTOs.ProductCatalogDtos;
 
 namespace POSPRA.Application.AutoMapperProfile
 {
@@ -18,6 +19,9 @@ namespace POSPRA.Application.AutoMapperProfile
 
             CreateMap<WorkerLogDto, Logs>();
             CreateMap<Logs, WorkerLogDto>();
+
+            CreateMap<ProductCatalogueDto, ProductCatalogue>();
+            CreateMap<ProductCatalogue, ProductCatalogueDto>();
 
             // DTO ➜ Entity
             // Parent mapping

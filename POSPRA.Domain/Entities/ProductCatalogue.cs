@@ -8,40 +8,40 @@ namespace POSPRA.Domain.Entities
         [Key]
         [Required]
         [MaxLength(100)]
-        [Column("Product Code")]
-        public string? ProductCode { get; set; }
+        [Column("ProductCode")]
+        public long? ProductCode { get; set; }
 
         [Required]
         [MaxLength(255)]
-        [Column("Product Description")]
+        [Column("ProductDescription")]
         public string? ProductDescription { get; set; }
 
         [Required]
         [MaxLength(50)]
-        [Column("HS Code")]
+        [Column("HSCode")]
         public string? HSCode { get; set; }
 
         [Required]
         [MaxLength(100)]
-        [Column("Sale Type")]
+        [Column("SaleType")]
         public string? SaleType { get; set; }
 
         [Required]
         [MaxLength(50)]
-        [Column("POS Unit of measurement")]
+        [Column("POSUnitOfMeasurement")]
         public string? PosUnitOfMeasurement { get; set; }
 
         [Required]
         [MaxLength(50)]
-        [Column("Tax Rate (%)")]
+        [Column("TaxRate(%)")]
         public string? TaxRate { get; set; }
 
         [MaxLength(100)]
-        [Column("SRO / Schedule NO")]
+        [Column("SRO/ScheduleNO")]
         public string? SroScheduleNumber { get; set; }
 
         [MaxLength(50)]
-        [Column("Item Sr No")]
+        [Column("ItemSrNo")]
         public string? ItemSerialNumber { get; set; }
     }
 }
