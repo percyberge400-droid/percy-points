@@ -5,6 +5,6 @@ namespace POSPRA.Application.Services.ProductCatalogService
 {
     public interface IProductCatalogueService
     {
-        Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync();
+        Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(ProductCatalogueQueryDto dto);
     }
 }

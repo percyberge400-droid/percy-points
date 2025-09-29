@@ -1,36 +1,60 @@
 ﻿using AutoMapper;
-using POSPRA.Application.Services.LogService;
+using Microsoft.EntityFrameworkCore;
 using POSPRA.Application.Utility;
+using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.ProductCatalogDtos;
+using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 
 namespace POSPRA.Application.Services.ProductCatalogService
 {
     public class ProductCatalogueService : IProductCatalogueService
     {
-        private readonly ILogService _logService;
-        private readonly IProductCatalogueRepository _productCatalogueRepository;
+        private readonly SqlServerRepository<ProductCatalogue> _productCatalogueRepository;
         private readonly IMapper _mapper;
 
-        public ProductCatalogueService(ILogService logService,
-            IProductCatalogueRepository productCatalogueRepository,
-            IMapper mapper)
+        public ProductCatalogueService(IProductCatalogueRepository productCatalogueRepository, IMapper mapper,
+            SqlServerRepository<ProductCatalogue> sqlServerRepository)
         {
-            _logService = logService ?? throw new ArgumentNullException(nameof(logService));
-            _productCatalogueRepository = productCatalogueRepository ?? throw new ArgumentNullException(nameof(productCatalogueRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _productCatalogueRepository = sqlServerRepository;
         }
 
-        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync()
+        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(ProductCatalogueQueryDto dto)
         {
-            var output = await _productCatalogueRepository.GetAllAsync();
-            var productCatalogueDTO = _mapper.Map<List<ProductCatalogueDto>>(output);
+            try
+            {
+                IQueryable<ProductCatalogue> query = _productCatalogueRepository.Query();
 
-            if (productCatalogueDTO.Any())
-                return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, productCatalogueDTO, string.Empty);
+                // Only filter HSCode if given
+                if (!string.IsNullOrEmpty(dto.HSCode) && dto.HSCode is not null)
+                    query = query.Where(i => i.HSCode!.Contains(dto.HSCode));
 
-            return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
+                // Only filter Product Description if given
+                if (!string.IsNullOrEmpty(dto.ProductDescription) && dto.ProductDescription is not null)
+                    query = query.Where(i => i.ProductDescription!.Contains(dto.ProductDescription));
+
+                // Always order before pagination
+                query = query.OrderBy(i => i.ProductCode);
+
+                // Apply pagination
+                int skip = (dto.pageNumber - 1) * dto.numberOfRecords;
+                query = query.Skip(skip).Take(dto.numberOfRecords);
+
+                var output = await query.ToListAsync();
+
+                var productCatalogueDTO = _mapper.Map<List<ProductCatalogueDto>>(output);
+
+                if (productCatalogueDTO.Any())
+                    return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, productCatalogueDTO, string.Empty);
+
+                return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }
