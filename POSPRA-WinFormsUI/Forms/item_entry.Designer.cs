@@ -172,9 +172,9 @@
             TaxRatelbl.ForeColor = Color.FromArgb(75, 85, 99);
             TaxRatelbl.Location = new Point(679, 19);
             TaxRatelbl.Name = "TaxRatelbl";
-            TaxRatelbl.Size = new Size(93, 20);
+            TaxRatelbl.Size = new Size(102, 20);
             TaxRatelbl.TabIndex = 19;
-            TaxRatelbl.Text = "Tax Rate";
+            TaxRatelbl.Text = "Tax Rate (%)";
             // 
             // salevalue
             // 
@@ -214,7 +214,7 @@
             itemDiscount.PlaceholderText = "Discount";
             itemDiscount.Size = new Size(192, 24);
             itemDiscount.TabIndex = 23;
-            itemDiscount.Text = "50";
+            itemDiscount.Text = "5";
             // 
             // itemDiscountlbl
             // 

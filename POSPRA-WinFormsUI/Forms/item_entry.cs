@@ -58,6 +58,7 @@ namespace POSPRA_WinFormsUI
 
             buyercnic.KeyPress += NumericOnlyWithLength_KeyPress;
             buyerntn.KeyPress += NumericOnlyWithLength_KeyPress;
+            BuyerBname.KeyPress += NumericOnlyWithLength_KeyPress;
             buyerphone.KeyPress += NumericOnlyWithLength_KeyPress;
 
             // invoice item fields
@@ -83,55 +84,85 @@ namespace POSPRA_WinFormsUI
         #region NumericOnly_KeyPress
         private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
         {
-            TextBox tb = sender as TextBox;
+            if (sender is not TextBox tb) return;
 
-            // Allow only digits & control keys
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            switch (tb.Name)
             {
-                e.Handled = true;
-                return;
-            }
+                case "buyerntn":
+                    // Alphanumeric only
+                    if (!char.IsControl(e.KeyChar) && !char.IsLetterOrDigit(e.KeyChar))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 7)
+                        e.Handled = true;
+                    break;
 
-            // Enforce per-field max length
-            if (!char.IsControl(e.KeyChar))
-            {
-                switch (tb.Name)
-                {
-                    case "refUSIN":
-                        if (tb.Text.Length >= 7) e.Handled = true;
-                        break;
+                case "buyercnic":
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
+                        e.Handled = true;
+                    break;
 
-                    case "buyercnic":
-                        if (tb.Text.Length >= 13) e.Handled = true;
-                        break;
+                case "BuyerBname":
+                    if (tb.Text.Length >= 350)
+                        e.Handled = true;
+                    break;
 
-                    case "buyerphone":
-                        if (tb.Text.Length >= 13) e.Handled = true; // 13 max
-                        break;
+                case "buyerphone":
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
+                        e.Handled = true;
+                    break;
 
-                    case "itemcode":
-                        if (tb.Text.Length >= 8) e.Handled = true; // example: 8 digits max
-                        break;
+                case "itemcode":
+                    // Allow any character, only length restriction
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 35)
+                        e.Handled = true;
+                    break;
 
-                    case "pctcode":
-                        if (tb.Text.Length >= 8) e.Handled = true;
-                        break;
+                case "pctcode":
+                    // Allow any character, only length restriction
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 35)
+                        e.Handled = true;
+                    break;
 
-                    case "quantity":
-                        if (tb.Text.Length >= 5) e.Handled = true; // example: 5-digit limit
-                        break;
+                case "quantity":
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 5)
+                        e.Handled = true;
+                    break;
 
-                    case "totalamount":
-                    case "salevalue":
-                    case "taxrate":
-                    case "discount":
-                    case "furthertax":
-                    case "taxcharged":
-                        if (tb.Text.Length >= 10) e.Handled = true; // example: 10-digit numeric
-                        break;
-                }
+                case "totalamount":
+                case "salevalue":
+                case "taxrate":
+                case "discount":
+                case "furthertax":
+                case "taxcharged":
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 10)
+                        e.Handled = true;
+                    break;
             }
         }
+
 
         #endregion
 
@@ -643,26 +674,27 @@ namespace POSPRA_WinFormsUI
             decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
             decimal saleVal = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
             decimal taxRate = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m; // percent
-            decimal discountPercent = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m; // percent
+            decimal discount = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m; // flat amount
             decimal furtherTax = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
             // Subtotal (without tax)
             decimal subtotal = quantity * saleVal;
 
-            // Tax before discount
-            decimal taxAmount = subtotal * (taxRate / 100m);
+            // Apply flat discount on subtotal
+            decimal subtotalAfterDiscount = subtotal - discount;
+            if (subtotalAfterDiscount < 0) subtotalAfterDiscount = 0;
 
-            // Apply discount on tax
-            decimal taxDiscount = taxAmount * (discountPercent / 100m);
-            decimal taxAfterDiscount = taxAmount - taxDiscount;
+            // Tax on discounted subtotal
+            decimal taxAmount = subtotalAfterDiscount * (taxRate / 100m);
 
             // Final total
-            decimal total = subtotal + taxAfterDiscount + furtherTax;
+            decimal total = subtotalAfterDiscount + taxAmount + furtherTax;
 
             // Update UI
             totalamount.Text = Math.Round(total, 2).ToString("0.00");
-            TaxCharged.Text = Math.Round(taxAfterDiscount, 2).ToString("0.00");
+            TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
         }
+
 
 
         private void CalculateItemTotals(object sender, EventArgs e)
@@ -691,17 +723,24 @@ namespace POSPRA_WinFormsUI
                 return;
             }
 
-            decimal totalQty = addedItems.Sum(i => i.Quantity ?? 0m);
-            decimal totalSaleVal = addedItems.Sum(i => (i.Quantity ?? 0m) * (i.SaleValue ?? 0m));
-            decimal totalDiscount = addedItems.Sum(i =>
-            {
-                var subtotal = (i.Quantity ?? 0m) * (i.SaleValue ?? 0m);
-                return subtotal * ((i.Discount ?? 0m) / 100m);
-            });
-            decimal totalTaxCharged = addedItems.Sum(i => i.TaxCharged ?? 0m);
-            decimal totalFurtherTax = addedItems.Sum(i => i.FurtherTax ?? 0m);
-            decimal totalBillAmt = addedItems.Sum(i => i.TotalAmount ?? 0m);
+            decimal totalQty = addedItems.Sum(i => Convert.ToDecimal(i.Quantity ?? 0));
+            decimal totalSaleVal = addedItems.Sum(i =>
+                Convert.ToDecimal(i.Quantity ?? 0) * Convert.ToDecimal(i.SaleValue ?? 0));
 
+            decimal totalDiscount = addedItems.Sum(i =>
+                Convert.ToDecimal(i.Discount ?? 0)); // flat amount
+
+            decimal totalTaxCharged = addedItems.Sum(i =>
+                Convert.ToDecimal(i.TaxCharged ?? 0));
+
+            decimal totalFurtherTax = addedItems.Sum(i =>
+                Convert.ToDecimal(i.FurtherTax ?? 0));
+
+            // Final bill calculation: (gross – discount) + tax + further tax
+            decimal totalBillAmt = (totalSaleVal - totalDiscount) + totalTaxCharged + totalFurtherTax;
+            if (totalBillAmt < 0) totalBillAmt = 0; // safeguard
+
+            // Update UI
             TotalQuantity.Text = totalQty.ToString("0.00");
             TotalSaleValue.Text = totalSaleVal.ToString("0.00");
             TotalTaxCharged.Text = totalTaxCharged.ToString("0.00");
@@ -709,6 +748,7 @@ namespace POSPRA_WinFormsUI
             TotalFurtherTax.Text = totalFurtherTax.ToString("0.00");
             TotalBillAmount.Text = totalBillAmt.ToString("0.00");
         }
+
 
         #endregion
 
@@ -825,7 +865,7 @@ namespace POSPRA_WinFormsUI
                 this.BeginInvoke(new Action(() => buyerntn.Focus()));
                 return false;
             }
-            else if (!buyerntn.Text.All(char.IsDigit) || buyerntn.Text.Length != 7)
+            else if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length != 7)
             {
                 MessageBox.Show("Buyer NTN must be exactly 7 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.BeginInvoke(new Action(() => buyerntn.Focus()));
