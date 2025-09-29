@@ -27,12 +27,14 @@ namespace POSPRA.Worker
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
         private readonly INetworkService _networkService;
         private readonly AppSettings _settings;
+        private readonly IFiscalService _fiscalService;
         public Worker(IServiceProvider services,
             IMapper mapper,
             HttpService http,
             IOptions<AppSettings> opts,
             INetworkService networkService,
-            IOptions<AppSettings> options)
+            IOptions<AppSettings> options,
+            IFiscalService fiscalService)
         {
             _services = services;
             _mapper = mapper;
@@ -40,6 +42,7 @@ namespace POSPRA.Worker
             _baseUrl = opts.Value.BaseUrl;
             _networkService = networkService;
             _settings = options.Value;
+            _fiscalService = fiscalService;
         }
 
         /// <summary>
@@ -107,18 +110,10 @@ namespace POSPRA.Worker
         {
             try
             {
-                var resp = await _http.GetAsync($"{_baseUrl}{Endpoints.GetAllUnsyncedAsync}", token);
-                if (!resp.IsSuccessStatusCode)
+                var response = await _fiscalService.GetAllUnsyncedAsync();
+                if (response.StatusCode == ApiStatusCode.Success)
                 {
-                    await LogAsync(AlertType.Warning, $"Health check failed: {resp.StatusCode}", id, "HealthCheckFailed", (int)resp.StatusCode);
-                    return;
-                }
-
-                var raw = await resp.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<object>>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (result!.StatusCode == ApiStatusCode.Success)
-                {
-                    using var post = await PostEncryptedDataAsync(id, raw, token);
+                    using var post = await PostEncryptedDataAsync(id, response.Data, token);
                     if (post is null || !post.IsSuccessStatusCode) return;
 
                     var postJson = await post.Content.ReadAsStringAsync();
@@ -132,6 +127,10 @@ namespace POSPRA.Worker
                         await fiscal.UpdateFileRecordsAsync(files, false);
                     }
                 }
+
+                await LogAsync(AlertType.Warning, $"Health check failed: {response.StatusCode}", id, "HealthCheckFailed", Convert.ToInt32(ApiStatusCode.Error));
+
+                return;
             }
             catch (Exception ex)
             {
@@ -144,18 +143,17 @@ namespace POSPRA.Worker
         /// Returns the HTTP response so the caller can inspect status and content.
         /// Logs warnings or exceptions when the operation fails.
         /// </summary>
-        private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, string rawJson, CancellationToken token)
+        private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, List<FileRecordDto> fileRecordDtos, CancellationToken token)
         {
             try
             {
-                var envelope = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(rawJson, JsonOpts);
-                if (envelope?.Data is null || envelope.Data.Count == 0)
+                if (fileRecordDtos.Count == 0)
                 {
                     await LogAsync(AlertType.Warning, "No records in JSON.", id, "NoData");
                     return null;
                 }
 
-                var jsonBody = JsonSerializer.Serialize(envelope.Data);
+                var jsonBody = JsonSerializer.Serialize(fileRecordDtos);
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
                 var url = $"{_baseUrl}{Endpoints.DecryptSave.TrimStart('/')}";
 
