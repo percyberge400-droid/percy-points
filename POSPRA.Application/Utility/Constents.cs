@@ -81,4 +81,23 @@
         Synced = 1,
         Faulty = 2
     }
+
+    public static class RequestValidationDefaults
+    {
+        // AppSettings
+        public const string ConfigSection = "ValidationMiddleware";
+
+        // Header names
+        public const string HeaderAuthorization = "Authorization";
+        public const string HeaderMacAddress = "MAC-ADDRESS";
+        public const string HeaderPosId = "POS-ID";
+        public const string ApplicationType = "application/json";
+
+        // Text tokens
+        public const string BearerPrefix = "Bearer ";
+
+        // Error messages
+        public const string MissingHeadersMessage =
+            "Missing token, POSID or MAC address.";
+    }
 }

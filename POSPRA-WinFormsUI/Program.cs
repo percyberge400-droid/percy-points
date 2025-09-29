@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Drawing.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
@@ -19,9 +20,6 @@ using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
-using System.Drawing.Text;
-
-// ✅ IMPORTANT: Add a reference to the Web API project (right-click WinForms project → Add → Project Reference…)
 
 namespace POSPRA_WinFormsUI
 {
@@ -30,10 +28,8 @@ namespace POSPRA_WinFormsUI
         private static PrivateFontCollection privateFonts;
 
         [STAThread]
-        static void Main()
+        static async Task Main()   // ✅ now async so we can await Start/Stop
         {
-
-
             // Initialize SQLite database if needed
             DbInitializer.Initialize();
 
@@ -43,7 +39,7 @@ namespace POSPRA_WinFormsUI
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            // Build DI container
+            // Build DI container for WinForms
             var services = new ServiceCollection();
 
             // Database contexts
@@ -72,7 +68,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
-            //services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+            // services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddSingleton<IConfiguration>(configuration);
@@ -89,6 +85,10 @@ namespace POSPRA_WinFormsUI
 
             using var provider = services.BuildServiceProvider();
 
+            // ✅ Start the self-hosted Web API
+            var apiHost = POSPRA.API.Program.BuildApiHost();
+            await apiHost.StartAsync();
+
             // ✅ Launch WinForms UI
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
@@ -96,6 +96,9 @@ namespace POSPRA_WinFormsUI
 
             var loginForm = provider.GetRequiredService<LoginForm>();
             Application.Run(loginForm);
+
+            // ✅ Stop the API when the WinForms app exits
+            await apiHost.StopAsync();
         }
     }
 }

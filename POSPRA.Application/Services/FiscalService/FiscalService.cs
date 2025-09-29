@@ -117,10 +117,10 @@ namespace POSPRA.Application.Services.FiscalService
                     _logService.BuildLog(message, AlertType.Exception, "Invoice", nameof(CreateAsync)));
 
             ApiResponse<InvoiceDto> SuccessResponse() =>
-                new(ApiStatusCode.Success.ToString(), ResponseMessages.RecordSaved, null, string.Empty);
+                new(ApiStatusCode.Success, ResponseMessages.RecordSaved, null, string.Empty);
 
             ApiResponse<InvoiceDto> ErrorResponse(string msg, string err = "") =>
-                new(ApiStatusCode.Error.ToString(), msg, null, err);
+                new(ApiStatusCode.Error, msg, null, err);
         }
 
         /// <summary>
@@ -205,7 +205,7 @@ namespace POSPRA.Application.Services.FiscalService
             var output = await _fileRecordRepository.GetAllAsync();
             var fileRecrodDTO = _mapper.Map<List<FileRecordDto>>(output);
 
-            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecrodDTO, string.Empty);
+            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, fileRecrodDTO, string.Empty);
         }
 
         /// <summary>
@@ -235,9 +235,9 @@ namespace POSPRA.Application.Services.FiscalService
             // Map to DTOs
             var fileRecordDtos = _mapper.Map<List<FileRecordDto>>(unsynced);
             if (fileRecordDtos.Any())
-                return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success.ToString(), ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
+                return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
 
-            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.NotFound.ToString(), ResponseMessages.DataNotFound, null, string.Empty);
+            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
         }
 
         /// <summary>

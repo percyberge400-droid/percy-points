@@ -1,24 +1,24 @@
 ﻿using Hangfire;
 using Hangfire.MemoryStorage;
 using Microsoft.EntityFrameworkCore;
+using POSPRA.API.Middlewares;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
-using POSPRA.Application.Services.PosService;
-using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
+using POSPRA.Repositories.ClientRepository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.LogRepository;
-using POSPRA.Repositories.PosRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
@@ -78,25 +78,30 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             builder.Services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
             builder.Services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
 
+            //----------------------------------------------------
+            // 🔧 Repositories
+            //----------------------------------------------------
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped(typeof(SqlServerRepository<>));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
             builder.Services.AddScoped<ILogRepository, LogRepository>();
-            builder.Services.AddScoped<IPosClientRepository, PosClientRepository>();
+            builder.Services.AddScoped<IClientRepository, ClientRepository>();
             builder.Services.AddScoped<IProductCatalogueRepository, ProductCatalogueRepository>();
 
-            // Application services
+            //----------------------------------------------------
+            // 🔧 Application Services
+            //----------------------------------------------------
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IFiscalService, FiscalService>();
             builder.Services.AddScoped<ILogService, LogService>();
-            builder.Services.AddScoped<IPosService, PosService>();
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             builder.Services.AddScoped<ILiveService, LiveService>();
             builder.Services.AddScoped<INetworkService, NetworkService>();
             builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             builder.Services.AddScoped<INetworkService, NetworkService>();
+            builder.Services.AddScoped<IClientService, ClientService>();
 
             // Http client
             builder.Services.AddHttpClient<HttpService>();
@@ -144,8 +149,13 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
-            // ✅ Now this works because services were registered above
-            app.UseHangfireDashboard();
+
+            // ✅ Read the flag
+            bool isValidationEnabled = builder.Configuration.GetValue<bool>("Validation:Enabled");
+            // ✅ Only add middleware if the flag is true
+            if (isValidationEnabled)
+                app.UseMiddleware<ValidationMiddleware>();
+
             app.MapControllers();
             app.MapHealthChecks("/health");
 
