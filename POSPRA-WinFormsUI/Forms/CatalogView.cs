@@ -1,5 +1,8 @@
 ﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.ProductCatalogService;
+using POSPRA.Application.Utility;
+using POSPRA.Domain.Entities;
 using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 
@@ -7,6 +10,7 @@ namespace POSPRA_WinFormsUI.Forms
 {
     public partial class CatalogView : Form
     {
+        private readonly ILogService _logService;
         private readonly IFiscalService _fiscalService;
         private readonly IProductCatalogueService _productCatalogueService;
         private int _currentPage = 1;
@@ -18,12 +22,16 @@ namespace POSPRA_WinFormsUI.Forms
         // How many records to fetch client-side when user is searching.
         // Increase if you expect larger catalog and have API rate/size to allow it.
         private const int SEARCH_FETCH_LIMIT = 2000;
+        // Flag to avoid multiple save button clicks
+        private bool _isSaving = false;
 
-        public CatalogView(IFiscalService fiscalService, IProductCatalogueService productCatalogueService)
+
+        public CatalogView(IFiscalService fiscalService, IProductCatalogueService productCatalogueService, ILogService logService)
         {
             InitializeComponent();
             _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _productCatalogueService = productCatalogueService ?? throw new ArgumentNullException(nameof(productCatalogueService));
+            _logService = logService;
 
             // Enable clipboard copy functionality
             ProductCatalogueDataGridView.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText;
@@ -52,9 +60,127 @@ namespace POSPRA_WinFormsUI.Forms
             btnPrev.Click += async (s, e) => await PrevPage();
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private async void btnSave_Click(object sender, EventArgs e)
         {
-            // your save logic here
+            // Prevent multiple simultaneous saves
+            if (_isSaving)
+            {
+                WindowsLocalAppNotification.Show("Information", "Save operation is already in progress. Please wait...");
+                AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
+                return;
+            }
+
+            try
+            {
+                _isSaving = true;
+                btnSave.Enabled = false;
+                btnSave.Text = "Saving...";
+
+                if (ProductCatalogueDataGridView.Rows.Count == 0)
+                {
+                    WindowsLocalAppNotification.Show("Validation Error", "Product Catalogue is empty!");
+                    AlertManager.ShowError("Product Catalogue is empty!");
+                    _ = CreateLog("Validation Error: Product Catalogue is empty", AlertType.Error);
+                    return;
+                }
+
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to save all catalogue items?",
+                    "Confirm Save",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (confirm != DialogResult.Yes) return;
+
+                // -----------------------------
+                // Collect all rows from DataGridView into DTOs
+                // -----------------------------
+                var itemsToSave = new List<ProductCatalogueDto>();
+                foreach (DataGridViewRow row in ProductCatalogueDataGridView.Rows)
+                {
+                    if (row.IsNewRow) continue; // Skip empty row at end
+
+                    var dto = new ProductCatalogueDto
+                    {
+                        ProductCode = int.TryParse(row.Cells[0].Value?.ToString(), out var code) ? code : null,
+                        ProductDescription = row.Cells[1].Value?.ToString(),
+                        HSCode = row.Cells[2].Value?.ToString(),
+                        SaleType = row.Cells[3].Value?.ToString(),
+                        PosUnitOfMeasurement = row.Cells[4].Value?.ToString(),
+                        TaxRate = row.Cells[5].Value?.ToString(),
+                        SroScheduleNumber = row.Cells[6].Value?.ToString(),
+                        ItemSerialNumber = row.Cells[7].Value?.ToString()
+                    };
+
+                    itemsToSave.Add(dto);
+                }
+
+                if (!itemsToSave.Any())
+                {
+                    WindowsLocalAppNotification.Show("Validation Error", "No valid items found in catalogue.");
+                    AlertManager.ShowError("No valid items found in catalogue.");
+                    _ = CreateLog("Validation Error: No valid items", AlertType.Error);
+                    return;
+                }
+
+                AlertManager.ShowInfo("Saving catalogue to local database...");
+                _ = CreateLog("Saving product catalogue", AlertType.Info);
+
+                int successCount = 0;
+                int failCount = 0;
+
+                foreach (var dto in itemsToSave)
+                {
+                    var output = await _fiscalService.PostProductCatalog(dto);
+
+                    if (output.StatusCode == ApiStatusCode.Success)
+                    {
+                        successCount++;
+                        _ = CreateLog($"Saved product {dto.ProductDescription}", AlertType.Info);
+                    }
+                    else
+                    {
+                        failCount++;
+                        _ = CreateLog($"Failed to save product {dto.ProductDescription}: {output.Message}", AlertType.Error);
+                    }
+                }
+
+                WindowsLocalAppNotification.Show("Save Completed", $"Saved {successCount} products, failed {failCount}.");
+                AlertManager.ShowInfo($"Saved {successCount} products, failed {failCount}.");
+
+                if (failCount == 0)
+                {
+                    // clear only if everything succeeded
+                    ProductCatalogueDataGridView.Rows.Clear();
+                    lblPageNumber.Text = "Page 1";
+                    _currentPage = 1;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                WindowsLocalAppNotification.Show("Error", $"Error saving catalogue: {ex.Message}");
+                AlertManager.ShowError($"Error saving catalogue: {ex.Message}");
+                _ = CreateLog("Error saving catalogue", AlertType.Error);
+            }
+            finally
+            {
+                // Always restore button state
+                _isSaving = false;
+                btnSave.Enabled = true;
+                btnSave.Text = "Save";
+            }
+        }
+        private async Task CreateLog(string message, string type)
+        {
+            var log = new Logs
+            {
+                Message = message,   // pass any message
+                Type = type,         // comes from AlertType constants
+
+            };
+
+            await _logService.LogAsync(log);
         }
 
         private async Task LoadProductCatalogue()
