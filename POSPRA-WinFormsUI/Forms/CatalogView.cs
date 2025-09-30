@@ -150,8 +150,6 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (failCount == 0)
                 {
-                    // clear only if everything succeeded
-                    ProductCatalogueDataGridView.Rows.Clear();
                     lblPageNumber.Text = "Page 1";
                     _currentPage = 1;
                 }
