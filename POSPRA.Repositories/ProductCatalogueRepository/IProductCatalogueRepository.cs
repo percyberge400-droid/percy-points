@@ -3,7 +3,11 @@ using POSPRA.Repositories.BaseRepository.Repository;
 
 namespace POSPRA.Repositories.ProductCatalogueRepository
 {
-    public interface IProductCatalogueRepository : IRepository<ProductCatalogue>
+    public interface IProductCatalogueSQLServerRepository : IRepository<ProductCatalogue>
+    {
+    }
+
+    public interface IProductCatalogueSQLiteRepository : IRepository<ProductCatalogue>
     {
     }
 }

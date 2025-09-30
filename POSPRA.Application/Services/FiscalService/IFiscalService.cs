@@ -2,6 +2,7 @@
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.ProductCatalogDtos;
 
 namespace POSPRA.Application.Services.FiscalService
 {
@@ -50,5 +51,12 @@ namespace POSPRA.Application.Services.FiscalService
         /// or an error response if validation fails or no records are updated.
         /// </returns>
         Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos, bool isSingle);
+
+        /// <summary>
+        /// This method is used to create product catalogue in SQLite.
+        /// </summary>
+        /// <param name="productCatalogueDto"></param>
+        /// <returns></returns>
+        Task<ApiResponse<ProductCatalogueDto>> PostProductCatalog(ProductCatalogueDto productCatalogueDto);
     }
 }

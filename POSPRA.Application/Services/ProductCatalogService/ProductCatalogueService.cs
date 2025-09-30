@@ -14,7 +14,7 @@ namespace POSPRA.Application.Services.ProductCatalogService
         private readonly SqlServerRepository<ProductCatalogue> _productCatalogueRepository;
         private readonly IMapper _mapper;
 
-        public ProductCatalogueService(IProductCatalogueRepository productCatalogueRepository, IMapper mapper,
+        public ProductCatalogueService(IProductCatalogueSQLServerRepository productCatalogueRepository, IMapper mapper,
             SqlServerRepository<ProductCatalogue> sqlServerRepository)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

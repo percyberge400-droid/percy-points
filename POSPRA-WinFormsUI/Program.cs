@@ -30,12 +30,13 @@ namespace POSPRA_WinFormsUI
         private static PrivateFontCollection privateFonts;
 
         [STAThread]
-        static void Main()   // ✅ now async so we can await Start/Stop
+        static void Main()
         {
-            // Delegate to async bootstrap
-            RunMainAsync().GetAwaiter().GetResult();
+            // Run async code synchronously to maintain STA context
+            MainAsync().GetAwaiter().GetResult();
         }
-        private static async Task RunMainAsync()
+
+        static async Task MainAsync()
         {
             // Initialize SQLite database if needed
             DbInitializer.Initialize();
@@ -76,7 +77,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
-            services.AddScoped<IProductCatalogueRepository, ProductCatalogueRepository>();
+            services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             // services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();

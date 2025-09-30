@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.ProductCatalogDtos;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -40,4 +41,13 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] InvoiceDto dto) =>
         Ok(await _fiscalService.CreateAsync(dto));
+
+    /// <summary>
+    /// This method is used to create product catalogue in SQLite.
+    /// </summary>
+    /// <param name="productCatalogueDto"></param>
+    /// <returns></returns>
+    [HttpPost("postProductCatalogue")]
+    public async Task<IActionResult> Create([FromBody] ProductCatalogueDto productCatalogueDto) =>
+        Ok(await _fiscalService.PostProductCatalog(productCatalogueDto));
 }

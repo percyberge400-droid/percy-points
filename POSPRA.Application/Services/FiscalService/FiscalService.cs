@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.LiveService;
@@ -11,8 +10,11 @@ using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Text;
 
 namespace POSPRA.Application.Services.FiscalService
 {
@@ -26,6 +28,7 @@ namespace POSPRA.Application.Services.FiscalService
         private readonly InvoiceValidatorService _invoiceValidatorService;
         private readonly ILogService _logService;
         private readonly IFiscalRepository _fileRecordRepository;
+        private readonly IProductCatalogueSQLiteRepository _productCatalogueSQLiteRepository;
         private readonly AppSettings _settings;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly AutoMapper.IMapper _mapper;
@@ -41,7 +44,8 @@ namespace POSPRA.Application.Services.FiscalService
             IHttpContextAccessor httpContextAccessor
 ,
             ILiveService liveService,
-            INetworkService networkService)
+            INetworkService networkService,
+            IProductCatalogueSQLiteRepository productCatalogueSQLiteRepository)
         {
             _invoiceValidatorService = invoiceValidatorService;
             _logService = logService;
@@ -51,6 +55,7 @@ namespace POSPRA.Application.Services.FiscalService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _liveService = liveService;
             _networkService = networkService;
+            _productCatalogueSQLiteRepository = productCatalogueSQLiteRepository;
         }
 
         /// <summary>
@@ -299,7 +304,7 @@ namespace POSPRA.Application.Services.FiscalService
                 return new ApiResponse<List<FileRecordDto>>(
                     ApiStatusCode.Error,
                     ResponseMessages.DataNotFound,
-                    null,
+                    null!,
                     string.Empty);
             }
 
@@ -352,6 +357,38 @@ namespace POSPRA.Application.Services.FiscalService
                     ResponseMessages.DataNotFound,
                     null,
                     string.Empty);
+        }
+
+        /// <summary>
+        /// This method is used to create product catalogue in SQLite.
+        /// </summary>
+        /// <param name="productCatalogueDto"></param>
+        /// <returns></returns>
+        public async Task<ApiResponse<ProductCatalogueDto>> PostProductCatalog(ProductCatalogueDto productCatalogueDto)
+        {
+            if (productCatalogueDto == null)
+            {
+                return new ApiResponse<ProductCatalogueDto>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null!,
+                    string.Empty);
+            }
+
+            var entities = _mapper.Map<ProductCatalogue>(productCatalogueDto);
+            if (entities is not null)
+            {
+                await _productCatalogueSQLiteRepository.AddAsync(entities);
+                await _sqliteUnitOfWork.SaveChangesAsync();
+            }
+
+            var updatedDtos = _mapper.Map<ProductCatalogueDto>(entities);
+
+            return new ApiResponse<ProductCatalogueDto>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordSaved,
+                updatedDtos,
+                string.Empty);
         }
     }
 }

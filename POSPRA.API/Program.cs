@@ -87,7 +87,8 @@ namespace POSPRA.API   // ✅ Added namespace so other projects can reference it
             builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
             builder.Services.AddScoped<ILogRepository, LogRepository>();
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
-            builder.Services.AddScoped<IProductCatalogueRepository, ProductCatalogueRepository>();
+            builder.Services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
+            builder.Services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
 
             //----------------------------------------------------
             // 🔧 Application Services
