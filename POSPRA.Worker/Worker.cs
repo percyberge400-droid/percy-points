@@ -1,6 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HttpClientService;
@@ -11,6 +9,8 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.LogDtos;
+using System.Text;
+using System.Text.Json;
 
 namespace POSPRA.Worker
 {
@@ -52,7 +52,7 @@ namespace POSPRA.Worker
         protected override async Task ExecuteAsync(CancellationToken token)
         {
             var id = Guid.NewGuid().ToString();
-            await LogAsync(AlertType.Information, "Worker service started.", id, AlertType.Startup);
+            await LogAsync(AlertType.Info, "Worker service started.", id, AlertType.Startup);
 
             bool wasInternetAvailable = true; // Track previous state to reduce repeated logs
 
@@ -67,7 +67,7 @@ namespace POSPRA.Worker
                         // Internet is back or still available
                         if (!wasInternetAvailable)
                         {
-                            await LogAsync(AlertType.Information, "Internet connection restored.", id, "InternetRestored");
+                            await LogAsync(AlertType.Info, "Internet connection restored.", id, "InternetRestored");
                         }
 
                         wasInternetAvailable = true;
@@ -95,7 +95,7 @@ namespace POSPRA.Worker
             }
             finally
             {
-                await LogAsync(AlertType.Information, "Worker service stopped.", id, AlertType.Shutdown);
+                await LogAsync(AlertType.Info, "Worker service stopped.", id, AlertType.Shutdown);
             }
         }
 
@@ -225,8 +225,8 @@ namespace POSPRA.Worker
                 WorkerEvent = evt,
                 ResponseStatusCode = statusCode,
                 StackTrace = stackTrace,
-                WorkerStartedAtUtc = type == AlertType.Information && evt == AlertType.Startup ? DateTime.Now : null,
-                WorkerStoppedAtUtc = type == AlertType.Information && evt == AlertType.Shutdown ? DateTime.Now : null
+                WorkerStartedAtUtc = type == AlertType.Info && evt == AlertType.Startup ? DateTime.Now : null,
+                WorkerStoppedAtUtc = type == AlertType.Info && evt == AlertType.Shutdown ? DateTime.Now : null
             };
 
             await logSvc.LogAsync(_mapper.Map<Logs>(log));

@@ -1,5 +1,6 @@
 ﻿using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Utility;
 using POSPRA.DTOs.LogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.ComponentModel;
