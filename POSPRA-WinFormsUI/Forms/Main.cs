@@ -324,7 +324,7 @@ namespace POSPRA_WinFormsUI.Forms
                             }
                             else
                             {
-                                ShowAlert("Worker service is inactive!");
+                                ShowAlert("Worker service is inactive!",AlertType.Error,false);
                             }
 
                             await Task.Delay(5000, ct);
