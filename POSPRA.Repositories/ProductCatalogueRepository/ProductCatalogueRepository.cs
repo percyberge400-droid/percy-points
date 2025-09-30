@@ -4,9 +4,16 @@ using POSPRA.Repositories.BaseRepository;
 
 namespace POSPRA.Repositories.ProductCatalogueRepository
 {
-    public class ProductCatalogueRepository : SqlServerRepository<ProductCatalogue>, IProductCatalogueRepository
+    public class ProductCatalogueSQLServerRepository : SqlServerRepository<ProductCatalogue>, IProductCatalogueSQLServerRepository
     {
-        public ProductCatalogueRepository(SqlServerDbContext context) : base(context)
+        public ProductCatalogueSQLServerRepository(SqlServerDbContext context) : base(context)
+        {
+        }
+    }
+
+    public class ProductCatalogueSQLiteRepository : SqliteRepository<ProductCatalogue>, IProductCatalogueSQLiteRepository
+    {
+        public ProductCatalogueSQLiteRepository(SqliteDbContext context) : base(context)
         {
         }
     }

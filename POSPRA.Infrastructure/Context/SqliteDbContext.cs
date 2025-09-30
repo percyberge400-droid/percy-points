@@ -19,6 +19,7 @@ namespace POSPRA.Infrastructure.Context
 
         /// <summary>FileRecords table.</summary>
         public DbSet<FileRecord> FileRecords { get; set; } = null!;
+        public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
 
         /// <summary>Logs table.</summary>
         public DbSet<Logs> Logs { get; set; } = null!;
