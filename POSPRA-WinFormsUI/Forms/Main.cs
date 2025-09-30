@@ -1,9 +1,6 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.POSService;
-using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Net.NetworkInformation;
@@ -153,7 +150,7 @@ namespace POSPRA_WinFormsUI.Forms
                 //bool wasOnline = true;
                 //bool wasOnline = false;
                 //DateTime? offlineSince = null;
-                
+
 
                 while (!ct.IsCancellationRequested)
                 {
@@ -207,7 +204,7 @@ namespace POSPRA_WinFormsUI.Forms
                                     downtimeMsg = $" (Downtime: {downTime.TotalSeconds:F0} seconds)";
                                 }
 
-                                ShowAlert("Internet connection restored!", "Success",true);
+                                ShowAlert("Internet connection restored!", "Success", true);
                                 _ = CreateLog("Internet connection restored" + downtimeMsg, AlertType.Success);
 
                                 offlineSince = null;
@@ -225,7 +222,7 @@ namespace POSPRA_WinFormsUI.Forms
                                     msg += $" ({downTime.TotalSeconds:F0} seconds)";
                                 }
 
-                                ShowAlert("Internet connection lost!", "Error",false);
+                                ShowAlert("Internet connection lost!", "Error", false);
                                 lastOfflineAlertTime = DateTime.Now;
                             }
                         }
@@ -275,8 +272,6 @@ namespace POSPRA_WinFormsUI.Forms
             _ = Task.Run(async () =>
             {
                 bool wasRunning = true;
-                DateTime? lastOfflineAlertTime = null;
-
 
                 while (!ct.IsCancellationRequested)
                 {
@@ -293,50 +288,22 @@ namespace POSPRA_WinFormsUI.Forms
                                 lblWorkerService.ForeColor = isRunning ? Color.Green : Color.Red;
                             }));
                         }
-                        
+
+                        // Service just went offline
                         if (!isRunning && wasRunning)
                         {
-                            ShowAlert("Worker service is inactive!", "Error", true);
-                            _ = CreateLog("Worker service stopped", AlertType.Error);
-                            lastOfflineAlertTime = DateTime.Now;
-                            
+                            WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service is inactive!");
+                            _workerServiceAlertShown = true;
                         }
-                        if (isRunning && !wasRunning)
+                        // Service came back online
+                        else if (isRunning && !wasRunning)
                         {
-                            ShowAlert("Worker service restored!", "Success", true);
-                            _ = CreateLog("Worker service restored", AlertType.Success);
-                            lastOfflineAlertTime = null; // clear when service restores
+                            WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service restored!");
+                            _workerServiceAlertShown = false;
                         }
 
-                        // While service stays offline. show alerts every 4 seconds
-                        if (!isRunning)
-                        {
-                            if (lastOfflineAlertTime == null ||
-                                (DateTime.Now - lastOfflineAlertTime.Value).TotalSeconds >= 4)
-                            {
-                                ShowAlert("Worker service is still inactive!", "Error", false);
-                                lastOfflineAlertTime = DateTime.Now;
-                            }
-                            if (!_workerFirstAlertShown)
-                            {
-                                WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service is inactive!");
-                                _workerFirstAlertShown = true;
-                            }
-                            else
-                            {
-                                ShowAlert("Worker service is inactive!",AlertType.Error,false);
-                            }
-
-                            await Task.Delay(5000, ct);
-                        }
-                        else
-                        {
-                            _workerFirstAlertShown = false; // reset when back online
-                            await Task.Delay(2000, ct);
-                        }
                         wasRunning = isRunning;
-
-                        await Task.Delay(2000, ct);
+                        await Task.Delay(5000, ct);
                     }
                     catch (TaskCanceledException) { break; }
                 }
