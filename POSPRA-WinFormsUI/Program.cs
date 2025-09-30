@@ -28,7 +28,12 @@ namespace POSPRA_WinFormsUI
         private static PrivateFontCollection privateFonts;
 
         [STAThread]
-        static async Task Main()   // ✅ now async so we can await Start/Stop
+        static void Main()   // ✅ now async so we can await Start/Stop
+        {
+            // Delegate to async bootstrap
+            RunMainAsync().GetAwaiter().GetResult();
+        }
+        private static async Task RunMainAsync()
         {
             // Initialize SQLite database if needed
             DbInitializer.Initialize();
