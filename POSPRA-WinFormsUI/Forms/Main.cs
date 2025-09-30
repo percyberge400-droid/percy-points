@@ -202,7 +202,7 @@ namespace POSPRA_WinFormsUI.Forms
         // -----------------------------
         // WORKER SERVICE STATUS CHECKER
         // -----------------------------
-        private bool _workerFirstAlertShown = false;
+        private bool _workerServiceAlertShown = false;
 
         private void StartWorkerServiceStatusChecker()
         {
@@ -227,25 +227,19 @@ namespace POSPRA_WinFormsUI.Forms
                             }));
                         }
 
-                        if (!isRunning)
+                        // Only show alert once when service becomes inactive
+                        if (!isRunning && !_workerServiceAlertShown)
                         {
-                            if (!_workerFirstAlertShown)
-                            {
-                                WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service is inactive!");
-                                _workerFirstAlertShown = true;
-                            }
-                            else
-                            {
-                                ShowAlert("Worker service is inactive!");
-                            }
+                            WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service is inactive!");
+                            _workerServiceAlertShown = true;
+                        }
+                        else if (isRunning)
+                        {
+                            // Reset alert flag when service comes back online
+                            _workerServiceAlertShown = false;
+                        }
 
-                            await Task.Delay(5000, ct);
-                        }
-                        else
-                        {
-                            _workerFirstAlertShown = false; // reset when back online
-                            await Task.Delay(2000, ct);
-                        }
+                        await Task.Delay(5000, ct);
                     }
                     catch (TaskCanceledException) { break; }
                 }
@@ -352,8 +346,20 @@ namespace POSPRA_WinFormsUI.Forms
 
         public void LoadView(string v)
         {
+            // Properly close and dispose the active MDI child
             if (this.ActiveMdiChild != null)
-                this.ActiveMdiChild.Close();
+            {
+                var activeChild = this.ActiveMdiChild;
+                activeChild.Close();
+                activeChild.Dispose();
+            }
+
+            // Dispose all MDI children to ensure clean state
+            foreach (Form child in this.MdiChildren)
+            {
+                child.Close();
+                child.Dispose();
+            }
 
             Form childForm = v switch
             {
