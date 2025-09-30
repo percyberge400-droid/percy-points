@@ -12,6 +12,7 @@ using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
 using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.LogRepository;
+using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA.Worker;
@@ -49,7 +50,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<ILogRepository, LogRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
-        services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+        services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
 
         //----------------------------------------------------
         // 🔧 Services
@@ -59,6 +60,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<InvoiceValidatorService>();
         services.AddSingleton<INetworkService, NetworkService>();
         services.AddScoped<ILogService, LogService>();
+        services.AddScoped<IRequestHeaderService, RequestHeaderService>();
 
         // ---------- HttpContextAccessor ----------
         services.AddHttpContextAccessor();
