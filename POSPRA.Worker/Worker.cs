@@ -144,6 +144,10 @@ namespace POSPRA.Worker
                             Convert.ToInt32(ApiStatusCode.Success)
                         );
                 }
+                else if (response.StatusCode==ApiStatusCode.NotFound)
+                {
+                    return;
+                }
                 else
                 {
                     // Only log a warning if the health check actually failed
