@@ -1,6 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HttpClientService;
@@ -11,6 +9,8 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.LogDtos;
+using System.Text;
+using System.Text.Json;
 
 namespace POSPRA.Worker
 {
@@ -27,12 +27,14 @@ namespace POSPRA.Worker
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
         private readonly INetworkService _networkService;
         private readonly AppSettings _settings;
+        private readonly IServiceScopeFactory _scopeFactory;
         public Worker(IServiceProvider services,
             IMapper mapper,
             HttpService http,
             IOptions<AppSettings> opts,
             INetworkService networkService,
-            IOptions<AppSettings> options)
+            IOptions<AppSettings> options,
+            IServiceScopeFactory scopeFactory)
         {
             _services = services;
             _mapper = mapper;
@@ -40,6 +42,7 @@ namespace POSPRA.Worker
             _baseUrl = opts.Value.BaseUrl;
             _networkService = networkService;
             _settings = options.Value;
+            _scopeFactory = scopeFactory;
         }
 
         /// <summary>
@@ -49,7 +52,7 @@ namespace POSPRA.Worker
         protected override async Task ExecuteAsync(CancellationToken token)
         {
             var id = Guid.NewGuid().ToString();
-            await LogAsync(AlertType.Information, "Worker service started.", id, AlertType.Startup);
+            await LogAsync(AlertType.Info, "Worker service started.", id, AlertType.Startup);
 
             bool wasInternetAvailable = true; // Track previous state to reduce repeated logs
 
@@ -64,7 +67,7 @@ namespace POSPRA.Worker
                         // Internet is back or still available
                         if (!wasInternetAvailable)
                         {
-                            await LogAsync(AlertType.Information, "Internet connection restored.", id, "InternetRestored");
+                            await LogAsync(AlertType.Info, "Internet connection restored.", id, "InternetRestored");
                         }
 
                         wasInternetAvailable = true;
@@ -92,10 +95,9 @@ namespace POSPRA.Worker
             }
             finally
             {
-                await LogAsync(AlertType.Information, "Worker service stopped.", id, AlertType.Shutdown);
+                await LogAsync(AlertType.Info, "Worker service stopped.", id, AlertType.Shutdown);
             }
         }
-
 
         /// <summary>
         /// Performs a single health check:  
@@ -107,35 +109,53 @@ namespace POSPRA.Worker
         {
             try
             {
-                var resp = await _http.GetAsync($"{_baseUrl}{Endpoints.GetAllUnsyncedAsync}", token);
-                if (!resp.IsSuccessStatusCode)
-                {
-                    await LogAsync(AlertType.Warning, $"Health check failed: {resp.StatusCode}", id, "HealthCheckFailed", (int)resp.StatusCode);
-                    return;
-                }
+                // First scope for initial unsynced read
+                using var readScope = _scopeFactory.CreateScope();
+                var fiscalService = readScope.ServiceProvider.GetRequiredService<IFiscalService>();
 
-                var raw = await resp.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<object>>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (result!.StatusCode == ApiStatusCode.Success)
-                {
-                    using var post = await PostEncryptedDataAsync(id, raw, token);
-                    if (post is null || !post.IsSuccessStatusCode) return;
+                var response = await fiscalService.GetAllUnsyncedAsync();
 
-                    var postJson = await post.Content.ReadAsStringAsync();
+                if (response.StatusCode == ApiStatusCode.Success)
+                {
+                    using var post = await PostEncryptedDataAsync(id, response.Data, token);
+                    if (post is null || !post.IsSuccessStatusCode)
+                        return;
+
+                    var postJson = await post.Content.ReadAsStringAsync(token);
                     var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
                     var files = apiResp?.Data ?? new();
 
                     if (files.Count > 0)
                     {
-                        using var scope = _services.CreateScope();
-                        var fiscal = scope.ServiceProvider.GetRequiredService<IFiscalService>();
+                        // Second scope for updates
+                        using var updateScope = _scopeFactory.CreateScope();
+                        var fiscal = updateScope.ServiceProvider.GetRequiredService<IFiscalService>();
                         await fiscal.UpdateFileRecordsAsync(files, false);
                     }
+                }
+                else
+                {
+                    // Only log a warning if the health check actually failed
+                    await LogAsync(
+                        AlertType.Warning,
+                        $"Health check failed: {response.StatusCode}",
+                        id,
+                        "HealthCheckFailed",
+                        Convert.ToInt32(ApiStatusCode.Error)
+                    );
                 }
             }
             catch (Exception ex)
             {
-                await LogAsync(AlertType.Exception, ex.Message, id, "LoopException", null, ex.StackTrace);
+                // Capture full exception details for easier troubleshooting
+                await LogAsync(
+                    AlertType.Exception,
+                    ex.Message,
+                    id,
+                    "LoopException",
+                    null,
+                    ex.ToString()
+                );
             }
         }
 
@@ -144,18 +164,17 @@ namespace POSPRA.Worker
         /// Returns the HTTP response so the caller can inspect status and content.
         /// Logs warnings or exceptions when the operation fails.
         /// </summary>
-        private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, string rawJson, CancellationToken token)
+        private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, List<FileRecordDto> fileRecordDtos, CancellationToken token)
         {
             try
             {
-                var envelope = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(rawJson, JsonOpts);
-                if (envelope?.Data is null || envelope.Data.Count == 0)
+                if (fileRecordDtos.Count == 0)
                 {
                     await LogAsync(AlertType.Warning, "No records in JSON.", id, "NoData");
                     return null;
                 }
 
-                var jsonBody = JsonSerializer.Serialize(envelope.Data);
+                var jsonBody = JsonSerializer.Serialize(fileRecordDtos);
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
                 var url = $"{_baseUrl}{Endpoints.DecryptSave.TrimStart('/')}";
 
@@ -202,8 +221,8 @@ namespace POSPRA.Worker
                 WorkerEvent = evt,
                 ResponseStatusCode = statusCode,
                 StackTrace = stackTrace,
-                WorkerStartedAtUtc = type == AlertType.Information && evt == AlertType.Startup ? DateTime.Now : null,
-                WorkerStoppedAtUtc = type == AlertType.Information && evt == AlertType.Shutdown ? DateTime.Now : null
+                WorkerStartedAtUtc = type == AlertType.Info && evt == AlertType.Startup ? DateTime.Now : null,
+                WorkerStoppedAtUtc = type == AlertType.Info && evt == AlertType.Shutdown ? DateTime.Now : null
             };
 
             await logSvc.LogAsync(_mapper.Map<Logs>(log));

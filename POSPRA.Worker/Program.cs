@@ -16,7 +16,6 @@ using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA.Worker;
 
-
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
@@ -45,43 +44,34 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped(typeof(SqlServerRepository<>), typeof(SqlServerRepository<>)); // <-- add
-        services.AddScoped(typeof(SqliteRepository<>), typeof(SqliteRepository<>));      // <-- add
+        services.AddScoped(typeof(SqlServerRepository<>), typeof(SqlServerRepository<>));
+        services.AddScoped(typeof(SqliteRepository<>), typeof(SqliteRepository<>));
         services.AddScoped<ILogRepository, LogRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
-        services.AddScoped<IFiscalRepository, FiscalRepository>();
         services.AddScoped<IRequestHeaderService, RequestHeaderService>();
 
-        // Services
-        services.AddScoped<ILiveService, LiveService>();   // <-- add
-        services.AddScoped<IFiscalService, FiscalService>();
-        services.AddScoped<InvoiceValidatorService>(); // <-- Add this
-        services.AddSingleton<INetworkService, NetworkService>();
-
-        services.AddHttpClient<HttpService>();
-
-        // ---------- HttpContextAccessor ----------
-        services.AddHttpContextAccessor();   // <--- add this
         //----------------------------------------------------
         // 🔧 Services
         //----------------------------------------------------
+        services.AddScoped<ILiveService, LiveService>();
+        services.AddScoped<IFiscalService, FiscalService>();
+        services.AddScoped<InvoiceValidatorService>();
+        services.AddSingleton<INetworkService, NetworkService>();
         services.AddScoped<ILogService, LogService>();
-        // register any other services the Worker might call (FiscalService, etc.)
+
+        // ---------- HttpContextAccessor ----------
+        services.AddHttpContextAccessor();
 
         //----------------------------------------------------
         // 🔧 AutoMapper
         //----------------------------------------------------
-        // Scan the assemblies that contain your profiles
         services.AddAutoMapper(cfg => { }, typeof(Program).Assembly, typeof(PosProfile).Assembly);
 
         //----------------------------------------------------
         // 🔧 HttpClient
         //----------------------------------------------------
-        services.AddHttpClient("SelfHostedApi", client =>
-        {
-            client.BaseAddress = new Uri("http://localhost:5000/");
-        });
+        services.AddHttpClient<HttpService>();
 
         //----------------------------------------------------
         // 🔧 Hosted Worker
@@ -92,14 +82,13 @@ var builder = Host.CreateDefaultBuilder(args)
 
 var host = builder.Build();
 
-// Start the self-hosted API in the background
-var apiHost = POSPRA.API.Program.BuildApiHost();
-await apiHost.StartAsync();
-
-var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
-lifetime.ApplicationStopping.Register(() =>
-{
-    apiHost.StopAsync().GetAwaiter().GetResult();
-});
+// ✅ Removed: code that started/stopped the embedded API
+//     var apiHost = POSPRA.API.Program.BuildApiHost();
+//     await apiHost.StartAsync();
+//     var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+//     lifetime.ApplicationStopping.Register(() =>
+//     {
+//         apiHost.StopAsync().GetAwaiter().GetResult();
+//     });
 
 await host.RunAsync();

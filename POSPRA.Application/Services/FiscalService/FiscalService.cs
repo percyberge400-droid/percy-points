@@ -64,7 +64,6 @@ namespace POSPRA.Application.Services.FiscalService
         {
             try
             {
-                // ✅ 1. Validate input
                 if (dto == null)
                 {
                     await LogError("Invalid model");
@@ -74,13 +73,15 @@ namespace POSPRA.Application.Services.FiscalService
                 // Map & validate entity
                 var invoiceEntity = _mapper.Map<Invoice>(dto);
                 var validation = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
-                if (!validation.IsValid)
+
+                bool isValid = validation.IsValid;
+                if (!isValid)
                 {
+                    // ✅ log but don't exit
                     await LogError(validation.ErrorMessages);
-                    return ErrorResponse(ResponseMessages.UnknownError);
                 }
 
-                // ✅ 2. Create fiscal invoice
+                // ✅ 2. Create fiscal invoice (runs regardless of validation)
                 var fiscalResponse = await CreateFiscalInvoiceAsync(invoiceEntity);
                 if (fiscalResponse.StatusCode != ApiStatusCode.Success)
                 {
@@ -103,8 +104,13 @@ namespace POSPRA.Application.Services.FiscalService
                     }
                 }
 
-                // ✅ 4. Done
-                return SuccessResponse();
+                // ✅ 4. Return success if fiscal creation worked, but include validation info
+                return new ApiResponse<InvoiceDto>(
+                    isValid ? ApiStatusCode.Success : ApiStatusCode.Error,
+                    isValid ? ResponseMessages.RecordSaved : "Invoice saved but failed validation",
+                    null,
+                    isValid ? string.Empty : string.Join(" | ", validation.ErrorMessages)
+                );
             }
             catch (Exception ex)
             {
@@ -116,12 +122,10 @@ namespace POSPRA.Application.Services.FiscalService
                 await _logService.LogAsync(
                     _logService.BuildLog(message, AlertType.Exception, "Invoice", nameof(CreateAsync)));
 
-            ApiResponse<InvoiceDto> SuccessResponse() =>
-                new(ApiStatusCode.Success, ResponseMessages.RecordSaved, null, string.Empty);
-
             ApiResponse<InvoiceDto> ErrorResponse(string msg, string err = "") =>
                 new(ApiStatusCode.Error, msg, null, err);
         }
+
 
         /// <summary>
         /// Generates a fiscal invoice by serializing, signing, and encrypting
