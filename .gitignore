@@ -87,3 +87,6 @@ $RECYCLE.BIN/
 # Node (if frontend added later)
 node_modules/
 dist/
+/POSPRA.Worker/app.manifest
+/POSPRA-WinFormsUI/app.manifest
+/Setup-1/Setup-1.vdproj
