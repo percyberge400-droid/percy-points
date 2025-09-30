@@ -78,6 +78,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<InvoiceValidatorService>();
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
+            services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
             // services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();

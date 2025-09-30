@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Drawing.Drawing2D;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace POSPRA_WinFormsUI.Forms
 {
