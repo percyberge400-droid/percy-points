@@ -24,6 +24,8 @@ namespace POSPRA.Infrastructure.Context
         /// <summary>Logs table.</summary>
         public DbSet<Logs> Logs { get; set; } = null!;
 
+        //<summary>Product Catalog Table.</summary>
+        public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
 
         private static readonly string DbPath;
 
