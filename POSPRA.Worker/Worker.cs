@@ -133,6 +133,10 @@ namespace POSPRA.Worker
                         await fiscal.UpdateFileRecordsAsync(files, false);
                     }
                 }
+                else if (response.StatusCode==ApiStatusCode.NotFound)
+                {
+                    return;
+                }
                 else
                 {
                     // Only log a warning if the health check actually failed
