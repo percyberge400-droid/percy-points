@@ -3,7 +3,7 @@
     partial class CatalogView
     {
         private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.Button btnLoad;
 
         protected override void Dispose(bool disposing)
         {
@@ -13,7 +13,7 @@
 
         private void InitializeComponent()
         {
-            btnSave = new Button();
+            btnLoad = new Button();
             labelInvoicesTitle = new Label();
             ProductCatalogueDataGridView = new DataGridView();
             colItemSrno = new DataGridViewTextBoxColumn();
@@ -31,19 +31,19 @@
             ((System.ComponentModel.ISupportInitialize)ProductCatalogueDataGridView).BeginInit();
             SuspendLayout();
             // 
-            // btnSave
+            // btnLoad
             // 
-            btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            btnSave.BackColor = Color.FromArgb(0, 120, 215);
-            btnSave.FlatStyle = FlatStyle.Flat;
-            btnSave.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnSave.ForeColor = Color.White;
-            btnSave.Location = new Point(1359, 729);
-            btnSave.Name = "btnSave";
-            btnSave.Size = new Size(240, 53);
-            btnSave.TabIndex = 1;
-            btnSave.Text = "💾 Save";
-            btnSave.UseVisualStyleBackColor = false;
+            btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            btnLoad.BackColor = Color.FromArgb(0, 120, 215);
+            btnLoad.FlatStyle = FlatStyle.Flat;
+            btnLoad.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnLoad.ForeColor = Color.White;
+            btnLoad.Location = new Point(1359, 729);
+            btnLoad.Name = "btnLoad";
+            btnLoad.Size = new Size(240, 53);
+            btnLoad.TabIndex = 1;
+            btnLoad.Text = "⏳ Load";
+            btnLoad.UseVisualStyleBackColor = false;
             // 
             // labelInvoicesTitle
             // 
@@ -190,7 +190,7 @@
             Controls.Add(SearchBox);
             Controls.Add(ProductCatalogueDataGridView);
             Controls.Add(labelInvoicesTitle);
-            Controls.Add(btnSave);
+            Controls.Add(btnLoad);
             Name = "CatalogView";
             Text = "Product Catalogue";
             ((System.ComponentModel.ISupportInitialize)ProductCatalogueDataGridView).EndInit();
