@@ -1,16 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POSPRA.Domain.Entities;
+using System;
+using System.IO;
 
 namespace POSPRA.Infrastructure.Context
 {
     /// <summary>
     /// EF Core DbContext for the SQLite database used by POSPRA.
-    /// <para>
     /// Provides DbSet properties for all main entities like Users, FileRecords, Logs, and Invoices.
-    /// </para>
-    /// <para>
-    /// Automatically ensures that the database file exists in the user's Application Data folder.
-    /// </para>
+    /// The database file will be created in the same folder as the application executable.
     /// </summary>
     public class SqliteDbContext : DbContext
     {
@@ -20,33 +18,26 @@ namespace POSPRA.Infrastructure.Context
         /// <summary>FileRecords table.</summary>
         public DbSet<FileRecord> FileRecords { get; set; } = null!;
 
-        //<summary>Product Catalog Table.</summary>
+        /// <summary>Product Catalog Table.</summary>
         public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
 
         /// <summary>Logs table.</summary>
         public DbSet<Logs> Logs { get; set; } = null!;
 
-
+        // 🔹 Path to SQLite DB file
         private static readonly string DbPath;
 
+        // 🔹 Static constructor sets DB path next to EXE
         static SqliteDbContext()
         {
-            var folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "POSPRA");
-
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-
+            var folder = AppContext.BaseDirectory; // publish / exe folder
             DbPath = Path.Combine(folder, "pospra.db");
         }
 
         public SqliteDbContext(DbContextOptions<SqliteDbContext> options)
             : base(options) { }
 
-        public SqliteDbContext()
-        {
-        }
+        public SqliteDbContext() { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

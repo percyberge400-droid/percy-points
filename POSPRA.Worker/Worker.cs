@@ -71,7 +71,6 @@ namespace POSPRA.Worker
                         }
 
                         wasInternetAvailable = true;
-
                         await ProcessHealthCheck(id, token);
 
                         // Normal loop delay
