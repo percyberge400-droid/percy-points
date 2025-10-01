@@ -390,5 +390,19 @@ namespace POSPRA.Application.Services.FiscalService
                 updatedDtos,
                 string.Empty);
         }
+        /// <summary>
+        /// This API is used to get product catalog.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetProductCatalogue()
+        {
+            var output = await _productCatalogueSQLiteRepository.GetAllAsync();
+            var updatedDtos = _mapper.Map<List<ProductCatalogueDto>>(output);
+
+            if (updatedDtos.Any())
+                return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, updatedDtos, string.Empty);
+
+            return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
+        }
     }
 }

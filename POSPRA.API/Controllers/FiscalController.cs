@@ -50,4 +50,13 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     [HttpPost("postProductCatalogue")]
     public async Task<IActionResult> Create([FromBody] ProductCatalogueDto productCatalogueDto) =>
         Ok(await _fiscalService.PostProductCatalog(productCatalogueDto));
+
+    /// <summary>
+    /// This API is used to get product catalog.
+    /// </summary>
+    /// <param name="productCatalogueDto"></param>
+    /// <returns></returns>
+    [HttpGet("GetProductCatalogue")]
+    public async Task<IActionResult> GetProductCatalogue() =>
+        Ok(await _fiscalService.GetProductCatalogue());
 }
