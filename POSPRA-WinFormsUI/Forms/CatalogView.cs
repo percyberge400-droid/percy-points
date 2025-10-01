@@ -85,7 +85,7 @@ namespace POSPRA_WinFormsUI.Forms
                 // Step 1: Fetch all data from API using ProductCatalogueService
                 var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
                 {
-                    numberOfRecords = 10000, // Adjust based on your needs
+                    numberOfRecords = 1000, // Adjust based on your needs
                     pageNumber = 1
                 });
 
@@ -102,14 +102,14 @@ namespace POSPRA_WinFormsUI.Forms
                 _ = CreateLog($"Fetched {apiProducts.Count} products from API", AlertType.Info);
 
                 // Step 2: Clear old data from local DB using FiscalService
-                var clearResult = await _fiscalService.ClearProductCatalog();
+                //var clearResult = await _fiscalService.ClearProductCatalog();
 
-                if (clearResult.StatusCode != ApiStatusCode.Success)
-                {
-                    AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
-                    _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
-                    return;
-                }
+                //if (clearResult.StatusCode != ApiStatusCode.Success)
+                //{
+                //    AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
+                //    _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
+                //    return;
+                //}
 
                 _ = CreateLog("Local database cleared successfully", AlertType.Info);
                 AlertManager.ShowInfo($"Saving {apiProducts.Count} products to local database...");
@@ -199,11 +199,8 @@ namespace POSPRA_WinFormsUI.Forms
                 }
 
                 // Fetch from local DB using FiscalService
-                var response = await _fiscalService.GetProductCatalogFromLocalDB(new ProductCatalogueQueryDto
-                {
-                    numberOfRecords = _pageSize,
-                    pageNumber = _currentPage
-                });
+                var response = await _fiscalService.GetProductCatalogue();
+
 
                 var list = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
                 PopulateGrid(list);
@@ -239,11 +236,7 @@ namespace POSPRA_WinFormsUI.Forms
                 btnPrev.Enabled = false;
 
                 // Fetch all items from local DB and filter in memory (original logic)
-                var response = await _fiscalService.GetProductCatalogFromLocalDB(new ProductCatalogueQueryDto
-                {
-                    numberOfRecords = SEARCH_FETCH_LIMIT,
-                    pageNumber = 1
-                });
+                var response = await _fiscalService.GetProductCatalogue();
 
                 var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
