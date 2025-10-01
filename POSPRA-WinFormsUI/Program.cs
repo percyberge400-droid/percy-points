@@ -1,5 +1,4 @@
-﻿using System.Drawing.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
@@ -22,6 +21,7 @@ using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
+using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
 {
@@ -79,6 +79,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
+
             // services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();

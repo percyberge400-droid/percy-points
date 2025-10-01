@@ -148,7 +148,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (response?.Data == null || !response.Data.Any())
                 {
-                    WindowsLocalAppNotification.Show("Invoices", "No invoices found.");
+                    //WindowsLocalAppNotification.Show("Invoices", "No invoices found.");
                     AlertManager.ShowWarning("No invoices found.");
                     return;
                 }
