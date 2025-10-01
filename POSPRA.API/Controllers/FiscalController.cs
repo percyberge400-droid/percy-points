@@ -47,7 +47,7 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     /// </summary>
     /// <param name="productCatalogueDto"></param>
     /// <returns></returns>
-    [HttpPost("postProductCatalogue")]
+    [HttpPost("postproductcatalogue")]
     public async Task<IActionResult> Create([FromBody] ProductCatalogueDto productCatalogueDto) =>
         Ok(await _fiscalService.PostProductCatalog(productCatalogueDto));
 
@@ -56,7 +56,16 @@ public class FiscalController(IFiscalService fiscalService) : ControllerBase
     /// </summary>
     /// <param name="productCatalogueDto"></param>
     /// <returns></returns>
-    [HttpGet("GetProductCatalogue")]
+    [HttpGet("getproductcatalogue")]
     public async Task<IActionResult> GetProductCatalogue() =>
         Ok(await _fiscalService.GetProductCatalogue());
+
+    /// <summary>
+    /// This API is used to delete product catalog.
+    /// </summary>
+    /// <param name="productCatalogueDto"></param>
+    /// <returns></returns>
+    [HttpGet("deleteproductcatalogue")]
+    public async Task<IActionResult> DeleteProductCatalogue() =>
+        Ok(await _fiscalService.DeleteProductCatalogue());
 }

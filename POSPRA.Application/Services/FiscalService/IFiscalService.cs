@@ -64,5 +64,11 @@ namespace POSPRA.Application.Services.FiscalService
         /// </summary>
         /// <returns></returns>
         Task<ApiResponse<List<ProductCatalogueDto>>> GetProductCatalogue();
+        
+        /// <summary>
+        /// This API is used to delete product catalog.
+        /// </summary>
+        /// <returns></returns>
+        Task<ApiResponse<object>> DeleteProductCatalogue();
     }
 }
