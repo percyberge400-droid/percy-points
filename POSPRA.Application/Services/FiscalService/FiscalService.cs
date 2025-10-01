@@ -390,5 +390,38 @@ namespace POSPRA.Application.Services.FiscalService
                 updatedDtos,
                 string.Empty);
         }
+        /// <summary>
+        /// This API is used to get product catalog.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetProductCatalogue()
+        {
+            var output = await _productCatalogueSQLiteRepository.GetAllAsync();
+            var updatedDtos = _mapper.Map<List<ProductCatalogueDto>>(output);
+
+            if (updatedDtos.Any())
+                return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, updatedDtos, string.Empty);
+
+            return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
+        }
+
+        /// <summary>
+        /// This API is used to delete product catalog.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiResponse<object>> DeleteProductCatalogue()
+        {
+            var entities = await _productCatalogueSQLiteRepository.GetAllAsync();
+
+            if (entities.Any())
+            {
+                _productCatalogueSQLiteRepository.RemoveRange(entities);
+                await _sqliteUnitOfWork.SaveChangesAsync();
+
+                return new ApiResponse<object>(ApiStatusCode.Success, ResponseMessages.RecordDeleted, null, string.Empty);
+            }
+
+            return new ApiResponse<object>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
+        }
     }
 }

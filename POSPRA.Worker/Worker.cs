@@ -71,7 +71,6 @@ namespace POSPRA.Worker
                         }
 
                         wasInternetAvailable = true;
-
                         await ProcessHealthCheck(id, token);
 
                         // Normal loop delay
@@ -117,21 +116,36 @@ namespace POSPRA.Worker
 
                 if (response.StatusCode == ApiStatusCode.Success)
                 {
-                    using var post = await PostEncryptedDataAsync(id, response.Data, token);
-                    if (post is null || !post.IsSuccessStatusCode)
-                        return;
-
-                    var postJson = await post.Content.ReadAsStringAsync(token);
-                    var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
-                    var files = apiResp?.Data ?? new();
-
-                    if (files.Count > 0)
+                    if (await _networkService.IsInternetAvailableAsync())
                     {
-                        // Second scope for updates
-                        using var updateScope = _scopeFactory.CreateScope();
-                        var fiscal = updateScope.ServiceProvider.GetRequiredService<IFiscalService>();
-                        await fiscal.UpdateFileRecordsAsync(files, false);
+                        using var post = await PostEncryptedDataAsync(id, response.Data, token);
+                        if (post is null || !post.IsSuccessStatusCode)
+                            return;
+
+                        var postJson = await post.Content.ReadAsStringAsync(token);
+                        var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
+                        var files = apiResp?.Data ?? new();
+
+                        if (files.Count > 0)
+                        {
+                            // Second scope for updates
+                            using var updateScope = _scopeFactory.CreateScope();
+                            var fiscal = updateScope.ServiceProvider.GetRequiredService<IFiscalService>();
+                            await fiscal.UpdateFileRecordsAsync(files, false);
+                        }
                     }
+                    else
+                        await LogAsync(
+                            AlertType.Info,
+                            "No file records to update from API response.",
+                            id,
+                            "UpdateFileRecords",
+                            Convert.ToInt32(ApiStatusCode.Success)
+                        );
+                }
+                else if (response.StatusCode==ApiStatusCode.NotFound)
+                {
+                    return;
                 }
                 else
                 {
