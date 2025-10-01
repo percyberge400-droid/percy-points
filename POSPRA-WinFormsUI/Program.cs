@@ -79,7 +79,6 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
-            // services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddSingleton<IConfiguration>(configuration);
@@ -97,13 +96,20 @@ namespace POSPRA_WinFormsUI
 
             using var provider = services.BuildServiceProvider();
 
-            // ✅ Launch WinForms UI (API is NOT started here)
+            // ✅ Start API self-hosted inside WinForms
+            var apiHost = POSPRA.API.Program.BuildApiHost();
+            _ = apiHost.RunAsync(); // fire-and-forget, API keeps running in background
+
+            // ✅ Launch WinForms UI
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             var loginForm = provider.GetRequiredService<LoginForm>();
             Application.Run(loginForm);
+
+            // Shutdown API when app closes
+            await apiHost.StopAsync();
         }
     }
 }
