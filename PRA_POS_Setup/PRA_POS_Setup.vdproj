@@ -15,6 +15,18 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_07B9C7FC1D8E49A4B4A1F32CDE394CA0"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_0B70C421C3D040AA83738ED3B271610D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_4AA94119994141409437110C1B6A9DBA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -33,18 +45,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_B5E6DAC8C2624603A20DF2C8F956D265"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_C0B05C585B4D4672A5A81C77F067B40F"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_C2D426B143F84F9896F0C24B13A25EC4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -57,7 +57,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_DA5021523AB4415B8FDD0EBF98326A23"
+        "MsmKey" = "8:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -86,6 +86,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -192,29 +200,9 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B5E6DAC8C2624603A20DF2C8F956D265"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_07B9C7FC1D8E49A4B4A1F32CDE394CA0"
             {
-            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\allfiles (2)\\pral.ico"
-            "TargetName" = "8:pral.ico"
-            "Tag" = "8:"
-            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C0B05C585B4D4672A5A81C77F067B40F"
-            {
-            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\UninstallPOSPRAService.bat"
+            "SourcePath" = "8:E:\\UninstallPOSPRAService.bat"
             "TargetName" = "8:UninstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
@@ -232,10 +220,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DA5021523AB4415B8FDD0EBF98326A23"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0B70C421C3D040AA83738ED3B271610D"
             {
-            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\InstallPOSPRAService.bat"
+            "SourcePath" = "8:E:\\InstallPOSPRAService.bat"
             "TargetName" = "8:InstallPOSPRAService.bat"
+            "Tag" = "8:"
+            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
+            {
+            "SourcePath" = "8:C:\\Users\\talha.arif\\Downloads\\Adolf-Hitler-1933.ico"
+            "TargetName" = "8:Adolf-Hitler-1933.ico"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
             "Condition" = "8:"
@@ -307,7 +315,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:PRA_POS"
+        "ProductName" = "8:PRAL09"
         "ProductCode" = "8:{B3C7EF26-471E-41DE-B583-99CE59B6839C}"
         "PackageCode" = "8:{7E7F38D5-D896-44BA-87F6-B7234AC77597}"
         "UpgradeCode" = "8:{8A6F8D16-D2CC-4497-A092-976D6B26C77A}"
@@ -317,16 +325,16 @@
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
         "ProductVersion" = "8:1.0.0"
-        "Manufacturer" = "8:PRAL"
+        "Manufacturer" = "8:PRAL09"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:PRA_POS"
+        "Title" = "8:PRAL09"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:PRAL"
+        "ARPCONTACT" = "8:PRAL09"
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
-        "ARPPRODUCTICON" = "8:_B5E6DAC8C2624603A20DF2C8F956D265"
+        "ARPPRODUCTICON" = "8:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
@@ -429,7 +437,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_6E8A9242D5114501BB152865A3CD3EFA"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_3E7BE4EDB0DE4FA4A469B9F4D2F129DC"
             {
             "Name" = "8:POSPRA"
             "Arguments" = "8:"
@@ -440,7 +448,7 @@
             "Target" = "8:_C2D426B143F84F9896F0C24B13A25EC4"
             "Folder" = "8:_382BC76B96D6493EBC7EA154229B4C6B"
             "WorkingFolder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Icon" = "8:_B5E6DAC8C2624603A20DF2C8F956D265"
+            "Icon" = "8:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
             "Feature" = "8:"
             }
         }
@@ -1040,7 +1048,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D40A9E1364B94B18A1CA10A6B5C67DE7"
             {
-            "SourcePath" = "8:..\\POSPRA.Api\\obj\\Release\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.API\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"

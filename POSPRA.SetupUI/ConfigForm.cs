@@ -12,7 +12,7 @@ namespace POSPRA.SetupUI
     public partial class ConfigForm : Form
     {
         //
-        //TOP Most Window
+        // TOP Most Window
         [DllImport("user32.dll")]
         private static extern bool SetWindowPos(
             IntPtr hWnd,
@@ -35,10 +35,16 @@ namespace POSPRA.SetupUI
         public ConfigForm(string configPath)
         {
             InitializeComponent();
-            _configPath = configPath; // ✅ already the full path now
+            _configPath = configPath;
 
             txtUsername.KeyPress += txtUsername_KeyPress;
             txtPassword.KeyPress += txtPassword_KeyPress;
+
+            // 🔑 Live validation
+            txtUsername.TextChanged += ValidateForm;
+            txtPassword.TextChanged += ValidateForm;
+
+            btnOk.Enabled = false; // disabled at start
             this.AcceptButton = btnOk;
         }
 
@@ -88,7 +94,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        // ✅ Restrict txtUsername to numeric only (max 6)
+        // Restrict txtUsername to numeric only (max 6)
         private void txtUsername_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
@@ -98,6 +104,7 @@ namespace POSPRA.SetupUI
                 e.Handled = true;
         }
 
+        // Restrict txtPassword to alphanumeric only (max 8)
         private void txtPassword_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsLetterOrDigit(e.KeyChar))
@@ -107,6 +114,15 @@ namespace POSPRA.SetupUI
                 e.Handled = true;
         }
 
+        // Live validation → enable OK only when valid
+        private void ValidateForm(object sender, EventArgs e)
+        {
+            bool validUsername = System.Text.RegularExpressions.Regex.IsMatch(txtUsername.Text, @"^\d{6}$");
+            bool validPassword = System.Text.RegularExpressions.Regex.IsMatch(txtPassword.Text, @"^[a-zA-Z0-9]{8}$");
+
+            btnOk.Enabled = validUsername && validPassword;
+        }
+
         private void btnOk_Click(object sender, EventArgs e)
         {
             try
@@ -114,26 +130,17 @@ namespace POSPRA.SetupUI
                 string username = txtUsername.Text.Trim();
                 string password = txtPassword.Text.Trim();
 
-                // 1. Both fields required
-                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                // Final strict validation
+                if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^\d{6}$"))
                 {
-                    MessageBox.Show("Both Username and Password are required.", "Validation Error",
+                    MessageBox.Show("Username must be exactly 6 numeric digits.", "Validation Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // 2. Username → numeric only, max 6 digits
-                if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^\d{1,6}$") || !txtUsername.Text.All(char.IsDigit))
+                if (!System.Text.RegularExpressions.Regex.IsMatch(password, @"^[a-zA-Z0-9]{8}$"))
                 {
-                    MessageBox.Show("Username must be numeric and up to 6 digits only.", "Validation Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // 3. Password → alphanumeric only, max 8 chars
-                if (!System.Text.RegularExpressions.Regex.IsMatch(password, @"^[a-zA-Z0-9]{1,8}$") || !txtPassword.Text.All(char.IsLetterOrDigit))
-                {
-                    MessageBox.Show("Password must be alphanumeric, max 8 characters, no special characters allowed.",
+                    MessageBox.Show("Password must be exactly 8 alphanumeric characters (no special chars).",
                         "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
@@ -152,12 +159,12 @@ namespace POSPRA.SetupUI
                 MessageBox.Show("POS ID and Access Code saved. Press Okay", "Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                Environment.Exit(0); // ✅ success
+                Environment.Exit(0); // success
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error updating POS ID and Access Code: " + ex.Message);
-                Environment.Exit(1); // ❌ error
+                Environment.Exit(1); // error
             }
         }
 
