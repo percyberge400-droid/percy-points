@@ -20,6 +20,7 @@ namespace POSPRA.Infrastructure.Context
         public DbSet<PosStatus> POSStatus { get; set; }
         public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
         public DbSet<Logs> Logs { get; set; } = null!;
+        public DbSet<Configurations> Configurations { get; set; } = null!;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SqlServerDbContext"/> with the specified options.

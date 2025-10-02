@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -71,7 +69,6 @@ var builder = Host.CreateDefaultBuilder(args)
         // 🔧 Services
         //----------------------------------------------------
         services.AddScoped<ILiveService, LiveService>();
-        services.AddScoped<IFiscalService, FiscalService>();
         services.AddScoped<InvoiceValidatorService>();
         services.AddSingleton<INetworkService, NetworkService>();
         services.AddScoped<ILogService, LogService>();

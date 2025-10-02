@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Options;
-using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
@@ -9,8 +11,6 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.LogDtos;
-using System.Text;
-using System.Text.Json;
 
 namespace POSPRA.Worker
 {
@@ -110,7 +110,7 @@ namespace POSPRA.Worker
             {
                 // First scope for initial unsynced read
                 using var readScope = _scopeFactory.CreateScope();
-                var fiscalService = readScope.ServiceProvider.GetRequiredService<IFiscalService>();
+                var fiscalService = readScope.ServiceProvider.GetRequiredService<IFileRecordService>();
 
                 var response = await fiscalService.GetAllUnsyncedAsync();
 
@@ -130,7 +130,7 @@ namespace POSPRA.Worker
                         {
                             // Second scope for updates
                             using var updateScope = _scopeFactory.CreateScope();
-                            var fiscal = updateScope.ServiceProvider.GetRequiredService<IFiscalService>();
+                            var fiscal = updateScope.ServiceProvider.GetRequiredService<IFileRecordService>();
                             await fiscal.UpdateFileRecordsAsync(files, false);
                         }
                     }
@@ -143,7 +143,7 @@ namespace POSPRA.Worker
                             Convert.ToInt32(ApiStatusCode.Success)
                         );
                 }
-                else if (response.StatusCode==ApiStatusCode.NotFound)
+                else if (response.StatusCode == ApiStatusCode.NotFound)
                 {
                     return;
                 }

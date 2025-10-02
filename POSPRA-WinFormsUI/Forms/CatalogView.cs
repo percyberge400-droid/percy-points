@@ -1,5 +1,4 @@
-﻿using POSPRA.Application.Services.FiscalService;
-using POSPRA.Application.Services.LogService;
+﻿using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
@@ -11,7 +10,6 @@ namespace POSPRA_WinFormsUI.Forms
     public partial class CatalogView : Form
     {
         private readonly ILogService _logService;
-        private readonly IFiscalService _fiscalService;
         private readonly IProductCatalogueService _productCatalogueService;
         private int _currentPage = 1;
         private int _pageSize = 50;
@@ -21,10 +19,9 @@ namespace POSPRA_WinFormsUI.Forms
         private const int SEARCH_FETCH_LIMIT = 2000;
         private bool _isSaving = false;
 
-        public CatalogView(IFiscalService fiscalService, IProductCatalogueService productCatalogueService, ILogService logService)
+        public CatalogView(IProductCatalogueService productCatalogueService, ILogService logService)
         {
             InitializeComponent();
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _productCatalogueService = productCatalogueService ?? throw new ArgumentNullException(nameof(productCatalogueService));
             _logService = logService;
 
@@ -239,7 +236,7 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     try
                     {
-                        var output = await _fiscalService.PostProductCatalog(dto);
+                        var output = await _productCatalogueService.PostProductCatalog(dto);
 
                         if (output.StatusCode == ApiStatusCode.Success)
                         {

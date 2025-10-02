@@ -158,6 +158,7 @@
 
 
 using Microsoft.EntityFrameworkCore;
+using POSPRA.API.Controllers;
 using POSPRA.API.Middlewares;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.ClientService;
@@ -218,7 +219,7 @@ namespace POSPRA.API
             //----------------------------------------------------
             builder.Services.AddControllers()
                 .PartManager.ApplicationParts.Add(
-                    new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(FiscalController).Assembly));
+                    new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(InvoiceController).Assembly));
 
             //----------------------------------------------------
             // 🔧 Database configuration
@@ -259,7 +260,6 @@ namespace POSPRA.API
             // 🔧 Application Services
             //----------------------------------------------------
             builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IFiscalService, FiscalService>();
             builder.Services.AddScoped<ILogService, LogService>();
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();

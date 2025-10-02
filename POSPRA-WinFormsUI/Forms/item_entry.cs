@@ -1,12 +1,11 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using System.Configuration;
+using System.Drawing.Drawing2D;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.Configuration;
-using System.Drawing.Drawing2D;
-using System.Runtime.Intrinsics.Arm;
 using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI
@@ -24,7 +23,7 @@ namespace POSPRA_WinFormsUI
         private static List<InvoiceItems> _sessionItems = new();
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
-        private readonly IFiscalService _fiscalService;
+        private readonly IInvoiceService _invoiceService;
         private bool _isSaving = false;
 
         //logs
@@ -34,11 +33,10 @@ namespace POSPRA_WinFormsUI
 
         #region Constructor / Initialization
 
-        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
+        public item_entry(IHttpClientFactory httpClientFactory, ILogService logService, IInvoiceService invoiceService)
         {
             InitializeComponent();
 
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
 
             // Load POSID from app.config
             posid.Text = ConfigurationManager.AppSettings["Username"] ?? "0";
@@ -84,6 +82,7 @@ namespace POSPRA_WinFormsUI
             CaptureOriginalLayout();
             InitializeEmptyGrid();
             _logService = logService;
+            _invoiceService = invoiceService;
             //_ = Createlog();
             //_ = CreateLog("test", AlertType.Info);
         }
@@ -215,7 +214,7 @@ namespace POSPRA_WinFormsUI
             {
                 Message = message,   // pass any message
                 Type = type,         // comes from AlertType constants
-                 
+
             };
 
             await _logService.LogAsync(log);
@@ -284,7 +283,7 @@ namespace POSPRA_WinFormsUI
                     if (res == DialogResult.No)
                         return;
                     _ = CreateLog("Invoice header looks incomplete.", AlertType.Info);
-                  
+
                 }
 
                 // Ensure CurrentInvoice updated with header values (may be empty)
@@ -355,7 +354,7 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
                 return;
             }
-            
+
             try
             {
                 _isSaving = true;
@@ -430,7 +429,7 @@ namespace POSPRA_WinFormsUI
                 //WindowsLocalAppNotification.Show("Information", "Saving invoice...");
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving  invoice", AlertType.Info);
-                var output = await _fiscalService.CreateAsync(invoiceDto);
+                var output = await _invoiceService.CreateAsync(invoiceDto);
 
                 if (output.StatusCode == ApiStatusCode.Success)
                 {

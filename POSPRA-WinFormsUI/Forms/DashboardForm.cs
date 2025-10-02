@@ -1,11 +1,10 @@
-﻿using POSPRA.Application.Services.FiscalService;
-using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Utility;
-using POSPRA.DTOs.LogDtos;
-using POSPRA_WinFormsUI.AlertClasses;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Data;
 using System.Text;
+using POSPRA.Application.Services.FileRecordService;
+using POSPRA.Application.Services.LogService;
+using POSPRA.DTOs.LogDtos;
+using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -13,7 +12,7 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly ILogService _logService;
-        private readonly IFiscalService _fiscalService;
+        private readonly IFileRecordService _fileRecordService;
 
         private bool _isInitialLoad = true;
         private bool _startDateSelected = false;
@@ -24,7 +23,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private int _isLoadingFlag = 0;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService)
+        public DashboardForm(IServiceProvider provider, ILogService logService, IFileRecordService fileRecordService)
         {
             InitializeComponent();
 
@@ -33,7 +32,6 @@ namespace POSPRA_WinFormsUI.Forms
             this.Load += DashboardForm_Load;
 
             _provider = provider;
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
             FormBorderStyle = FormBorderStyle.None;
@@ -59,6 +57,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnExportLogs.Click += btnExportLogs_Click;
 
             if (progressBar != null) progressBar.Visible = false;
+            _fileRecordService = fileRecordService;
         }
 
         private void CenterProgressBar()
@@ -143,7 +142,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var response = await _fiscalService.GetAllAsync();
+                var response = await _fileRecordService.GetAllAsync();
                 InvoicesDataGridView.Rows.Clear();
 
                 if (response?.Data == null || !response.Data.Any())
@@ -355,14 +354,14 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new SaveFileDialog())
+                using (SaveFileDialog sfd = new())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Logs_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new StringBuilder();
+                        StringBuilder csvContent = new();
 
                         // ✅ Write headers
                         var headers = LogsDataGridView.Columns

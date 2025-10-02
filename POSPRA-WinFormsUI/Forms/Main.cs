@@ -1,10 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using POSPRA.Application.Services.FiscalService;
+﻿using System.Net.NetworkInformation;
+using System.ServiceProcess;
+using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.Net.NetworkInformation;
-using System.ServiceProcess;
 using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -12,7 +11,6 @@ namespace POSPRA_WinFormsUI.Forms
     public partial class Main : Form
     {
         private readonly IServiceProvider _provider;
-        private readonly IFiscalService _fiscalService;
         //logs
         private readonly ILogService _logService;
         // -----------------------------
@@ -22,12 +20,11 @@ namespace POSPRA_WinFormsUI.Forms
         private CancellationTokenSource _workerServiceCts;
 
         // Track non-MDI forms separately
-        private readonly List<Form> _independentForms = new List<Form>();
+        private readonly List<Form> _independentForms = new();
 
-        public Main(IServiceProvider provider, IFiscalService fiscalService, ILogService logService)
+        public Main(IServiceProvider provider, ILogService logService)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
 
             InitializeComponent();
             this.IsMdiContainer = true;
