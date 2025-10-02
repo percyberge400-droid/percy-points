@@ -102,16 +102,18 @@ namespace POSPRA_WinFormsUI.Forms
                 _ = CreateLog($"Fetched {apiProducts.Count} products from API", AlertType.Info);
 
                 // Step 2: Clear old data from local DB using FiscalService
-                //var clearResult = await _fiscalService.ClearProductCatalog();
+                var clearResult = await _fiscalService.DeleteProductCatalogue();
 
-                //if (clearResult.StatusCode != ApiStatusCode.Success)
-                //{
-                //    AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
-                //    _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
-                //    return;
-                //}
+                if (clearResult.StatusCode != ApiStatusCode.Success && clearResult.StatusCode != ApiStatusCode.NotFound)
+                {
+                    AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
+                    _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
+                    return;
+                }
 
-                _ = CreateLog("Local database cleared successfully", AlertType.Info);
+                // treat empty DB as success
+                _ = CreateLog("Local database cleared (or already empty)", AlertType.Info);
+
                 AlertManager.ShowInfo($"Saving {apiProducts.Count} products to local database...");
 
                 // Step 3: Save fetched data to local DB using FiscalService

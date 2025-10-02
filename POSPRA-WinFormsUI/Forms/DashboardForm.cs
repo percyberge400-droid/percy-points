@@ -1,13 +1,12 @@
 ﻿using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Utility;
 using POSPRA.DTOs.LogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.ComponentModel;
 using System.Data;
 using System.Text;
-
 namespace POSPRA_WinFormsUI.Forms
+
 {
     public partial class DashboardForm : Form
     {
@@ -16,13 +15,22 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly IFiscalService _fiscalService;
 
         private bool _isInitialLoad = true;
-        private bool _startDateSelected = false;
-        private bool _endDateSelected = false;
         private bool _filterSyncedOnly = false;
 
         private bool _isSyncedSortDescending = true; // Default: Yes on top
 
         private int _isLoadingFlag = 0;
+
+        private DateTime _startDate = DateTime.Today.AddDays(-7);
+        private DateTime _endDate = DateTime.Today;
+
+        private int _pendingCount;
+        private int _syncedCount;
+
+        private int _totalLogsCount = 0;
+        private int _errorLogsCount = 0;
+        private int _warningLogsCount = 0;
+        private int _infoLogsCount = 0;
 
         public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService)
         {
@@ -41,26 +49,156 @@ namespace POSPRA_WinFormsUI.Forms
             ShowIcon = false;
             Text = string.Empty;
 
-            dtpInvoicesStart.ValueChanged += dtpInvoicesStart_ValueChanged;
-            dtpInvoicesEnd.ValueChanged += dtpInvoicesEnd_ValueChanged;
+            StyleDateRangeLabel();
 
-            dtpInvoicesStart.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesStart.CustomFormat = "' Select Start Date'";
-            dtpInvoicesEnd.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesEnd.CustomFormat = "' Select End Date'";
+            lblDateRange.Click += LblDateRange_Click;
+            dtpStartDate.ValueChanged += DtpStartDate_ValueChanged;
+            dtpEndDate.ValueChanged += DtpEndDate_ValueChanged;
+            dtpStartDate.CloseUp += DtpStartDate_CloseUp;
+            dtpEndDate.CloseUp += DtpEndDate_CloseUp;
 
-            btnFilterInvoices.Click += btnFilterInvoices_Click;
             btnToday.Click += btnToday_Click;
             btnClearFilter.Click += btnClearFilter_Click;
             btnRefresh.Click += btnRefresh_Click;
             btnFilterSynced.Click += btnFilterSynced_Click;
-            btnLoadFullData.Click += btnLoadFullData_Click;
+            btnFilter.Click += btnFilterInvoices_Click;
+            btnExportInvoice.Click += btnExportInvoice_Click;
 
             btnExportLogs.Click += btnExportLogs_Click;
+            panelinvoicechart.Resize -= Panel_Resize;
+            panelinvoicechart.Resize += Panel_Resize;
+
+            panellogchart.Resize -= LogChartPanel_Resize;
+            panellogchart.Resize += LogChartPanel_Resize;
 
             if (progressBar != null) progressBar.Visible = false;
+            ApplyGradientBackground(
+                panelAll,
+                ColorTranslator.FromHtml("#48A787"),
+                ColorTranslator.FromHtml("#0D7351")
+            );
+            ApplyGradientBackground(
+                panelPending,
+                ColorTranslator.FromHtml("#8860C1"),
+                ColorTranslator.FromHtml("#584ABC")
+            );
+            ApplyGradientBackground(
+                panelPaid,
+                ColorTranslator.FromHtml("#4DBDED"),
+                ColorTranslator.FromHtml("#6694DA")
+            );
+            AddImageToPanelRight(panelAll, Resources.InvoiceAll);
+            AddImageToPanelRight(panelPending, Resources.NotSynced);
+            AddImageToPanelRight(panelPaid, Resources.Synced);
+            SetButtonImage(btnFilter, Resources.Filter, ColorTranslator.FromHtml("#0D7351"));
+            SetButtonImage(btnRefresh, Resources.refresh, ColorTranslator.FromHtml("#5BBBB3"));
+            SetButtonImage(btnClearFilter, Resources.clearFilter, ColorTranslator.FromHtml("#DC2626"));
+
+            InitializeLogStatistics();
+
+        }
+        private void InitializeLogStatistics()
+        {
+            // Set initial values
+            UpdateLogStatisticsDisplay();
+        }
+        private void UpdateLogStatisticsDisplay()
+        {
+            // Update the labels with current counts
+            if (lblTotalLogsCount != null)
+                lblTotalLogsCount.Text = _totalLogsCount.ToString();
+
+            if (lblErrorLogsCount != null)
+                lblErrorLogsCount.Text = _errorLogsCount.ToString();
+
+            if (lblWarningLogsCount != null)
+                lblWarningLogsCount.Text = _warningLogsCount.ToString();
+
+            if (lblInfoLogsCount != null)
+                lblInfoLogsCount.Text = _infoLogsCount.ToString();
         }
 
+        private void CalculateLogStatistics(IEnumerable<LogDto> logs)
+        {
+            if (logs == null)
+            {
+                _totalLogsCount = 0;
+                _errorLogsCount = 0;
+                _warningLogsCount = 0;
+                _infoLogsCount = 0;
+                return;
+            }
+
+            _totalLogsCount = logs.Count(l =>
+                l.Type?.Equals("Success", StringComparison.OrdinalIgnoreCase) == true);
+            _errorLogsCount = logs.Count(l =>
+                l.Type?.Equals("Error", StringComparison.OrdinalIgnoreCase) == true ||
+                l.Type?.Equals("Exception", StringComparison.OrdinalIgnoreCase) == true);
+            _warningLogsCount = logs.Count(l =>
+                l.Type?.Equals("Warning", StringComparison.OrdinalIgnoreCase) == true);
+            _infoLogsCount = logs.Count(l =>
+                l.Type?.Equals("Information", StringComparison.OrdinalIgnoreCase) == true ||
+                l.Type?.Equals("Info", StringComparison.OrdinalIgnoreCase) == true);
+        }
+
+        private void LogChartPanel_Resize(object sender, EventArgs e)
+        {
+            UpdateLogStatisticsLayout();
+        }
+
+        private void UpdateLogStatisticsLayout()
+        {
+            if (panellogchart == null || tableLayoutPanelLogStats == null) return;
+
+            // Adjust font sizes based on panel size
+            int panelHeight = panellogchart.Height;
+            int titleFontSize = Math.Max(8, Math.Min(12, panelHeight / 25));
+            int countFontSize = Math.Max(12, Math.Min(24, panelHeight / 12));
+
+            // Update fonts for all statistic panels
+            UpdateStatPanelFonts(panelTotalLogs, lblTotalLogsCount, lblTotalLogsTitle, countFontSize, titleFontSize);
+            UpdateStatPanelFonts(panelErrorLogs, lblErrorLogsCount, lblErrorLogsTitle, countFontSize, titleFontSize);
+            UpdateStatPanelFonts(panelWarningLogs, lblWarningLogsCount, lblWarningLogsTitle, countFontSize, titleFontSize);
+            UpdateStatPanelFonts(panelInfoLogs, lblInfoLogsCount, lblInfoLogsTitle, countFontSize, titleFontSize);
+        }
+        private void UpdateStatPanelFonts(Panel panel, Label countLabel, Label titleLabel, int countSize, int titleSize)
+        {
+            if (countLabel != null)
+            {
+                countLabel.Font = new Font("Segoe UI", countSize, FontStyle.Bold);
+                countLabel.TextAlign = ContentAlignment.MiddleCenter; // Ensure centered
+                countLabel.AutoSize = false; // Disable auto-size for better control
+                countLabel.Dock = DockStyle.None; // Remove dock for manual positioning
+            }
+
+            if (titleLabel != null)
+            {
+                titleLabel.Font = new Font("Segoe UI", titleSize, FontStyle.Regular);
+                titleLabel.TextAlign = ContentAlignment.MiddleCenter; // Ensure centered
+                titleLabel.AutoSize = false; // Disable auto-size for better control
+                titleLabel.Dock = DockStyle.None; // Remove dock for manual positioning
+            }
+
+            // Adjust positioning within the panel for centered layout
+            if (panel != null && countLabel != null && titleLabel != null)
+            {
+                int padding = 8;
+
+                // Position count label - centered horizontally, top portion
+                countLabel.Width = panel.Width - (padding * 2);
+                countLabel.Height = (int)(panel.Height * 0.6); // 60% of panel height for number
+                countLabel.Left = padding;
+                countLabel.Top = padding;
+                countLabel.TextAlign = ContentAlignment.MiddleCenter;
+
+                // Position title label - centered horizontally, bottom portion
+                titleLabel.Width = panel.Width - (padding * 2);
+                titleLabel.Height = (int)(panel.Height * 0.3); // 30% of panel height for title
+                titleLabel.Left = padding;
+                titleLabel.Top = panel.Height - titleLabel.Height - padding;
+                titleLabel.TextAlign = ContentAlignment.MiddleCenter;
+            }
+        }
         private void CenterProgressBar()
         {
             if (progressBar != null && InvoicesDataGridView != null)
@@ -71,28 +209,90 @@ namespace POSPRA_WinFormsUI.Forms
                 progressBar.BringToFront();
             }
         }
-
-        private void dtpInvoicesStart_ValueChanged(object sender, EventArgs e)
+        private void LblDateRange_Click(object sender, EventArgs e)
         {
-            dtpInvoicesStart.Format = DateTimePickerFormat.Short;
-            _startDateSelected = true;
+            dtpStartDate.Visible = true;
+            dtpStartDate.Focus();
+            SendKeys.Send("%{DOWN}");
         }
 
-        private void dtpInvoicesEnd_ValueChanged(object sender, EventArgs e)
+        private void DtpStartDate_ValueChanged(object sender, EventArgs e)
         {
-            dtpInvoicesEnd.Format = DateTimePickerFormat.Short;
-            _endDateSelected = true;
+            _startDate = dtpStartDate.Value.Date;
+            UpdateDateRangeLabel();
+        }
+
+        private void DtpEndDate_ValueChanged(object sender, EventArgs e)
+        {
+            _endDate = dtpEndDate.Value.Date;
+            UpdateDateRangeLabel();
+        }
+
+        private void DtpStartDate_CloseUp(object sender, EventArgs e)
+        {
+            dtpStartDate.Visible = false;
+            dtpEndDate.Visible = true;
+            dtpEndDate.Focus();
+            SendKeys.Send("%{DOWN}");
+        }
+
+        private void DtpEndDate_CloseUp(object sender, EventArgs e)
+        {
+            dtpEndDate.Visible = false;
+            UpdateDateRangeLabel();
+        }
+
+        private void UpdateDateRangeLabel()
+        {
+            if (_startDate == _endDate)
+            {
+                lblDateRange.Text = $"  {_startDate:MMM d, yyyy}";
+            }
+            else
+            {
+                lblDateRange.Text = $"  {_startDate:MMM d, yyyy} - {_endDate:MMM d, yyyy}";
+            }
+        }
+
+        private void StyleDateRangeLabel()
+        {
+            lblDateRange.Paint += (s, e) =>
+            {
+                // Draw rounded border
+                using (var pen = new Pen(Color.FromArgb(209, 213, 219), 1))
+                {
+                    var rect = new Rectangle(0, 0, lblDateRange.Width - 1, lblDateRange.Height - 1);
+                    var radius = 6;
+                    using (var path = GetRoundedRect(rect, radius))
+                    {
+                        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                        e.Graphics.DrawPath(pen, path);
+                    }
+                }
+
+                // Draw calendar icon on right
+                using (var iconBrush = new SolidBrush(Color.FromArgb(107, 114, 128)))
+                {
+                    var iconFont = new Font("Segoe UI Symbol", 10F);
+                    var iconText = "📅";
+                    var iconSize = e.Graphics.MeasureString(iconText, iconFont);
+                    var iconX = lblDateRange.Width - iconSize.Width - 10;
+                    var iconY = (lblDateRange.Height - iconSize.Height) / 2;
+                    e.Graphics.DrawString(iconText, iconFont, iconBrush, iconX, iconY);
+                }
+            };
         }
 
         private async void DashboardForm_Load(object sender, EventArgs e)
         {
             try
             {
-                // Initial load: last 7 days only
-                dtpInvoicesStart.Value = DateTime.Today.AddDays(-7);
-                dtpInvoicesEnd.Value = DateTime.Today;
-                _startDateSelected = true;
-                _endDateSelected = true;
+                _startDate = DateTime.Today.AddDays(-7);
+                _endDate = DateTime.Today;
+                dtpStartDate.Value = _startDate;
+                dtpEndDate.Value = _endDate;
+                UpdateDateRangeLabel();
+                ApplyDataGridStyles();
 
                 await RunSingleLoad(async () =>
                 {
@@ -148,24 +348,22 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (response?.Data == null || !response.Data.Any())
                 {
-                    //WindowsLocalAppNotification.Show("Invoices", "No invoices found.");
                     AlertManager.ShowWarning("No invoices found.");
                     return;
                 }
 
                 IEnumerable<dynamic> filteredInvoices = response.Data;
 
-                if (!skipDateFilter && _startDateSelected && _endDateSelected)
+                if (!skipDateFilter)
                 {
                     filteredInvoices = filteredInvoices.Where(i =>
-                        i.DateCreated >= dtpInvoicesStart.Value.Date &&
-                        i.DateCreated <= dtpInvoicesEnd.Value.Date.AddDays(1).AddTicks(-1));
+                        i.DateCreated >= _startDate &&
+                        i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
                 if (_filterSyncedOnly)
                     filteredInvoices = filteredInvoices.Where(i => i.IsSynced == 1);
 
-                // ✅ Order by most recent (DateCreated DESC)
                 var invoicesList = filteredInvoices
                     .OrderByDescending(i => i.DateCreated)
                     .ToList();
@@ -181,6 +379,7 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.Maximum = totalInvoices;
                     progressBar.Value = 0;
                     progressBar.Visible = true;
+                    progressBar.BringToFront();
                 }
 
                 var rows = new List<DataGridViewRow>();
@@ -192,16 +391,15 @@ namespace POSPRA_WinFormsUI.Forms
                     var row = new DataGridViewRow();
                     row.CreateCells(InvoicesDataGridView);
 
-                    // ✅ Sr No. (1 = most recent invoice)
-                    row.Cells[InvoicesDataGridView.Columns["colId"].Index].Value = i + 1;
+                    // safer column assignment
+                    SetCellValue(row, "colId", i + 1);
+                    SetCellValue(row, "colPosId", inv.POSID);
+                    SetCellValue(row, "colInvoiceNumber", inv.InvoiceNumber ?? "N/A");
+                    SetCellValue(row, "colIsSynced", inv.IsSynced == 1 ? "Yes" : "No");
+                    SetCellValue(row, "colAttemptCount", inv.AttemptCount);
+                    SetCellValue(row, "colDateCreated", inv.DateCreated.ToString("dd-MM-yyyy HH:mm:ss"));
 
-                    row.Cells[InvoicesDataGridView.Columns["colPosId"].Index].Value = inv.POSID;
-                    row.Cells[InvoicesDataGridView.Columns["colInvoiceNumber"].Index].Value = inv.InvoiceNumber ?? "N/A";
-                    row.Cells[InvoicesDataGridView.Columns["colIsSynced"].Index].Value = inv.IsSynced == 1 ? "Yes" : "No";
-                    row.Cells[InvoicesDataGridView.Columns["colAttemptCount"].Index].Value = inv.AttemptCount;
-                    row.Cells[InvoicesDataGridView.Columns["colDateCreated"].Index].Value = inv.DateCreated.ToString("dd-MM-yyyy HH:mm:ss");
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
-
                     rows.Add(row);
 
                     if (inv.IsSynced == 1) syncedCount++;
@@ -218,15 +416,23 @@ namespace POSPRA_WinFormsUI.Forms
                 InvoicesDataGridView.Rows.AddRange(rows.ToArray());
                 InvoicesDataGridView.ResumeLayout(true);
 
-                // ✅ Update summary labels
                 labelAllInvoices.Text = totalInvoices.ToString();
                 labelPendingInvoice.Text = pendingCount.ToString();
                 labelPaidInvoices.Text = syncedCount.ToString();
-                labelInProgressInvc.Text = inProgressCount.ToString();
+                _pendingCount = pendingCount;
+                _syncedCount = syncedCount;
+                DrawInvoicePieChart(panelinvoicechart, _syncedCount, _pendingCount);
+
+
 
                 if (progressBar != null)
                 {
                     progressBar.Visible = false;
+                }
+                InvoicesDataGridView.ClearSelection();
+                if (InvoicesDataGridView.Rows.Count > 0)
+                {
+                    InvoicesDataGridView.CurrentCell = null;
                 }
             }
             catch (Exception ex)
@@ -238,6 +444,14 @@ namespace POSPRA_WinFormsUI.Forms
                 AlertManager.ShowError($"Error loading invoices: {ex.Message}");
             }
         }
+        private void SetCellValue(DataGridViewRow row, string columnName, object value)
+        {
+            if (InvoicesDataGridView.Columns.Contains(columnName))
+            {
+                row.Cells[InvoicesDataGridView.Columns[columnName].Index].Value = value;
+            }
+        }
+
 
         // ----------------------------------------
         // Optimized Load Logs
@@ -253,16 +467,20 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     WindowsLocalAppNotification.Show("Logs", "No logs available to display");
                     AlertManager.ShowWarning("No logs available to display");
+
+                    // Reset log statistics
+                    CalculateLogStatistics(null);
+                    UpdateLogStatisticsDisplay();
                     return;
                 }
 
                 IEnumerable<LogDto> filteredLogs = response.Data;
 
-                if (!skipDateFilter && _startDateSelected && _endDateSelected)
+                if (!skipDateFilter)
                 {
                     filteredLogs = filteredLogs.Where(l =>
-                        l.CreatedAtPk >= dtpInvoicesStart.Value.Date &&
-                        l.CreatedAtPk <= dtpInvoicesEnd.Value.Date.AddDays(1).AddTicks(-1));
+                        l.CreatedAtPk >= _startDate &&
+                        l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
                 // ✅ Order by CreatedAtPk DESC (latest log first)
@@ -271,6 +489,10 @@ namespace POSPRA_WinFormsUI.Forms
                     .ToList();
 
                 int totalLogs = logsList.Count;
+
+                // Calculate log statistics
+                CalculateLogStatistics(logsList);
+                UpdateLogStatisticsDisplay();
 
                 LogsDataGridView.SuspendLayout();
 
@@ -293,7 +515,6 @@ namespace POSPRA_WinFormsUI.Forms
 
                     // ✅ Sr No. (1 = latest log at the top)
                     row.Cells[LogsDataGridView.Columns["colLogID"].Index].Value = i + 1;
-
                     row.Cells[LogsDataGridView.Columns["colMessage"].Index].Value = log.Message ?? "No message";
                     row.Cells[LogsDataGridView.Columns["colException"].Index].Value = log.Type ?? "N/A";
                     row.Cells[LogsDataGridView.Columns["logdatetime"].Index].Value = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss");
@@ -314,36 +535,112 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     progressBar.Visible = false;
                 }
+                LogsDataGridView.ClearSelection();
+                if (LogsDataGridView.Rows.Count > 0)
+                {
+                    LogsDataGridView.CurrentCell = null;
+                }
             }
             catch (Exception ex)
             {
                 LogsDataGridView.ResumeLayout(true);
                 if (progressBar != null) progressBar.Visible = false;
 
+                // Reset log statistics on error
+                CalculateLogStatistics(null);
+                UpdateLogStatisticsDisplay();
+
                 WindowsLocalAppNotification.Show("Logs Error", $"Error loading logs: {ex.Message}");
                 AlertManager.ShowError($"Error loading logs: {ex.Message}");
             }
         }
 
-
         // ----------------------------------------
-        // Full Data Button
+        // Export Invoices Button
         // ----------------------------------------
-        private async void btnLoadFullData_Click(object sender, EventArgs e)
+        private async void btnExportInvoice_Click(object sender, EventArgs e)
         {
-            ResetSortToDefault();
-            _startDateSelected = false;
-            _endDateSelected = false;
-
-            await RunSingleLoad(async () =>
+            try
             {
-                await LoadAndShowInvoicesAsync(skipDateFilter: true);
-                await LoadAndShowLogsAsync(skipDateFilter: true);
-            });
+                if (InvoicesDataGridView.Rows.Count == 0)
+                {
+                    MessageBox.Show("No invoices available to export.", "Export Invoices", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                using (SaveFileDialog sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "CSV Files (*.csv)|*.csv";
+                    sfd.FileName = $"Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                    sfd.OverwritePrompt = true;
+
+                    if (sfd.ShowDialog() == DialogResult.OK)
+                    {
+                        StringBuilder csvContent = new StringBuilder();
+
+                        // ✅ Write headers
+                        var headers = InvoicesDataGridView.Columns
+                            .Cast<DataGridViewColumn>()
+                            .Where(c => c.Visible)
+                            .Select(c => EscapeCsvField(c.HeaderText));
+                        csvContent.AppendLine(string.Join(",", headers));
+
+                        // ✅ Write rows
+                        foreach (DataGridViewRow row in InvoicesDataGridView.Rows)
+                        {
+                            if (!row.IsNewRow)
+                            {
+                                var cells = row.Cells.Cast<DataGridViewCell>()
+                                    .Where(c => c.OwningColumn.Visible)
+                                    .Select(c => EscapeCsvField(c.Value?.ToString() ?? ""));
+                                csvContent.AppendLine(string.Join(",", cells));
+                            }
+                        }
+
+                        // ✅ Save file
+                        await File.WriteAllTextAsync(sfd.FileName, csvContent.ToString(), Encoding.UTF8);
+
+                        // Show success message with file location
+                        MessageBox.Show($"Invoices exported successfully!\n\nFile saved to:\n{sfd.FileName}",
+                            "Export Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show("Access denied. Please choose a different location or check file permissions.",
+                    "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (IOException ioEx)
+            {
+                MessageBox.Show($"File error: {ioEx.Message}\n\nPlease ensure the file is not open in another program.",
+                    "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error exporting invoices: {ex.Message}",
+                    "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
+        // Helper method for proper CSV field escaping
+        private string EscapeCsvField(string field)
+        {
+            if (string.IsNullOrEmpty(field))
+                return "";
+
+            // If field contains comma, quote, or newline, wrap in quotes and escape existing quotes
+            if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
+            {
+                return $"\"{field.Replace("\"", "\"\"")}\"";
+            }
+
+            return field;
+        }
+
+
         // ----------------------------------------
-        // Export Invoice Button
+        // Export Logs Button
         // ----------------------------------------
         private async void btnExportLogs_Click(object sender, EventArgs e)
         {
@@ -449,10 +746,11 @@ namespace POSPRA_WinFormsUI.Forms
         private async void btnToday_Click(object sender, EventArgs e)
         {
             ResetSortToDefault();
-            dtpInvoicesStart.Value = DateTime.Today;
-            dtpInvoicesEnd.Value = DateTime.Today;
-            _startDateSelected = true;
-            _endDateSelected = true;
+            _startDate = DateTime.Today;
+            _endDate = DateTime.Today;
+            dtpStartDate.Value = _startDate;
+            dtpEndDate.Value = _endDate;
+            UpdateDateRangeLabel();
             await RunSingleLoad(async () =>
             {
                 await LoadAndShowInvoicesAsync();
@@ -463,19 +761,13 @@ namespace POSPRA_WinFormsUI.Forms
         private async void btnClearFilter_Click(object sender, EventArgs e)
         {
             ResetSortToDefault();
-            _startDateSelected = false;
-            _endDateSelected = false;
             _filterSyncedOnly = false;
 
-            // ✅ Reset backend values safely
-            dtpInvoicesStart.Value = DateTime.Today; // start can default to today
-            dtpInvoicesEnd.Value = DateTime.Today.AddDays(1);
-
-            // ✅ Reset UI placeholders
-            dtpInvoicesStart.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesStart.CustomFormat = "' Select Start Date'";
-            dtpInvoicesEnd.Format = DateTimePickerFormat.Custom;
-            dtpInvoicesEnd.CustomFormat = "' Select End Date'";
+            _startDate = DateTime.Today.AddDays(-7);
+            _endDate = DateTime.Today;
+            dtpStartDate.Value = _startDate;
+            dtpEndDate.Value = _endDate;
+            lblDateRange.Text = "Select Date From-To";
 
             await RunSingleLoad(async () =>
             {
@@ -530,6 +822,24 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
+        private void FixSerialNumberHeaderColor()
+        {
+            // Disable selection on load to prevent initial blue highlight
+            InvoicesDataGridView.ClearSelection();
+            LogsDataGridView.ClearSelection();
+
+            // Set current cell to null to remove focus
+            if (InvoicesDataGridView.Rows.Count > 0)
+            {
+                InvoicesDataGridView.CurrentCell = null;
+            }
+
+            if (LogsDataGridView.Rows.Count > 0)
+            {
+                LogsDataGridView.CurrentCell = null;
+            }
+        }
+
         private void ClearAllGrids()
         {
             // Clear both grids
@@ -540,7 +850,6 @@ namespace POSPRA_WinFormsUI.Forms
             labelAllInvoices.Text = "0";
             labelPendingInvoice.Text = "0";
             labelPaidInvoices.Text = "0";
-            labelInProgressInvc.Text = "0";
 
             // Force form refresh
             this.Refresh();
@@ -567,8 +876,7 @@ namespace POSPRA_WinFormsUI.Forms
                 await Task.Delay(200);
 
                 // Determine if we should skip date filter
-                bool skipDateFilter = !_startDateSelected || !_endDateSelected;
-
+                bool skipDateFilter = false;
                 // Reset synced filter
                 _filterSyncedOnly = false;
 
@@ -602,6 +910,578 @@ namespace POSPRA_WinFormsUI.Forms
             e.ThrowException = false;
             if (sender is DataGridView grid && e.RowIndex >= 0 && e.ColumnIndex >= 0)
                 grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = "N/A";
+        }
+
+        /// <summary>
+        /// Sets an image inside a button, scales it properly, centers it, and applies a background color.
+        /// </summary>
+        /// <param name="btn">The Button to apply the image to</param>
+        /// <param name="img">The Image to set</param>
+        /// <param name="bgColor">Background color of the button</param>
+        private void SetButtonImage(Button btn, Image img, Color bgColor)
+        {
+            if (btn == null) return;
+
+            // Set background color
+            btn.BackColor = bgColor;
+
+            if (img == null)
+            {
+                btn.Image = null;
+                return;
+            }
+
+            // Dispose previous image to prevent memory leaks
+            if (btn.Image != null)
+            {
+                btn.Image.Dispose();
+                btn.Image = null;
+            }
+
+            // Calculate maximum size to fit inside button, leaving some padding
+            int padding = 8;
+            int maxWidth = btn.Width - padding;
+            int maxHeight = btn.Height - padding;
+
+            // Calculate scaled size while keeping aspect ratio
+            double ratioX = (double)maxWidth / img.Width;
+            double ratioY = (double)maxHeight / img.Height;
+            double ratio = Math.Min(ratioX, ratioY);
+
+            int newWidth = (int)(img.Width * ratio);
+            int newHeight = (int)(img.Height * ratio);
+
+            // Resize the image
+            Image resized = new Bitmap(img, new Size(newWidth, newHeight));
+
+            // Apply image to button
+            btn.Image = resized;
+            btn.ImageAlign = ContentAlignment.MiddleCenter; // center
+            btn.Text = ""; // remove text if needed
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.BackgroundImageLayout = ImageLayout.None;
+        }
+
+        /// <summary>
+        /// Adds an image to the right side of a panel.
+        /// </summary>
+        /// <param name="panel">The panel to add the image to.</param>
+        /// <param name="image">The image to display.</param>
+        /// <param name="width">Optional: width of the image box (default 60).</param>
+        private void AddImageToPanelRight(Panel panel, Image image, int width = 60)
+        {
+            if (panel == null || image == null) return;
+
+            // Create PictureBox
+            PictureBox pic = new PictureBox
+            {
+                Image = image,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Dock = DockStyle.Right,
+                Width = width,
+                Margin = new Padding(5)
+            };
+
+            // Add PictureBox to panel
+            panel.Controls.Add(pic);
+
+            // Reconfigure existing labels to position them correctly
+            foreach (Control ctrl in panel.Controls)
+            {
+                if (ctrl != pic && ctrl is Label lbl)
+                {
+                    lbl.Dock = DockStyle.None;
+                    lbl.AutoSize = false;
+                    lbl.ForeColor = Color.White; // ✅ Always white text
+
+                    if (lbl.Font.Size > 20) // ✅ Number label
+                    {
+                        lbl.TextAlign = ContentAlignment.TopLeft;
+                        lbl.Location = new Point(15, 15);
+                        lbl.Width = panel.Width - width - 30;
+                        lbl.Height = (int)(panel.Height * 0.6);
+                    }
+                    else // ✅ Title label
+                    {
+                        lbl.TextAlign = ContentAlignment.MiddleLeft;
+                        lbl.Location = new Point(15, (int)(panel.Height * 0.55)); // 🔼 slightly higher
+                        lbl.Width = panel.Width - width - 30;
+                        lbl.Height = (int)(panel.Height * 0.35);
+                    }
+                }
+            }
+        }
+
+
+        private void ApplyGradientBackground(Control control, Color startColor, Color endColor)
+        {
+            control.Paint += (s, e) =>
+            {
+                using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
+                    control.ClientRectangle,
+                    startColor,
+                    endColor,
+                    System.Drawing.Drawing2D.LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(brush, control.ClientRectangle);
+                }
+            };
+
+            // To allow gradient to show behind children
+            control.BackColor = Color.Transparent;
+            control.Invalidate(); // Force repaint
+        }
+
+        private void StyleDataGridView(DataGridView dgv)
+        {
+            // General settings
+            dgv.BorderStyle = BorderStyle.None;
+            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
+            dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgv.GridColor = Color.FromArgb(226, 232, 240);
+            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(59, 130, 246);
+            dgv.DefaultCellStyle.SelectionForeColor = Color.White;
+            dgv.BackgroundColor = Color.White;
+            dgv.RowHeadersVisible = false;
+            dgv.EnableHeadersVisualStyles = false;
+            dgv.AllowUserToAddRows = false;
+            dgv.AllowUserToDeleteRows = false;
+            dgv.AllowUserToResizeRows = false;
+            dgv.ReadOnly = true;
+            dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgv.MultiSelect = false;
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+            // Column header style
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
+            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.ColumnHeadersHeight = 52;
+            dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+
+            // Cell style (adjusted)
+            dgv.DefaultCellStyle.BackColor = Color.White;
+            dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
+            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F); // slightly bigger & cleaner
+            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6); // less vertical padding
+            dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+
+            // Adjust row height so text fits nicely
+            dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
+        }
+
+
+        private void StyleInvoicesDataGridView()
+        {
+            // Clear existing columns first
+            InvoicesDataGridView.Columns.Clear();
+
+            // Apply base styling
+            StyleDataGridView(InvoicesDataGridView);
+
+            // Add columns with specific styling
+            var colId = new DataGridViewTextBoxColumn
+            {
+                Name = "colId",
+                HeaderText = "Sr. No.",
+                Width = 80,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    ForeColor = Color.FromArgb(107, 114, 128),
+                    Font = new Font("Segoe UI", 9F)
+                }
+            };
+
+            var colPosId = new DataGridViewTextBoxColumn
+            {
+                Name = "colPosId",
+                HeaderText = "POS ID",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colInvoiceNumber = new DataGridViewTextBoxColumn
+            {
+                Name = "colInvoiceNumber",
+                HeaderText = "Invoice Number",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colIsSynced = new DataGridViewTextBoxColumn
+            {
+                Name = "colIsSynced",
+                HeaderText = "Invoice Synced",
+                Width = 150,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colAttemptCount = new DataGridViewTextBoxColumn
+            {
+                Name = "colAttemptCount",
+                HeaderText = "Attempt Count",
+                Width = 140,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colDateCreated = new DataGridViewTextBoxColumn
+            {
+                Name = "colDateCreated",
+                HeaderText = "Date Created",
+                Width = 180,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[]
+            {
+        colId, colPosId, colInvoiceNumber, colIsSynced, colAttemptCount, colDateCreated
+            });
+            // Attach custom cell painting for badges in Type column
+            InvoicesDataGridView.CellPainting += InvoicesDataGridView_CellPainting;
+        }
+
+        private void StyleLogsDataGridView()
+        {
+            // Clear existing columns first
+            LogsDataGridView.Columns.Clear();
+
+            // Apply base styling
+            StyleDataGridView(LogsDataGridView);
+
+            // Add log-specific columns
+            var colLogID = new DataGridViewTextBoxColumn
+            {
+                Name = "colLogID",
+                HeaderText = "Sr. No.",
+                Width = 80,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    ForeColor = Color.FromArgb(107, 114, 128),
+                    Font = new Font("Segoe UI", 9F)
+                }
+            };
+
+            var colMessage = new DataGridViewTextBoxColumn
+            {
+                Name = "colMessage",
+                HeaderText = "Message",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colException = new DataGridViewTextBoxColumn
+            {
+                Name = "colException",
+                HeaderText = "Type",
+                Width = 150,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colDateTime = new DataGridViewTextBoxColumn
+            {
+                Name = "logdatetime",
+                HeaderText = "Date/Time",
+                Width = 180,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            LogsDataGridView.Columns.AddRange(new DataGridViewColumn[]
+            {
+        colLogID, colMessage, colException, colDateTime
+            });
+
+            // Attach custom cell painting for badges in Type column
+            LogsDataGridView.CellPainting += LogsDataGridView_CellPainting;
+        }
+        private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colIsSynced"].Index)
+            {
+                e.PaintBackground(e.CellBounds, true);
+
+                string value = e.Value?.ToString() ?? "";
+                Image icon = null;
+
+                if (value.Equals("Yes", StringComparison.OrdinalIgnoreCase))
+                    icon = Resources.GreenTick;
+                else if (value.Equals("No", StringComparison.OrdinalIgnoreCase))
+                    icon = Resources.RedCross;
+
+                if (icon != null)
+                {
+                    // Use 70% of cell height for icon size
+                    int iconSize = (int)(e.CellBounds.Height * 0.7);
+                    // Ensure minimum and maximum sizes
+                    iconSize = Math.Max(24, Math.Min(iconSize, 32)); // Min 24px, Max 32px
+
+                    int x = e.CellBounds.X + (e.CellBounds.Width - iconSize) / 2;
+                    int y = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
+
+                    e.Graphics.DrawImage(icon, new Rectangle(x, y, iconSize, iconSize));
+                    e.Handled = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets an image inside a button, scales it properly, and centers it.
+        /// </summary>
+        /// <param name="btn">The Button to apply the image to</param>
+        /// <param name="img">The Image to set</param>
+
+        private void LogsDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            // Check if it's the "Type" column (colException - index 2)
+            if (e.ColumnIndex == 2 && e.RowIndex >= 0)
+            {
+                var value = e.Value?.ToString() ?? "";
+
+                Color badgeColor = Color.LightGray;
+                Color textColor = Color.Black;
+
+                if (value.Equals("Information", StringComparison.OrdinalIgnoreCase) ||
+                    value.Equals("Info", StringComparison.OrdinalIgnoreCase))
+                {
+                    badgeColor = Color.FromArgb(209, 250, 229);
+                    textColor = Color.FromArgb(5, 150, 105);
+                }
+                else if (value.Equals("Warning", StringComparison.OrdinalIgnoreCase))
+                {
+                    badgeColor = Color.FromArgb(254, 226, 226);
+                    textColor = Color.FromArgb(220, 38, 38);
+                }
+                else if (value.Equals("Exception", StringComparison.OrdinalIgnoreCase) ||
+                         value.Equals("Error", StringComparison.OrdinalIgnoreCase))
+                {
+                    badgeColor = Color.FromArgb(254, 243, 199);
+                    textColor = Color.FromArgb(217, 119, 6);
+                }
+
+                if (!string.IsNullOrEmpty(value))
+                {
+                    e.PaintBackground(e.CellBounds, true);
+
+                    // ✅ Fixed badge width, dynamic badge height
+                    int badgeWidth = 120;
+                    int padding = 8; // space above/below inside the row
+                    int badgeHeight = e.CellBounds.Height - padding;
+
+                    // Center vertically
+                    int x = e.CellBounds.X + 15;
+                    int y = e.CellBounds.Y + (e.CellBounds.Height - badgeHeight) / 2;
+
+                    // Create rounded rectangle for badge
+                    using (var path = GetRoundedRect(new Rectangle(x, y, badgeWidth, badgeHeight), 6))
+                    {
+                        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                        using (var brush = new SolidBrush(badgeColor))
+                        {
+                            e.Graphics.FillPath(brush, path);
+                        }
+                    }
+
+                    // Draw centered text
+                    TextRenderer.DrawText(
+                        e.Graphics,
+                        value,
+                        new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                        new Rectangle(x, y, badgeWidth, badgeHeight),
+                        textColor,
+                        TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter
+                    );
+
+                    e.Handled = true;
+                }
+            }
+        }
+
+
+        private System.Drawing.Drawing2D.GraphicsPath GetRoundedRect(Rectangle bounds, int radius)
+        {
+            var path = new System.Drawing.Drawing2D.GraphicsPath();
+            int diameter = radius * 2;
+
+            path.AddArc(bounds.X, bounds.Y, diameter, diameter, 180, 90);
+            path.AddArc(bounds.Right - diameter, bounds.Y, diameter, diameter, 270, 90);
+            path.AddArc(bounds.Right - diameter, bounds.Bottom - diameter, diameter, diameter, 0, 90);
+            path.AddArc(bounds.X, bounds.Bottom - diameter, diameter, diameter, 90, 90);
+            path.CloseFigure();
+
+            return path;
+        }
+
+
+
+        // Call these methods in your DashboardForm_Load or InitializeComponent
+        private void ApplyDataGridStyles()
+        {
+            StyleInvoicesDataGridView();
+            StyleLogsDataGridView();
+        }
+
+        private void Panel_Resize(object? sender, EventArgs e)
+        {
+            if (sender is Panel panel)
+            {
+                DrawInvoicePieChart(panel, _syncedCount, _pendingCount);
+            }
+        }
+        private void DrawInvoicePieChart(Panel panel, int pendingCount, int syncedCount)
+        {
+            if (panel == null) return;
+
+            int panelWidth = panel.Width;
+            int panelHeight = panel.Height;
+
+            // ✅ Prevent invalid drawing when minimized or too small
+            if (panelWidth <= 0 || panelHeight <= 0) return;
+
+            panel.Controls.Clear();
+
+            // Values and labels
+            List<int> values = new List<int> { pendingCount, syncedCount };
+            List<Color> colors = new List<Color>
+    {
+        ColorTranslator.FromHtml("#4DBDED"), // Synced
+        ColorTranslator.FromHtml("#8860C1")  // Not Synced
+    };
+            List<string> labels = new List<string> { "Synced", "Not Synced" };
+
+            float total = values.Sum();
+            if (total == 0) total = 1; // prevent division by zero
+
+            // ---------- Header ----------
+            Label header = new Label
+            {
+                Text = "ALL INVOICES DETAIL",
+                AutoSize = false,
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold), // smaller than before
+                ForeColor = Color.Black,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Width = panelWidth,
+                Height = 25
+            };
+            header.Location = new Point(0, 8); // some top padding
+            panel.Controls.Add(header);
+
+            // ---------- Pie chart ----------
+
+            // Calculate pie chart size (75% of available space)
+            int legendHeight = 40;
+            int availableHeight = panelHeight - header.Bottom - legendHeight - 20;
+            int pieSize = (int)(Math.Min(panelWidth, availableHeight) * 0.75);
+
+            if (pieSize <= 0) return;
+
+            // Center the pie chart
+            int pieX = (panelWidth - pieSize) / 2;
+            int pieY = header.Bottom + ((availableHeight - pieSize) / 2) + 10;
+
+            // Draw pie chart
+            Bitmap bmp = new Bitmap(pieSize, pieSize);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                Rectangle rect = new Rectangle(0, 0, pieSize, pieSize);
+                float startAngle = 0;
+
+                for (int i = 0; i < values.Count; i++)
+                {
+                    float sweepAngle = values[i] / total * 360f;
+                    using (Brush brush = new SolidBrush(colors[i]))
+                        g.FillPie(brush, rect, startAngle, sweepAngle);
+                    startAngle += sweepAngle;
+                }
+            }
+
+            PictureBox pic = new PictureBox
+            {
+                Image = bmp,
+                SizeMode = PictureBoxSizeMode.Normal,
+                Width = pieSize,
+                Height = pieSize,
+                Location = new Point(pieX, pieY),
+                BackColor = Color.Transparent
+            };
+            panel.Controls.Add(pic);
+
+            // ---------- Legend ----------
+            int legendY = panelHeight - legendHeight + 5;
+            int spacingX = 120; // spacing between legend items
+            int totalLegendWidth = values.Count * spacingX;
+            int legendX = (panelWidth - totalLegendWidth) / 2;
+            int boxSize = 14;
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                int offsetX = i * spacingX;
+
+                Panel colorBox = new Panel
+                {
+                    BackColor = colors[i],
+                    Size = new Size(boxSize, boxSize),
+                    Location = new Point(legendX + offsetX, legendY)
+                };
+                panel.Controls.Add(colorBox);
+
+                Label lbl = new Label
+                {
+                    Text = $"{labels[i]}: {values[i]}",
+                    ForeColor = Color.Black,
+                    Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                    Location = new Point(colorBox.Right + 5, colorBox.Top - 1),
+                    AutoSize = true,
+                    BackColor = Color.Transparent
+                };
+                panel.Controls.Add(lbl);
+            }
+        }
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            UpdateLogStatisticsLayout();
+        }
+
+        // Optional: Add method to refresh log statistics independently
+        public async Task RefreshLogStatisticsAsync()
+        {
+            try
+            {
+                var response = await _logService.GetAllAsync();
+                if (response?.Data != null)
+                {
+                    IEnumerable<LogDto> filteredLogs = response.Data;
+
+                    if (!_isInitialLoad) // Apply date filter after initial load
+                    {
+                        filteredLogs = filteredLogs.Where(l =>
+                            l.CreatedAtPk >= _startDate &&
+                            l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+                    }
+
+                    CalculateLogStatistics(filteredLogs);
+                    UpdateLogStatisticsDisplay();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silently handle errors in statistics refresh
+                Console.WriteLine($"Error refreshing log statistics: {ex.Message}");
+            }
         }
     }
 }

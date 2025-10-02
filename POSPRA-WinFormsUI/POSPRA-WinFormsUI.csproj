@@ -12,6 +12,8 @@
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
+    <PackageReference Include="Guna.UI2.WinForms" Version="2.0.4.7" />
+    <PackageReference Include="LiveCharts.WinForms" Version="0.9.7.1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
