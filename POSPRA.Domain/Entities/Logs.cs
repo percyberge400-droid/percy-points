@@ -1,4 +1,6 @@
-﻿namespace POSPRA.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace POSPRA.Domain.Entities
 {
     /// <summary>
     /// Master application log for PRAL/FBR systems (Pakistan).
@@ -8,7 +10,8 @@
     public class Logs
     {
         // ---------- Primary ----------
-        public int Id { get; set; }
+        [Key]
+        public long Id { get; set; }
 
         /// <summary>Main descriptive message or error text.</summary>
         public string? Message { get; set; }
@@ -22,9 +25,7 @@
         // ---------- Date/Time ----------
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
-        public DateTime CreatedAtPk { get; set; } =
-            TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
-                TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi"));
+        public DateTime CreatedAtPk { get; set; } = DateTime.Now;
 
         // ---------- User / Security ----------
         public string? UserId { get; set; }
