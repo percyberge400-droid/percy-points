@@ -71,7 +71,6 @@ namespace POSPRA.Worker
                         }
 
                         wasInternetAvailable = true;
-
                         await ProcessHealthCheck(id, token);
 
                         // Normal loop delay
@@ -89,7 +88,7 @@ namespace POSPRA.Worker
                         wasInternetAvailable = false;
 
                         // Longer delay when offline to avoid busy loop
-                        await Task.Delay(1000, token);
+                        await Task.Delay(_settings.WorkerDelayTime, token);
                     }
                 }
             }

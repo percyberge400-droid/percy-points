@@ -7,6 +7,7 @@ using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Drawing.Drawing2D;
 using AlertType = POSPRA.Application.Utility.AlertType;
+using POSPRA.SecurityEncryption;
 
 namespace POSPRA_WinFormsUI
 {
@@ -39,8 +40,13 @@ namespace POSPRA_WinFormsUI
 
             _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
 
-            // Load POSID from app.config
-            posid.Text = ConfigurationManager.AppSettings["Username"] ?? "0";
+           
+            // Load POSID from app.config (stored encrypted)
+            var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+            var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+            posid.Text = decryptedPosId;   // show real POSID in UI
+
+
 
             addedItems = _sessionItems;
 
@@ -398,6 +404,8 @@ namespace POSPRA_WinFormsUI
                 var invoiceDto = new InvoiceDto
                 {
                     POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
+
+
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = (byte)GetSelectedInvoiceType(),

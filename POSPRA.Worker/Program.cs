@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -18,6 +20,18 @@ using POSPRA.Repositories.UserRepository;
 using POSPRA.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)
+    .UseWindowsService() // ✅ Run as Windows Service
+    .ConfigureAppConfiguration((hostingContext, config) =>
+    {
+        // Clear default configs to avoid conflicts with API project files
+        config.Sources.Clear();
+
+        // Load only the Worker’s configuration files
+        config.AddJsonFile("appsettings.worker.json", optional: false, reloadOnChange: true)
+              .AddJsonFile($"appsettings.worker.{hostingContext.HostingEnvironment.EnvironmentName}.json",
+                            optional: true, reloadOnChange: true)
+              .AddEnvironmentVariables();
+    })
     .ConfigureServices((context, services) =>
     {
         //----------------------------------------------------
@@ -28,7 +42,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddDbContext<SqliteDbContext>(options =>
             options.UseSqlite($"Data Source={dbPath}"));
 
-        // SQL Server  ➜ must match the API connection string name
+        // SQL Server
         services.AddDbContext<SqlServerDbContext>(options =>
             options.UseSqlServer(context.Configuration.GetConnectionString("SqlServerConnection")),
             ServiceLifetime.Scoped);
@@ -47,7 +61,8 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped(typeof(SqlServerRepository<>), typeof(SqlServerRepository<>));
         services.AddScoped(typeof(SqliteRepository<>), typeof(SqliteRepository<>));
-        services.AddScoped<ILogRepository, LogRepository>();
+        services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
+        services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
         services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
@@ -62,7 +77,6 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<IRequestHeaderService, RequestHeaderService>();
 
-        // ---------- HttpContextAccessor ----------
         services.AddHttpContextAccessor();
 
         //----------------------------------------------------
@@ -79,18 +93,22 @@ var builder = Host.CreateDefaultBuilder(args)
         // 🔧 Hosted Worker
         //----------------------------------------------------
         services.AddHostedService<Worker>();
-    })
-    .UseConsoleLifetime();
+    });
 
 var host = builder.Build();
 
-// ✅ Removed: code that started/stopped the embedded API
-//     var apiHost = POSPRA.API.Program.BuildApiHost();
-//     await apiHost.StartAsync();
-//     var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
-//     lifetime.ApplicationStopping.Register(() =>
-//     {
-//         apiHost.StopAsync().GetAwaiter().GetResult();
-//     });
+// ✅ Ensure SQLite DB is created with all tables before the worker starts
+using (var scope = host.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
+    db.Database.EnsureCreated();   // Creates DB + tables if missing
+                                   // If you use migrations instead of EnsureCreated, call:
+                                   // db.Database.Migrate();
+
+    // Optional: log the path
+    var dbPath = db.Database.GetDbConnection().DataSource;
+    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
+        $"[{DateTime.Now}] Database ensured at: {dbPath}{Environment.NewLine}");
+}
 
 await host.RunAsync();

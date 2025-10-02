@@ -9,9 +9,15 @@ namespace POSPRA.Repositories.LogRepository
     /// Implement this interface when you need custom queries or commands
     /// specific to the Logs table.
     /// </summary>
-    public interface ILogRepository : IRepository<Logs>
+    public interface ILogSQLiteRepository : IRepository<Logs>
     {
         // Add any Log-specific repository methods here if needed,
-        // e.g., Task<IEnumerable<Logs>> GetRecentLogsAsync(int count);
+        // e.g., Task<IEnumerable<Logs>> GetRecentLogsAsync(int count); 
+    }
+
+    public interface ILogSQLServerRepository : IRepository<Logs>
+    {
+        // Add any Log-specific repository methods here if needed,
+        // e.g., Task<IEnumerable<Logs>> GetRecentLogsAsync(int count); 
     }
 }
