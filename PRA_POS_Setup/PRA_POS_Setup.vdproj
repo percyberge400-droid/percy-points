@@ -15,25 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_25957C85AC1B49B89EB557A06E8FF499"
+        "MsmKey" = "8:_4AA94119994141409437110C1B6A9DBA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_74855DEC6D544C2393B3525563FF59B6"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_77C2AA70040D40F0AF20F7202A1B788D"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B04388945384456DB5A55FA41A554F3C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -46,6 +34,18 @@
         "Entry"
         {
         "MsmKey" = "8:_C0B05C585B4D4672A5A81C77F067B40F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C2D426B143F84F9896F0C24B13A25EC4"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D40A9E1364B94B18A1CA10A6B5C67DE7"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -73,6 +73,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -89,6 +97,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -265,7 +289,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:PRA_POS"
         "ProductCode" = "8:{B3C7EF26-471E-41DE-B583-99CE59B6839C}"
-        "PackageCode" = "8:{A770E8E9-A6F4-4F89-9269-5A768B85C7F7}"
+        "PackageCode" = "8:{2809ABCA-2757-4BB4-9869-78033F6CD45F}"
         "UpgradeCode" = "8:{8A6F8D16-D2CC-4497-A092-976D6B26C77A}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -385,7 +409,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_79E0F0C4C9F14724B881F42069420F2A"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_6E8A9242D5114501BB152865A3CD3EFA"
             {
             "Name" = "8:POSPRA"
             "Arguments" = "8:"
@@ -393,7 +417,7 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_77C2AA70040D40F0AF20F7202A1B788D"
+            "Target" = "8:_C2D426B143F84F9896F0C24B13A25EC4"
             "Folder" = "8:_382BC76B96D6493EBC7EA154229B4C6B"
             "WorkingFolder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
             "Icon" = "8:_B5E6DAC8C2624603A20DF2C8F956D265"
@@ -826,34 +850,6 @@
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_25957C85AC1B49B89EB557A06E8FF499"
-            {
-            "SourcePath" = "8:..\\POSPRA.Worker\\obj\\Release\\net9.0\\apphost.exe"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:PublishItems"
-            "OutputProjectGuid" = "8:{AFD5BB00-9CFB-4047-A06C-2E1D60A6C095}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_3DCDE83CEAE14F869948308E1EF35332"
             {
             "SourcePath" = "8:"
@@ -877,6 +873,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:PublishItems"
             "OutputProjectGuid" = "8:{D9F25FA2-00A0-4598-95C4-6D758C976018}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_4AA94119994141409437110C1B6A9DBA"
+            {
+            "SourcePath" = "8:..\\POSPRA.Worker\\obj\\Release\\net9.0\\apphost.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{AFD5BB00-9CFB-4047-A06C-2E1D60A6C095}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
@@ -910,34 +934,6 @@
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_77C2AA70040D40F0AF20F7202A1B788D"
-            {
-            "SourcePath" = "8:..\\POSPRA-WinFormsUI\\obj\\Release\\net9.0-windows10.0.17763.0\\apphost.exe"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:PublishItems"
-            "OutputProjectGuid" = "8:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_92A4AC32348349E4839B448AF9F6D538"
             {
             "SourcePath" = "8:"
@@ -966,7 +962,35 @@
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B04388945384456DB5A55FA41A554F3C"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C2D426B143F84F9896F0C24B13A25EC4"
+            {
+            "SourcePath" = "8:..\\POSPRA-WinFormsUI\\obj\\Release\\net9.0-windows10.0.17763.0\\apphost.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_D40A9E1364B94B18A1CA10A6B5C67DE7"
             {
             "SourcePath" = "8:..\\POSPRA.API\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"

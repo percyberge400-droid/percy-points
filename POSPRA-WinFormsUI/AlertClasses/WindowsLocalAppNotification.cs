@@ -21,7 +21,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         /// <summary>
         /// Show a notification using system tray balloon tip.
         /// </summary>
-        public static void Show(string title, string message, int duration = 3000)
+        public static void Show(string title, string message, int duration = 5000)
         {
             ShowNotification(title, message, ToolTipIcon.Info, duration);
         }
@@ -29,7 +29,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         /// <summary>
         /// Show error notification.
         /// </summary>
-        public static void ShowError(string title, string message, int duration = 3000)
+        public static void ShowError(string title, string message, int duration = 5000)
         {
             ShowNotification(title, message, ToolTipIcon.Error, duration);
         }
@@ -37,7 +37,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         /// <summary>
         /// Show warning notification.
         /// </summary>
-        public static void ShowWarning(string title, string message, int duration = 3000)
+        public static void ShowWarning(string title, string message, int duration = 5000)
         {
             ShowNotification(title, message, ToolTipIcon.Warning, duration);
         }
@@ -45,7 +45,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         /// <summary>
         /// Show success notification.
         /// </summary>
-        public static void ShowSuccess(string title, string message, int duration = 3000)
+        public static void ShowSuccess(string title, string message, int duration = 5000)
         {
             ShowNotification(title, message, ToolTipIcon.Info, duration);
         }

@@ -21,6 +21,17 @@ using POSPRA.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService() // ✅ Run as Windows Service
+    .ConfigureAppConfiguration((hostingContext, config) =>
+    {
+        // Clear default configs to avoid conflicts with API project files
+        config.Sources.Clear();
+
+        // Load only the Worker’s configuration files
+        config.AddJsonFile("appsettings.worker.json", optional: false, reloadOnChange: true)
+              .AddJsonFile($"appsettings.worker.{hostingContext.HostingEnvironment.EnvironmentName}.json",
+                            optional: true, reloadOnChange: true)
+              .AddEnvironmentVariables();
+    })
     .ConfigureServices((context, services) =>
     {
         //----------------------------------------------------
@@ -85,7 +96,6 @@ var builder = Host.CreateDefaultBuilder(args)
 
 var host = builder.Build();
 
-
 // ✅ Ensure SQLite DB is created with all tables before the worker starts
 using (var scope = host.Services.CreateScope())
 {
@@ -99,6 +109,5 @@ using (var scope = host.Services.CreateScope())
     File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
         $"[{DateTime.Now}] Database ensured at: {dbPath}{Environment.NewLine}");
 }
-
 
 await host.RunAsync();
