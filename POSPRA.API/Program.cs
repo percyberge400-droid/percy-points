@@ -249,7 +249,8 @@ namespace POSPRA.API
             builder.Services.AddScoped(typeof(SqlServerRepository<>));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
-            builder.Services.AddScoped<ILogRepository, LogRepository>();
+            builder.Services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
+            builder.Services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
             builder.Services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             builder.Services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
@@ -307,6 +308,9 @@ namespace POSPRA.API
             bool isValidationEnabled = builder.Configuration.GetValue<bool>("Validation:Enabled");
             if (isValidationEnabled)
                 app.UseMiddleware<ValidationMiddleware>();
+
+            // global exception handler
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.MapControllers();
             app.MapHealthChecks("/health");

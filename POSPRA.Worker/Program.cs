@@ -50,7 +50,8 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped(typeof(SqlServerRepository<>), typeof(SqlServerRepository<>));
         services.AddScoped(typeof(SqliteRepository<>), typeof(SqliteRepository<>));
-        services.AddScoped<ILogRepository, LogRepository>();
+        services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
+        services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFiscalRepository, FiscalRepository>();
         services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();

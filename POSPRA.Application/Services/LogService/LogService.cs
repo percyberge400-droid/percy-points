@@ -18,25 +18,24 @@ namespace POSPRA.Application.Services.LogService
     /// </summary>
     public class LogService : ILogService
     {
-        private readonly ILogRepository _logRepository;
+        private readonly ILogSQLiteRepository _logSQLiteRepository;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly SqlServerRepository<object> _sqlServerRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AutoMapper.IMapper _mapper;
-
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogService"/>.
         /// </summary>
         /// <param name="logRepository">The repository to persist Logs entities.</param>
         /// <param name="sqliteUnitOfWork">Unit of Work for SQLite context.</param>
-        public LogService(ILogRepository logRepository,
+        public LogService(ILogSQLiteRepository logSQLiteRepository,
             ISqliteUnitOfWork sqliteUnitOfWork,
             SqlServerRepository<object> sqlServerRepository,
             IHttpContextAccessor httpContextAccessor,
             AutoMapper.IMapper mapper)
         {
-            _logRepository = logRepository;
+            _logSQLiteRepository = logSQLiteRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _sqlServerRepository = sqlServerRepository;
             _httpContextAccessor = httpContextAccessor;
@@ -46,7 +45,7 @@ namespace POSPRA.Application.Services.LogService
 
         public async Task<ApiResponse<List<LogDto>>> GetAllAsync()
         {
-            var output = await _logRepository.GetAllAsync();
+            var output = await _logSQLiteRepository.GetAllAsync();
             var logDTO = _mapper.Map<List<LogDto>>(output);
 
             return new ApiResponse<List<LogDto>>(null, null, logDTO, null);
@@ -66,7 +65,7 @@ namespace POSPRA.Application.Services.LogService
 
             try
             {
-                await _logRepository.AddAsync(model);
+                await _logSQLiteRepository.AddAsync(model);
                 await _sqliteUnitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -88,7 +87,7 @@ namespace POSPRA.Application.Services.LogService
                         ApplicationName = "POSPRA"
                     };
 
-                    await _logRepository.AddAsync(errorLog);
+                    await _logSQLiteRepository.AddAsync(errorLog);
                     await _sqliteUnitOfWork.SaveChangesAsync();
                 }
                 catch

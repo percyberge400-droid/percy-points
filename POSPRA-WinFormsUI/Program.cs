@@ -70,7 +70,8 @@ namespace POSPRA_WinFormsUI
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFiscalRepository, FiscalRepository>();
-            services.AddScoped<ILogRepository, LogRepository>();
+            services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
+            services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFiscalService, FiscalService>();
             services.AddScoped<IPosService, PosService>();
