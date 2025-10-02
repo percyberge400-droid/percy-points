@@ -22,6 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
+    <PackageReference Include="Microsoft.ReportingServices.ReportViewerControl.Winforms" Version="150.1652.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +32,7 @@
     <ProjectReference Include="..\POSPRA.DTOs\POSPRA.DTOs.csproj" />
     <ProjectReference Include="..\POSPRA.Infrastructure\POSPRA.Infrastructure.csproj" />
     <ProjectReference Include="..\POSPRA.Repositories\POSPRA.Repositories.csproj" />
+    <ProjectReference Include="..\POSPRA.SecurityEncryption\POSPRA.SecurityEncryption.csproj" />
   </ItemGroup>
 
   <ItemGroup>
