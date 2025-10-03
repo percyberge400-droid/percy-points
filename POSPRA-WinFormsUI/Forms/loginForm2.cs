@@ -33,6 +33,29 @@ namespace POSPRA_WinFormsUI.Forms
             MakeStyledTextBox(txtUsername);
             MakeStyledTextBox(txtPassword);
 
+            // ✅ Load logo dynamically from App.config
+            string logoKey = ConfigurationManager.AppSettings["praLOGO"];
+            if (!string.IsNullOrEmpty(logoKey))
+            {
+                var res = Resources.ResourceManager.GetObject(logoKey);
+                if (res is Image img)
+                {
+                    picLogo.Image = img;
+                    //picLogo.SizeMode = PictureBoxSizeMode.Zoom;
+                }
+            }
+            // ✅ Make labels dynamic from App.config
+            string inquiryNo = ConfigurationManager.AppSettings["generalinquiryNo"];
+            string servicesNo = ConfigurationManager.AppSettings["eServicesNo"];
+            string website = ConfigurationManager.AppSettings["website"];
+
+            if (!string.IsNullOrEmpty(inquiryNo))
+                generalinquiryNo.Text = inquiryNo;
+
+            if (!string.IsNullOrEmpty(servicesNo))
+                eServicesNo.Text = servicesNo;
+            if (!string.IsNullOrEmpty(website))
+                prawebsite.Text = website;
         }
 
 

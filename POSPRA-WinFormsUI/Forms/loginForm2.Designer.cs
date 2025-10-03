@@ -34,18 +34,18 @@
             label8 = new Label();
             label7 = new Label();
             label6 = new Label();
-            pictureBox4 = new PictureBox();
+            picLogo = new PictureBox();
             pictureBox1 = new PictureBox();
             eServicesNo = new Label();
             generalinquiryNo = new Label();
             label11 = new Label();
             label10 = new Label();
-            label9 = new Label();
+            prawebsite = new Label();
             rightPanel.SuspendLayout();
             loginBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             leftPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)picLogo).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
@@ -216,13 +216,13 @@
             leftPanel.Controls.Add(label8);
             leftPanel.Controls.Add(label7);
             leftPanel.Controls.Add(label6);
-            leftPanel.Controls.Add(pictureBox4);
+            leftPanel.Controls.Add(picLogo);
             leftPanel.Controls.Add(pictureBox1);
             leftPanel.Controls.Add(eServicesNo);
             leftPanel.Controls.Add(generalinquiryNo);
             leftPanel.Controls.Add(label11);
             leftPanel.Controls.Add(label10);
-            leftPanel.Controls.Add(label9);
+            leftPanel.Controls.Add(prawebsite);
             leftPanel.Location = new Point(-10, 0);
             leftPanel.Name = "leftPanel";
             leftPanel.Size = new Size(611, 586);
@@ -261,15 +261,14 @@
             label6.TabIndex = 11;
             label6.Text = "TAKE CHARGE OF";
             // 
-            // pictureBox4
+            // picLogo
             // 
-            pictureBox4.Image = Resources.loginPRAlogo;
-            pictureBox4.Location = new Point(116, 480);
-            pictureBox4.Name = "pictureBox4";
-            pictureBox4.Size = new Size(92, 55);
-            pictureBox4.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox4.TabIndex = 8;
-            pictureBox4.TabStop = false;
+            picLogo.Location = new Point(116, 480);
+            picLogo.Name = "picLogo";
+            picLogo.Size = new Size(92, 55);
+            picLogo.SizeMode = PictureBoxSizeMode.Zoom;
+            picLogo.TabIndex = 8;
+            picLogo.TabStop = false;
             // 
             // pictureBox1
             // 
@@ -288,9 +287,8 @@
             eServicesNo.ForeColor = Color.DimGray;
             eServicesNo.Location = new Point(453, 499);
             eServicesNo.Name = "eServicesNo";
-            eServicesNo.Size = new Size(128, 18);
+            eServicesNo.Size = new Size(0, 18);
             eServicesNo.TabIndex = 18;
-            eServicesNo.Text = "042-99205477-6";
             // 
             // generalinquiryNo
             // 
@@ -299,9 +297,8 @@
             generalinquiryNo.ForeColor = Color.DimGray;
             generalinquiryNo.Location = new Point(468, 479);
             generalinquiryNo.Name = "generalinquiryNo";
-            generalinquiryNo.Size = new Size(113, 18);
+            generalinquiryNo.Size = new Size(0, 18);
             generalinquiryNo.TabIndex = 17;
-            generalinquiryNo.Text = "042-99205481";
             // 
             // label11
             // 
@@ -325,16 +322,15 @@
             label10.TabIndex = 15;
             label10.Text = "e-Services:";
             // 
-            // label9
+            // prawebsite
             // 
-            label9.AutoSize = true;
-            label9.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label9.ForeColor = Color.FromArgb(72, 167, 135);
-            label9.Location = new Point(422, 517);
-            label9.Name = "label9";
-            label9.Size = new Size(161, 18);
-            label9.TabIndex = 14;
-            label9.Text = "www.pra.punjab.gov.pk";
+            prawebsite.AutoSize = true;
+            prawebsite.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            prawebsite.ForeColor = Color.FromArgb(72, 167, 135);
+            prawebsite.Location = new Point(422, 517);
+            prawebsite.Name = "prawebsite";
+            prawebsite.Size = new Size(0, 18);
+            prawebsite.TabIndex = 14;
             // 
             // LoginForm2
             // 
@@ -354,7 +350,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             leftPanel.ResumeLayout(false);
             leftPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
+            ((System.ComponentModel.ISupportInitialize)picLogo).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
 
@@ -378,12 +374,12 @@
         private Label label8;
         private Label label7;
         private Label label6;
-        private PictureBox pictureBox4;
+        private PictureBox picLogo;
         private Label label13;
         private Label label12;
         private Label label11;
         private Label label10;
-        private Label label9;
+        private Label prawebsite;
         private Label eServicesNo;
         private Label generalinquiryNo;
         private Button btnClose;
