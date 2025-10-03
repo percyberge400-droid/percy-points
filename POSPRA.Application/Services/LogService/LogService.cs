@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Data;
+using System.Reflection;
+using Microsoft.AspNetCore.Http;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
@@ -7,8 +9,6 @@ using POSPRA.DTOs.LogDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
-using System.Data;
-using System.Reflection;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -23,6 +23,7 @@ namespace POSPRA.Application.Services.LogService
         private readonly SqlServerRepository<object> _sqlServerRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AutoMapper.IMapper _mapper;
+        private readonly ILogSQLServerRepository _logSQLServerRepository;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogService"/>.
@@ -33,15 +34,25 @@ namespace POSPRA.Application.Services.LogService
             ISqliteUnitOfWork sqliteUnitOfWork,
             SqlServerRepository<object> sqlServerRepository,
             IHttpContextAccessor httpContextAccessor,
-            AutoMapper.IMapper mapper)
+            AutoMapper.IMapper mapper,
+            ILogSQLServerRepository logSQLServerRepository)
         {
             _logSQLiteRepository = logSQLiteRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
             _sqlServerRepository = sqlServerRepository;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
+            _logSQLServerRepository = logSQLServerRepository;
         }
 
+
+        public async Task<ApiResponse<List<LogDto>>> GetAllCloudAsync()
+        {
+            var output = await _logSQLServerRepository.GetAllAsync();
+            var logDTO = _mapper.Map<List<LogDto>>(output);
+
+            return new ApiResponse<List<LogDto>>(null, null, logDTO, null);
+        }
 
         public async Task<ApiResponse<List<LogDto>>> GetAllAsync()
         {
@@ -190,32 +201,5 @@ namespace POSPRA.Application.Services.LogService
             }
         }
 
-
-        // ✅ 2. Central SQL Server error log
-        public async Task SaveErrorLogAsync(ErrorLogDto dto)
-        {
-            try
-            {
-                var parameters = new[]
-                {
-                    new Microsoft.Data.SqlClient.SqlParameter("@POSID",          SqlDbType.BigInt) { Value = dto.POSID },
-                    new Microsoft.Data.SqlClient.SqlParameter("@ActualData",     SqlDbType.VarChar, 8000) { Value =dto.ActualData},
-                    new Microsoft.Data.SqlClient.SqlParameter("@IsValidSignature",SqlDbType.Bit)   { Value =dto.IsValidSignature},
-                    new Microsoft.Data.SqlClient.SqlParameter("@Message",        SqlDbType.VarChar, 8000) { Value =dto.Message},
-                    new Microsoft.Data.SqlClient.SqlParameter("@TotalFiles",     SqlDbType.Int)    { Value =dto.TotalFiles}
-                };
-
-                // We don’t need row results, so use object as T and no mapper.
-                await _sqlServerRepository.ExecuteProcedureAsync<object>(
-                    "sp_SaveErroLog",
-                    map: null,
-                    parameters: parameters
-                );
-            }
-            catch (Exception ex)
-            {
-                throw; // or swallow if you prefer
-            }
-        }
     }
 }

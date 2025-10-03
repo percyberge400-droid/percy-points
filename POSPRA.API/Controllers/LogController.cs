@@ -13,5 +13,9 @@ namespace POSPRA.API.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAll() =>
             Ok(await _logService.GetAllAsync());
+
+        [HttpGet("GetAllCloudAsync")]
+        public async Task<IActionResult> GetAllCloudAsync() =>
+            Ok(await _logService.GetAllCloudAsync());
     }
 }

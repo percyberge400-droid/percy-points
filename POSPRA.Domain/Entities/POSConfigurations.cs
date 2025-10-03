@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace POSPRA.Domain.Entities
 {
     [Table("POSConfigurations")]
-    public class Configurations
+    public class POSConfigurations
     {
+        [Key]
         public int Id { get; set; }
 
         public int? LogInterval { get; set; }

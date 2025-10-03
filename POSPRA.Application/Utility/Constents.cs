@@ -7,9 +7,9 @@
         public const string HeartBeat = "api/POS/HeartBeat";
 
         // Fiscal API
-        public const string GetAllUnsyncedAsync = "api/fiscal/getallunsynced";
-        public const string GetAll = "api/fiscal/getall";
-        public const string Create = "api/fiscal/create";
+        public const string GetAllUnsyncedAsync = "api/filerecord/getallunsynced";
+        public const string GetAll = "api/filerecord/getall";
+        public const string Create = "api/invoice/create";
 
         // Live API
         public const string DecryptSave = "api/live/decrypt-save";

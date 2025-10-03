@@ -11,6 +11,8 @@ namespace POSPRA.Application.Services.LogService
     public interface ILogService
     {
 
+        Task<ApiResponse<List<LogDto>>> GetAllCloudAsync();
+
         Task<ApiResponse<List<LogDto>>> GetAllAsync();
 
         /// <summary>
@@ -27,10 +29,6 @@ namespace POSPRA.Application.Services.LogService
                 string? userName = null,
                 string? clientIp = null,
                 string? userAgent = null);
-        /// <summary>
-        /// Persists an error log entry to the **SQL Server** database.
-        /// </summary>
-        /// 
-        Task SaveErrorLogAsync(ErrorLogDto dto);
+
     }
 }

@@ -5,19 +5,19 @@ using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
-using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.UnitOfWork;
 
 namespace POSPRA.Application.Services.FileRecordService
 {
     public class FileRecordService : IFileRecordService
     {
-        private readonly IFiscalRepository _fileRecordRepository;
+        private readonly IFileRecordRepository _fileRecordRepository;
         private readonly IMapper _mapper;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly ILogService _logService;
         public FileRecordService(
-            IFiscalRepository fileRecordRepository,
+            IFileRecordRepository fileRecordRepository,
             IMapper mapper,
             ISqliteUnitOfWork sqliteUnitOfWork,
             ILogService logService)

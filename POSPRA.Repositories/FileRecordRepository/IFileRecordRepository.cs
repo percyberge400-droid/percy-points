@@ -1,7 +1,7 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.Repositories.BaseRepository.Repository;
 
-namespace POSPRA.Repositories.FiscalRepository
+namespace POSPRA.Repositories.FileRecordRepository
 {
     /// <summary>
     /// Specialized repository interface for working with <see cref="FileRecord"/> entities.
@@ -11,7 +11,7 @@ namespace POSPRA.Repositories.FiscalRepository
     /// related to the <c>FileRecord</c> table.
     /// </para>
     /// </summary>
-    public interface IFiscalRepository : IRepository<FileRecord>
+    public interface IFileRecordRepository : IRepository<FileRecord>
     {
         // Add custom methods for fiscal operations if needed.
         // e.g., Task<IEnumerable<FileRecord>> GetByStatusAsync(string status);

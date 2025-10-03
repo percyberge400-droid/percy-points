@@ -4,7 +4,7 @@ using POSPRA.Repositories.BaseRepository;
 
 namespace POSPRA.Repositories.ConfigurationRepository
 {
-    public class ConfigurationRepository : SqlServerRepository<Configurations>, IConfigurationRepository
+    public class ConfigurationRepository : SqlServerRepository<POSConfigurations>, IConfigurationRepository
     {
         public ConfigurationRepository(SqlServerDbContext context) : base(context)
         {
