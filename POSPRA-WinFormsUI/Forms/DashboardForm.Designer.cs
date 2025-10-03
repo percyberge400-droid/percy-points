@@ -81,6 +81,7 @@ namespace POSPRA_WinFormsUI.Forms
             labelPaidInvoices = new Label();
             tableLayoutPanelMain = new TableLayoutPanel();
             panelInvoices = new Panel();
+            btnExportInvoice = new Button();
             btnFilter = new Button();
             btnRefresh = new Button();
             progressBar = new ProgressBar();
@@ -115,7 +116,6 @@ namespace POSPRA_WinFormsUI.Forms
             colMessage = new DataGridViewTextBoxColumn();
             colException = new DataGridViewTextBoxColumn();
             logdatetime = new DataGridViewTextBoxColumn();
-            btnExportInvoice = new Button();
             tableLayoutPanelTop.SuspendLayout();
             panelAll.SuspendLayout();
             panelPending.SuspendLayout();
@@ -321,6 +321,22 @@ namespace POSPRA_WinFormsUI.Forms
             panelInvoices.Padding = new Padding(8);
             panelInvoices.Size = new Size(1406, 353);
             panelInvoices.TabIndex = 0;
+            // 
+            // btnExportInvoice
+            // 
+            btnExportInvoice.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnExportInvoice.BackColor = Color.SeaGreen;
+            btnExportInvoice.FlatAppearance.BorderSize = 0;
+            btnExportInvoice.FlatStyle = FlatStyle.Flat;
+            btnExportInvoice.Font = new Font("Arial", 12F);
+            btnExportInvoice.ForeColor = Color.White;
+            btnExportInvoice.Location = new Point(469, 8);
+            btnExportInvoice.Name = "btnExportInvoice";
+            btnExportInvoice.Size = new Size(184, 37);
+            btnExportInvoice.TabIndex = 10;
+            btnExportInvoice.Text = "📄 Export Invoices";
+            btnExportInvoice.UseVisualStyleBackColor = false;
             // 
             // btnFilter
             // 
@@ -762,22 +778,6 @@ namespace POSPRA_WinFormsUI.Forms
             logdatetime.MinimumWidth = 6;
             logdatetime.Name = "logdatetime";
             logdatetime.Width = 125;
-            // 
-            // btnExportInvoice
-            // 
-            btnExportInvoice.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnExportInvoice.BackColor = Color.SeaGreen;
-            btnExportInvoice.FlatAppearance.BorderSize = 0;
-            btnExportInvoice.FlatStyle = FlatStyle.Flat;
-            btnExportInvoice.Font = new Font("Arial", 12F);
-            btnExportInvoice.ForeColor = Color.White;
-            btnExportInvoice.Location = new Point(469, 8);
-            btnExportInvoice.Name = "btnExportInvoice";
-            btnExportInvoice.Size = new Size(184, 37);
-            btnExportInvoice.TabIndex = 10;
-            btnExportInvoice.Text = "📄 Export Invoices";
-            btnExportInvoice.UseVisualStyleBackColor = false;
             // 
             // DashboardForm
             // 
