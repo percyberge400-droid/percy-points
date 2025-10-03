@@ -465,5 +465,10 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.WindowState = FormWindowState.Maximized;
             childForm.Show();
         }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
