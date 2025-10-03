@@ -17,7 +17,7 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly System.Windows.Forms.Timer _searchDebounceTimer;
         private const int SEARCH_DEBOUNCE_MS = 300;
         private const int SEARCH_FETCH_LIMIT = 2000;
-        private bool _isSaving = false;
+        private bool _isLoading = false;
 
         public CatalogView(IProductCatalogueService productCatalogueService, ILogService logService)
         {
@@ -27,17 +27,20 @@ namespace POSPRA_WinFormsUI.Forms
 
             ProductCatalogueDataGridView.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText;
 
-            btnSave.Click += btnSave_Click;
+            // Load button now loads FROM API and saves TO local DB
+            btnLoad.Click += btnLoad_Click;
 
             _searchDebounceTimer = new System.Windows.Forms.Timer();
             _searchDebounceTimer.Interval = SEARCH_DEBOUNCE_MS;
             _searchDebounceTimer.Tick += async (s, e) =>
             {
                 _searchDebounceTimer.Stop();
-                await FilterProducts();
+                await FilterProductsFromLocalDB();
             };
 
-            this.Load += async (s, e) => await LoadProductCatalogue();
+            // On form load, display data from LOCAL DB
+            this.Load += async (s, e) => await LoadFromLocalDB();
+
             SearchBox.TextChanged += (s, e) =>
             {
                 _searchDebounceTimer.Stop();
@@ -48,191 +51,74 @@ namespace POSPRA_WinFormsUI.Forms
             btnPrev.Click += async (s, e) => await PrevPage();
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Load button: Fetch from API, clear local DB, save to local DB
+        /// </summary>
+        private async void btnLoad_Click(object sender, EventArgs e)
         {
-            if (_isSaving)
+            if (_isLoading)
             {
-                WindowsLocalAppNotification.Show("Information", "Save operation is already in progress. Please wait...");
-                AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
+                AlertManager.ShowInfo("Load operation is already in progress. Please wait...");
                 return;
             }
 
             try
             {
-                _isSaving = true;
-                btnSave.Enabled = false;
-                btnSave.Text = "Saving...";
-
-                if (ProductCatalogueDataGridView.Rows.Count == 0)
-                {
-                    WindowsLocalAppNotification.Show("Validation Error", "Product Catalogue is empty!");
-                    AlertManager.ShowError("Product Catalogue is empty!");
-                    _ = CreateLog("Validation Error: Product Catalogue is empty", AlertType.Error);
-                    return;
-                }
+                _isLoading = true;
+                btnLoad.Enabled = false;
+                btnLoad.Text = "Loading...";
 
                 var confirm = MessageBox.Show(
-                    "Are you sure you want to save all catalogue items?",
-                    "Confirm Save",
+                    "This will clear existing local data and fetch fresh data from the server.\n\nAre you sure you want to continue?",
+                    "Confirm Data Refresh",
                     MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                    MessageBoxIcon.Warning);
 
                 if (confirm != DialogResult.Yes) return;
 
-                // Collect all rows from DataGridView into DTOs
-                var itemsToSave = new List<ProductCatalogueDto>();
-                var invalidRows = new List<string>();
+                _ = CreateLog("Starting data refresh from API", AlertType.Info);
+                AlertManager.ShowInfo("Fetching fresh data from server...");
 
-                foreach (DataGridViewRow row in ProductCatalogueDataGridView.Rows)
+                // Step 1: Fetch all data from API using ProductCatalogueService
+                var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
                 {
-                    if (row.IsNewRow) continue;
+                    numberOfRecords = 1000, // Adjust based on your needs
+                    pageNumber = 1
+                });
 
-                    // Validate ProductCode exists and is valid
-                    if (!long.TryParse(row.Cells[0].Value?.ToString(), out var code))
-                    {
-                        invalidRows.Add($"Row {row.Index + 1}: Invalid or missing Product Code");
-                        continue;
-                    }
+                var apiProducts = response?.Data?.ToList() ?? new List<ProductCatalogueDto>();
 
-                    var dto = new ProductCatalogueDto
-                    {
-                        ProductCode = code,
-                        ProductDescription = row.Cells[1].Value?.ToString(),
-                        HSCode = row.Cells[2].Value?.ToString(),
-                        SaleType = row.Cells[3].Value?.ToString(),
-                        PosUnitOfMeasurement = row.Cells[4].Value?.ToString(),
-                        TaxRate = row.Cells[5].Value?.ToString(),
-                        SroScheduleNumber = row.Cells[6].Value?.ToString(),
-                        ItemSerialNumber = row.Cells[7].Value?.ToString()
-                    };
-
-                    itemsToSave.Add(dto);
-                }
-
-                if (invalidRows.Any())
+                if (!apiProducts.Any())
                 {
-                    var invalidMessage = string.Join("\n", invalidRows.Take(5));
-                    if (invalidRows.Count > 5)
-                        invalidMessage += $"\n... and {invalidRows.Count - 5} more";
-
-                    WindowsLocalAppNotification.Show("Validation Warning", $"Some rows have invalid data:\n{invalidMessage}");
-                    AlertManager.ShowWarning($"Found {invalidRows.Count} invalid rows. They will be skipped.");
-                    _ = CreateLog($"Validation: {invalidRows.Count} invalid rows found", AlertType.Warning);
-                }
-
-                if (!itemsToSave.Any())
-                {
-                    WindowsLocalAppNotification.Show("Validation Error", "No valid items found in catalogue.");
-                    AlertManager.ShowError("No valid items found in catalogue.");
-                    _ = CreateLog("Validation Error: No valid items", AlertType.Error);
+                    AlertManager.ShowWarning("No products found on the server.");
+                    _ = CreateLog("No products returned from API", AlertType.Warning);
                     return;
                 }
 
-                // Check for duplicates in the current batch
-                var duplicateCodes = itemsToSave
-                    .GroupBy(x => x.ProductCode)
-                    .Where(g => g.Count() > 1)
-                    .Select(g => g.Key)
-                    .ToList();
+                AlertManager.ShowInfo($"Fetched {apiProducts.Count} products from server. Clearing local database...");
+                _ = CreateLog($"Fetched {apiProducts.Count} products from API", AlertType.Info);
 
-                if (duplicateCodes.Any())
+                // Step 2: Clear old data from local DB using FiscalService
+                var clearResult = await _fiscalService.DeleteProductCatalogue();
+
+                if (clearResult.StatusCode != ApiStatusCode.Success && clearResult.StatusCode != ApiStatusCode.NotFound)
                 {
-                    WindowsLocalAppNotification.Show("Duplicate Error",
-                        $"Found duplicate Product Codes in the grid: {string.Join(", ", duplicateCodes.Take(5))}");
-                    AlertManager.ShowError($"Please remove duplicate Product Codes before saving.");
-                    _ = CreateLog($"Duplicate Product Codes found: {string.Join(", ", duplicateCodes)}", AlertType.Error);
+                    AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
+                    _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
                     return;
                 }
 
-                // Fetch existing product codes from database
-                AlertManager.ShowInfo("Checking for existing products...");
-                var existingProducts = await GetExistingProductCodes();
-                var existingCodesSet = new HashSet<long>(existingProducts);
+                // treat empty DB as success
+                _ = CreateLog("Local database cleared (or already empty)", AlertType.Info);
 
-                // Separate new vs existing products
-                var newProducts = itemsToSave.Where(p => !existingCodesSet.Contains(p.ProductCode.Value)).ToList();
-                var existingProductsToUpdate = itemsToSave.Where(p => existingCodesSet.Contains(p.ProductCode.Value)).ToList();
+                AlertManager.ShowInfo($"Saving {apiProducts.Count} products to local database...");
 
-                if (existingProductsToUpdate.Any())
-                {
-                    var existingCodes = string.Join(", ", existingProductsToUpdate.Select(p => p.ProductCode).Take(10));
-                    if (existingProductsToUpdate.Count > 10)
-                        existingCodes += $"... and {existingProductsToUpdate.Count - 10} more";
-
-                    // Use Invoke to ensure MessageBox is shown on UI thread properly
-                    DialogResult updateConfirm = DialogResult.Cancel;
-
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            updateConfirm = MessageBox.Show(
-                                this,
-                                $"Found {existingProductsToUpdate.Count} products that already exist in the database:\n{existingCodes}\n\n" +
-                                $"Do you want to update these existing products?\n\n" +
-                                $"Yes = Update existing products\n" +
-                                $"No = Skip existing products\n" +
-                                $"Cancel = Abort save operation",
-                                "Existing Products Found",
-                                MessageBoxButtons.YesNoCancel,
-                                MessageBoxIcon.Question);
-                        }));
-                    }
-                    else
-                    {
-                        updateConfirm = MessageBox.Show(
-                            this,
-                            $"Found {existingProductsToUpdate.Count} products that already exist in the database:\n{existingCodes}\n\n" +
-                            $"Do you want to update these existing products?\n\n" +
-                            $"Yes = Update existing products\n" +
-                            $"No = Skip existing products\n" +
-                            $"Cancel = Abort save operation",
-                            "Existing Products Found",
-                            MessageBoxButtons.YesNoCancel,
-                            MessageBoxIcon.Question);
-                    }
-
-                    if (updateConfirm == DialogResult.Cancel)
-                    {
-                        AlertManager.ShowInfo("Save operation cancelled by user.");
-                        _ = CreateLog("Save operation cancelled by user", AlertType.Info);
-                        return;
-                    }
-
-                    if (updateConfirm == DialogResult.No)
-                    {
-                        // Skip existing products - only save new ones
-                        itemsToSave = newProducts;
-                        AlertManager.ShowInfo($"Skipping {existingProductsToUpdate.Count} existing products. Saving {newProducts.Count} new products.");
-                        _ = CreateLog($"Skipping {existingProductsToUpdate.Count} existing, saving {newProducts.Count} new", AlertType.Info);
-                    }
-                    else
-                    {
-                        // Yes was selected - will attempt to save all (may fail on duplicates)
-                        AlertManager.ShowInfo($"Attempting to save {itemsToSave.Count} products (including {existingProductsToUpdate.Count} existing)...");
-                        _ = CreateLog($"Attempting to save/update {itemsToSave.Count} products", AlertType.Info);
-                    }
-                }
-                else
-                {
-                    AlertManager.ShowInfo($"Saving {newProducts.Count} new products to database...");
-                    _ = CreateLog($"Saving {newProducts.Count} new products", AlertType.Info);
-                }
-
-                if (!itemsToSave.Any())
-                {
-                    AlertManager.ShowInfo("No products to save after filtering.");
-                    _ = CreateLog("No products to save after filtering", AlertType.Info);
-                    return;
-                }
-
-                _ = CreateLog($"Starting save: {itemsToSave.Count} products", AlertType.Info);
-
+                // Step 3: Save fetched data to local DB using FiscalService
                 int successCount = 0;
                 int failCount = 0;
                 var failedProducts = new List<string>();
 
-                foreach (var dto in itemsToSave)
+                foreach (var dto in apiProducts)
                 {
                     try
                     {
@@ -241,7 +127,6 @@ namespace POSPRA_WinFormsUI.Forms
                         if (output.StatusCode == ApiStatusCode.Success)
                         {
                             successCount++;
-                            _ = CreateLog($"Saved product {dto.ProductCode}: {dto.ProductDescription}", AlertType.Info);
                         }
                         else
                         {
@@ -257,127 +142,83 @@ namespace POSPRA_WinFormsUI.Forms
                         _ = CreateLog($"Exception saving product {dto.ProductCode}: {ex.Message}", AlertType.Error);
                     }
 
-                    // Update UI periodically to show progress
-                    if ((successCount + failCount) % 10 == 0)
+                    // Update UI periodically
+                    if ((successCount + failCount) % 50 == 0)
                     {
-                        btnSave.Text = $"Saving... ({successCount + failCount}/{itemsToSave.Count})";
+                        btnLoad.Text = $"Loading... ({successCount + failCount}/{apiProducts.Count})";
                         Application.DoEvents();
                     }
                 }
 
-                var resultMessage = $"Saved {successCount} products successfully.";
+                var resultMessage = $"Load completed: {successCount} succeeded, {failCount} failed.";
 
                 if (failCount > 0)
                 {
-                    resultMessage = $"Save completed: {successCount} succeeded, {failCount} failed.";
-                }
-
-                WindowsLocalAppNotification.Show("Save Completed", resultMessage);
-
-                if (failCount > 0)
-                {
-                    // Show detailed failure info separately
                     var failureDetails = string.Join("\n", failedProducts.Take(10));
                     if (failedProducts.Count > 10)
                         failureDetails += $"\n... and {failedProducts.Count - 10} more errors";
 
                     AlertManager.ShowWarning($"{resultMessage}\n\nFailed items:\n{failureDetails}");
-
-                    // Log all failures
-                    _ = CreateLog($"Save completed with errors: {successCount} success, {failCount} failed. First error: {failedProducts.FirstOrDefault()}", AlertType.Warning);
+                    _ = CreateLog($"Load completed with errors: {successCount} success, {failCount} failed", AlertType.Warning);
                 }
                 else
                 {
-                    AlertManager.ShowSuccess($"Successfully saved all {successCount} products!");
-                    _ = CreateLog($"Save completed successfully: {successCount} products saved", AlertType.Info);
+                    AlertManager.ShowSuccess($"Successfully loaded {successCount} products to local database!");
+                    _ = CreateLog($"Load completed successfully: {successCount} products saved to local DB", AlertType.Success);
                 }
 
-                // Refresh grid if all succeeded
-                if (failCount == 0 && successCount > 0)
-                {
-                    _currentPage = 1;
-                    lblPageNumber.Text = "Page 1";
-                    await LoadProductCatalogue();
-                }
+                // Step 4: Refresh the grid from local DB
+                _currentPage = 1;
+                await LoadFromLocalDB();
             }
             catch (Exception ex)
             {
-                WindowsLocalAppNotification.Show("Error", $"Error saving catalogue: {ex.Message}");
-                AlertManager.ShowError($"Error saving catalogue: {ex.Message}");
-                _ = CreateLog($"Critical error saving catalogue: {ex.Message}", AlertType.Error);
+                AlertManager.ShowError($"Error loading catalogue: {ex.Message}");
+                _ = CreateLog($"Critical error loading catalogue: {ex.Message}", AlertType.Error);
             }
             finally
             {
-                _isSaving = false;
-                btnSave.Enabled = true;
-                btnSave.Text = "Save";
+                _isLoading = false;
+                btnLoad.Enabled = true;
+                btnLoad.Text = "Load";
             }
         }
 
-        private async Task<List<long>> GetExistingProductCodes()
-        {
-            try
-            {
-                // Fetch all existing products (or a large batch)
-                var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
-                {
-                    numberOfRecords = 10000, // Adjust based on your catalog size
-                    pageNumber = 1
-                });
-
-                return response?.Data?
-                    .Where(p => p.ProductCode.HasValue)
-                    .Select(p => p.ProductCode.Value)
-                    .ToList() ?? new List<long>();
-            }
-            catch (Exception ex)
-            {
-                _ = CreateLog($"Error fetching existing product codes: {ex.Message}", AlertType.Warning);
-                return new List<long>(); // Return empty list on error, letting duplicates be caught by DB
-            }
-        }
-
-        private async Task CreateLog(string message, string type)
-        {
-            var log = new Logs
-            {
-                Message = message,
-                Type = type,
-            };
-
-            await _logService.LogAsync(log);
-        }
-
-        private async Task LoadProductCatalogue()
+        /// <summary>
+        /// Load products from LOCAL database for display
+        /// </summary>
+        private async Task LoadFromLocalDB()
         {
             try
             {
                 if (!string.IsNullOrWhiteSpace(SearchBox.Text))
                 {
-                    await FilterProducts();
+                    await FilterProductsFromLocalDB();
                     return;
                 }
 
-                var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
-                {
-                    numberOfRecords = _pageSize,
-                    pageNumber = _currentPage
-                });
+                // Fetch from local DB using FiscalService
+                var response = await _fiscalService.GetProductCatalogue();
+
 
                 var list = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
                 PopulateGrid(list);
 
                 lblPageNumber.Text = $"Page {_currentPage}";
-                btnNext.Enabled = true;
+                btnNext.Enabled = list.Count() >= _pageSize; // Enable next if full page
                 btnPrev.Enabled = _currentPage > 1;
             }
             catch (Exception ex)
             {
-                AlertManager.ShowError($"Error loading products: {ex.Message}");
+                AlertManager.ShowError($"Error loading products from local database: {ex.Message}");
+                _ = CreateLog($"Error loading from local DB: {ex.Message}", AlertType.Error);
             }
         }
 
-        private async Task FilterProducts()
+        /// <summary>
+        /// Filter products from LOCAL database based on search
+        /// </summary>
+        private async Task FilterProductsFromLocalDB()
         {
             try
             {
@@ -386,18 +227,15 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     btnNext.Enabled = true;
                     btnPrev.Enabled = _currentPage > 1;
-                    await LoadProductCatalogue();
+                    await LoadFromLocalDB();
                     return;
                 }
 
                 btnNext.Enabled = false;
                 btnPrev.Enabled = false;
 
-                var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
-                {
-                    numberOfRecords = SEARCH_FETCH_LIMIT,
-                    pageNumber = 1
-                });
+                // Fetch all items from local DB and filter in memory (original logic)
+                var response = await _fiscalService.GetProductCatalogue();
 
                 var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
@@ -413,7 +251,8 @@ namespace POSPRA_WinFormsUI.Forms
             }
             catch (Exception ex)
             {
-                AlertManager.ShowError($"Error filtering products: {ex.Message}");
+                AlertManager.ShowError($"Error searching products: {ex.Message}");
+                _ = CreateLog($"Error searching in local DB: {ex.Message}", AlertType.Error);
             }
         }
 
@@ -439,7 +278,7 @@ namespace POSPRA_WinFormsUI.Forms
         private async Task NextPage()
         {
             _currentPage++;
-            await LoadProductCatalogue();
+            await LoadFromLocalDB();
         }
 
         private async Task PrevPage()
@@ -447,7 +286,25 @@ namespace POSPRA_WinFormsUI.Forms
             if (_currentPage > 1)
             {
                 _currentPage--;
-                await LoadProductCatalogue();
+                await LoadFromLocalDB();
+            }
+        }
+
+        private async Task CreateLog(string message, string type)
+        {
+            try
+            {
+                var log = new Logs
+                {
+                    Message = message,
+                    Type = type,
+                };
+
+                await _logService.LogAsync(log);
+            }
+            catch
+            {
+                // Suppress logging errors to avoid cascading failures
             }
         }
     }

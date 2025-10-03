@@ -6,7 +6,10 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
+using System.Drawing.Drawing2D;
 using AlertType = POSPRA.Application.Utility.AlertType;
+using POSPRA.SecurityEncryption;
 
 namespace POSPRA_WinFormsUI
 {
@@ -38,8 +41,13 @@ namespace POSPRA_WinFormsUI
             InitializeComponent();
 
 
-            // Load POSID from app.config
-            posid.Text = ConfigurationManager.AppSettings["Username"] ?? "0";
+           
+            // Load POSID from app.config (stored encrypted)
+            var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+            var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+            posid.Text = decryptedPosId;   // show real POSID in UI
+
+
 
             addedItems = _sessionItems;
 
@@ -82,9 +90,6 @@ namespace POSPRA_WinFormsUI
             CaptureOriginalLayout();
             InitializeEmptyGrid();
             _logService = logService;
-            _invoiceService = invoiceService;
-            //_ = Createlog();
-            //_ = CreateLog("test", AlertType.Info);
         }
 
         #endregion
@@ -133,24 +138,27 @@ namespace POSPRA_WinFormsUI
                     break;
 
                 case "itemcode":
-                    // Allow any character, only length restriction
                     if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 35)
                         e.Handled = true;
                     break;
 
                 case "pctcode":
-                    // Allow any character, only length restriction
                     if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 35)
                         e.Handled = true;
                     break;
 
                 case "quantity":
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
                     {
                         e.Handled = true;
                         return;
                     }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 5)
+                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 10)
                         e.Handled = true;
                     break;
 
@@ -160,20 +168,23 @@ namespace POSPRA_WinFormsUI
                 case "discount":
                 case "furthertax":
                 case "taxcharged":
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
                     {
                         e.Handled = true;
                         return;
                     }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 10)
+                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
                         e.Handled = true;
                     break;
             }
         }
 
-
         #endregion
-
 
         #region Invoice Type Logic
 
@@ -184,19 +195,17 @@ namespace POSPRA_WinFormsUI
             if (type == 3 || type == 4) // Debit or Credit
             {
                 refUSIN.ReadOnly = false;
-                refUSIN.BackColor = SystemColors.Window;   // normal white textbox background
+                refUSIN.BackColor = SystemColors.Window;
                 refUSIN.ForeColor = SystemColors.ControlText;
             }
             else
             {
                 refUSIN.ReadOnly = true;
                 refUSIN.Clear();
-                refUSIN.BackColor = SystemColors.Control;  // gray background (like disabled)
+                refUSIN.BackColor = SystemColors.Control;
                 refUSIN.ForeColor = SystemColors.GrayText;
             }
         }
-
-
 
         #endregion
 
@@ -205,16 +214,15 @@ namespace POSPRA_WinFormsUI
         private void InitializeEmptyGrid()
         {
             dataGridView1.Rows.Clear();
-            // lblTotalItems.Text = "Total 0 items"; // Commented out - control doesn't exist
             ItemCode.Focus();
         }
+
         private async Task CreateLog(string message, string type)
         {
             var log = new Logs
             {
-                Message = message,   // pass any message
-                Type = type,         // comes from AlertType constants
-
+                Message = message,
+                Type = type,
             };
 
             await _logService.LogAsync(log);
@@ -232,17 +240,28 @@ namespace POSPRA_WinFormsUI
 
         private InvoiceItems GetTextboxData()
         {
+            // Parse input values
             decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
-            decimal saleVal = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
-            decimal taxRate = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
-            decimal discountPercent = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m;
-            decimal furtherTax = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
+            decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
+            decimal discountFlat = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m;
+            decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
-            decimal subtotal = quantity * saleVal;
-            decimal discountAmount = subtotal * (discountPercent / 100m);
-            decimal afterDiscount = subtotal - discountAmount;
-            decimal taxAmount = afterDiscount * (taxRate / 100m);
-            decimal total = afterDiscount + taxAmount + furtherTax;
+            // Step 1: Calculate gross amount (quantity × sale value per unit)
+            decimal grossAmount = quantity * saleValuePerUnit;
+
+            // Step 2: Deduct flat discount
+            decimal amountAfterDiscount = grossAmount - discountFlat;
+            if (amountAfterDiscount < 0) amountAfterDiscount = 0;
+
+            // Step 3: Calculate tax on amount after discount (percentage of after-discount amount)
+            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
+
+            // Step 4: Calculate further tax (percentage of after-discount amount)
+            decimal furtherTaxAmount = amountAfterDiscount * (furtherTaxPercent / 100m);
+
+            // Step 5: Calculate final total
+            decimal totalAmount = amountAfterDiscount + taxAmount + furtherTaxAmount;
 
             return new InvoiceItems
             {
@@ -250,12 +269,12 @@ namespace POSPRA_WinFormsUI
                 ItemName = ItemName.Text.Trim(),
                 PCTCode = pctCode.Text.Trim(),
                 Quantity = quantity,
-                SaleValue = saleVal,
-                Discount = discountPercent,    // store percentage for consistency
-                TaxRate = (double)taxRate,
-                TaxCharged = taxAmount,
-                FurtherTax = furtherTax,
-                TotalAmount = total,
+                SaleValue = saleValuePerUnit,
+                Discount = discountFlat,           // Flat amount
+                TaxRate = (double)taxRatePercent,  // Percentage
+                TaxCharged = taxAmount,            // Calculated tax amount
+                FurtherTax = furtherTaxAmount,     // Calculated further tax amount
+                TotalAmount = totalAmount,
                 InvoiceType = GetSelectedInvoiceType(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
@@ -269,9 +288,6 @@ namespace POSPRA_WinFormsUI
         {
             try
             {
-                // Ensure invoice header is filled enough to create a CurrentInvoice
-                // Light-weight check: if header is totally empty, ask user whether to continue adding items.
-                // Do NOT run full validation here and do NOT change focus — full validation happens on Save.
                 if (IsInvoiceHeaderEmptyForAdding())
                 {
                     var res = MessageBox.Show(
@@ -283,22 +299,14 @@ namespace POSPRA_WinFormsUI
                     if (res == DialogResult.No)
                         return;
                     _ = CreateLog("Invoice header looks incomplete.", AlertType.Info);
-
                 }
 
-                // Ensure CurrentInvoice updated with header values (may be empty)
                 CurrentInvoice = CollectInvoiceData();
-
-
-                // Ensure CurrentInvoice updated with header values
-                CurrentInvoice = CollectInvoiceData();
-
                 InvoiceItems inputData = GetTextboxData();
 
                 if (!ValidateItemEntry(inputData))
                     return;
 
-                // Check for duplicate by ItemCode
                 var existingRow = dataGridView1.Rows
                     .Cast<DataGridViewRow>()
                     .FirstOrDefault(r => (r.Cells["colProductCode"].Value?.ToString() ?? "") == inputData.ItemCode);
@@ -328,11 +336,7 @@ namespace POSPRA_WinFormsUI
                     addedItems.Add(inputData);
                 }
 
-                // Update UI
-                // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
                 ClearFormFields();
-
-                //WindowsLocalAppNotification.Show("Success", $"Item '{inputData.ItemCode}' added/updated successfully.");
                 AlertManager.ShowSuccess($"Item '{inputData.ItemCode}' added/updated successfully.");
                 _ = CreateLog("Item added successfully", AlertType.Success);
                 ItemCode.Focus();
@@ -340,17 +344,14 @@ namespace POSPRA_WinFormsUI
             }
             catch (Exception ex)
             {
-                //WindowsLocalAppNotification.Show("Error", $"Error processing item: {ex.Message}");
                 AlertManager.ShowError($"Error processing item: {ex.Message}");
             }
         }
 
         private async void BtnSave_Click(object sender, EventArgs e)
         {
-            // Prevent multiple simultaneous saves
             if (_isSaving)
             {
-                WindowsLocalAppNotification.Show("Information", "Save operation is already in progress. Please wait...");
                 AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
                 return;
             }
@@ -358,20 +359,18 @@ namespace POSPRA_WinFormsUI
             try
             {
                 _isSaving = true;
-                btnSave.Enabled = false; // Disable the button during save
-                btnSave.Text = "Saving..."; // Visual feedback
+                btnSave.Enabled = false;
+                btnSave.Text = "Saving...";
 
                 if (addedItems == null || !addedItems.Any())
                 {
-                    WindowsLocalAppNotification.Show("Validation Error", "Please add at least one item before saving the invoice.");
                     AlertManager.ShowError("Please add at least one item before saving the invoice.");
-                    _ = CreateLog("Validation Error Item are Not added", AlertType.Error);
+                    _ = CreateLog("Validation Error: Items are not added", AlertType.Error);
                     return;
                 }
 
                 if (!AreInvoiceFieldsValid())
                 {
-                    WindowsLocalAppNotification.Show("Validation Error", "Invoice header is incomplete. Please fill in the invoice header before saving.");
                     AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
                     _ = CreateLog("Invoice header is incomplete", AlertType.Error);
                     return;
@@ -385,10 +384,8 @@ namespace POSPRA_WinFormsUI
 
                 if (confirm != DialogResult.Yes) return;
 
-                // Create a fresh copy of the invoice data
                 CurrentInvoice = CollectInvoiceData();
 
-                // Create item DTOs from current items
                 var itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
                     ItemCode = item.ItemCode,
@@ -408,6 +405,8 @@ namespace POSPRA_WinFormsUI
                 var invoiceDto = new InvoiceDto
                 {
                     POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
+
+
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = (byte)GetSelectedInvoiceType(),
@@ -418,7 +417,7 @@ namespace POSPRA_WinFormsUI
                     PaymentMode = GetSelectedPaymentMode(),
                     TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
                     TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
-                    TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue),
+                    TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
                     TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
                     Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
                     FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : itemDtos.Sum(x => x.FurtherTax),
@@ -426,26 +425,22 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
-                //WindowsLocalAppNotification.Show("Information", "Saving invoice...");
                 AlertManager.ShowInfo("Saving invoice...");
-                _ = CreateLog("Saving  invoice", AlertType.Info);
-                var output = await _invoiceService.CreateAsync(invoiceDto);
+                _ = CreateLog("Saving invoice", AlertType.Info);
+                var output = await _fiscalService.CreateAsync(invoiceDto);
 
                 if (output.StatusCode == ApiStatusCode.Success)
                 {
                     WindowsLocalAppNotification.Show("Success", output.Message);
                     AlertManager.ShowSuccess(output.Message);
-
                     _ = CreateLog(output.Message, AlertType.Info);
-                    // -----------------------------
-                    // CLEAR ALL DTOs AND UI FIELDS ONLY AFTER SUCCESSFUL SAVE
-                    // -----------------------------
-                    addedItems.Clear();                 // Clear item DTO list
-                    CurrentInvoice = null;              // Clear main invoice DTO
-                    _sessionItems.Clear();              // Clear session list if used
-                    dataGridView1.Rows.Clear();         // Clear grid
-                    ClearInvoiceFields();               // Reset invoice header fields
-                    UpdateInvoiceTotals();              // Reset totals
+
+                    addedItems.Clear();
+                    CurrentInvoice = null;
+                    _sessionItems.Clear();
+                    dataGridView1.Rows.Clear();
+                    ClearInvoiceFields();
+                    UpdateInvoiceTotals();
                 }
                 else
                 {
@@ -462,13 +457,11 @@ namespace POSPRA_WinFormsUI
             }
             finally
             {
-                // Always restore button state
                 _isSaving = false;
                 btnSave.Enabled = true;
                 btnSave.Text = "Save";
             }
         }
-
 
         private void btnEdit_Click(object sender, EventArgs e)
         {
@@ -476,7 +469,6 @@ namespace POSPRA_WinFormsUI
             {
                 if (dataGridView1.SelectedRows.Count == 0)
                 {
-                    //WindowsLocalAppNotification.Show("No Selection", "Please select a row to edit.");
                     AlertManager.ShowError("Please select a row to edit.");
                     return;
                 }
@@ -486,7 +478,6 @@ namespace POSPRA_WinFormsUI
 
                 if (string.IsNullOrEmpty(itemCode))
                 {
-                    //WindowsLocalAppNotification.Show("Error", "Item code is missing for this row.");
                     AlertManager.ShowError("Item code is missing for this row.");
                     return;
                 }
@@ -495,30 +486,20 @@ namespace POSPRA_WinFormsUI
 
                 if (itemIndex < 0)
                 {
-                    //WindowsLocalAppNotification.Show("Not Found", $"Item with Item Code '{itemCode}' was not found in the current list.");
                     AlertManager.ShowError($"Item with Item Code '{itemCode}' was not found in the current list.");
                     return;
                 }
 
                 var item = addedItems[itemIndex];
-
-                // Populate form fields
                 LoadItemForEditing(item);
-
-                // Remove from memory + grid
                 addedItems.RemoveAt(itemIndex);
                 dataGridView1.Rows.Remove(row);
-
-                // Update UI
                 UpdateSerialNumbers();
-                // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
                 UpdateInvoiceTotals();
-
                 ItemCode.Focus();
             }
             catch (Exception ex)
             {
-                //WindowsLocalAppNotification.Show("Error", $"Error while trying to edit the item: {ex.Message}");
                 AlertManager.ShowError($"Error while trying to edit the item: {ex.Message}");
             }
         }
@@ -537,12 +518,18 @@ namespace POSPRA_WinFormsUI
             row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";
             row.Cells["colProductDescription"].Value = inputData.ItemName ?? "";
             row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";
-            row.Cells["colQuantity"].Value = inputData.Quantity.ToString();
-            row.Cells["colRate"].Value = inputData.SaleValue.ToString();
-            row.Cells["colTotalValue"].Value = inputData.TotalAmount.ToString();
-            row.Cells["colSalesTax"].Value = inputData.TaxRate.ToString();
-            row.Cells["colExtraTax"].Value = inputData.TaxCharged.ToString();
-            row.Cells["colFutureTax"].Value = inputData.FurtherTax.ToString();
+            row.Cells["colQuantity"].Value = (inputData.Quantity ?? 0m).ToString("0.00");
+            row.Cells["colRate"].Value = (inputData.SaleValue ?? 0m).ToString("0.00");
+            row.Cells["colDiscount"].Value = (inputData.Discount ?? 0m).ToString("0.00");
+
+            // Sales value excluding sales tax: (quantity × rate) - discount
+            decimal salesValueExcTax = (inputData.Quantity ?? 0) * (inputData.SaleValue ?? 0) - (inputData.Discount ?? 0);
+            row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
+
+            row.Cells["colTotalValue"].Value = (inputData.TotalAmount ?? 0m).ToString("0.00");
+            row.Cells["colSalesTax"].Value = inputData.TaxRate.ToString("0.00");
+            row.Cells["colExtraTax"].Value = (inputData.TaxCharged ?? 0m).ToString("0.00");
+            row.Cells["colFutureTax"].Value = (inputData.FurtherTax ?? 0m).ToString("0.00");
         }
 
         private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -558,7 +545,6 @@ namespace POSPRA_WinFormsUI
                     addedItems.Remove(item);
                     dataGridView1.Rows.RemoveAt(e.RowIndex);
                     UpdateSerialNumbers();
-                    // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
                     UpdateInvoiceTotals();
                 }
             }
@@ -569,13 +555,25 @@ namespace POSPRA_WinFormsUI
             ItemCode.Text = item.ItemCode ?? "";
             ItemName.Text = item.ItemName ?? "";
             pctCode.Text = item.PCTCode ?? "";
-            qty.Text = item.Quantity.ToString();
-            salevalue.Text = item.SaleValue.ToString();
-            totalamount.Text = item.TotalAmount.ToString();
-            TaxRatebox.Text = item.TaxRate.ToString();
-            TaxCharged.Text = item.TaxCharged.ToString();
-            itemDiscount.Text = item.Discount.ToString();
-            FurtureTax.Text = item.FurtherTax.ToString();
+            qty.Text = (item.Quantity ?? 0m).ToString();
+            salevalue.Text = (item.SaleValue ?? 0m).ToString();
+            itemDiscount.Text = (item.Discount ?? 0m).ToString(); // Flat discount amount
+            TaxRatebox.Text = item.TaxRate.ToString(); // Tax rate percentage
+
+            // Calculate back the further tax percentage from stored amount
+            decimal afterDiscount = (item.Quantity ?? 0) * (item.SaleValue ?? 0) - (item.Discount ?? 0);
+            if (afterDiscount > 0 && item.FurtherTax.HasValue && item.FurtherTax.Value > 0)
+            {
+                decimal furtherTaxPercent = (item.FurtherTax.Value / afterDiscount) * 100m;
+                FurtureTax.Text = Math.Round(furtherTaxPercent, 2).ToString();
+            }
+            else
+            {
+                FurtureTax.Text = "0";
+            }
+
+            totalamount.Text = (item.TotalAmount ?? 0m).ToString();
+            TaxCharged.Text = (item.TaxCharged ?? 0m).ToString();
         }
 
         private void ClearFormFields()
@@ -625,13 +623,11 @@ namespace POSPRA_WinFormsUI
 
                     dataGridView1.Rows.RemoveAt(selectedIndex);
                     UpdateSerialNumbers();
-                    // lblTotalItems.Text = $"Total {dataGridView1.Rows.Count} items"; // Commented out - control doesn't exist
                     UpdateInvoiceTotals();
                 }
             }
             else
             {
-                //WindowsLocalAppNotification.Show("No Selection", "Please select a row to delete.");
                 AlertManager.ShowError("Please select a row to delete.");
             }
         }
@@ -658,24 +654,21 @@ namespace POSPRA_WinFormsUI
             row.Cells["colRate"].Value = (item.SaleValue ?? 0m).ToString("0.00");
             row.Cells["colDiscount"].Value = (item.Discount ?? 0m).ToString("0.00");
 
-            // Sales value excluding sales tax: subtotal before taxes (quantity * rate - discount)
+            // Sales value excluding sales tax: (quantity × rate) - flat discount
             decimal qty = item.Quantity ?? 0m;
             decimal rate = item.SaleValue ?? 0m;
-            decimal discountAmt = item.Discount ?? 0m;
-            decimal salesValueExcTax = Math.Round(qty * rate - discountAmt, 2);
+            decimal discountFlat = item.Discount ?? 0m;
+            decimal salesValueExcTax = Math.Round((qty * rate) - discountFlat, 2);
             row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
 
             row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
-            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");      // percent
-            row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");    // absolute tax charged
+            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");
+            row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");
             row.Cells["colFutureTax"].Value = (item.FurtherTax ?? 0m).ToString("0.00");
 
             row.Cells["colInvoiceType"].Value = GetInvoiceTypeName(GetSelectedInvoiceType());
-
-
             row.Cells["colRefUSIN"].Value = item.RefUSIN ?? "";
         }
-
 
         #endregion
 
@@ -689,6 +682,7 @@ namespace POSPRA_WinFormsUI
                 2 => "Purchase",
                 3 => "Debit",
                 4 => "Credit",
+                _ => "Unknown"
             };
         }
 
@@ -698,44 +692,44 @@ namespace POSPRA_WinFormsUI
 
         private void CalculateItemTotals()
         {
+            // Parse input values
             decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
-            decimal saleVal = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
-            decimal taxRate = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m; // percent
-            decimal discount = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m; // flat amount
-            decimal furtherTax = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
+            decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
+            decimal discountFlat = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m;
+            decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
-            // Subtotal (without tax)
-            decimal subtotal = quantity * saleVal;
+            // Step 1: Calculate gross sale amount
+            decimal grossAmount = quantity * saleValuePerUnit;
 
-            // Apply flat discount on subtotal
-            decimal subtotalAfterDiscount = subtotal - discount;
-            if (subtotalAfterDiscount < 0) subtotalAfterDiscount = 0;
+            // Step 2: Deduct flat discount
+            decimal amountAfterDiscount = grossAmount - discountFlat;
+            if (amountAfterDiscount < 0) amountAfterDiscount = 0;
 
-            // Tax on discounted subtotal
-            decimal taxAmount = subtotalAfterDiscount * (taxRate / 100m);
+            // Step 3: Calculate tax (percentage of amount after discount)
+            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
 
-            // Final total
-            decimal total = subtotalAfterDiscount + taxAmount + furtherTax;
+            // Step 4: Calculate further tax (percentage of amount after discount)
+            decimal furtherTaxAmount = amountAfterDiscount * (furtherTaxPercent / 100m);
+
+            // Step 5: Calculate final total
+            decimal totalAmount = amountAfterDiscount + taxAmount + furtherTaxAmount;
 
             // Update UI
-            totalamount.Text = Math.Round(total, 2).ToString("0.00");
+            totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
             TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
         }
-
-
 
         private void CalculateItemTotals(object sender, EventArgs e)
         {
             CalculateItemTotals();
         }
 
-
         private void RecalculateTotals(object sender, EventArgs e)
         {
             CalculateItemTotals();
             UpdateInvoiceTotals();
         }
-
 
         private void UpdateInvoiceTotals()
         {
@@ -750,32 +744,33 @@ namespace POSPRA_WinFormsUI
                 return;
             }
 
-            decimal totalQty = addedItems.Sum(i => Convert.ToDecimal(i.Quantity ?? 0));
-            decimal totalSaleVal = addedItems.Sum(i =>
-                Convert.ToDecimal(i.Quantity ?? 0) * Convert.ToDecimal(i.SaleValue ?? 0));
+            // Calculate totals from items
+            decimal totalQty = addedItems.Sum(i => i.Quantity ?? 0m);
 
-            decimal totalDiscount = addedItems.Sum(i =>
-                Convert.ToDecimal(i.Discount ?? 0)); // flat amount
+            // Total Sale Value = Sum of (quantity × sale value per unit) for all items
+            decimal totalGrossSaleValue = addedItems.Sum(i =>
+                (i.Quantity ?? 0m) * (i.SaleValue ?? 0m));
 
-            decimal totalTaxCharged = addedItems.Sum(i =>
-                Convert.ToDecimal(i.TaxCharged ?? 0));
+            // Total Discount = Sum of all flat discount amounts
+            decimal totalDiscount = addedItems.Sum(i => i.Discount ?? 0m);
 
-            decimal totalFurtherTax = addedItems.Sum(i =>
-                Convert.ToDecimal(i.FurtherTax ?? 0));
+            // Total Tax Charged = Sum of all calculated tax amounts
+            decimal totalTaxCharged = addedItems.Sum(i => i.TaxCharged ?? 0m);
 
-            // Final bill calculation: (gross – discount) + tax + further tax
-            decimal totalBillAmt = (totalSaleVal - totalDiscount) + totalTaxCharged + totalFurtherTax;
-            if (totalBillAmt < 0) totalBillAmt = 0; // safeguard
+            // Total Further Tax = Sum of all calculated further tax amounts
+            decimal totalFurtherTax = addedItems.Sum(i => i.FurtherTax ?? 0m);
+
+            // Total Bill Amount = Sum of all item total amounts
+            decimal totalBillAmount = addedItems.Sum(i => i.TotalAmount ?? 0m);
 
             // Update UI
             TotalQuantity.Text = totalQty.ToString("0.00");
-            TotalSaleValue.Text = totalSaleVal.ToString("0.00");
+            TotalSaleValue.Text = totalGrossSaleValue.ToString("0.00");
             TotalTaxCharged.Text = totalTaxCharged.ToString("0.00");
             Discount.Text = totalDiscount.ToString("0.00");
             TotalFurtherTax.Text = totalFurtherTax.ToString("0.00");
-            TotalBillAmount.Text = totalBillAmt.ToString("0.00");
+            TotalBillAmount.Text = totalBillAmount.ToString("0.00");
         }
-
 
         #endregion
 
@@ -795,8 +790,6 @@ namespace POSPRA_WinFormsUI
 
             return 1; // Default to Card
         }
-
-
 
         #endregion
 
@@ -868,7 +861,7 @@ namespace POSPRA_WinFormsUI
 
         private bool IsInvoiceHeaderEmptyForAdding()
         {
-            return string.IsNullOrWhiteSpace(posid.Text)   // posid may be prefilled from config but keep check anyway
+            return string.IsNullOrWhiteSpace(posid.Text)
                 && string.IsNullOrWhiteSpace(USIN.Text)
                 && string.IsNullOrWhiteSpace(refUSIN.Text)
                 && string.IsNullOrWhiteSpace(buyerntn.Text)
@@ -894,7 +887,7 @@ namespace POSPRA_WinFormsUI
             }
             else if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length != 7)
             {
-                MessageBox.Show("Buyer NTN must be exactly 7 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Buyer NTN must be exactly 7 characters.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.BeginInvoke(new Action(() => buyerntn.Focus()));
                 return false;
             }
@@ -947,7 +940,6 @@ namespace POSPRA_WinFormsUI
         }
 
         #endregion
-
 
         #region Responsive / Rounded Corners
 

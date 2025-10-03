@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Drawing.Drawing2D;
 using Microsoft.Extensions.DependencyInjection;
+using POSPRA.SecurityEncryption;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -38,9 +39,13 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
+                // Get AES-encrypted values from config
+                string encUsername = ConfigurationManager.AppSettings["Username"];
+                string encPassword = ConfigurationManager.AppSettings["Password"];
 
-                string configUsername = ConfigurationManager.AppSettings["Username"];
-                string configPassword = ConfigurationManager.AppSettings["Password"];
+                // 🔑 Decrypt values before using
+                string configUsername = AesEncryptionHelper.Decrypt(encUsername);
+                string configPassword = AesEncryptionHelper.Decrypt(encPassword);
 
                 string enteredUsername = txtUsername.Text.Trim();
                 string enteredPassword = txtPassword.Text.Trim();
@@ -51,7 +56,7 @@ namespace POSPRA_WinFormsUI.Forms
                     var dashboard = _provider.GetRequiredService<Main>();
                     dashboard.Show();
 
-                    // Hide the current login form
+                    // Hide login form
                     this.Hide();
                 }
                 else
@@ -59,12 +64,12 @@ namespace POSPRA_WinFormsUI.Forms
                     MessageBox.Show("Invalid credentials!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                MessageBox.Show("Login failed: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         private void btnClose_Click(object sender, EventArgs e)
         {
