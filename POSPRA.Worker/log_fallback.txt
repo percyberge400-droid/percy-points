@@ -64,3 +64,4 @@
 2025-09-30T09:49:04.2110151Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
 2025-09-30T10:08:40.9691667Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
 2025-09-30T10:13:39.5568354Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-10-02T07:22:32.0360233Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.

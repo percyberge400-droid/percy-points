@@ -13,21 +13,20 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly IFiscalService _fiscalService;
-        //logs
         private readonly ILogService _logService;
-        // -----------------------------
-        // Checkers cancellation tokens
-        // -----------------------------
         private CancellationTokenSource _internetCheckCts;
         private CancellationTokenSource _workerServiceCts;
-
-        // Track non-MDI forms separately
         private readonly List<Form> _independentForms = new List<Form>();
+        private DateTime? offlineSince = null;
+        private bool? wasOnline = null;
+        private DateTime lastOfflineAlertTime = DateTime.MinValue;
+        private bool _workerServiceAlertShown = false;
 
         public Main(IServiceProvider provider, IFiscalService fiscalService, ILogService logService)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
+            _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
             InitializeComponent();
             this.IsMdiContainer = true;
@@ -36,37 +35,29 @@ namespace POSPRA_WinFormsUI.Forms
             panExportInvoice.Visible = false;
             panCatalogView.Visible = false;
 
+            btnDashboard.ForeColor = ColorTranslator.FromHtml("#48A787");
 
-            btnDashboard.ForeColor = ColorTranslator.FromHtml("#686DF4"); // Highlight color
-
-            // Load Dashboard as default child
             Form childForm = _provider.GetRequiredService<DashboardForm>();
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
 
-            // Handle form state changes to manage independent forms
             this.Resize += Main_Resize;
-
-            // Start internet and worker service checkers
             StartInternetStatusChecker();
             StartWorkerServiceStatusChecker();
 
-            // Placeholder for worker service
-            lblWorkerService.Text = "Worker Service: -";
-            lblWorkerService.Font = new Font(lblWorkerService.Font, FontStyle.Italic);
-            lblWorkerService.ForeColor = Color.Gray;
+            posStatus.Font = new Font(posStatus.Font, FontStyle.Italic);
+            posStatus.ForeColor = Color.Gray;
 
-            _logService = logService;
+            internetStatus.Font = new Font(internetStatus.Font, FontStyle.Italic);
+            internetStatus.ForeColor = Color.Gray;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
-
             StopInternetStatusChecker();
             StopWorkerServiceStatusChecker();
-
             foreach (var form in _independentForms.ToArray())
             {
                 if (form != null && !form.IsDisposed)
@@ -127,19 +118,11 @@ namespace POSPRA_WinFormsUI.Forms
             newForm.StartPosition = FormStartPosition.CenterScreen;
             newForm.FormBorderStyle = FormBorderStyle.Sizable;
             newForm.FormClosed += (s, e) => _independentForms.Remove(newForm);
-
             _independentForms.Add(newForm);
             newForm.Show();
             newForm.BringToFront();
         }
 
-        // -----------------------------
-        // INTERNET STATUS CHECKER
-        // -----------------------------
-
-        private DateTime? offlineSince = null;
-        private bool? wasOnline = null;
-        private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private void StartInternetStatusChecker()
         {
             _internetCheckCts = new CancellationTokenSource();
@@ -147,72 +130,47 @@ namespace POSPRA_WinFormsUI.Forms
 
             _ = Task.Run(async () =>
             {
-                //bool wasOnline = true;
-                //bool wasOnline = false;
-                //DateTime? offlineSince = null;
-
-
                 while (!ct.IsCancellationRequested)
                 {
                     try
                     {
                         bool online = await CheckInternetConnectivityAsync();
 
-                        if (lblNetworkStatus != null && lblNetworkStatus.IsHandleCreated)
+                        if (internetStatus != null && internetStatus.IsHandleCreated)
                         {
-                            lblNetworkStatus.BeginInvoke(new Action(() =>
+                            internetStatus.BeginInvoke(new Action(() =>
                             {
-                                lblNetworkStatus.Text = $"Network Status: {(online ? "Online" : "Offline")}";
-                                lblNetworkStatus.Font = new Font(lblNetworkStatus.Font, FontStyle.Bold);
-                                lblNetworkStatus.ForeColor = online ? Color.Green : Color.Red;
+                                // Update main label
+                                internetStatus.Text = $"{(online ? "● Online" : "● Offline")}";
+                                internetStatus.Font = new Font(internetStatus.Font, FontStyle.Bold);
+                                internetStatus.ForeColor = online ? Color.Green : Color.Red;
                             }));
                         }
 
-                        // Only trigger alert if offline continuously for 2 seconds
-                        //if (!online && wasOnline)
-                        //{
-                        //    // Wait 2 seconds and check again
-                        //    await Task.Delay(3000, ct);
-                        //    bool stillOffline = !await CheckInternetConnectivityAsync();
-
-                        //    if (stillOffline)
-                        //        ShowAlert("Internet connection lost!");
-
-                        //    if (!stillOffline)
-                        //        ShowAlert("Internet connection restore!");
-                        //}
-
-                        // State changed
                         if (wasOnline != null && wasOnline != online)
                         {
                             if (!online)
                             {
-                                // Connection just went offline
                                 offlineSince = DateTime.Now;
-
                                 ShowAlert("Internet connection lost!", "Error", true);
                                 _ = CreateLog("Internet connection lost", AlertType.Error);
-                                lastOfflineAlertTime = DateTime.Now; // reset timer
+                                lastOfflineAlertTime = DateTime.Now;
                             }
                             else
                             {
-                                // Connection just restored
                                 string downtimeMsg = "";
                                 if (offlineSince.HasValue)
                                 {
                                     TimeSpan downTime = DateTime.Now - offlineSince.Value;
                                     downtimeMsg = $" (Downtime: {downTime.TotalSeconds:F0} seconds)";
                                 }
-
                                 ShowAlert("Internet connection restored!", "Success", true);
                                 _ = CreateLog("Internet connection restored" + downtimeMsg, AlertType.Success);
-
                                 offlineSince = null;
                             }
                         }
-                        else if (!online) // still offline
+                        else if (!online)
                         {
-                            // Show repeated alerts every 3 seconds (no log)
                             if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 3)
                             {
                                 string msg = "Internet connection still offline";
@@ -221,16 +179,13 @@ namespace POSPRA_WinFormsUI.Forms
                                     TimeSpan downTime = DateTime.Now - offlineSince.Value;
                                     msg += $" ({downTime.TotalSeconds:F0} seconds)";
                                 }
-
                                 ShowAlert("Internet connection lost!", "Error", false);
                                 lastOfflineAlertTime = DateTime.Now;
                             }
                         }
 
-
                         wasOnline = online;
-
-                        await Task.Delay(2000, ct); // normal polling interval
+                        await Task.Delay(2000, ct);
                     }
                     catch (TaskCanceledException)
                     {
@@ -239,8 +194,6 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             }, ct);
         }
-
-
 
         private async Task<bool> CheckInternetConnectivityAsync()
         {
@@ -259,11 +212,6 @@ namespace POSPRA_WinFormsUI.Forms
             _internetCheckCts?.Dispose();
         }
 
-        // -----------------------------
-        // WORKER SERVICE STATUS CHECKER
-        // -----------------------------
-        private bool _workerServiceAlertShown = false;
-
         private void StartWorkerServiceStatusChecker()
         {
             _workerServiceCts = new CancellationTokenSource();
@@ -279,26 +227,25 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         bool isRunning = await IsWorkerServiceRunningAsync();
 
-                        if (lblWorkerService != null && lblWorkerService.IsHandleCreated)
+                        if (posStatus != null && posStatus.IsHandleCreated)
                         {
-                            lblWorkerService.BeginInvoke(new Action(() =>
+                            posStatus.BeginInvoke(new Action(() =>
                             {
-                                lblWorkerService.Text = $"Worker Service: {(isRunning ? "Active" : "Inactive")}";
-                                lblWorkerService.Font = new Font(lblWorkerService.Font, FontStyle.Bold);
-                                lblWorkerService.ForeColor = isRunning ? Color.Green : Color.Red;
+                                // Update main label
+                                posStatus.Text = $"{(isRunning ? "● Active" : "● Inactive")}";
+                                posStatus.Font = new Font(posStatus.Font, FontStyle.Bold);
+                                posStatus.ForeColor = isRunning ? Color.Green : Color.Red;
                             }));
                         }
 
-                        // Service just went offline
                         if (!isRunning && wasRunning)
                         {
-                            WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service is inactive!");
+                            WindowsLocalAppNotification.Show("POS Service Alert", "POS service is inactive!");
                             _workerServiceAlertShown = true;
                         }
-                        // Service came back online
                         else if (isRunning && !wasRunning)
                         {
-                            WindowsLocalAppNotification.Show("Worker Service Alert", "Worker service restored!");
+                            WindowsLocalAppNotification.Show("POS Service Alert", "POS service restored!");
                             _workerServiceAlertShown = false;
                         }
 
@@ -309,7 +256,6 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             }, ct);
         }
-
 
         private Task<bool> IsWorkerServiceRunningAsync()
         {
@@ -330,23 +276,12 @@ namespace POSPRA_WinFormsUI.Forms
             _workerServiceCts?.Dispose();
         }
 
-
-        //LOGS METHOD
         private async Task CreateLog(string message, string type)
         {
-            var log = new Logs
-            {
-                Message = message,   // pass any message
-                Type = type,         // comes from AlertType constants
-
-            };
-
+            var log = new Logs { Message = message, Type = type };
             await _logService.LogAsync(log);
         }
 
-        // -----------------------------
-        // ALERT METHOD
-        // -----------------------------
         private void ShowAlert(string message, string alertType, bool isShowWindowsNotification, string title = "Alert")
         {
             if (!this.IsHandleCreated) return;
@@ -355,42 +290,27 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 try
                 {
-                    // Option 1: Windows toast notification (non-blocking)
                     if (isShowWindowsNotification)
-                    {
                         WindowsLocalAppNotification.Show(title, message);
-                    }
 
-                    // Option 2: Custom alert manager (non-blocking)
                     if (alertType == nameof(AlertType.Error))
                         AlertManager.ShowError(message);
-
-                    // Option 2: Custom alert manager (non-blocking)
-                    if (alertType == nameof(AlertType.Success))
+                    else if (alertType == nameof(AlertType.Success))
                         AlertManager.ShowSuccess(message);
-
-                    // Option 3: Fallback MessageBox (blocking, optional)
-                    // MessageBox.Show(this, message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 catch
                 {
-                    // Fallback in case notifications fail
                     MessageBox.Show(this, message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }));
         }
 
-
-        // -----------------------------
-        // NAVIGATION AND VIEWS
-        // -----------------------------
         private void ResetNavStyles()
         {
             btnDashboard.ForeColor = Color.Black;
             btnInvoiceSelection.ForeColor = Color.Black;
             btnExportInvoice.ForeColor = Color.Black;
             btnCatalogView.ForeColor = Color.Black;
-
             panDashboard.Visible = false;
             panInvoiceSelection.Visible = false;
             panExportInvoice.Visible = false;
@@ -400,7 +320,7 @@ namespace POSPRA_WinFormsUI.Forms
         private void btnDashboard_Click(object sender, EventArgs e)
         {
             ResetNavStyles();
-            btnDashboard.ForeColor = ColorTranslator.FromHtml("#686DF4");
+            btnDashboard.ForeColor = ColorTranslator.FromHtml("#48A787");
             panDashboard.Visible = true;
             LoadView("Dashboard");
         }
@@ -408,7 +328,7 @@ namespace POSPRA_WinFormsUI.Forms
         private void btnInvoiceSelection_Click(object sender, EventArgs e)
         {
             ResetNavStyles();
-            btnInvoiceSelection.ForeColor = ColorTranslator.FromHtml("#686DF4");
+            btnInvoiceSelection.ForeColor = ColorTranslator.FromHtml("#48A787");
             panInvoiceSelection.Visible = true;
             LoadView("Invoice Entry");
         }
@@ -416,7 +336,7 @@ namespace POSPRA_WinFormsUI.Forms
         private void btnExportInvoice_Click(object sender, EventArgs e)
         {
             ResetNavStyles();
-            btnExportInvoice.ForeColor = ColorTranslator.FromHtml("#686DF4");
+            btnExportInvoice.ForeColor = ColorTranslator.FromHtml("#48A787");
             panExportInvoice.Visible = true;
             LoadView("Export Invoice");
         }
@@ -424,23 +344,19 @@ namespace POSPRA_WinFormsUI.Forms
         private void btnCatalogView_Click(object sender, EventArgs e)
         {
             ResetNavStyles();
-            btnCatalogView.ForeColor = ColorTranslator.FromHtml("#686DF4");
+            btnCatalogView.ForeColor = ColorTranslator.FromHtml("#48A787");
             panCatalogView.Visible = true;
             LoadView("Catalog View");
         }
 
-
         public void LoadView(string v)
         {
-            // Properly close and dispose the active MDI child
             if (this.ActiveMdiChild != null)
             {
                 var activeChild = this.ActiveMdiChild;
                 activeChild.Close();
                 activeChild.Dispose();
             }
-
-            // Dispose all MDI children to ensure clean state
             foreach (Form child in this.MdiChildren)
             {
                 child.Close();
@@ -466,9 +382,13 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.Show();
         }
 
+<<<<<<< HEAD
         private void Main_Load(object sender, EventArgs e)
         {
 
         }
+=======
+>>>>>>> origin/master
     }
 }
+
