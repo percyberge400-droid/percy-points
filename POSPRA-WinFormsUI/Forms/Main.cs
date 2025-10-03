@@ -382,13 +382,6 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.Show();
         }
 
-<<<<<<< HEAD
-        private void Main_Load(object sender, EventArgs e)
-        {
-
-        }
-=======
->>>>>>> origin/master
     }
 }
 
