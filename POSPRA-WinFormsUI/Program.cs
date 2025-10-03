@@ -88,6 +88,7 @@ namespace POSPRA_WinFormsUI
             services.AddHttpClient();
 
             // WinForms UI forms
+            services.AddTransient<LoginForm2>();
             services.AddTransient<LoginForm>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
@@ -106,7 +107,7 @@ namespace POSPRA_WinFormsUI
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var loginForm = provider.GetRequiredService<LoginForm>();
+            var loginForm = provider.GetRequiredService<LoginForm2>();
             Application.Run(loginForm);
 
             // Shutdown API when app closes

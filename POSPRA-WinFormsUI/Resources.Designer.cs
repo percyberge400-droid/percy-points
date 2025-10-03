@@ -263,5 +263,45 @@ namespace POSPRA_WinFormsUI {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        internal static System.Drawing.Bitmap loginBgL2
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("loginBgL2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        internal static System.Drawing.Bitmap loginBgR2
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("loginBgR2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        internal static System.Drawing.Bitmap posComponentWhite
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("posComponentWhite", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        internal static System.Drawing.Bitmap loginPRAlogo
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("loginPRAlogo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        internal static System.Drawing.Bitmap loginContact
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("loginContact", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

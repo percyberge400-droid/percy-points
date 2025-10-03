@@ -178,4 +178,22 @@
   <data name="pos" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\pos.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="loginscreen" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\loginscreen.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="loginBgL2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\loginBgL2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="loginBgR2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\loginBgR2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="posComponentWhite" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\posComponentWhite.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="loginPRAlogo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\loginPRAlogo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="loginContact" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\loginContact.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

@@ -165,17 +165,6 @@
             pictureBox1.TabIndex = 2;
             pictureBox1.TabStop = false;
             // 
-            // chkShowPassword
-            // 
-            chkShowPassword.AutoSize = true;
-            chkShowPassword.Location = new Point(46, 325);
-            chkShowPassword.Name = "chkShowPassword";
-            chkShowPassword.Size = new Size(132, 24);
-            chkShowPassword.TabIndex = 3;
-            chkShowPassword.Text = "Show Password";
-            chkShowPassword.UseVisualStyleBackColor = true;
-            chkShowPassword.Visible = false;
-            // 
             // btnLogin
             // 
             btnLogin.BackColor = Color.FromArgb(84, 105, 254);

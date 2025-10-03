@@ -833,6 +833,10 @@
             // 
             // item_entry
             // 
+            ControlBox = false;                       // remove close/min/max
+            Text = string.Empty;                      // remove leftover caption space
+            Name = "item_entry";
+
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(248, 250, 252);
