@@ -15,13 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_07B9C7FC1D8E49A4B4A1F32CDE394CA0"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_0B70C421C3D040AA83738ED3B271610D"
+        "MsmKey" = "8:_36B026E6B0B34B8DBFC9E7514CC141E3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -45,6 +39,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_9E3EAA7404B447E980D7504C540079D4"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C2D426B143F84F9896F0C24B13A25EC4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -57,7 +57,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
+        "MsmKey" = "8:_D90B8DA6492D40949363216D7BD36B83"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -200,9 +200,29 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_07B9C7FC1D8E49A4B4A1F32CDE394CA0"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_36B026E6B0B34B8DBFC9E7514CC141E3"
             {
-            "SourcePath" = "8:E:\\UninstallPOSPRAService.bat"
+            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\allfiles\\pral.ico"
+            "TargetName" = "8:pral.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9E3EAA7404B447E980D7504C540079D4"
+            {
+            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\UninstallPOSPRAService.bat"
             "TargetName" = "8:UninstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
@@ -220,30 +240,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0B70C421C3D040AA83738ED3B271610D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D90B8DA6492D40949363216D7BD36B83"
             {
-            "SourcePath" = "8:E:\\InstallPOSPRAService.bat"
+            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\InstallPOSPRAService.bat"
             "TargetName" = "8:InstallPOSPRAService.bat"
-            "Tag" = "8:"
-            "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
-            {
-            "SourcePath" = "8:C:\\Users\\talha.arif\\Downloads\\Adolf-Hitler-1933.ico"
-            "TargetName" = "8:Adolf-Hitler-1933.ico"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
             "Condition" = "8:"
@@ -315,7 +315,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:PRAL09"
+        "ProductName" = "8:PRAL"
         "ProductCode" = "8:{B3C7EF26-471E-41DE-B583-99CE59B6839C}"
         "PackageCode" = "8:{7E7F38D5-D896-44BA-87F6-B7234AC77597}"
         "UpgradeCode" = "8:{8A6F8D16-D2CC-4497-A092-976D6B26C77A}"
@@ -325,16 +325,16 @@
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
         "ProductVersion" = "8:1.0.0"
-        "Manufacturer" = "8:PRAL09"
+        "Manufacturer" = "8:PRAL"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
         "Title" = "8:PRAL09"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:PRAL09"
+        "ARPCONTACT" = "8:PRAL"
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
-        "ARPPRODUCTICON" = "8:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
+        "ARPPRODUCTICON" = "8:_36B026E6B0B34B8DBFC9E7514CC141E3"
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
@@ -437,7 +437,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_3E7BE4EDB0DE4FA4A469B9F4D2F129DC"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_2DEE86810A674A49A9688966C18212BC"
             {
             "Name" = "8:POSPRA"
             "Arguments" = "8:"
@@ -448,7 +448,7 @@
             "Target" = "8:_C2D426B143F84F9896F0C24B13A25EC4"
             "Folder" = "8:_382BC76B96D6493EBC7EA154229B4C6B"
             "WorkingFolder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Icon" = "8:_FEB925FF072E46AAA4BD7DABBF7E7A4E"
+            "Icon" = "8:_36B026E6B0B34B8DBFC9E7514CC141E3"
             "Feature" = "8:"
             }
         }
