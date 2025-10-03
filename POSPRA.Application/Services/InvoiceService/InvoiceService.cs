@@ -110,7 +110,7 @@ namespace POSPRA.Application.Services.InvoiceService
 
             // ----- Local helpers -----
             async Task LogError(string message) =>
-                await _logService.LogAsync(
+                await _logService.CreateLogAsync(
                     _logService.BuildLog(message, AlertType.Exception, "Invoice", nameof(CreateAsync)));
 
             ApiResponse<InvoiceDto> ErrorResponse(string msg, string err = "") =>
@@ -173,7 +173,7 @@ namespace POSPRA.Application.Services.InvoiceService
             catch (Exception ex)
             {
                 string errorMessage = $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
-                await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
+                await _logService.CreateLogAsync(new Logs(errorMessage, AlertType.Exception, false));
                 return new ApiResponse<(string, int)>(
                 ApiStatusCode.Error,
                 ResponseMessages.UnknownError,

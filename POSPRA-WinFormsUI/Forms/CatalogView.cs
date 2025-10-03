@@ -99,7 +99,7 @@ namespace POSPRA_WinFormsUI.Forms
                 _ = CreateLog($"Fetched {apiProducts.Count} products from API", AlertType.Info);
 
                 // Step 2: Clear old data from local DB using FiscalService
-                var clearResult = await _fiscalService.DeleteProductCatalogue();
+                var clearResult = await _productCatalogueService.DeleteProductCatalogue();
 
                 if (clearResult.StatusCode != ApiStatusCode.Success && clearResult.StatusCode != ApiStatusCode.NotFound)
                 {
@@ -198,7 +198,7 @@ namespace POSPRA_WinFormsUI.Forms
                 }
 
                 // Fetch from local DB using FiscalService
-                var response = await _fiscalService.GetProductCatalogue();
+                var response = await _productCatalogueService.GetProductCatalogue();
 
 
                 var list = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
@@ -235,7 +235,7 @@ namespace POSPRA_WinFormsUI.Forms
                 btnPrev.Enabled = false;
 
                 // Fetch all items from local DB and filter in memory (original logic)
-                var response = await _fiscalService.GetProductCatalogue();
+                var response = await _productCatalogueService.GetProductCatalogue();
 
                 var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
@@ -300,7 +300,7 @@ namespace POSPRA_WinFormsUI.Forms
                     Type = type,
                 };
 
-                await _logService.LogAsync(log);
+                await _logService.CreateLogAsync(log);
             }
             catch
             {

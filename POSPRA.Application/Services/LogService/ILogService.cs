@@ -12,13 +12,18 @@ namespace POSPRA.Application.Services.LogService
     {
 
         Task<ApiResponse<List<LogDto>>> GetAllCloudAsync();
+        Task<ApiResponse<List<LogDto>>> GetAllUnsyncCloudAsync();
 
         Task<ApiResponse<List<LogDto>>> GetAllAsync();
+
+        Task<ApiResponse<List<LogDto>>> UpdateLogAsync(List<LogDto> logDtos);
 
         /// <summary>
         /// Persists a log entry to the **local SQLite** database.
         /// </summary>
-        Task LogAsync(Logs model);
+        Task CreateLogAsync(Logs model);
+
+        Task<ApiResponse<List<LogDto>>> CreateCloudLog(List<LogDto> dto);
 
         Logs BuildLog(
                 string message,

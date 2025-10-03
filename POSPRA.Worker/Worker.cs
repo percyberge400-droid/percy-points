@@ -1,62 +1,89 @@
 ﻿using Microsoft.Extensions.Options;
-using POSPRA.Application.Services.CloudSyncService;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
+using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.NetworkService;
+using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.CommanDtos;
 
 namespace POSPRA.Worker
 {
-    public class Worker : BackgroundService
+    public class Worker(
+        IServiceScopeFactory scopeFactory,
+        IOptions<AppSettings> options,
+        INetworkService networkService) : BackgroundService
     {
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly AppSettings _settings;
+        private readonly IServiceScopeFactory _serviceScopeFactory = scopeFactory;
+        private readonly AppSettings _appSettings = options.Value;
+        private readonly INetworkService _networkService = networkService;
 
-        public Worker(
-            IServiceScopeFactory scopeFactory,
-            IOptions<AppSettings> options)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _scopeFactory = scopeFactory;
-            _settings = options.Value;
-        }
+            var workerInstanceId = Guid.NewGuid().ToString();
+            var workerName = nameof(Worker);
 
-        protected override async Task ExecuteAsync(CancellationToken token)
-        {
-            var id = Guid.NewGuid().ToString();
-
-            // Startup log
-            using (var logScope = _scopeFactory.CreateScope())
+            // ✅ Startup log
+            using (var startupScope = _serviceScopeFactory.CreateScope())
             {
-                var cloudSync = logScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
-                await cloudSync.LogStartup(id);
+                var logService = startupScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
+                await logService.LogStartup(workerName, workerInstanceId);
             }
 
             try
             {
-                while (!token.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    using (var scope = _scopeFactory.CreateScope())
+                    bool internetAvailable = await _networkService.IsInternetAvailableAsync();
+
+                    if (!internetAvailable)
                     {
-                        var configSvc = scope.ServiceProvider.GetRequiredService<IConfigurationService>();
-                        var cloudSync = scope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
+                        using (var warningScope = _serviceScopeFactory.CreateScope())
+                        {
+                            var logService = warningScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
+                            await logService.LogAsync(
+                                AlertType.Warning,
+                                "Internet not available. Skipping sync.",
+                                workerName,
+                                workerInstanceId,
+                                "NoInternet"
+                            );
+                        }
+
+                        // ❌ Don't kill worker, just wait and retry
+                        await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
+                        continue;
+                    }
+
+                    using (var workerScope = _serviceScopeFactory.CreateScope())
+                    {
+                        var configurationService = workerScope.ServiceProvider.GetRequiredService<IConfigurationService>();
+                        var invoiceCloudSyncService = workerScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
+                        var logCloudSyncService = workerScope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
 
                         // ✅ Check if Cloud Sync is enabled
-                        if (await configSvc.IsCloudSyncEnabledAsync(new GetByPosIdDto { PosId = 110050 }))
+                        if (await configurationService.IsCloudSyncEnabledAsync(new GetByPosIdDto { PosId = 110050 }))
                         {
-                            await cloudSync.SyncInvoicesAsync(token, id);
+                            // 🔹 Sync invoices
+                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
+
+                            // 🔹 Sync logs
+                            await logCloudSyncService.SyncLogAsync(cancellationToken, workerInstanceId);
                         }
                     }
 
-                    // delay before next iteration
-                    await Task.Delay(_settings.WorkerDelayTime, token);
+                    // ⏳ delay before next iteration
+                    await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                 }
             }
             finally
             {
-                // Shutdown log
-                using (var logScope = _scopeFactory.CreateScope())
+                // ✅ Shutdown log
+                using (var shutdownScope = _serviceScopeFactory.CreateScope())
                 {
-                    var cloudSync = logScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
-                    await cloudSync.LogShutdown(id);
+                    var logService = shutdownScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
+                    await logService.LogShutdown(workerName, workerInstanceId);
                 }
             }
         }

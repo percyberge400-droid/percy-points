@@ -11,11 +11,10 @@ namespace POSPRA_WinFormsUI.Forms
     public partial class Main : Form
     {
         private readonly IServiceProvider _provider;
-        private readonly IFiscalService _fiscalService;
         private readonly ILogService _logService;
         private CancellationTokenSource _internetCheckCts;
         private CancellationTokenSource _workerServiceCts;
-        private readonly List<Form> _independentForms = new List<Form>();
+        private readonly List<Form> _independentForms = new();
         private DateTime? offlineSince = null;
         private bool? wasOnline = null;
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
@@ -24,7 +23,6 @@ namespace POSPRA_WinFormsUI.Forms
         public Main(IServiceProvider provider, ILogService logService)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
             InitializeComponent();
@@ -278,7 +276,7 @@ namespace POSPRA_WinFormsUI.Forms
         private async Task CreateLog(string message, string type)
         {
             var log = new Logs { Message = message, Type = type };
-            await _logService.LogAsync(log);
+            await _logService.CreateLogAsync(log);
         }
 
         private void ShowAlert(string message, string alertType, bool isShowWindowsNotification, string title = "Alert")

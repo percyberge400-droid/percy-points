@@ -120,7 +120,7 @@ namespace POSPRA.Application.Services.FileRecordService
                 var errorMessage =
                     $"{GlobalVariables.DATE} InsertInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
 
-                await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
+                await _logService.CreateLogAsync(new Logs(errorMessage, AlertType.Exception, false));
                 return 0;
             }
         }

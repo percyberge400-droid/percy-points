@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POSPRA.Application.AutoMapperProfile;
-using POSPRA.Application.Services.CloudSyncService;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
+using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
@@ -83,6 +85,9 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<IFileRecordService, FileRecordService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
+        services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
+        services.AddScoped<IWorkerLogService, WorkerLogService>();
+
         services.AddHttpContextAccessor();
 
         //----------------------------------------------------
