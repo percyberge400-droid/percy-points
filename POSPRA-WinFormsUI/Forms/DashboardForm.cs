@@ -1,10 +1,10 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using System.ComponentModel;
+using System.Data;
+using System.Text;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.ComponentModel;
-using System.Data;
-using System.Text;
 namespace POSPRA_WinFormsUI.Forms
 
 {
@@ -12,7 +12,7 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly ILogService _logService;
-        private readonly IFiscalService _fiscalService;
+        private readonly IFileRecordService _fileRecordService;
 
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
@@ -32,7 +32,7 @@ namespace POSPRA_WinFormsUI.Forms
         private int _warningLogsCount = 0;
         private int _infoLogsCount = 0;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService)
+        public DashboardForm(IServiceProvider provider, ILogService logService)
         {
             InitializeComponent();
 
@@ -41,7 +41,6 @@ namespace POSPRA_WinFormsUI.Forms
             this.Load += DashboardForm_Load;
 
             _provider = provider;
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
             FormBorderStyle = FormBorderStyle.None;
@@ -343,7 +342,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var response = await _fiscalService.GetAllAsync();
+                var response = await _fileRecordService.GetAllAsync();
                 InvoicesDataGridView.Rows.Clear();
 
                 if (response?.Data == null || !response.Data.Any())
@@ -568,7 +567,7 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new SaveFileDialog())
+                using (SaveFileDialog sfd = new())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
@@ -576,7 +575,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new StringBuilder();
+                        StringBuilder csvContent = new();
 
                         // ✅ Write headers
                         var headers = InvoicesDataGridView.Columns
@@ -652,14 +651,14 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new SaveFileDialog())
+                using (SaveFileDialog sfd = new())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Logs_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new StringBuilder();
+                        StringBuilder csvContent = new();
 
                         // ✅ Write headers
                         var headers = LogsDataGridView.Columns
@@ -973,7 +972,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (panel == null || image == null) return;
 
             // Create PictureBox
-            PictureBox pic = new PictureBox
+            PictureBox pic = new()
             {
                 Image = image,
                 SizeMode = PictureBoxSizeMode.Zoom,
@@ -1353,19 +1352,19 @@ namespace POSPRA_WinFormsUI.Forms
             panel.Controls.Clear();
 
             // Values and labels
-            List<int> values = new List<int> { pendingCount, syncedCount };
-            List<Color> colors = new List<Color>
-    {
+            List<int> values = new() { pendingCount, syncedCount };
+            List<Color> colors = new()
+            {
         ColorTranslator.FromHtml("#4DBDED"), // Synced
         ColorTranslator.FromHtml("#8860C1")  // Not Synced
     };
-            List<string> labels = new List<string> { "Synced", "Not Synced" };
+            List<string> labels = new() { "Synced", "Not Synced" };
 
             float total = values.Sum();
             if (total == 0) total = 1; // prevent division by zero
 
             // ---------- Header ----------
-            Label header = new Label
+            Label header = new()
             {
                 Text = "ALL INVOICES DETAIL",
                 AutoSize = false,
@@ -1392,11 +1391,11 @@ namespace POSPRA_WinFormsUI.Forms
             int pieY = header.Bottom + ((availableHeight - pieSize) / 2) + 10;
 
             // Draw pie chart
-            Bitmap bmp = new Bitmap(pieSize, pieSize);
+            Bitmap bmp = new(pieSize, pieSize);
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                Rectangle rect = new Rectangle(0, 0, pieSize, pieSize);
+                Rectangle rect = new(0, 0, pieSize, pieSize);
                 float startAngle = 0;
 
                 for (int i = 0; i < values.Count; i++)
@@ -1408,7 +1407,7 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             }
 
-            PictureBox pic = new PictureBox
+            PictureBox pic = new()
             {
                 Image = bmp,
                 SizeMode = PictureBoxSizeMode.Normal,
@@ -1430,7 +1429,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 int offsetX = i * spacingX;
 
-                Panel colorBox = new Panel
+                Panel colorBox = new()
                 {
                     BackColor = colors[i],
                     Size = new Size(boxSize, boxSize),
@@ -1438,7 +1437,7 @@ namespace POSPRA_WinFormsUI.Forms
                 };
                 panel.Controls.Add(colorBox);
 
-                Label lbl = new Label
+                Label lbl = new()
                 {
                     Text = $"{labels[i]}: {values[i]}",
                     ForeColor = Color.Black,

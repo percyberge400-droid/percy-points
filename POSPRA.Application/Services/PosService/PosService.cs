@@ -15,7 +15,7 @@ namespace POSPRA.Application.Services.POSService
     {
         private readonly IRequestHeaderService _requestHeaderService;
         private readonly SqlServerRepository<object> _sqlServerRepository;
-        private readonly SqlServerRepository<PosConfiguration> _posConfigurationRepository;
+        private readonly SqlServerRepository<POSConfigurations> _posConfigurationRepository;
         private readonly SqlServerRepository<PosStatus> _posStatusRepository;
 
         private readonly IClientRepository _clientRepository;
@@ -27,7 +27,7 @@ namespace POSPRA.Application.Services.POSService
             IMapper mapper
 ,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
-            SqlServerRepository<PosConfiguration> posConfigurationRepository,
+            SqlServerRepository<POSConfigurations> posConfigurationRepository,
             SqlServerRepository<PosStatus> posStatusRepository,
             IClientRepository clientRepository)
         {

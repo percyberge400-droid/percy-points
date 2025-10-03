@@ -158,15 +158,21 @@
 
 
 using Microsoft.EntityFrameworkCore;
+using POSPRA.API.Controllers;
 using POSPRA.API.Middlewares;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.ClientService;
+using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
+using POSPRA.Application.Services.PosService;
+using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
@@ -174,7 +180,8 @@ using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
 using POSPRA.Repositories.ClientRepository;
-using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.ConfigurationRepository;
+using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
@@ -217,8 +224,8 @@ namespace POSPRA.API
             // 🔧 Controllers
             //----------------------------------------------------
             builder.Services.AddControllers()
-                .PartManager.ApplicationParts.Add(
-                    new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(FiscalController).Assembly));
+            .AddApplicationPart(typeof(InvoiceController).Assembly)
+            .AddApplicationPart(typeof(FileRecordController).Assembly);
 
             //----------------------------------------------------
             // 🔧 Database configuration
@@ -248,18 +255,18 @@ namespace POSPRA.API
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped(typeof(SqlServerRepository<>));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IFiscalRepository, FiscalRepository>();
+            builder.Services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             builder.Services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             builder.Services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
             builder.Services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             builder.Services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
+            builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 
             //----------------------------------------------------
             // 🔧 Application Services
             //----------------------------------------------------
             builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IFiscalService, FiscalService>();
             builder.Services.AddScoped<ILogService, LogService>();
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
@@ -267,6 +274,10 @@ namespace POSPRA.API
             builder.Services.AddScoped<INetworkService, NetworkService>();
             builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             builder.Services.AddScoped<IClientService, ClientService>();
+            builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
+            builder.Services.AddScoped<IFileRecordService, FileRecordService>();
+            builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+            builder.Services.AddScoped<IPosService, PosService>();
 
             builder.Services.AddHttpClient<HttpService>();
             builder.Services.AddHttpContextAccessor();

@@ -2,7 +2,7 @@
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
 
-namespace POSPRA.Repositories.FiscalRepository
+namespace POSPRA.Repositories.FileRecordRepository
 {
     /// <summary>
     /// Concrete repository for managing <see cref="FileRecord"/> entities
@@ -13,13 +13,13 @@ namespace POSPRA.Repositories.FiscalRepository
     /// fiscal-specific queries or commands.
     /// </para>
     /// </summary>
-    public class FiscalRepository : SqliteRepository<FileRecord>, IFiscalRepository
+    public class FileRecordRepository : SqliteRepository<FileRecord>, IFileRecordRepository
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FiscalRepository"/> class
         /// using the provided <see cref="SqliteDbContext"/>.
         /// </summary>
         /// <param name="context">The SQLite database context.</param>
-        public FiscalRepository(SqliteDbContext context) : base(context) { }
+        public FileRecordRepository(SqliteDbContext context) : base(context) { }
     }
 }

@@ -1,13 +1,13 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using System.Configuration;
+using System.Drawing.Drawing2D;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
-using POSPRA_WinFormsUI.AlertClasses;
-using System.Configuration;
-using System.Drawing.Drawing2D;
-using AlertType = POSPRA.Application.Utility.AlertType;
 using POSPRA.SecurityEncryption;
+using POSPRA_WinFormsUI.AlertClasses;
+using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI
 {
@@ -24,23 +24,21 @@ namespace POSPRA_WinFormsUI
         private static List<InvoiceItems> _sessionItems = new();
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
-        private readonly IFiscalService _fiscalService;
+        private readonly IInvoiceService _invoiceService;
         private bool _isSaving = false;
 
         //logs
         private readonly ILogService _logService;
-
         #endregion
 
         #region Constructor / Initialization
 
-        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
+        public item_entry(IHttpClientFactory httpClientFactory, ILogService logService, IInvoiceService invoiceService)
         {
             InitializeComponent();
 
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
 
-           
+
             // Load POSID from app.config (stored encrypted)
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
             var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
@@ -224,7 +222,7 @@ namespace POSPRA_WinFormsUI
                 Type = type,
             };
 
-            await _logService.LogAsync(log);
+            await _logService.CreateLogAsync(log);
         }
 
         private void SetupContextMenu()
@@ -426,7 +424,7 @@ namespace POSPRA_WinFormsUI
 
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
-                var output = await _fiscalService.CreateAsync(invoiceDto);
+                var output = await _invoiceService.CreateAsync(invoiceDto);
 
                 if (output.StatusCode == ApiStatusCode.Success)
                 {

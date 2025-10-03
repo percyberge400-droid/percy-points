@@ -1,8 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Drawing.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
@@ -15,13 +19,13 @@ using POSPRA.Infrastructure.Context;
 using POSPRA.Infrastructure.Data;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
-using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.ConfigurationRepository;
+using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
-using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
 {
@@ -69,11 +73,11 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IFiscalRepository, FiscalRepository>();
+            services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
+            services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IFiscalService, FiscalService>();
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
@@ -82,6 +86,10 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
+            services.AddScoped<IConfigurationService, ConfigurationService>();
+            services.AddScoped<IFileRecordService, FileRecordService>();
+            services.AddScoped<IInvoiceService, InvoiceService>();
+
             services.AddSingleton<IConfiguration>(configuration);
             services.AddHttpContextAccessor();
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));

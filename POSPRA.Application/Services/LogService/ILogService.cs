@@ -11,12 +11,19 @@ namespace POSPRA.Application.Services.LogService
     public interface ILogService
     {
 
+        Task<ApiResponse<List<LogDto>>> GetAllCloudAsync();
+        Task<ApiResponse<List<LogDto>>> GetAllUnsyncCloudAsync();
+
         Task<ApiResponse<List<LogDto>>> GetAllAsync();
+
+        Task<ApiResponse<List<LogDto>>> UpdateLogAsync(List<LogDto> logDtos);
 
         /// <summary>
         /// Persists a log entry to the **local SQLite** database.
         /// </summary>
-        Task LogAsync(Logs model);
+        Task CreateLogAsync(Logs model);
+
+        Task<ApiResponse<List<LogDto>>> CreateCloudLog(List<LogDto> dto);
 
         Logs BuildLog(
                 string message,
@@ -27,10 +34,6 @@ namespace POSPRA.Application.Services.LogService
                 string? userName = null,
                 string? clientIp = null,
                 string? userAgent = null);
-        /// <summary>
-        /// Persists an error log entry to the **SQL Server** database.
-        /// </summary>
-        /// 
-        Task SaveErrorLogAsync(ErrorLogDto dto);
+
     }
 }

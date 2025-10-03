@@ -1,10 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
+using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
+using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
@@ -12,7 +16,8 @@ using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
-using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.ConfigurationRepository;
+using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
@@ -64,18 +69,24 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
         services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IFiscalRepository, FiscalRepository>();
+        services.AddScoped<IFileRecordRepository, FileRecordRepository>();
         services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
+        services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 
         //----------------------------------------------------
         // 🔧 Services
         //----------------------------------------------------
         services.AddScoped<ILiveService, LiveService>();
-        services.AddScoped<IFiscalService, FiscalService>();
         services.AddScoped<InvoiceValidatorService>();
         services.AddSingleton<INetworkService, NetworkService>();
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+        services.AddScoped<IConfigurationService, ConfigurationService>();
+        services.AddScoped<IFileRecordService, FileRecordService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
+        services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
+        services.AddScoped<IWorkerLogService, WorkerLogService>();
 
         services.AddHttpContextAccessor();
 
