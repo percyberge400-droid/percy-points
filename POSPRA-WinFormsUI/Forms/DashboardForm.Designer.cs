@@ -494,9 +494,9 @@ namespace POSPRA_WinFormsUI.Forms
             labelInvoicesTitle.Location = new Point(8, 8);
             labelInvoicesTitle.Name = "labelInvoicesTitle";
             labelInvoicesTitle.Padding = new Padding(6, 5, 0, 5);
-            labelInvoicesTitle.Size = new Size(266, 47);
+            labelInvoicesTitle.Size = new Size(301, 47);
             labelInvoicesTitle.TabIndex = 1;
-            labelInvoicesTitle.Text = "\U0001f9fe Invoices Listing";
+            labelInvoicesTitle.Text = "\U0001f9fe INVOICES LISTING";
             labelInvoicesTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // panelLogs
@@ -553,9 +553,9 @@ namespace POSPRA_WinFormsUI.Forms
             labelLogsTitle.Location = new Point(8, 8);
             labelLogsTitle.Name = "labelLogsTitle";
             labelLogsTitle.Padding = new Padding(6, 5, 0, 5);
-            labelLogsTitle.Size = new Size(128, 47);
+            labelLogsTitle.Size = new Size(135, 47);
             labelLogsTitle.TabIndex = 1;
-            labelLogsTitle.Text = "📝 Logs";
+            labelLogsTitle.Text = "📝 LOGS";
             // 
             // panelinvoicechart
             // 

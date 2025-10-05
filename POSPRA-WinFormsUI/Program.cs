@@ -93,8 +93,10 @@ namespace POSPRA_WinFormsUI
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
             services.AddTransient<item_entry>();
+            services.AddTransient<ItemEntry>();
             services.AddTransient<ExportInvoiceForm>();
             services.AddTransient<CatalogView>();
+
 
             using var provider = services.BuildServiceProvider();
 

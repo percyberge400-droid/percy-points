@@ -52,7 +52,7 @@
             // 
             // panel1
             // 
-            panel1.BackColor = Color.White;
+            panel1.BackColor = Color.FromArgb(224, 242, 254);
             panel1.Controls.Add(posStatus);
             panel1.Controls.Add(internetStatus);
             panel1.Controls.Add(pictureBox2);
@@ -79,21 +79,21 @@
             // 
             posStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             posStatus.AutoSize = true;
-            posStatus.Location = new Point(1388, 4);
+            posStatus.Location = new Point(1422, 3);
             posStatus.Name = "posStatus";
-            posStatus.Size = new Size(33, 20);
+            posStatus.Size = new Size(72, 20);
             posStatus.TabIndex = 9;
-            posStatus.Text = "test";
+            posStatus.Text = "INACTIVE";
             // 
             // internetStatus
             // 
             internetStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             internetStatus.AutoSize = true;
-            internetStatus.Location = new Point(1176, 0);
+            internetStatus.Location = new Point(1243, 0);
             internetStatus.Name = "internetStatus";
-            internetStatus.Size = new Size(33, 20);
+            internetStatus.Size = new Size(72, 20);
             internetStatus.TabIndex = 8;
-            internetStatus.Text = "test";
+            internetStatus.Text = "INACTIVE";
             // 
             // pictureBox2
             // 
@@ -122,7 +122,7 @@
             // 
             panCatalogView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panCatalogView.BackColor = Color.FromArgb(72, 167, 135);
-            panCatalogView.Location = new Point(962, 46);
+            panCatalogView.Location = new Point(995, 46);
             panCatalogView.Margin = new Padding(3, 4, 3, 4);
             panCatalogView.Name = "panCatalogView";
             panCatalogView.Size = new Size(33, 10);
@@ -134,13 +134,14 @@
             btnCatalogView.FlatAppearance.BorderSize = 0;
             btnCatalogView.FlatStyle = FlatStyle.Flat;
             btnCatalogView.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            btnCatalogView.ForeColor = Color.FromArgb(64, 64, 64);
-            btnCatalogView.Location = new Point(907, 4);
+            btnCatalogView.ForeColor = Color.Black;
+            btnCatalogView.Location = new Point(909, 8);
             btnCatalogView.Margin = new Padding(3, 4, 3, 4);
             btnCatalogView.Name = "btnCatalogView";
-            btnCatalogView.Size = new Size(137, 41);
+            btnCatalogView.Size = new Size(206, 35);
             btnCatalogView.TabIndex = 5;
-            btnCatalogView.Text = "Catalog View";
+            btnCatalogView.Text = "PRODUCT CATALOGUE";
+            btnCatalogView.TextAlign = ContentAlignment.BottomCenter;
             btnCatalogView.UseVisualStyleBackColor = true;
             btnCatalogView.Click += btnCatalogView_Click;
             // 
@@ -149,7 +150,8 @@
             lblWorkerService.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             lblWorkerService.AutoSize = true;
             lblWorkerService.Font = new Font("Segoe UI", 12F);
-            lblWorkerService.Location = new Point(1278, 12);
+            lblWorkerService.ForeColor = Color.Black;
+            lblWorkerService.Location = new Point(1378, 16);
             lblWorkerService.Name = "lblWorkerService";
             lblWorkerService.Size = new Size(116, 28);
             lblWorkerService.TabIndex = 4;
@@ -160,7 +162,8 @@
             lblNetworkStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             lblNetworkStatus.AutoSize = true;
             lblNetworkStatus.Font = new Font("Segoe UI", 12F);
-            lblNetworkStatus.Location = new Point(1077, 12);
+            lblNetworkStatus.ForeColor = Color.Black;
+            lblNetworkStatus.Location = new Point(1177, 16);
             lblNetworkStatus.Name = "lblNetworkStatus";
             lblNetworkStatus.Size = new Size(138, 28);
             lblNetworkStatus.TabIndex = 3;
@@ -170,7 +173,7 @@
             // 
             panExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panExportInvoice.BackColor = Color.FromArgb(72, 167, 135);
-            panExportInvoice.Location = new Point(815, 46);
+            panExportInvoice.Location = new Point(818, 46);
             panExportInvoice.Margin = new Padding(3, 4, 3, 4);
             panExportInvoice.Name = "panExportInvoice";
             panExportInvoice.Size = new Size(33, 10);
@@ -180,6 +183,7 @@
             // 
             label1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             label1.Font = new Font("Microsoft Sans Serif", 10.2F);
+            label1.ForeColor = Color.Black;
             label1.Location = new Point(80, 9);
             label1.Name = "label1";
             label1.Size = new Size(54, 23);
@@ -193,13 +197,14 @@
             btnDashboard.FlatAppearance.BorderSize = 0;
             btnDashboard.FlatStyle = FlatStyle.Flat;
             btnDashboard.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            btnDashboard.ForeColor = Color.FromArgb(64, 64, 64);
-            btnDashboard.Location = new Point(517, 4);
+            btnDashboard.ForeColor = Color.Black;
+            btnDashboard.Location = new Point(458, 9);
             btnDashboard.Margin = new Padding(3, 4, 3, 4);
             btnDashboard.Name = "btnDashboard";
-            btnDashboard.Size = new Size(110, 41);
+            btnDashboard.Size = new Size(126, 36);
             btnDashboard.TabIndex = 1;
-            btnDashboard.Text = "Dashboard";
+            btnDashboard.Text = "DASHBOARD";
+            btnDashboard.TextAlign = ContentAlignment.BottomCenter;
             btnDashboard.UseVisualStyleBackColor = true;
             btnDashboard.Click += btnDashboard_Click;
             // 
@@ -209,13 +214,14 @@
             btnInvoiceSelection.FlatAppearance.BorderSize = 0;
             btnInvoiceSelection.FlatStyle = FlatStyle.Flat;
             btnInvoiceSelection.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            btnInvoiceSelection.ForeColor = Color.FromArgb(64, 64, 64);
-            btnInvoiceSelection.Location = new Point(633, 4);
+            btnInvoiceSelection.ForeColor = Color.Black;
+            btnInvoiceSelection.Location = new Point(595, 9);
             btnInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             btnInvoiceSelection.Name = "btnInvoiceSelection";
-            btnInvoiceSelection.Size = new Size(125, 41);
+            btnInvoiceSelection.Size = new Size(151, 36);
             btnInvoiceSelection.TabIndex = 1;
-            btnInvoiceSelection.Text = "Invoice Entry";
+            btnInvoiceSelection.Text = "INVOICE ENTRY";
+            btnInvoiceSelection.TextAlign = ContentAlignment.BottomCenter;
             btnInvoiceSelection.UseVisualStyleBackColor = true;
             btnInvoiceSelection.Click += btnInvoiceSelection_Click;
             // 
@@ -225,13 +231,14 @@
             btnExportInvoice.FlatAppearance.BorderSize = 0;
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            btnExportInvoice.ForeColor = Color.FromArgb(64, 64, 64);
-            btnExportInvoice.Location = new Point(764, 4);
+            btnExportInvoice.ForeColor = Color.Black;
+            btnExportInvoice.Location = new Point(752, 2);
             btnExportInvoice.Margin = new Padding(3, 4, 3, 4);
             btnExportInvoice.Name = "btnExportInvoice";
-            btnExportInvoice.Size = new Size(137, 41);
+            btnExportInvoice.Size = new Size(163, 41);
             btnExportInvoice.TabIndex = 1;
-            btnExportInvoice.Text = "Export Invoice";
+            btnExportInvoice.Text = "EXPORT INVOICE";
+            btnExportInvoice.TextAlign = ContentAlignment.BottomCenter;
             btnExportInvoice.UseVisualStyleBackColor = true;
             btnExportInvoice.Click += btnExportInvoice_Click;
             // 
@@ -239,7 +246,7 @@
             // 
             panDashboard.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panDashboard.BackColor = Color.FromArgb(72, 167, 135);
-            panDashboard.Location = new Point(552, 46);
+            panDashboard.Location = new Point(505, 46);
             panDashboard.Margin = new Padding(3, 4, 3, 4);
             panDashboard.Name = "panDashboard";
             panDashboard.Size = new Size(33, 10);
@@ -249,7 +256,7 @@
             // 
             panInvoiceSelection.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panInvoiceSelection.BackColor = Color.FromArgb(72, 167, 135);
-            panInvoiceSelection.Location = new Point(681, 46);
+            panInvoiceSelection.Location = new Point(656, 46);
             panInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             panInvoiceSelection.Name = "panInvoiceSelection";
             panInvoiceSelection.Size = new Size(33, 10);
@@ -280,7 +287,6 @@
             Margin = new Padding(3, 4, 3, 4);
             Name = "Main";
             Text = "Main";
-          
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();

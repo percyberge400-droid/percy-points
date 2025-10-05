@@ -52,6 +52,8 @@ namespace POSPRA_WinFormsUI.Forms
 
             btnNext.Click += async (s, e) => await NextPage();
             btnPrev.Click += async (s, e) => await PrevPage();
+            StyleProductDataGridView();
+
         }
 
         /// <summary>
@@ -274,6 +276,7 @@ namespace POSPRA_WinFormsUI.Forms
                     product.TaxRate ?? "",
                     product.SroScheduleNumber ?? "",
                     product.ItemSerialNumber ?? ""
+
                 );
             }
         }
@@ -310,5 +313,177 @@ namespace POSPRA_WinFormsUI.Forms
                 // Suppress logging errors to avoid cascading failures
             }
         }
+
+        #region datagrid style
+
+        private void StyleDataGridView(DataGridView dgv)
+        {
+            // General settings
+            dgv.BorderStyle = BorderStyle.None;
+            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
+            dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgv.GridColor = Color.FromArgb(226, 232, 240);
+            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(59, 130, 246);
+            dgv.DefaultCellStyle.SelectionForeColor = Color.White;
+            dgv.BackgroundColor = Color.White;
+            dgv.RowHeadersVisible = false;
+            dgv.EnableHeadersVisualStyles = false;
+            dgv.AllowUserToAddRows = false;
+            dgv.AllowUserToDeleteRows = false;
+            dgv.AllowUserToResizeRows = false;
+            dgv.ReadOnly = true;
+            dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgv.MultiSelect = false;
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+            // Prevent selecting headers
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(51, 51, 51);
+            dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = Color.White;
+            dgv.RowHeadersDefaultCellStyle.SelectionBackColor = Color.White;
+            dgv.RowHeadersDefaultCellStyle.SelectionForeColor = Color.Black;
+
+            // Column header style
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
+            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.ColumnHeadersHeight = 52;
+            dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+
+            // Cell style
+            dgv.DefaultCellStyle.BackColor = Color.White;
+            dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
+            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
+            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6);
+            dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+
+            // Adjust row height
+            dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
+        }
+
+        private void StyleProductDataGridView()
+        {
+            // Clear existing columns
+            ProductCatalogueDataGridView.Columns.Clear();
+
+            // Apply base style
+            StyleDataGridView(ProductCatalogueDataGridView);
+
+            // Define product catalogue columns
+            var colItemSrno = new DataGridViewTextBoxColumn
+            {
+                Name = "colItemSrno",
+                HeaderText = "Sr. No.",
+                Width = 90,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    ForeColor = Color.FromArgb(107, 114, 128),
+                    Font = new Font("Segoe UI", 9F)
+                }
+            };
+
+            var colProductCode = new DataGridViewTextBoxColumn
+            {
+                Name = "colProductCode",
+                HeaderText = "Product Code",
+                Width = 150,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(30, 58, 138)
+                }
+            };
+
+            var colProductDesc = new DataGridViewTextBoxColumn
+            {
+                Name = "colProductDesc",
+                HeaderText = "Product Description",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                MinimumWidth = 200,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic
+            };
+
+            var colHScode = new DataGridViewTextBoxColumn
+            {
+                Name = "colHScode",
+                HeaderText = "HS Code",
+                Width = 130,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Font = new Font("Consolas", 9.5F),
+                    ForeColor = Color.FromArgb(55, 65, 81)
+                }
+            };
+
+            var colSaleType = new DataGridViewTextBoxColumn
+            {
+                Name = "colSaleType",
+                HeaderText = "Sale Type",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic
+            };
+
+            var colPosUOM = new DataGridViewTextBoxColumn
+            {
+                Name = "PosUOM",
+                HeaderText = "POS UOM",
+                Width = 100,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleCenter
+                }
+            };
+
+            var colTaxRate = new DataGridViewTextBoxColumn
+            {
+                Name = "colTaxRate",
+                HeaderText = "Tax Rate (%)",
+                Width = 110,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00",
+                    ForeColor = Color.FromArgb(5, 150, 105),
+                    Font = new Font("Segoe UI", 9.5F, FontStyle.Bold)
+                }
+            };
+
+            var colSROno = new DataGridViewTextBoxColumn
+            {
+                Name = "colSROno",
+                HeaderText = "SRO Schedule No.",
+                Width = 150,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic
+            };
+
+            // Add all columns
+            ProductCatalogueDataGridView.Columns.AddRange(new DataGridViewColumn[]
+            {
+        colItemSrno,
+        colProductCode,
+        colProductDesc,
+        colHScode,
+        colSaleType,
+        colPosUOM,
+        colTaxRate,
+        colSROno
+            });
+        }
+
+        #endregion
     }
 }

@@ -366,7 +366,7 @@ namespace POSPRA_WinFormsUI.Forms
             Form childForm = v switch
             {
                 "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
-                "Invoice Entry" => _provider.GetRequiredService<item_entry>(),
+                "Invoice Entry" => _provider.GetRequiredService<ItemEntry>(),
                 "Export Invoice" => _provider.GetRequiredService<ExportInvoiceForm>(),
                 "Catalog View" => _provider.GetRequiredService<CatalogView>(),
                 _ => throw new NotImplementedException()

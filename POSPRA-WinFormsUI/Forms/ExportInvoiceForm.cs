@@ -1,24 +1,10 @@
 ﻿using ClosedXML.Excel;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Azure.Documents.Partitioning;
-using POSPRA.Application.Services;
 using POSPRA.Application.Services.LiveService;
+using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
-using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using POSPRA.Application.Services.LogService;
 using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -119,7 +105,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void ExportInvoiceBtn_Click(object sender, EventArgs e)
         {
-           
+
             if (!ValidateDateRange())
             {
                 AlertManager.ShowWarning(" ❌ Invalid date range!");
@@ -129,7 +115,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
 
 
-            
+
             try
             {
                 progressBarExport.Visible = true;
@@ -148,7 +134,7 @@ namespace POSPRA_WinFormsUI.Forms
                 var posId = 0;
                 _ = int.TryParse(ConfigurationManager.AppSettings["Username"], out posId);
                 // Build DTO (POSID is auto-handled in service)
-                    var filter = new InvoiceFilterDto
+                var filter = new InvoiceFilterDto
                 {
                     PosId = posId,
                     FromDate = dateTimePickerFrom.Value.Date,
@@ -182,7 +168,7 @@ namespace POSPRA_WinFormsUI.Forms
                     // Split response into lines
                     //var lines = response.Data.Split('\n', StringSplitOptions.RemoveEmptyEntries);
                     var lines = response.Data.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    
+
 
                     // ✅ Check if only header is present
                     if (lines.Length <= 1)
@@ -260,7 +246,7 @@ namespace POSPRA_WinFormsUI.Forms
 
 
 
-           
+
 
             //lblExportStatus.Text =
             //    $"Invoices data from {dateTimePickerFrom.Value:dd-MMM-yyyy} to {dateTimePickerTo.Value:dd-MMM-yyyy} exported successfully!";
@@ -278,6 +264,16 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void RegNoTxtBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panelPending_Paint(object sender, PaintEventArgs e)
         {
 
         }

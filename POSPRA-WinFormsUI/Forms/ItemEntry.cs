@@ -3,6 +3,7 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
@@ -11,7 +12,7 @@ using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI
 {
-    public partial class item_entry : Form
+    public partial class ItemEntry : Form
     {
         #region Fields
 
@@ -34,7 +35,7 @@ namespace POSPRA_WinFormsUI
 
         #region Constructor / Initialization
 
-        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
+        public ItemEntry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
         {
             InitializeComponent();
             this.Load += item_entry_Load;
@@ -48,20 +49,21 @@ namespace POSPRA_WinFormsUI
             var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
             posid.Text = decryptedPosId;   // show real POSID in UI
 
-
-
             addedItems = _sessionItems;
 
             // Event wiring
             this.Resize += Item_entry_Resize;
-            pnlBasicInfo.Resize += (s, e) => MakeRoundedControl(pnlBasicInfo, 25);
-            panel1.Resize += (s, e) => MakeRoundedControl(panel1, 25);
+            //pnlBasicInfo.Resize += (s, e) => MakeRoundedControl(pnlBasicInfo, 25);
+            //panel1.Resize += (s, e) => MakeRoundedControl(panel1, 25);
+
 
             btnProceed.Click += BtnProceed_Click;
             btnSave.Click += BtnSave_Click;
             btnEdit.Click += btnEdit_Click;
             btn_remove.Click += btn_remove_Click;
+            btnclear.Click += btnclear_Click;
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
+            btnsearch.Click += btnsearch_Click;
 
             qty.TextChanged += RecalculateTotals;
             salevalue.TextChanged += RecalculateTotals;
@@ -92,9 +94,14 @@ namespace POSPRA_WinFormsUI
             InitializeEmptyGrid();
 
             StyleProductDataGridView();
-
+            SetButtonImage(btnsearch, Resources.search, Color.Black);
 
             _logService = logService;
+        }
+
+        private void BtnSave_MouseEnter(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
@@ -514,6 +521,412 @@ namespace POSPRA_WinFormsUI
             RemoveSelectedItem();
         }
 
+        private void btnclear_Click(object sender, EventArgs e)
+        {
+            ClearForm(this);
+        }
+        #endregion
+
+        #region search functionality
+        // Call this from your click handler (unchanged)
+        private async void btnsearch_Click(object sender, EventArgs e)
+        {
+            var response = await _fiscalService.GetProductCatalogue();
+            var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
+
+            using (var dlg = CreateRealtimeSearchDialog(allItems.ToList()))
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK && dlg.Tag is ProductCatalogueDto selected)
+                {
+                    DisplayProductInfo(selected);
+                }
+            }
+        }
+
+        private Form CreateRealtimeSearchDialog(List<ProductCatalogueDto> allProducts)
+        {
+            Color accentTeal = ColorTranslator.FromHtml("#48A787");
+            Color accentBlue = ColorTranslator.FromHtml("#197FC2");
+            Color shadow = ColorTranslator.FromHtml("#E6E9EE");
+
+            var dialog = new Form
+            {
+                FormBorderStyle = FormBorderStyle.None,
+                StartPosition = FormStartPosition.CenterParent,
+                ClientSize = new Size(650, 500),
+                BackColor = shadow,
+                ShowInTaskbar = false,
+                KeyPreview = true
+            };
+
+            var layout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                BackColor = Color.White
+            };
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));
+
+            // ----- HEADER -----
+            var header = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
+            header.Paint += (s, e) =>
+            {
+                using var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
+                    header.ClientRectangle, accentTeal, accentBlue, 0f);
+                e.Graphics.FillRectangle(brush, header.ClientRectangle);
+            };
+
+            var lblTitle = new Label
+            {
+                Text = "🔍 Search Products",
+                Font = new Font("Segoe UI Semibold", 14F),
+                ForeColor = Color.White,
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            var lblSubtitle = new Label
+            {
+                Text = "Type to search by code, name, or HS code",
+                Font = new Font("Segoe UI", 9F),
+                ForeColor = Color.FromArgb(220, Color.White),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+
+            var btnClose = new Label
+            {
+                Text = "✕",
+                Font = new Font("Segoe UI", 16F, FontStyle.Bold),
+                ForeColor = Color.White,
+                AutoSize = true,
+                Cursor = Cursors.Hand,
+                BackColor = Color.Transparent
+            };
+            btnClose.Click += (s, e) => dialog.Close();
+            btnClose.MouseEnter += (s, e) => btnClose.ForeColor = Color.FromArgb(255, 230, 230);
+            btnClose.MouseLeave += (s, e) => btnClose.ForeColor = Color.White;
+
+            header.SizeChanged += (s, e) =>
+            {
+                btnClose.Location = new Point(header.Width - btnClose.Width - 16,
+                                              (header.Height - btnClose.Height) / 2);
+                lblTitle.Location = new Point(20, (header.Height - lblTitle.Height) / 2 - 6);
+                lblSubtitle.Location = new Point(22, (header.Height - lblSubtitle.Height) / 2 + 14);
+            };
+
+            header.Controls.AddRange(new Control[] { lblTitle, lblSubtitle, btnClose });
+
+            // ----- CONTENT -----
+            var content = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White,
+                Padding = new Padding(20, 15, 20, 10)
+            };
+
+            // Search box
+            var inputWrapper = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                BackColor = ColorTranslator.FromHtml("#F5F7F8"),
+                Padding = new Padding(14, 6, 14, 6)
+            };
+            inputWrapper.Paint += (s, e) =>
+            {
+                using var p = new Pen(ColorTranslator.FromHtml("#D6E0E0"));
+                e.Graphics.DrawRectangle(p, new Rectangle(0, 0, inputWrapper.Width - 1, inputWrapper.Height - 1));
+            };
+
+            var txtSearch = new TextBox
+            {
+                BorderStyle = BorderStyle.None,
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 11F),
+                ForeColor = Color.Black
+            };
+
+            txtSearch.GotFocus += (s, e) => inputWrapper.BackColor = Color.White;
+            txtSearch.LostFocus += (s, e) => inputWrapper.BackColor = ColorTranslator.FromHtml("#F5F7F8");
+
+            inputWrapper.Controls.Add(txtSearch);
+
+            // Results count label
+            var lblResultCount = new Label
+            {
+                Text = $"Showing all {allProducts.Count} products",
+                Font = new Font("Segoe UI", 9F),
+                ForeColor = ColorTranslator.FromHtml("#7F8C8D"),
+                Dock = DockStyle.Top,
+                Height = 30,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(2, 5, 0, 0)
+            };
+
+            // Results ListView with columns
+            var listView = new ListView
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9.5F),
+                BorderStyle = BorderStyle.None,
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                HeaderStyle = ColumnHeaderStyle.Nonclickable,
+                BackColor = Color.White
+            };
+
+            listView.Columns.Add("Product Code", 120, HorizontalAlignment.Left);
+            listView.Columns.Add("Product Description", 280, HorizontalAlignment.Left);
+            listView.Columns.Add("HS Code", 120, HorizontalAlignment.Left);
+            listView.Columns.Add("Tax Rate", 80, HorizontalAlignment.Center);
+
+            // Product detail panel (shown when item selected)
+            var detailPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 0,
+                BackColor = ColorTranslator.FromHtml("#F0F4F8"),
+                Padding = new Padding(12, 8, 12, 8),
+                Visible = false
+            };
+            detailPanel.Paint += (s, e) =>
+            {
+                using var p = new Pen(ColorTranslator.FromHtml("#D6E0E0"));
+                e.Graphics.DrawLine(p, 0, 0, detailPanel.Width, 0);
+            };
+
+            var lblDetail = new Label
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9F),
+                ForeColor = ColorTranslator.FromHtml("#2C3E50"),
+                Text = "",
+                AutoSize = false
+            };
+            detailPanel.Controls.Add(lblDetail);
+
+            // Initial population
+            var currentResults = new List<ProductCatalogueDto>(allProducts);
+            foreach (var p in allProducts)
+            {
+                var item = new ListViewItem(p.ProductCode?.ToString() ?? "");
+                item.SubItems.Add(p.ProductDescription ?? "");
+                item.SubItems.Add(p.HSCode ?? "");
+                item.SubItems.Add(p.TaxRate?.ToString() ?? "0");
+                listView.Items.Add(item);
+            }
+
+            // Real-time search on text changed
+            txtSearch.TextChanged += (s, e) =>
+            {
+                string searchText = txtSearch.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(searchText))
+                {
+                    currentResults = new List<ProductCatalogueDto>(allProducts);
+                    listView.Items.Clear();
+                    foreach (var p in allProducts)
+                    {
+                        var item = new ListViewItem(p.ProductCode?.ToString() ?? "");
+                        item.SubItems.Add(p.ProductDescription ?? "");
+                        item.SubItems.Add(p.HSCode ?? "");
+                        item.SubItems.Add(p.TaxRate?.ToString() ?? "0");
+                        listView.Items.Add(item);
+                    }
+                    lblResultCount.Text = $"Showing all {allProducts.Count} products";
+                }
+                else
+                {
+                    currentResults = allProducts
+                        .Where(p =>
+                            (p.ProductCode.HasValue && p.ProductCode.Value.ToString().IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                            || (p.ProductDescription?.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                            || (p.HSCode?.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0))
+                        .ToList();
+
+                    listView.Items.Clear();
+                    foreach (var p in currentResults)
+                    {
+                        var item = new ListViewItem(p.ProductCode?.ToString() ?? "");
+                        item.SubItems.Add(p.ProductDescription ?? "");
+                        item.SubItems.Add(p.HSCode ?? "");
+                        item.SubItems.Add(p.TaxRate?.ToString() ?? "0");
+                        listView.Items.Add(item);
+                    }
+
+                    lblResultCount.Text = currentResults.Count == 1
+                        ? "1 product found"
+                        : $"{currentResults.Count} products found";
+
+                    lblResultCount.ForeColor = currentResults.Count == 0
+                        ? ColorTranslator.FromHtml("#E74C3C")
+                        : ColorTranslator.FromHtml("#7F8C8D");
+                }
+
+                // Auto-select if only one result
+                if (currentResults.Count == 1)
+                {
+                    listView.Items[0].Selected = true;
+                }
+            };
+
+            // Show details on selection
+            listView.SelectedIndexChanged += (s, e) =>
+            {
+                if (listView.SelectedIndices.Count > 0 && listView.SelectedIndices[0] < currentResults.Count)
+                {
+                    var p = currentResults[listView.SelectedIndices[0]];
+                    lblDetail.Text = $"📦 Code: {p.ProductCode}   |   🏷️ HS Code: {p.HSCode ?? "N/A"}   |   💰 Tax Rate: {p.TaxRate?.ToString() ?? "0"}%";
+                    detailPanel.Height = 60;
+                    detailPanel.Visible = true;
+                }
+                else
+                {
+                    detailPanel.Height = 0;
+                    detailPanel.Visible = false;
+                }
+            };
+
+            // Double-click to select
+            listView.DoubleClick += (s, e) =>
+            {
+                if (listView.SelectedIndices.Count > 0)
+                {
+                    dialog.Tag = currentResults[listView.SelectedIndices[0]];
+                    dialog.DialogResult = DialogResult.OK;
+                    dialog.Close();
+                }
+            };
+
+            content.Controls.Add(detailPanel);
+            content.Controls.Add(listView);
+            content.Controls.Add(lblResultCount);
+            content.Controls.Add(inputWrapper);
+
+            // ----- FOOTER -----
+            var footerFlow = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.RightToLeft,
+                Padding = new Padding(12, 12, 16, 12),
+                BackColor = Color.White,
+                WrapContents = false
+            };
+
+            var btnSelect = new Button
+            {
+                Text = "✓ Select",
+                Size = new Size(140, 40),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = accentTeal,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Margin = new Padding(8, 0, 0, 0)
+            };
+            btnSelect.FlatAppearance.BorderSize = 0;
+            btnSelect.FlatAppearance.MouseOverBackColor = ColorTranslator.FromHtml("#5BC0A0");
+
+            var btnCancel = new Button
+            {
+                Text = "✖ Cancel",
+                Size = new Size(110, 40),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = ColorTranslator.FromHtml("#F0F0F0"),
+                ForeColor = ColorTranslator.FromHtml("#5A5A5A"),
+                Font = new Font("Segoe UI", 9.5F),
+                Cursor = Cursors.Hand,
+                Margin = new Padding(8, 0, 0, 0)
+            };
+            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.FlatAppearance.MouseOverBackColor = ColorTranslator.FromHtml("#E0E0E0");
+
+            btnCancel.Click += (s, e) => { dialog.DialogResult = DialogResult.Cancel; dialog.Close(); };
+
+            btnSelect.Click += (s, e) =>
+            {
+                if (listView.SelectedIndices.Count > 0)
+                {
+                    dialog.Tag = currentResults[listView.SelectedIndices[0]];
+                    dialog.DialogResult = DialogResult.OK;
+                    dialog.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Please select a product first.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            };
+
+            // Keyboard shortcuts
+            txtSearch.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Down && listView.Items.Count > 0)
+                {
+                    listView.Focus();
+                    listView.Items[0].Selected = true;
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Enter && currentResults.Count == 1)
+                {
+                    dialog.Tag = currentResults[0];
+                    dialog.DialogResult = DialogResult.OK;
+                    dialog.Close();
+                    e.Handled = true;
+                }
+            };
+
+            listView.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter && listView.SelectedIndices.Count > 0)
+                {
+                    dialog.Tag = currentResults[listView.SelectedIndices[0]];
+                    dialog.DialogResult = DialogResult.OK;
+                    dialog.Close();
+                    e.Handled = true;
+                }
+            };
+
+            dialog.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Escape)
+                {
+                    dialog.DialogResult = DialogResult.Cancel;
+                    dialog.Close();
+                }
+            };
+
+            footerFlow.Controls.Add(btnSelect);
+            footerFlow.Controls.Add(btnCancel);
+
+            layout.Controls.Add(header, 0, 0);
+            layout.Controls.Add(content, 0, 1);
+            layout.Controls.Add(footerFlow, 0, 2);
+
+            dialog.Controls.Add(layout);
+
+            dialog.AcceptButton = btnSelect;
+            dialog.CancelButton = btnCancel;
+
+            // Focus on textbox when shown
+            dialog.Shown += (s, e) => txtSearch.Focus();
+
+            return dialog;
+        }
+
+        private void DisplayProductInfo(ProductCatalogueDto product)
+        {
+            pctCode.Text = product.ProductCode?.ToString() ?? "";
+            ItemName.Text = product.ProductDescription;
+            ItemCode.Text = product.HSCode;
+            TaxRatebox.Text = product.TaxRate?.ToString() ?? "0";
+        }
+
+
         #endregion
 
         #region Grid Edit / Remove Helpers
@@ -594,6 +1007,28 @@ namespace POSPRA_WinFormsUI
             itemDiscount.Clear();
             FurtureTax.Clear();
         }
+
+        private void ClearForm(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                if (c is TextBox textBox)
+                    textBox.Clear();
+                else if (c is ComboBox comboBox)
+                    comboBox.SelectedIndex = -1;
+                else if (c is CheckBox checkBox)
+                    checkBox.Checked = false;
+                else if (c is RadioButton radioButton)
+                    radioButton.Checked = false;
+                else if (c is DateTimePicker dateTimePicker)
+                    dateTimePicker.Value = DateTime.Now;
+
+                // Recursive call for nested panels or group boxes
+                if (c.HasChildren)
+                    ClearForm(c);
+            }
+        }
+
 
         private void ClearInvoiceFields()
         {
