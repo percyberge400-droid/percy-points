@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
@@ -12,5 +12,6 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="9.0.9" />
 		<ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
+		<ProjectReference Include="..\POSPRA.Application\POSPRA.Application.csproj" />
 	</ItemGroup>
 </Project>
