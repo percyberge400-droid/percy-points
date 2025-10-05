@@ -21,6 +21,7 @@ using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
+using System.Configuration; // ✅ Needed for ConfigurationManager
 using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
@@ -32,31 +33,52 @@ namespace POSPRA_WinFormsUI
         [STAThread]
         static void Main()
         {
-            // Run async code synchronously to maintain STA context
             MainAsync().GetAwaiter().GetResult();
         }
 
         static async Task MainAsync()
         {
-            // Initialize SQLite database if needed
-            DbInitializer.Initialize();
+            // ✅ Read from App.config
+            string? dbPath = System.Configuration.ConfigurationManager.AppSettings["DefaultDBFilePath"];
 
-            // Load configuration from appsettings.json
+            if (string.IsNullOrWhiteSpace(dbPath))
+            {
+                // fallback path if not found
+                dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            }
+
+            // ✅ Ensure the directory exists
+            string? dbDirectory = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
+            {
+                Directory.CreateDirectory(dbDirectory);
+            }
+
+            // ✅ Initialize SQLite database if needed
+            var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
+                .UseSqlite($"Data Source={dbPath}")
+                .Options;
+
+            using (var context = new SqliteDbContext(sqliteOptions))
+            {
+                context.Database.EnsureCreated();
+            }
+
+            // ✅ Load JSON config (for any additional modern config)
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            // Build DI container for WinForms
+            // ✅ Build DI container
             var services = new ServiceCollection();
 
-            // Database contexts
-            var dbPath = SqliteDbContext.GetDbPath();
+            // Register DbContexts
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
             services.AddDbContext<SqlServerDbContext>(opt =>
                 opt.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
 
-            // AutoMapper profiles
+            // AutoMapper
             services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<UserProfile>();
@@ -102,9 +124,9 @@ namespace POSPRA_WinFormsUI
 
             // ✅ Start API self-hosted inside WinForms
             var apiHost = POSPRA.API.Program.BuildApiHost();
-            _ = apiHost.RunAsync(); // fire-and-forget, API keeps running in background
+            _ = apiHost.RunAsync(); // fire and forget
 
-            // ✅ Launch WinForms UI
+            // ✅ Launch WinForms
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

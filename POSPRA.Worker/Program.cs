@@ -18,6 +18,7 @@ using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA.Worker;
+using System.IO;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService() // ✅ Run as Windows Service
@@ -35,10 +36,21 @@ var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         //----------------------------------------------------
+        // 🔧 Read SQLite DB file path from AppSettings
+        //----------------------------------------------------
+        var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
+        var dbPath = appSettings.DefaultDBFilePath;
+
+        if (string.IsNullOrWhiteSpace(dbPath))
+            throw new Exception("❌ DefaultDBFilePath is missing in appsettings.worker.json");
+
+        if (!File.Exists(dbPath))
+            throw new FileNotFoundException($"❌ SQLite database not found at path: {dbPath}");
+
+        //----------------------------------------------------
         // 🔧 Database configuration
         //----------------------------------------------------
-        // SQLite
-        var dbPath = SqliteDbContext.GetDbPath();
+        // SQLite (use existing DB)
         services.AddDbContext<SqliteDbContext>(options =>
             options.UseSqlite($"Data Source={dbPath}"));
 
@@ -97,18 +109,14 @@ var builder = Host.CreateDefaultBuilder(args)
 
 var host = builder.Build();
 
-// ✅ Ensure SQLite DB is created with all tables before the worker starts
+// ✅ Log database path (for diagnostics)
 using (var scope = host.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-    db.Database.EnsureCreated();   // Creates DB + tables if missing
-                                   // If you use migrations instead of EnsureCreated, call:
-                                   // db.Database.Migrate();
-
-    // Optional: log the path
     var dbPath = db.Database.GetDbConnection().DataSource;
+
     File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
-        $"[{DateTime.Now}] Database ensured at: {dbPath}{Environment.NewLine}");
+        $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
 }
 
 await host.RunAsync();
