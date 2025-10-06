@@ -65,3 +65,46 @@
 2025-09-30T10:08:40.9691667Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
 2025-09-30T10:13:39.5568354Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
 2025-10-02T07:22:32.0360233Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-10-06T09:20:46.7744680Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:20:52.3075826Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:20:58.6255424Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:21:04.8862362Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:21:11.1870320Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:21:17.4074110Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:21:23.6701819Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:21:29.9893684Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:21:36.2200578Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:21:42.4107462Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:37:37.6112689Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:37:43.3728670Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:37:49.8191174Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:37:56.1043137Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:02.4017948Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:08.6385731Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:14.9186866Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:21.2257162Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:27.5091728Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:33.8775643Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:40.2492298Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:46.5104418Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:38:52.6770010Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:09.4234195Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:09.5774513Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:15.8085011Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:22.0433608Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:28.3083506Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:34.5822192Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:40.9727318Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:47.2282510Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:53.4832000Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:39:59.6318446Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:05.7920671Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:11.9574997Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:18.1629722Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:24.3360297Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:30.5408039Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:36.6865342Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:42.8585058Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:49.0530144Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:40:55.2331871Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-06T09:41:01.5578504Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
