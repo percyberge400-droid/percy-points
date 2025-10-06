@@ -171,7 +171,7 @@ namespace POSPRA_WinFormsUI.Forms
                         }
                         else if (!online)
                         {
-                            if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 3)
+                            if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 5)
                             {
                                 string msg = "Internet connection still offline";
                                 if (offlineSince.HasValue)
@@ -185,7 +185,7 @@ namespace POSPRA_WinFormsUI.Forms
                         }
 
                         wasOnline = online;
-                        await Task.Delay(2000, ct);
+                        await Task.Delay(5000, ct);
                     }
                     catch (TaskCanceledException)
                     {
