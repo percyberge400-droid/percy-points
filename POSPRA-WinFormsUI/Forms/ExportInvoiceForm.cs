@@ -5,12 +5,19 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
+using System.Runtime.InteropServices;
 using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
 {
+
     public partial class ExportInvoiceForm : Form
     {
+        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+        private static extern IntPtr CreateRoundRectRgn(
+    int nLeftRect, int nTopRect, int nRightRect, int nBottomRect,
+    int nWidthEllipse, int nHeightEllipse);
+
         private readonly ILiveService _liveService;
         //private ProgressBar progressBarExport;
 
@@ -40,6 +47,15 @@ namespace POSPRA_WinFormsUI.Forms
             progressBarExport.Visible = false; // hidden by default
             _logService = logService;
             //this.Controls.Add(progressBarExport);
+            // 🌿 Smooth hover effect for the Export button
+            ExportInvoiceBtn.MouseEnter += (s, e) =>
+                ExportInvoiceBtn.BackColor = Color.FromArgb(60, 179, 113); // lighter green
+            ExportInvoiceBtn.MouseLeave += (s, e) =>
+                ExportInvoiceBtn.BackColor = Color.MediumSeaGreen; // original color
+            panelPending.Region = Region.FromHrgn(
+        CreateRoundRectRgn(0, 0, panelPending.Width, panelPending.Height, 20, 20));
+            panelPending.Region = Region.FromHrgn(
+                    CreateRoundRectRgn(0, 0, panelPending.Width, panelPending.Height, 20, 20));
         }
 
 
