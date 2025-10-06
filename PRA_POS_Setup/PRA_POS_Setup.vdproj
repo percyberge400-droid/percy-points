@@ -133,21 +133,7 @@
     {
         "CustomAction"
         {
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_827206E4846A4D7F92A10E396BB1F5A4"
-            {
-            "Name" = "8:Publish Items from BATTO_EXE (Active)"
-            "Condition" = "8:"
-            "Object" = "8:_33B6ACB34D414841AA8AB332BABECCF8"
-            "FileType" = "3:2"
-            "InstallAction" = "3:1"
-            "Arguments" = "8:/Install"
-            "EntryPoint" = "8:"
-            "Sequence" = "3:1"
-            "Identifier" = "8:_34D480BA_FDA7_4F07_914E_A3C701E1D7B6"
-            "InstallerClass" = "11:FALSE"
-            "CustomActionData" = "8:"
-            }
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_E74B5C8004154347B6A7EC2CF9952069"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_1A2F072428864815BBA1B41AF187522A"
             {
             "Name" = "8:Publish Items from BATTO_EXE (Active)"
             "Condition" = "8:"
@@ -157,11 +143,25 @@
             "Arguments" = "8:/Uninstall"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
-            "Identifier" = "8:_284DF335_2047_4F83_8236_D94A9262A363"
+            "Identifier" = "8:_39740818_6C07_4B69_A519_7460B51F3095"
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
             }
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_E8D2DA50DF7243C680A2287E6665423D"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_4D1212288A0847FDB131A6DD6E72B692"
+            {
+            "Name" = "8:Publish Items from BATTO_EXE (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_33B6ACB34D414841AA8AB332BABECCF8"
+            "FileType" = "3:2"
+            "InstallAction" = "3:1"
+            "Arguments" = "8:/Install"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:2"
+            "Identifier" = "8:_F994AEAA_63F0_4AC9_B5EF_A99460E7C11D"
+            "InstallerClass" = "11:FALSE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_633551FB66D548C890D77EF8FFBA0CCF"
             {
             "Name" = "8:Publish Items from POSPRA.SetupUI (Active)"
             "Condition" = "8:"
@@ -170,8 +170,8 @@
             "InstallAction" = "3:1"
             "Arguments" = "8:/Install"
             "EntryPoint" = "8:"
-            "Sequence" = "3:2"
-            "Identifier" = "8:_9747269E_18F2_4E67_9732_C23A99CF9CC3"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_FA826015_E149_49BA_89D5_CCA47E06C52A"
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
             }
