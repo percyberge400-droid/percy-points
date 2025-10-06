@@ -571,7 +571,7 @@ namespace POSPRA_WinFormsUI.Forms
                 using (SaveFileDialog sfd = new SaveFileDialog())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
-                    sfd.FileName = $"Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                    sfd.FileName = $"Local_Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
                     sfd.OverwritePrompt = true;
 
                     if (sfd.ShowDialog() == DialogResult.OK)
