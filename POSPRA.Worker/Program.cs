@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -18,7 +16,6 @@ using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA.Worker;
-using System.IO;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService() // ✅ Run as Windows Service
