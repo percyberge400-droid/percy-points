@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using POSPRA.SecurityEncryption;
 using System;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -59,9 +60,9 @@ namespace POSPRA.SetupUI
 
         private void ConfigForm_Load(object sender, EventArgs e)
         {
-            this.StartPosition = FormStartPosition.CenterScreen;
-            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
-                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            //this.StartPosition = FormStartPosition.CenterScreen;
+            //SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
+            //    SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
             try
             {
@@ -137,21 +138,17 @@ namespace POSPRA.SetupUI
                 string dbPath = txtFilePath.Text.Trim();
 
                 // ✅ Basic validation
-                //if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^\d{6}$"))
-                //{
-                //    MessageBox.Show("Username must be exactly 6 numeric digits.");
-                //    return;
-                //}
-
-                //if (!System.Text.RegularExpressions.Regex.IsMatch(password, @"^[a-zA-Z0-9]$"))
-                //{
-                //    MessageBox.Show("Password must be exactly 8 alphanumeric characters.");
-                //    return;
-                //}
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                {
+                    MessageBox.Show("Please enter both POID and Access Code.", "Validation Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 if (string.IsNullOrWhiteSpace(dbPath))
                 {
-                    MessageBox.Show("Please select a database file path.");
+                    MessageBox.Show("Please select a database file path.", "Validation Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -163,17 +160,24 @@ namespace POSPRA.SetupUI
                 }
 
                 // ✅ Get MAC address
-                string macAddress = GetMacAddress();
+                string macAddress = ConfigurationManager.AppSettings["mac"];
 
                 // ✅ Prepare authentication payload
                 var payload = new
                 {
                     posId = int.Parse(username),
-                    macAddress = "0293-33E7-F772-D133-52BE-B65E-8E17-A9FE",
+                    macAddress = macAddress,
                     token = password
                 };
 
-                string apiUrl = "http://10.16.67.30:8020/api/Live/authenticate-by-mac";
+                // ✅ Get API URL from App.config
+                string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
+                if (string.IsNullOrWhiteSpace(apiUrl))
+                {
+                    MessageBox.Show("API URL is missing in App.config.", "Configuration Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
                 using (var client = new HttpClient())
                 {
