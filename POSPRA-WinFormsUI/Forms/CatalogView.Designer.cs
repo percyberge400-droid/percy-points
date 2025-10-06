@@ -120,9 +120,9 @@
             // btnNext
             // 
             btnNext.Anchor = AnchorStyles.Right;
-            btnNext.Location = new Point(1519, 3);
+            btnNext.Location = new Point(1495, 3);
             btnNext.Name = "btnNext";
-            btnNext.Size = new Size(75, 30);
+            btnNext.Size = new Size(99, 30);
             btnNext.TabIndex = 1;
             btnNext.Text = "Next";
             btnNext.UseVisualStyleBackColor = true;
@@ -130,9 +130,9 @@
             // btnPrev
             // 
             btnPrev.Anchor = AnchorStyles.Right;
-            btnPrev.Location = new Point(1342, 3);
+            btnPrev.Location = new Point(1306, 2);
             btnPrev.Name = "btnPrev";
-            btnPrev.Size = new Size(75, 30);
+            btnPrev.Size = new Size(99, 30);
             btnPrev.TabIndex = 2;
             btnPrev.Text = "Previous";
             btnPrev.UseVisualStyleBackColor = true;
@@ -141,7 +141,7 @@
             // 
             lblPageNumber.Anchor = AnchorStyles.Right;
             lblPageNumber.AutoSize = true;
-            lblPageNumber.Location = new Point(1440, 8);
+            lblPageNumber.Location = new Point(1425, 8);
             lblPageNumber.Name = "lblPageNumber";
             lblPageNumber.Size = new Size(53, 20);
             lblPageNumber.TabIndex = 3;
@@ -169,11 +169,11 @@
             btnLoad.FlatStyle = FlatStyle.Flat;
             btnLoad.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLoad.ForeColor = Color.White;
-            btnLoad.Location = new Point(1342, 38);
+            btnLoad.Location = new Point(1306, 38);
             btnLoad.Name = "btnLoad";
-            btnLoad.Size = new Size(252, 40);
+            btnLoad.Size = new Size(288, 40);
             btnLoad.TabIndex = 4;
-            btnLoad.Text = "⏳ Load";
+            btnLoad.Text = "🔄Sync Products From Catalog";
             btnLoad.UseVisualStyleBackColor = false;
             // 
             // panel1

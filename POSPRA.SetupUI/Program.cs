@@ -1,7 +1,3 @@
-using System;
-using System.IO;
-using System.Windows.Forms;
-
 namespace POSPRA.SetupUI
 {
     internal static class Program
@@ -34,12 +30,12 @@ namespace POSPRA.SetupUI
             }
 
             // 3?? Check existence before launching form
-            if (!File.Exists(configPath))
-            {
-                MessageBox.Show($"Config file not found:\n{configPath}",
-                    "Configuration", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            //if (!File.Exists(configPath))
+            //{
+            //    MessageBox.Show($"Config file not found:\n{configPath}",
+            //        "Configuration", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //    return;
+            //}
 
             ApplicationConfiguration.Initialize();
             Application.Run(new ConfigForm(configPath)); // ? pass FULL PATH directly

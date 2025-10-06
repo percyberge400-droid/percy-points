@@ -28,166 +28,241 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.StartPosition = FormStartPosition.CenterScreen;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigForm));
-            label1 = new Label();
-            label2 = new Label();
-            txtUsername = new TextBox();
-            txtPassword = new TextBox();
-            btnOk = new Button();
-            btnCancel = new Button();
-            tableLayoutPanel1 = new TableLayoutPanel();
-            tableLayoutPanel2 = new TableLayoutPanel();
+            mainPanel = new Panel();
+            btnClose = new Button();
+            headerPanel = new Panel();
+            lblSubtitle = new Label();
+            lblWelcome = new Label();
             pictureBox1 = new PictureBox();
             pictureBox2 = new PictureBox();
-            tableLayoutPanel1.SuspendLayout();
-            tableLayoutPanel2.SuspendLayout();
+            btnBrowse = new Button();
+            txtFilePath = new TextBox();
+            label3 = new Label();
+            txtPassword = new TextBox();
+            label2 = new Label();
+            txtUsername = new TextBox();
+            label1 = new Label();
+            btnOk = new Button();
+            mainPanel.SuspendLayout();
+            headerPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             SuspendLayout();
             // 
-            // label1
+            // mainPanel
             // 
-            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            label1.Location = new Point(257, 111);
-            label1.Name = "label1";
-            label1.Size = new Size(64, 23);
-            label1.TabIndex = 0;
-            label1.Text = "POS ID";
+            mainPanel.BackColor = Color.White;
+            mainPanel.Controls.Add(btnClose);
+            mainPanel.Controls.Add(headerPanel);
+            mainPanel.Controls.Add(btnBrowse);
+            mainPanel.Controls.Add(txtFilePath);
+            mainPanel.Controls.Add(label3);
+            mainPanel.Controls.Add(txtPassword);
+            mainPanel.Controls.Add(label2);
+            mainPanel.Controls.Add(txtUsername);
+            mainPanel.Controls.Add(label1);
+            mainPanel.Controls.Add(btnOk);
+            mainPanel.Dock = DockStyle.Fill;
+            mainPanel.Location = new Point(0, 0);
+            mainPanel.Name = "mainPanel";
+            mainPanel.Size = new Size(727, 528);
+            mainPanel.TabIndex = 0;
+            // 
+            // btnClose
+            // 
+            btnClose.BackColor = Color.Red;
+            btnClose.Cursor = Cursors.Hand;
+            btnClose.FlatAppearance.BorderSize = 0;
+            btnClose.FlatAppearance.MouseOverBackColor = Color.FromArgb(200, 255, 255, 255);
+            btnClose.FlatStyle = FlatStyle.Flat;
+            btnClose.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            btnClose.ForeColor = Color.White;
+            btnClose.Location = new Point(400, 380);
+            btnClose.Name = "btnClose";
+            btnClose.Size = new Size(110, 45);
+            btnClose.TabIndex = 3;
+            btnClose.Text = "Close";
+            btnClose.UseVisualStyleBackColor = false;
+            // 
+            // headerPanel
+            // 
+            headerPanel.BackColor = Color.FromArgb(52, 168, 164);
+            headerPanel.Controls.Add(lblSubtitle);
+            headerPanel.Controls.Add(lblWelcome);
+            headerPanel.Controls.Add(pictureBox1);
+            headerPanel.Controls.Add(pictureBox2);
+            headerPanel.Dock = DockStyle.Top;
+            headerPanel.Location = new Point(0, 0);
+            headerPanel.Name = "headerPanel";
+            headerPanel.Size = new Size(727, 102);
+            headerPanel.TabIndex = 0;
+            headerPanel.Paint += headerPanel_Paint;
+            // 
+            // lblSubtitle
+            // 
+            lblSubtitle.AutoSize = true;
+            lblSubtitle.BackColor = Color.Transparent;
+            lblSubtitle.Font = new Font("Segoe UI", 10F);
+            lblSubtitle.ForeColor = Color.White;
+            lblSubtitle.Location = new Point(260, 66);
+            lblSubtitle.Name = "lblSubtitle";
+            lblSubtitle.Size = new Size(206, 23);
+            lblSubtitle.TabIndex = 2;
+            lblSubtitle.Text = "Please login to continue...";
+            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // lblWelcome
+            // 
+            lblWelcome.AutoSize = true;
+            lblWelcome.BackColor = Color.Transparent;
+            lblWelcome.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
+            lblWelcome.ForeColor = Color.White;
+            lblWelcome.Location = new Point(260, 15);
+            lblWelcome.Name = "lblWelcome";
+            lblWelcome.Size = new Size(197, 46);
+            lblWelcome.TabIndex = 1;
+            lblWelcome.Text = "WELCOME!";
+            lblWelcome.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.BackColor = Color.Transparent;
+            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
+            pictureBox1.Location = new Point(594, 0);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(121, 99);
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox1.TabIndex = 1;
+            pictureBox1.TabStop = false;
+            pictureBox1.Click += pictureBox1_Click;
+            // 
+            // pictureBox2
+            // 
+            pictureBox2.BackColor = Color.Transparent;
+            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
+            pictureBox2.Location = new Point(12, 0);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(130, 102);
+            pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox2.TabIndex = 2;
+            pictureBox2.TabStop = false;
+            // 
+            // btnBrowse
+            // 
+            btnBrowse.BackColor = Color.FromArgb(52, 168, 164);
+            btnBrowse.Cursor = Cursors.Hand;
+            btnBrowse.FlatAppearance.BorderSize = 0;
+            btnBrowse.FlatStyle = FlatStyle.Flat;
+            btnBrowse.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+            btnBrowse.ForeColor = Color.White;
+            btnBrowse.Location = new Point(460, 330);
+            btnBrowse.Name = "btnBrowse";
+            btnBrowse.Size = new Size(50, 32);
+            btnBrowse.TabIndex = 3;
+            btnBrowse.Text = "...";
+            btnBrowse.UseVisualStyleBackColor = false;
+            // 
+            // txtFilePath
+            // 
+            txtFilePath.BackColor = Color.White;
+            txtFilePath.BorderStyle = BorderStyle.FixedSingle;
+            txtFilePath.Font = new Font("Segoe UI", 11F);
+            txtFilePath.Location = new Point(220, 330);
+            txtFilePath.Name = "txtFilePath";
+            txtFilePath.ReadOnly = true;
+            txtFilePath.Size = new Size(230, 32);
+            txtFilePath.TabIndex = 8;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            label3.ForeColor = Color.FromArgb(64, 64, 64);
+            label3.Location = new Point(220, 300);
+            label3.Name = "label3";
+            label3.Size = new Size(103, 23);
+            label3.TabIndex = 7;
+            label3.Text = "DB File Path";
+            // 
+            // txtPassword
+            // 
+            txtPassword.BackColor = Color.White;
+            txtPassword.BorderStyle = BorderStyle.FixedSingle;
+            txtPassword.Font = new Font("Segoe UI", 11F);
+            txtPassword.Location = new Point(220, 250);
+            txtPassword.MaxLength = 120;
+            txtPassword.Name = "txtPassword";
+            txtPassword.PasswordChar = '•';
+            txtPassword.Size = new Size(290, 32);
+            txtPassword.TabIndex = 2;
             // 
             // label2
             // 
-            label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            label2.Location = new Point(257, 201);
+            label2.ForeColor = Color.FromArgb(64, 64, 64);
+            label2.Location = new Point(220, 220);
             label2.Name = "label2";
             label2.Size = new Size(105, 23);
-            label2.TabIndex = 1;
+            label2.TabIndex = 5;
             label2.Text = "Access Code";
             // 
             // txtUsername
             // 
-            txtUsername.Location = new Point(257, 137);
+            txtUsername.BackColor = Color.White;
+            txtUsername.BorderStyle = BorderStyle.FixedSingle;
+            txtUsername.Font = new Font("Segoe UI", 11F);
+            txtUsername.Location = new Point(220, 170);
             txtUsername.MaxLength = 120;
             txtUsername.Name = "txtUsername";
-            txtUsername.Size = new Size(203, 27);
+            txtUsername.Size = new Size(290, 32);
             txtUsername.TabIndex = 1;
             // 
-            // txtPassword
+            // label1
             // 
-            txtPassword.Location = new Point(257, 227);
-            txtPassword.MaxLength = 120;
-            txtPassword.Name = "txtPassword";
-            txtPassword.Size = new Size(203, 27);
-            txtPassword.TabIndex = 2;
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            label1.ForeColor = Color.FromArgb(64, 64, 64);
+            label1.Location = new Point(220, 140);
+            label1.Name = "label1";
+            label1.Size = new Size(64, 23);
+            label1.TabIndex = 3;
+            label1.Text = "POS ID";
             // 
             // btnOk
             // 
             btnOk.BackColor = Color.RoyalBlue;
+            btnOk.Cursor = Cursors.Hand;
+            btnOk.FlatAppearance.BorderSize = 0;
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            btnOk.ForeColor = SystemColors.Control;
-            btnOk.Location = new Point(3, 3);
+            btnOk.ForeColor = Color.White;
+            btnOk.Location = new Point(220, 380);
             btnOk.Name = "btnOk";
-            btnOk.Size = new Size(95, 42);
-            btnOk.TabIndex = 3;
+            btnOk.Size = new Size(110, 45);
+            btnOk.TabIndex = 4;
             btnOk.Text = "Okay";
             btnOk.UseVisualStyleBackColor = false;
             btnOk.Click += btnOk_Click;
-            // 
-            // btnCancel
-            // 
-            btnCancel.BackColor = Color.Coral;
-            btnCancel.FlatStyle = FlatStyle.Flat;
-            btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            btnCancel.ForeColor = SystemColors.Control;
-            btnCancel.Location = new Point(104, 3);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(96, 42);
-            btnCancel.TabIndex = 4;
-            btnCancel.Text = "Cancel";
-            btnCancel.UseVisualStyleBackColor = false;
-            btnCancel.Click += btnCancel_Click;
-            // 
-            // tableLayoutPanel1
-            // 
-            tableLayoutPanel1.ColumnCount = 3;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
-            tableLayoutPanel1.Controls.Add(label1, 1, 2);
-            tableLayoutPanel1.Controls.Add(txtUsername, 1, 3);
-            tableLayoutPanel1.Controls.Add(label2, 1, 4);
-            tableLayoutPanel1.Controls.Add(txtPassword, 1, 5);
-            tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 1, 6);
-            tableLayoutPanel1.Controls.Add(pictureBox1, 0, 1);
-            tableLayoutPanel1.Controls.Add(pictureBox2, 2, 1);
-            tableLayoutPanel1.Dock = DockStyle.Top;
-            tableLayoutPanel1.Location = new Point(0, 0);
-            tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 7;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 5.55555534F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 16.666666F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1111107F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1111107F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1111107F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1111107F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel1.Size = new Size(727, 408);
-            tableLayoutPanel1.TabIndex = 5;
-            // 
-            // tableLayoutPanel2
-            // 
-            tableLayoutPanel2.ColumnCount = 2;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Controls.Add(btnOk, 0, 0);
-            tableLayoutPanel2.Controls.Add(btnCancel, 1, 0);
-            tableLayoutPanel2.Location = new Point(257, 272);
-            tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 1;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel2.Size = new Size(203, 96);
-            tableLayoutPanel2.TabIndex = 4;
-            // 
-            // pictureBox1
-            // 
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(3, 25);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(73, 61);
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox1.TabIndex = 5;
-            pictureBox1.TabStop = false;
-            // 
-            // pictureBox2
-            // 
-            pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(599, 25);
-            pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(125, 61);
-            pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox2.TabIndex = 6;
-            pictureBox2.TabStop = false;
             // 
             // ConfigForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(727, 448);
+            BackColor = Color.White;
+            ClientSize = new Size(727, 528);
             ControlBox = false;
-            Controls.Add(tableLayoutPanel1);
+            Controls.Add(mainPanel);
+            FormBorderStyle = FormBorderStyle.None;
             Name = "ConfigForm";
-            Text = "ConfigForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "POS Configuration";
             TopMost = true;
-            tableLayoutPanel1.ResumeLayout(false);
-            tableLayoutPanel1.PerformLayout();
-            tableLayoutPanel2.ResumeLayout(false);
+            mainPanel.ResumeLayout(false);
+            mainPanel.PerformLayout();
+            headerPanel.ResumeLayout(false);
+            headerPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ResumeLayout(false);
@@ -195,15 +270,35 @@
 
         #endregion
 
-        private Label label1;
-        private Label label2;
-        private TextBox txtUsername;
-        private TextBox txtPassword;
-        private Button btnOk;
-        private Button btnCancel;
-        private TableLayoutPanel tableLayoutPanel1;
-        private TableLayoutPanel tableLayoutPanel2;
+        private Panel mainPanel;
+        private Panel headerPanel;
+        private Label lblWelcome;
+        private Label lblSubtitle;
+        private Button btnClose;
         private PictureBox pictureBox1;
         private PictureBox pictureBox2;
+        private Label label1;
+        private TextBox txtUsername;
+        private Label label2;
+        private TextBox txtPassword;
+        private Label label3;
+        private TextBox txtFilePath;
+        private Button btnBrowse;
+        private Button btnOk;
+        private Button btnCancel;
+
+        private void headerPanel_Paint(object sender, PaintEventArgs e)
+        {
+            // Create gradient from teal to blue
+            using (System.Drawing.Drawing2D.LinearGradientBrush brush =
+                new System.Drawing.Drawing2D.LinearGradientBrush(
+                    headerPanel.ClientRectangle,
+                    Color.FromArgb(52, 168, 164),  // Teal
+                    Color.FromArgb(73, 160, 204),   // Blue
+                    System.Drawing.Drawing2D.LinearGradientMode.Horizontal))
+            {
+                e.Graphics.FillRectangle(brush, headerPanel.ClientRectangle);
+            }
+        }
     }
 }

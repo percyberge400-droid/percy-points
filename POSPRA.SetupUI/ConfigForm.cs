@@ -1,10 +1,5 @@
-﻿using System;
-using System.Configuration;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
+﻿using System.Runtime.InteropServices;
 using System.Xml;
-using System.Runtime.InteropServices;
 //using POSPRA.SecurityEncryption;
 
 namespace POSPRA.SetupUI
@@ -70,11 +65,11 @@ namespace POSPRA.SetupUI
 
             try
             {
-                if (!File.Exists(_configPath))
-                {
-                    MessageBox.Show("Config file not found:\n" + _configPath);
-                    return;
-                }
+                //if (!File.Exists(_configPath))
+                //{
+                //    MessageBox.Show("Config file not found:\n" + _configPath);
+                //    return;
+                //}
 
                 var doc = new XmlDocument();
                 doc.Load(_configPath);
@@ -189,6 +184,11 @@ namespace POSPRA.SetupUI
             {
                 Environment.Exit(1602); // MSI cancel code
             }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
