@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.DTOs;
+using POSPRA.DTOs.ClientDtos;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 
@@ -16,9 +18,10 @@ namespace POSPRA.API.Controllers
     /// <param name="liveService">Service for live invoice operations.</param>
     [Route("api/[controller]")]
     [ApiController]
-    public class LiveController(ILiveService liveService) : ControllerBase
+    public class LiveController(ILiveService liveService, IClientService clientService) : ControllerBase
     {
         private readonly ILiveService _liveService = liveService;
+        private readonly IClientService _clientService = clientService;
 
         /// <summary>
         /// Decrypts and saves a list of invoice records.
@@ -44,5 +47,9 @@ namespace POSPRA.API.Controllers
             var response = await _liveService.GetInvoicesCsvAsync(dto);
             return Ok(response);
         }
+        [HttpPost("authenticate-by-mac")]
+        public async Task<ActionResult<ApiResponse<string>>> AuthenticateByMacAsync(ClientValidationDto dto) =>
+            Ok(await _clientService.GetByMacAsync(dto));
+
     }
 }
