@@ -252,9 +252,9 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(727, 528);
-            ControlBox = false;
+            ControlBox = true;
             Controls.Add(mainPanel);
-            FormBorderStyle = FormBorderStyle.None;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
             Name = "ConfigForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "POS Configuration";
