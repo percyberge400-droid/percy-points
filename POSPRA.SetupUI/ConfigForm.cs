@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Xml;
 using System.Runtime.InteropServices;
+using POSPRA.SecurityEncryption;
 //using POSPRA.SecurityEncryption;
 
 namespace POSPRA.SetupUI
@@ -82,11 +83,11 @@ namespace POSPRA.SetupUI
                 var userNode = doc.SelectSingleNode("//appSettings/add[@key='Username']");
                 var passNode = doc.SelectSingleNode("//appSettings/add[@key='Password']");
 
-                //if (userNode != null)
-                //    txtUsername.Text = AesEncryptionHelper.Decrypt(userNode.Attributes["value"].Value);
+                if (userNode != null)
+                    txtUsername.Text = AesEncryptionHelper.Decrypt(userNode.Attributes["value"].Value);
 
-                //if (passNode != null)
-                //    txtPassword.Text = AesEncryptionHelper.Decrypt(passNode.Attributes["value"].Value);
+                if (passNode != null)
+                    txtPassword.Text = AesEncryptionHelper.Decrypt(passNode.Attributes["value"].Value);
                 if (userNode != null)
                     txtUsername.Text = userNode.Attributes["value"].Value;
 
@@ -157,10 +158,10 @@ namespace POSPRA.SetupUI
                 var userNode = doc.SelectSingleNode("//appSettings/add[@key='Username']");
                 var passNode = doc.SelectSingleNode("//appSettings/add[@key='Password']");
 
-                //if (userNode != null) userNode.Attributes["value"].Value = AesEncryptionHelper.Encrypt(username);
-                //if (passNode != null) passNode.Attributes["value"].Value = AesEncryptionHelper.Encrypt(password);
-                if (userNode != null) userNode.Attributes["value"].Value = username;
-                if (passNode != null) passNode.Attributes["value"].Value = password;
+                if (userNode != null) userNode.Attributes["value"].Value = AesEncryptionHelper.Encrypt(username);
+                if (passNode != null) passNode.Attributes["value"].Value = AesEncryptionHelper.Encrypt(password);
+                //if (userNode != null) userNode.Attributes["value"].Value = username;
+                //if (passNode != null) passNode.Attributes["value"].Value = password;
 
                 doc.Save(_configPath);
 

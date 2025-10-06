@@ -38,11 +38,11 @@ var builder = Host.CreateDefaultBuilder(args)
         var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
         var dbPath = appSettings.DefaultDBFilePath;
 
-        if (string.IsNullOrWhiteSpace(dbPath))
-            throw new Exception("❌ DefaultDBFilePath is missing in appsettings.worker.json");
+        //if (string.IsNullOrWhiteSpace(dbPath))
+        //    throw new Exception("❌ DefaultDBFilePath is missing in appsettings.worker.json");
 
-        if (!File.Exists(dbPath))
-            throw new FileNotFoundException($"❌ SQLite database not found at path: {dbPath}");
+        //if (!File.Exists(dbPath))
+        //    throw new FileNotFoundException($"❌ SQLite database not found at path: {dbPath}");
 
         //----------------------------------------------------
         // 🔧 Database configuration
@@ -112,8 +112,8 @@ using (var scope = host.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
     var dbPath = db.Database.GetDbConnection().DataSource;
 
-    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
-        $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
+    //File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
+    //    $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
 }
 
 await host.RunAsync();

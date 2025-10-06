@@ -45,7 +45,7 @@ namespace POSPRA_WinFormsUI
 
             // Load POSID from app.config (stored encrypted)
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
-            //var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+            var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
             posid.Text = encryptedPosId;   // show real POSID in UI
 
 
