@@ -498,12 +498,13 @@
             // 
             // btnsearch
             // 
+            btnsearch.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             btnsearch.BackColor = Color.Teal;
             btnsearch.FlatAppearance.BorderSize = 0;
             btnsearch.FlatStyle = FlatStyle.Flat;
             btnsearch.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnsearch.ForeColor = Color.Transparent;
-            btnsearch.Location = new Point(254, 173);
+            btnsearch.Location = new Point(236, 173);
             btnsearch.Name = "btnsearch";
             btnsearch.Size = new Size(49, 32);
             btnsearch.TabIndex = 83;
