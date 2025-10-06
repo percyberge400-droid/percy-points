@@ -334,7 +334,6 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ReadOnly = true;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.MultiSelect = false;
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             // Prevent selecting headers
             dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(51, 51, 51);
@@ -375,7 +374,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colItemSrno",
                 HeaderText = "Sr. No.",
-                Width = 90,
+                Width = 80,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -404,7 +403,7 @@ namespace POSPRA_WinFormsUI.Forms
                 Name = "colProductDesc",
                 HeaderText = "Product Description",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                MinimumWidth = 200,
+                MinimumWidth = 240,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic
             };

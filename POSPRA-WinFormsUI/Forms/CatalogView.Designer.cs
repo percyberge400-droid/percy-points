@@ -173,7 +173,7 @@
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(288, 40);
             btnLoad.TabIndex = 4;
-            btnLoad.Text = "🔄Sync Products From Catalog";
+            btnLoad.Text = "🔄Sync Products From Cloud";
             btnLoad.UseVisualStyleBackColor = false;
             // 
             // panel1
