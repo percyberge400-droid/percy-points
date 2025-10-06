@@ -84,6 +84,7 @@
             btnClose.TabIndex = 3;
             btnClose.Text = "Close";
             btnClose.UseVisualStyleBackColor = false;
+            btnClose.Click += btnClose_Click;
             // 
             // headerPanel
             // 
@@ -135,7 +136,6 @@
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 1;
             pictureBox1.TabStop = false;
-            pictureBox1.Click += pictureBox1_Click;
             // 
             // pictureBox2
             // 
@@ -162,6 +162,7 @@
             btnBrowse.TabIndex = 3;
             btnBrowse.Text = "...";
             btnBrowse.UseVisualStyleBackColor = false;
+            btnBrowse.Click += btnBrowse_Click_1;
             // 
             // txtFilePath
             // 
@@ -170,7 +171,6 @@
             txtFilePath.Font = new Font("Segoe UI", 11F);
             txtFilePath.Location = new Point(220, 330);
             txtFilePath.Name = "txtFilePath";
-            txtFilePath.ReadOnly = true;
             txtFilePath.Size = new Size(230, 32);
             txtFilePath.TabIndex = 8;
             // 
