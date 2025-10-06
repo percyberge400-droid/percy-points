@@ -135,7 +135,7 @@
             btnCatalogView.FlatStyle = FlatStyle.Flat;
             btnCatalogView.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnCatalogView.ForeColor = Color.Black;
-            btnCatalogView.Location = new Point(909, 8);
+            btnCatalogView.Location = new Point(909, 9);
             btnCatalogView.Margin = new Padding(3, 4, 3, 4);
             btnCatalogView.Name = "btnCatalogView";
             btnCatalogView.Size = new Size(206, 35);
@@ -198,10 +198,10 @@
             btnDashboard.FlatStyle = FlatStyle.Flat;
             btnDashboard.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnDashboard.ForeColor = Color.Black;
-            btnDashboard.Location = new Point(458, 9);
+            btnDashboard.Location = new Point(457, 11);
             btnDashboard.Margin = new Padding(3, 4, 3, 4);
             btnDashboard.Name = "btnDashboard";
-            btnDashboard.Size = new Size(126, 36);
+            btnDashboard.Size = new Size(127, 33);
             btnDashboard.TabIndex = 1;
             btnDashboard.Text = "DASHBOARD";
             btnDashboard.TextAlign = ContentAlignment.BottomCenter;
@@ -215,10 +215,10 @@
             btnInvoiceSelection.FlatStyle = FlatStyle.Flat;
             btnInvoiceSelection.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnInvoiceSelection.ForeColor = Color.Black;
-            btnInvoiceSelection.Location = new Point(595, 9);
+            btnInvoiceSelection.Location = new Point(595, 13);
             btnInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             btnInvoiceSelection.Name = "btnInvoiceSelection";
-            btnInvoiceSelection.Size = new Size(151, 36);
+            btnInvoiceSelection.Size = new Size(151, 32);
             btnInvoiceSelection.TabIndex = 1;
             btnInvoiceSelection.Text = "INVOICE ENTRY";
             btnInvoiceSelection.TextAlign = ContentAlignment.BottomCenter;
@@ -232,10 +232,10 @@
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnExportInvoice.ForeColor = Color.Black;
-            btnExportInvoice.Location = new Point(752, 2);
+            btnExportInvoice.Location = new Point(752, 13);
             btnExportInvoice.Margin = new Padding(3, 4, 3, 4);
             btnExportInvoice.Name = "btnExportInvoice";
-            btnExportInvoice.Size = new Size(163, 41);
+            btnExportInvoice.Size = new Size(163, 31);
             btnExportInvoice.TabIndex = 1;
             btnExportInvoice.Text = "EXPORT INVOICE";
             btnExportInvoice.TextAlign = ContentAlignment.BottomCenter;

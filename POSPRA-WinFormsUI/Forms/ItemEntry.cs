@@ -523,10 +523,10 @@ namespace POSPRA_WinFormsUI
 
         private void btnclear_Click(object sender, EventArgs e)
         {
+            ClearForm(this);
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
             var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
             posid.Text = decryptedPosId;   // show real POSID in UI
-            ClearForm(this);
         }
         #endregion
 

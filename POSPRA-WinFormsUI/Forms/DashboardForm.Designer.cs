@@ -422,7 +422,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnToday.ForeColor = Color.White;
             btnToday.Location = new Point(1318, 8);
             btnToday.Name = "btnToday";
-            btnToday.Size = new Size(76, 37);
+            btnToday.Size = new Size(77, 37);
             btnToday.TabIndex = 3;
             btnToday.Text = "Today";
             btnToday.UseVisualStyleBackColor = false;
