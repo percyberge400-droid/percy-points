@@ -1,5 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
+using POSPRA.Infrastructure.Context;
 using POSPRA.SecurityEncryption;
 using System;
 using System.Configuration;
@@ -30,44 +35,51 @@ namespace POSPRA.SetupUI
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
 
-        private readonly string _configPath;
-
-        public ConfigForm(string configPath)
+        private readonly string _xmlConfigPath;
+        private readonly string _jsonWorkerPath; //worker json path
+        private readonly string _jsonMainPath;   //API json path
+        private readonly string _winformsConfigPath; // WinFormsUI config path
+        private string _setupConfigPath;
+        public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath)
         {
             InitializeComponent();
-            _configPath = configPath;
+
+            _xmlConfigPath = xmlConfigPath;
+            _jsonWorkerPath = jsonWorkerPath;
+            _jsonMainPath = jsonMainPath;
+            _setupConfigPath = setupConfigPath;
+            _winformsConfigPath = winformsConfigPath;
 
             txtUsername.KeyPress += txtUsername_KeyPress;
             txtPassword.KeyPress += txtPassword_KeyPress;
             txtUsername.TextChanged += ValidateForm;
             txtPassword.TextChanged += ValidateForm;
 
-           // btnOk.Enabled = false;
             this.AcceptButton = btnOk;
         }
 
         protected override void OnShown(EventArgs e)
         {
-            //base.OnShown(e);
-            //this.CenterToScreen();
-            //this.TopMost = true;
+            base.OnShown(e);
+            this.CenterToScreen();
+            this.TopMost = true;
 
-            //SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
-            //             SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-            //this.Activate();
-            //this.BringToFront();
+            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            this.Activate();
+            this.BringToFront();
         }
 
         private void ConfigForm_Load(object sender, EventArgs e)
         {
-            //this.StartPosition = FormStartPosition.CenterScreen;
-            //SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
-            //    SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
             try
             {
                 var doc = new XmlDocument();
-                doc.Load(_configPath);
+                doc.Load(_xmlConfigPath); // ✅ FIXED
 
                 var userNode = doc.SelectSingleNode("//appSettings/add[@key='Username']");
                 var passNode = doc.SelectSingleNode("//appSettings/add[@key='Password']");
@@ -137,7 +149,6 @@ namespace POSPRA.SetupUI
                 string password = txtPassword.Text.Trim();
                 string dbPath = txtFilePath.Text.Trim();
 
-                // ✅ Basic validation
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
                     MessageBox.Show("Please enter both POID and Access Code.", "Validation Error",
@@ -160,7 +171,7 @@ namespace POSPRA.SetupUI
                 }
 
                 // ✅ Get MAC address
-                string macAddress = ConfigurationManager.AppSettings["mac"];
+                string macAddress = ConfigurationManager.AppSettings["mac"] ?? GetMacAddress();
 
                 // ✅ Prepare authentication payload
                 var payload = new
@@ -196,50 +207,71 @@ namespace POSPRA.SetupUI
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        MessageBox.Show("Authentication failed: Invalid credentials or MAC address.",
-                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
+                        throw new Exception("Authentication failed: Invalid credentials or MAC address.");
                     }
 
-                    try
-                    {
-                        // ✅ Parse JSON response
-                        var json = JObject.Parse(responseBody);
-                        string statusCode = json["statusCode"]?.ToString();
-                        bool data = json["data"]?.ToObject<bool>() ?? false;
-                        string message = json["message"]?.ToString();
+                    // ✅ Parse JSON response
+                    var json = JObject.Parse(responseBody);
+                    string statusCode = json["statusCode"]?.ToString();
+                    bool data = json["data"]?.ToObject<bool>() ?? false;
+                    string message = json["message"]?.ToString();
 
-                        // ✅ Check success condition
-                        if (statusCode == "200" && data)
-                        {
-                            MessageBox.Show("Authentication successful: " + message, "Success",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                        else
-                        {
-                            MessageBox.Show("Authentication failed: " + message, "Error",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-                    }
-                    catch (Exception)
+                    if (statusCode != "200" || !data)
                     {
-                        MessageBox.Show("Invalid server response format.", "Error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
+                        throw new Exception("Authentication failed: " + (message ?? "Unknown error"));
                     }
+
+                    // ✅ Success message
+                    MessageBox.Show("Authentication successful: " + message, "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                // ✅ Save config after successful authentication
+                // ✅ Save only Username, Password, and MacAddress to XML (skip DB path)
                 var doc = new XmlDocument();
-                doc.Load(_configPath);
+                doc.Load(_xmlConfigPath);
+
+
+                // 🔹 Step 4: Initialize SQLite database
+                var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
+                    .UseSqlite($"Data Source={dbPath}")
+                    .Options;
+
+                using (var context = new SqliteDbContext(sqliteOptions))
+                {
+                    context.Database.EnsureCreated();
+                }
+
+                // 🔹 Step 5: Build DI container (if needed later)
+                var services = new ServiceCollection();
+                services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
+
 
                 UpdateOrCreateNode(doc, "Username", AesEncryptionHelper.Encrypt(username));
                 UpdateOrCreateNode(doc, "Password", AesEncryptionHelper.Encrypt(password));
-                UpdateOrCreateNode(doc, "DefaultDBFilePath", dbPath);
                 UpdateOrCreateNode(doc, "MacAddress", macAddress);
 
-                doc.Save(_configPath);
+                doc.Save(_xmlConfigPath);
+
+                // ✅ Save DB path only in JSON files
+                SaveDbPathToJson(_jsonWorkerPath, dbPath);  // appsettings.worker.json
+                SaveDbPathToJson(_jsonMainPath, dbPath);    // appsettings.json
+
+                // ✅ Save DB path in POSPRA-WinFormsUI.dll.config
+                SaveDbPathToWinFormsConfig(dbPath);
+
+                // ✅ Save DB path also in POSPRA.SetupUI.dll.config
+                try
+                {
+                    var docSetup = new XmlDocument();
+                    docSetup.Load(_setupConfigPath);
+                    UpdateOrCreateNode(docSetup, "DefaultDBFilePath", dbPath);
+                    docSetup.Save(_setupConfigPath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to update SetupUI config: " + ex.Message,
+                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
 
                 MessageBox.Show("Configuration saved successfully.", "Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -248,10 +280,16 @@ namespace POSPRA.SetupUI
             }
             catch (Exception ex)
             {
+                // ✅ Show error to user but do NOT terminate installer
                 MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Environment.Exit(1);
+
+                // Do NOT call Environment.Exit(1);
+                // Installer will continue to allow retry or close.
             }
         }
+
+
+
 
 
         private void UpdateOrCreateNode(XmlDocument doc, string key, string value)
@@ -276,6 +314,75 @@ namespace POSPRA.SetupUI
                 node.Attributes["value"].Value = value;
             }
         }
+        // ✅ JSON updater
+        private void SaveDbPathToJson(string jsonFilePath, string dbPath)
+        {
+            try
+            {
+                JObject root;
+
+                if (File.Exists(jsonFilePath))
+                {
+                    string text = File.ReadAllText(jsonFilePath);
+                    root = string.IsNullOrWhiteSpace(text) ? new JObject() : JObject.Parse(text);
+                }
+                else
+                {
+                    root = new JObject();
+                }
+
+                if (root["AppSettings"] == null || root["AppSettings"].Type != JTokenType.Object)
+                {
+                    root["AppSettings"] = new JObject();
+                }
+
+                root["AppSettings"]["DefaultDBFilePath"] = dbPath;
+
+                File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to update {Path.GetFileName(jsonFilePath)}: " + ex.Message,
+                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        // ✅ Save DB path to WinFormsUI config (POSPRA-WinFormsUI.dll.config)
+        private void SaveDbPathToWinFormsConfig(string dbPath)
+        {
+            try
+            {
+                var doc = new XmlDocument();
+                doc.Load(_winformsConfigPath);
+
+                var node = doc.SelectSingleNode("//appSettings/add[@key='DefaultDBFilePath']");
+                if (node == null)
+                {
+                    var appSettings = doc.SelectSingleNode("//appSettings");
+                    if (appSettings == null)
+                    {
+                        appSettings = doc.CreateElement("appSettings");
+                        doc.DocumentElement.AppendChild(appSettings);
+                    }
+
+                    XmlElement newNode = doc.CreateElement("add");
+                    newNode.SetAttribute("key", "DefaultDBFilePath");
+                    newNode.SetAttribute("value", dbPath);
+                    appSettings.AppendChild(newNode);
+                }
+                else
+                {
+                    node.Attributes["value"].Value = dbPath;
+                }
+
+                doc.Save(_winformsConfigPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to update WinForms config: {ex.Message}", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
 
         // ✅ Get MAC address of first active network adapter
         private string GetMacAddress()
@@ -304,9 +411,11 @@ namespace POSPRA.SetupUI
 
             if (result == DialogResult.Yes)
             {
+                // Return MSI error code for cancel
                 Environment.Exit(1602);
             }
         }
+
 
         private void btnClose_Click(object sender, EventArgs e)
         {
