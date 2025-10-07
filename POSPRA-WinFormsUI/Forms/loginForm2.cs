@@ -34,7 +34,7 @@ namespace POSPRA_WinFormsUI.Forms
             MakeStyledTextBox(txtPassword);
 
             // ✅ Load logo dynamically from App.config
-            string logoKey = ConfigurationManager.AppSettings["praLOGO"];
+            string logoKey = ConfigurationManager.AppSettings["LOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
                 var res = Resources.ResourceManager.GetObject(logoKey);

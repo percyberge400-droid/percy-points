@@ -30,12 +30,12 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigForm));
             mainPanel = new Panel();
-            btnClose = new Button();
+            progressBar = new ProgressBar();
             headerPanel = new Panel();
             lblSubtitle = new Label();
             lblWelcome = new Label();
             pictureBox1 = new PictureBox();
-            pictureBox2 = new PictureBox();
+            LOGO_img = new PictureBox();
             btnBrowse = new Button();
             txtFilePath = new TextBox();
             label3 = new Label();
@@ -44,16 +44,18 @@
             txtUsername = new TextBox();
             label1 = new Label();
             btnOk = new Button();
+            btnCancel = new Button();
             mainPanel.SuspendLayout();
             headerPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)LOGO_img).BeginInit();
             SuspendLayout();
             // 
             // mainPanel
             // 
             mainPanel.BackColor = Color.White;
-            mainPanel.Controls.Add(btnClose);
+            mainPanel.Controls.Add(btnCancel);
+            mainPanel.Controls.Add(progressBar);
             mainPanel.Controls.Add(headerPanel);
             mainPanel.Controls.Add(btnBrowse);
             mainPanel.Controls.Add(txtFilePath);
@@ -69,22 +71,12 @@
             mainPanel.Size = new Size(727, 528);
             mainPanel.TabIndex = 0;
             // 
-            // btnClose
+            // progressBar
             // 
-            btnClose.BackColor = Color.Red;
-            btnClose.Cursor = Cursors.Hand;
-            btnClose.FlatAppearance.BorderSize = 0;
-            btnClose.FlatAppearance.MouseOverBackColor = Color.FromArgb(200, 255, 255, 255);
-            btnClose.FlatStyle = FlatStyle.Flat;
-            btnClose.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            btnClose.ForeColor = Color.White;
-            btnClose.Location = new Point(400, 380);
-            btnClose.Name = "btnClose";
-            btnClose.Size = new Size(110, 45);
-            btnClose.TabIndex = 3;
-            btnClose.Text = "Close";
-            btnClose.UseVisualStyleBackColor = false;
-            btnClose.Click += btnClose_Click;
+            progressBar.Location = new Point(220, 449);
+            progressBar.Name = "progressBar";
+            progressBar.Size = new Size(290, 32);
+            progressBar.TabIndex = 9;
             // 
             // headerPanel
             // 
@@ -92,7 +84,7 @@
             headerPanel.Controls.Add(lblSubtitle);
             headerPanel.Controls.Add(lblWelcome);
             headerPanel.Controls.Add(pictureBox1);
-            headerPanel.Controls.Add(pictureBox2);
+            headerPanel.Controls.Add(LOGO_img);
             headerPanel.Dock = DockStyle.Top;
             headerPanel.Location = new Point(0, 0);
             headerPanel.Name = "headerPanel";
@@ -137,16 +129,15 @@
             pictureBox1.TabIndex = 1;
             pictureBox1.TabStop = false;
             // 
-            // pictureBox2
+            // LOGO_img
             // 
-            pictureBox2.BackColor = Color.Transparent;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(12, 0);
-            pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(130, 102);
-            pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox2.TabIndex = 2;
-            pictureBox2.TabStop = false;
+            LOGO_img.BackColor = Color.Transparent;
+            LOGO_img.Location = new Point(12, 0);
+            LOGO_img.Name = "LOGO_img";
+            LOGO_img.Size = new Size(130, 102);
+            LOGO_img.SizeMode = PictureBoxSizeMode.Zoom;
+            LOGO_img.TabIndex = 2;
+            LOGO_img.TabStop = false;
             // 
             // btnBrowse
             // 
@@ -246,13 +237,29 @@
             btnOk.UseVisualStyleBackColor = false;
             btnOk.Click += btnOk_Click;
             // 
+            // btnCancel
+            // 
+            btnCancel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnCancel.BackColor = Color.Red;
+            btnCancel.Cursor = Cursors.Hand;
+            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.FlatStyle = FlatStyle.Flat;
+            btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            btnCancel.ForeColor = Color.White;
+            btnCancel.Location = new Point(400, 380);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(110, 45);
+            btnCancel.TabIndex = 11;
+            btnCancel.Text = "Close";
+            btnCancel.UseVisualStyleBackColor = false;
+            btnCancel.Click += btnCancel_Click;
+            // 
             // ConfigForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(727, 528);
-            ControlBox = true;
             Controls.Add(mainPanel);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Name = "ConfigForm";
@@ -264,7 +271,7 @@
             headerPanel.ResumeLayout(false);
             headerPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)LOGO_img).EndInit();
             ResumeLayout(false);
         }
 
@@ -274,9 +281,8 @@
         private Panel headerPanel;
         private Label lblWelcome;
         private Label lblSubtitle;
-        private Button btnClose;
         private PictureBox pictureBox1;
-        private PictureBox pictureBox2;
+        private PictureBox LOGO_img;
         private Label label1;
         private TextBox txtUsername;
         private Label label2;
@@ -285,7 +291,6 @@
         private TextBox txtFilePath;
         private Button btnBrowse;
         private Button btnOk;
-        private Button btnCancel;
 
         private void headerPanel_Paint(object sender, PaintEventArgs e)
         {
@@ -300,5 +305,7 @@
                 e.Graphics.FillRectangle(brush, headerPanel.ClientRectangle);
             }
         }
+        private ProgressBar progressBar;
+        private Button btnCancel;
     }
 }
