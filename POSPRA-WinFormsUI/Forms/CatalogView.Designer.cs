@@ -31,6 +31,7 @@
             labelInvoicesTitle = new Label();
             SearchBox = new TextBox();
             label1 = new Label();
+            progressBar = new ProgressBar();
             ((System.ComponentModel.ISupportInitialize)ProductCatalogueDataGridView).BeginInit();
             panel2.SuspendLayout();
             panel1.SuspendLayout();
@@ -49,7 +50,7 @@
             ProductCatalogueDataGridView.RowHeadersVisible = false;
             ProductCatalogueDataGridView.RowHeadersWidth = 51;
             ProductCatalogueDataGridView.Size = new Size(1599, 685);
-            ProductCatalogueDataGridView.TabIndex = 3;
+            ProductCatalogueDataGridView.TabIndex = 9;
             // 
             // colItemSrno
             // 
@@ -105,7 +106,7 @@
             btnNext.Location = new Point(1495, 3);
             btnNext.Name = "btnNext";
             btnNext.Size = new Size(99, 30);
-            btnNext.TabIndex = 1;
+            btnNext.TabIndex = 5;
             btnNext.Text = "Next";
             btnNext.UseVisualStyleBackColor = true;
             // 
@@ -115,7 +116,7 @@
             btnPrev.Location = new Point(1306, 2);
             btnPrev.Name = "btnPrev";
             btnPrev.Size = new Size(99, 30);
-            btnPrev.TabIndex = 2;
+            btnPrev.TabIndex = 4;
             btnPrev.Text = "Previous";
             btnPrev.UseVisualStyleBackColor = true;
             // 
@@ -126,7 +127,7 @@
             lblPageNumber.Location = new Point(1425, 8);
             lblPageNumber.Name = "lblPageNumber";
             lblPageNumber.Size = new Size(53, 20);
-            lblPageNumber.TabIndex = 3;
+            lblPageNumber.TabIndex = 7;
             lblPageNumber.Text = "Page 1";
             // 
             // panel2
@@ -154,7 +155,7 @@
             btnLoad.Location = new Point(1306, 38);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(288, 40);
-            btnLoad.TabIndex = 4;
+            btnLoad.TabIndex = 3;
             btnLoad.Text = "🔄Sync Products From Cloud";
             btnLoad.UseVisualStyleBackColor = false;
             // 
@@ -205,7 +206,7 @@
             SearchBox.Name = "SearchBox";
             SearchBox.PlaceholderText = "Search";
             SearchBox.Size = new Size(252, 24);
-            SearchBox.TabIndex = 39;
+            SearchBox.TabIndex = 0;
             // 
             // label1
             // 
@@ -217,10 +218,18 @@
             label1.TabIndex = 3;
             label1.Text = "Page 1";
             // 
+            // progressBar
+            // 
+            progressBar.Location = new Point(590, 331);
+            progressBar.Name = "progressBar";
+            progressBar.Size = new Size(414, 34);
+            progressBar.TabIndex = 81;
+            // 
             // CatalogView
             // 
             BackColor = Color.WhiteSmoke;
             ClientSize = new Size(1599, 820);
+            Controls.Add(progressBar);
             Controls.Add(panel1);
             Controls.Add(panel2);
             Controls.Add(ProductCatalogueDataGridView);
@@ -252,6 +261,6 @@
         private Label labelInvoicesTitle;
         private TextBox SearchBox;
         private Label label1;
-
+        private ProgressBar progressBar;
     }
 }

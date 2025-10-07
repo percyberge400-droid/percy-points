@@ -77,7 +77,6 @@
             panelPending.Padding = new Padding(20);
             panelPending.Size = new Size(680, 320);
             panelPending.TabIndex = 1;
-            //panelPending.Paint += panelPending_Paint;
             // 
             // ToDateLbl
             // 

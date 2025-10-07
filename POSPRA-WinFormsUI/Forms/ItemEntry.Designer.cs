@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
             TaxChargedlbl = new Label();
             TaxCharged = new TextBox();
@@ -172,7 +172,7 @@
             pctCode.Name = "pctCode";
             pctCode.PlaceholderText = "PCT Code";
             pctCode.Size = new Size(197, 24);
-            pctCode.TabIndex = 55;
+            pctCode.TabIndex = 10;
             pctCode.Text = "78";
             // 
             // TaxRatelbl
@@ -193,7 +193,7 @@
             salevalue.Name = "salevalue";
             salevalue.PlaceholderText = "Sale Value";
             salevalue.Size = new Size(197, 24);
-            salevalue.TabIndex = 28;
+            salevalue.TabIndex = 16;
             salevalue.Text = "100";
             // 
             // salevaluelbl
@@ -213,7 +213,7 @@
             TaxRatebox.Name = "TaxRatebox";
             TaxRatebox.PlaceholderText = "Tax Rate";
             TaxRatebox.Size = new Size(200, 24);
-            TaxRatebox.TabIndex = 22;
+            TaxRatebox.TabIndex = 12;
             TaxRatebox.Text = "10";
             // 
             // itemDiscount
@@ -223,7 +223,7 @@
             itemDiscount.Name = "itemDiscount";
             itemDiscount.PlaceholderText = "Discount";
             itemDiscount.Size = new Size(192, 24);
-            itemDiscount.TabIndex = 23;
+            itemDiscount.TabIndex = 13;
             itemDiscount.Text = "5";
             // 
             // itemDiscountlbl
@@ -244,7 +244,7 @@
             totalamount.Name = "totalamount";
             totalamount.PlaceholderText = "Total Amount";
             totalamount.Size = new Size(194, 24);
-            totalamount.TabIndex = 20;
+            totalamount.TabIndex = 11;
             totalamount.Text = "105";
             // 
             // ItemCode
@@ -257,7 +257,7 @@
             ItemCode.Name = "ItemCode";
             ItemCode.PlaceholderText = "Item Code";
             ItemCode.Size = new Size(197, 24);
-            ItemCode.TabIndex = 17;
+            ItemCode.TabIndex = 9;
             ItemCode.Text = "78";
             // 
             // ItemNamelbl
@@ -289,7 +289,7 @@
             FurtureTax.Name = "FurtureTax";
             FurtureTax.PlaceholderText = "Furture Tax";
             FurtureTax.Size = new Size(203, 24);
-            FurtureTax.TabIndex = 30;
+            FurtureTax.TabIndex = 17;
             // 
             // ItemName
             // 
@@ -298,7 +298,7 @@
             ItemName.Name = "ItemName";
             ItemName.PlaceholderText = "Item Name";
             ItemName.Size = new Size(197, 24);
-            ItemName.TabIndex = 26;
+            ItemName.TabIndex = 14;
             ItemName.Text = "12345678";
             // 
             // ItemCodelbl
@@ -328,7 +328,7 @@
             qty.Name = "qty";
             qty.PlaceholderText = "QUANTITY";
             qty.Size = new Size(197, 24);
-            qty.TabIndex = 27;
+            qty.TabIndex = 15;
             qty.Text = "1";
             // 
             // lblCustomerRegType
@@ -374,7 +374,7 @@
             btnEdit.Location = new Point(1020, 379);
             btnEdit.Name = "btnEdit";
             btnEdit.Size = new Size(155, 33);
-            btnEdit.TabIndex = 41;
+            btnEdit.TabIndex = 22;
             btnEdit.Text = "🖊️ Edit";
             btnEdit.UseVisualStyleBackColor = false;
             // 
@@ -389,7 +389,7 @@
             btnSave.Location = new Point(498, 844);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(188, 44);
-            btnSave.TabIndex = 42;
+            btnSave.TabIndex = 23;
             btnSave.Text = "💾 Save";
             btnSave.UseVisualStyleBackColor = false;
             // 
@@ -400,22 +400,22 @@
             dataGridView1.AllowUserToResizeRows = false;
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.White;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
-            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.White;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle3.SelectionBackColor = Color.White;
+            dataGridViewCellStyle3.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.White;
+            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 419);
@@ -451,7 +451,7 @@
             btn_remove.Location = new Point(859, 379);
             btn_remove.Name = "btn_remove";
             btn_remove.Size = new Size(155, 33);
-            btn_remove.TabIndex = 40;
+            btn_remove.TabIndex = 21;
             btn_remove.Text = "➖ Remove Item";
             btn_remove.UseVisualStyleBackColor = false;
             // 
@@ -466,7 +466,7 @@
             btnProceed.Location = new Point(695, 379);
             btnProceed.Name = "btnProceed";
             btnProceed.Size = new Size(155, 33);
-            btnProceed.TabIndex = 39;
+            btnProceed.TabIndex = 20;
             btnProceed.Text = "➕ Add Item";
             btnProceed.UseVisualStyleBackColor = false;
             // 
@@ -507,7 +507,7 @@
             btnsearch.Location = new Point(236, 173);
             btnsearch.Name = "btnsearch";
             btnsearch.Size = new Size(49, 32);
-            btnsearch.TabIndex = 83;
+            btnsearch.TabIndex = 18;
             btnsearch.Text = "Search";
             btnsearch.UseVisualStyleBackColor = false;
             // 
@@ -522,7 +522,7 @@
             btnclear.Location = new Point(531, 379);
             btnclear.Name = "btnclear";
             btnclear.Size = new Size(155, 33);
-            btnclear.TabIndex = 82;
+            btnclear.TabIndex = 19;
             btnclear.Text = "\U0001f9f9 Clear Form";
             btnclear.UseVisualStyleBackColor = false;
             // 
@@ -586,7 +586,7 @@
             refUSIN.Name = "refUSIN";
             refUSIN.PlaceholderText = "Ref USIN";
             refUSIN.Size = new Size(123, 24);
-            refUSIN.TabIndex = 74;
+            refUSIN.TabIndex = 8;
             refUSIN.Text = "1";
             // 
             // refUSINlbl
@@ -605,7 +605,7 @@
             paymentmode.Location = new Point(154, 41);
             paymentmode.Name = "paymentmode";
             paymentmode.Size = new Size(123, 26);
-            paymentmode.TabIndex = 77;
+            paymentmode.TabIndex = 6;
             // 
             // invoicetype
             // 
@@ -613,7 +613,7 @@
             invoicetype.Location = new Point(25, 41);
             invoicetype.Name = "invoicetype";
             invoicetype.Size = new Size(123, 26);
-            invoicetype.TabIndex = 76;
+            invoicetype.TabIndex = 5;
             // 
             // invoicetypelbl
             // 
@@ -645,7 +645,7 @@
             USIN.Name = "USIN";
             USIN.PlaceholderText = "USIN";
             USIN.Size = new Size(123, 24);
-            USIN.TabIndex = 4;
+            USIN.TabIndex = 7;
             USIN.Text = "1";
             // 
             // USINlbl
@@ -692,7 +692,7 @@
             buyerphone.Name = "buyerphone";
             buyerphone.PlaceholderText = "Buyer Phone Number";
             buyerphone.Size = new Size(123, 24);
-            buyerphone.TabIndex = 10;
+            buyerphone.TabIndex = 4;
             buyerphone.Text = "12345678912";
             // 
             // label18
@@ -712,7 +712,7 @@
             BuyerBname.Name = "BuyerBname";
             BuyerBname.PlaceholderText = "Buyer Name";
             BuyerBname.Size = new Size(123, 24);
-            BuyerBname.TabIndex = 9;
+            BuyerBname.TabIndex = 3;
             BuyerBname.Text = "1";
             // 
             // label19
@@ -732,7 +732,7 @@
             buyerntn.Name = "buyerntn";
             buyerntn.PlaceholderText = "Buyer NTN";
             buyerntn.Size = new Size(123, 24);
-            buyerntn.TabIndex = 8;
+            buyerntn.TabIndex = 2;
             buyerntn.Text = "1234567";
             // 
             // label20
@@ -752,7 +752,7 @@
             buyercnic.Name = "buyercnic";
             buyercnic.PlaceholderText = "Buyer CNIC";
             buyercnic.Size = new Size(123, 24);
-            buyercnic.TabIndex = 7;
+            buyercnic.TabIndex = 1;
             buyercnic.Text = "1234567891234";
             // 
             // panel1
