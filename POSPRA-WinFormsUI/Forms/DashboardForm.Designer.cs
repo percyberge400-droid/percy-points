@@ -789,6 +789,7 @@ namespace POSPRA_WinFormsUI.Forms
             Name = "DashboardForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Dashboard";
+            Load += DashboardForm_Load_1;
             tableLayoutPanelTop.ResumeLayout(false);
             panelAll.ResumeLayout(false);
             panelAll.PerformLayout();

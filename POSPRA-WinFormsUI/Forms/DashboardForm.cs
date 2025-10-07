@@ -1265,14 +1265,15 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else if (value.Equals("Warning", StringComparison.OrdinalIgnoreCase))
                 {
-                    badgeColor = Color.FromArgb(254, 226, 226);
-                    textColor = Color.FromArgb(220, 38, 38);
+                    badgeColor = Color.FromArgb(254, 243, 199);
+                    textColor = Color.FromArgb(217, 119, 6);
+
                 }
                 else if (value.Equals("Exception", StringComparison.OrdinalIgnoreCase) ||
                          value.Equals("Error", StringComparison.OrdinalIgnoreCase))
                 {
-                    badgeColor = Color.FromArgb(254, 243, 199);
-                    textColor = Color.FromArgb(217, 119, 6);
+                    badgeColor = Color.FromArgb(254, 226, 226);
+                    textColor = Color.FromArgb(220, 38, 38);
                 }
 
                 if (!string.IsNullOrEmpty(value))
@@ -1359,10 +1360,10 @@ namespace POSPRA_WinFormsUI.Forms
             // Values and labels
             List<int> values = new List<int> { pendingCount, syncedCount };
             List<Color> colors = new List<Color>
-    {
-        ColorTranslator.FromHtml("#4DBDED"), // Synced
-        ColorTranslator.FromHtml("#8860C1")  // Not Synced
-    };
+            {
+                ColorTranslator.FromHtml("#4DBDED"), // Synced
+                ColorTranslator.FromHtml("#8860C1")  // Not Synced
+            };
             List<string> labels = new List<string> { "Synced", "Not Synced" };
 
             float total = values.Sum();
@@ -1486,6 +1487,11 @@ namespace POSPRA_WinFormsUI.Forms
                 // Silently handle errors in statistics refresh
                 Console.WriteLine($"Error refreshing log statistics: {ex.Message}");
             }
+        }
+
+        private void DashboardForm_Load_1(object sender, EventArgs e)
+        {
+
         }
     }
 }
