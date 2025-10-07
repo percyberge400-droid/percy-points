@@ -1048,6 +1048,7 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.AllowUserToDeleteRows = false;
             dgv.AllowUserToResizeRows = false;
             dgv.ReadOnly = true;
+            dgv.RowTemplate.Height = 40;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.MultiSelect = false;
             //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
