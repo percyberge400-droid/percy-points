@@ -41,7 +41,15 @@ namespace POSPRA.SetupUI
         public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath)
         {
             InitializeComponent();
+            // Always stay above all other windows
+            this.TopMost = true;
 
+            // Make sure it stays focused
+            this.BringToFront();
+            this.Activate();
+
+            // Optional: Prevent user from sending it to back
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
             _xmlConfigPath = xmlConfigPath;
             _jsonWorkerPath = jsonWorkerPath;
             _jsonMainPath = jsonMainPath;
