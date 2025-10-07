@@ -112,10 +112,6 @@ namespace POSPRA_WinFormsUI.Forms
             panelInfoLogs = new Panel();
             lblInfoLogsTitle = new Label();
             lblInfoLogsCount = new Label();
-            colLogID = new DataGridViewTextBoxColumn();
-            colMessage = new DataGridViewTextBoxColumn();
-            colException = new DataGridViewTextBoxColumn();
-            logdatetime = new DataGridViewTextBoxColumn();
             tableLayoutPanelTop.SuspendLayout();
             panelAll.SuspendLayout();
             panelPending.SuspendLayout();
@@ -466,7 +462,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             InvoicesDataGridView.AllowUserToAddRows = false;
             InvoicesDataGridView.AllowUserToDeleteRows = false;
-            InvoicesDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            // InvoicesDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             InvoicesDataGridView.BackgroundColor = Color.White;
             InvoicesDataGridView.BorderStyle = BorderStyle.None;
             InvoicesDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
@@ -755,30 +751,6 @@ namespace POSPRA_WinFormsUI.Forms
             lblInfoLogsCount.Text = "0";
             lblInfoLogsCount.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // colLogID
-            // 
-            colLogID.MinimumWidth = 6;
-            colLogID.Name = "colLogID";
-            colLogID.Width = 125;
-            // 
-            // colMessage
-            // 
-            colMessage.MinimumWidth = 6;
-            colMessage.Name = "colMessage";
-            colMessage.Width = 125;
-            // 
-            // colException
-            // 
-            colException.MinimumWidth = 6;
-            colException.Name = "colException";
-            colException.Width = 125;
-            // 
-            // logdatetime
-            // 
-            logdatetime.MinimumWidth = 6;
-            logdatetime.Name = "logdatetime";
-            logdatetime.Width = 125;
-            // 
             // DashboardForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -825,16 +797,6 @@ namespace POSPRA_WinFormsUI.Forms
         private Button btnFilterSynced;
         private ProgressBar progressBar;
         private Button btnExportLogs;
-        private DataGridViewTextBoxColumn colId;
-        private DataGridViewTextBoxColumn colPosId;
-        private DataGridViewTextBoxColumn colInvoiceNumber;
-        private DataGridViewTextBoxColumn colIsSynced;
-        private DataGridViewTextBoxColumn colAttemptCount;
-        private DataGridViewTextBoxColumn colDateCreated;
-        private DataGridViewTextBoxColumn colLogID;
-        private DataGridViewTextBoxColumn colMessage;
-        private DataGridViewTextBoxColumn colException;
-        private DataGridViewTextBoxColumn logdatetime;
         private Button btnFilter;
         private Panel panelTotalLogs;
         private Label lblTotalLogsTitle;
