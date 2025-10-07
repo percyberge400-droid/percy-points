@@ -1050,7 +1050,7 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ReadOnly = true;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.MultiSelect = false;
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             // Column header style
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
@@ -1090,7 +1090,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colId",
                 HeaderText = "Sr. No.",
-                Width = 80,
+                Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -1122,7 +1122,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colIsSynced",
                 HeaderText = "Invoice Synced",
-                Width = 150,
+                Width = 180,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
@@ -1131,16 +1131,24 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colAttemptCount",
                 HeaderText = "Attempt Count",
-                Width = 140,
+                Width = 180,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleCenter // centers cell text
+                }
             };
+
+            // centers header text
+            colAttemptCount.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
 
             var colDateCreated = new DataGridViewTextBoxColumn
             {
                 Name = "colDateCreated",
                 HeaderText = "Date Created",
-                Width = 180,
+                Width = 220,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
@@ -1166,7 +1174,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colLogID",
                 HeaderText = "Sr. No.",
-                Width = 80,
+                Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -1192,13 +1200,15 @@ namespace POSPRA_WinFormsUI.Forms
                 Width = 150,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
+
             };
+            colException.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colDateTime = new DataGridViewTextBoxColumn
             {
                 Name = "logdatetime",
                 HeaderText = "Date/Time",
-                Width = 180,
+                Width = 220,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
