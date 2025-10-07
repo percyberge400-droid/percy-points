@@ -1,19 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Linq;
 using POSPRA.Infrastructure.Context;
 using POSPRA.SecurityEncryption;
-using System;
 using System.Configuration;
-using System.IO;
-using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
 using System.Xml;
 
 namespace POSPRA.SetupUI
@@ -40,6 +34,10 @@ namespace POSPRA.SetupUI
         private readonly string _jsonMainPath;   //API json path
         private readonly string _winformsConfigPath; // WinFormsUI config path
         private string _setupConfigPath;
+
+        private int _isLoadingFlag = 0;
+        private bool _isLoading = false;
+
         public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath)
         {
             InitializeComponent();
@@ -56,7 +54,55 @@ namespace POSPRA.SetupUI
             txtPassword.TextChanged += ValidateForm;
 
             this.AcceptButton = btnOk;
+
+            // Hide progress bar initially
+            if (progressBar != null) progressBar.Visible = false;
+
+            string logoKey = ConfigurationManager.AppSettings["LOGO"];
+            if (!string.IsNullOrEmpty(logoKey))
+            {
+                var res = Resource.ResourceManager.GetObject(logoKey);
+                if (res is Image img)
+                {
+                    LOGO_img.Image = img;
+                    LOGO_img.SizeMode = PictureBoxSizeMode.Zoom;
+                    LOGO_img.AutoSize = true;
+                }
+            }
         }
+
+        #region Progress Bar
+
+        private async Task RunSingleLoad(Func<Task> work)
+        {
+            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
+
+            try
+            {
+                if (progressBar != null)
+                {
+                    progressBar.Style = ProgressBarStyle.Marquee;
+                    progressBar.MarqueeAnimationSpeed = 30;
+                    progressBar.Visible = true;
+                    progressBar.BringToFront();
+                    progressBar.Update();
+                }
+
+                await work();
+            }
+            finally
+            {
+                if (progressBar != null)
+                {
+                    progressBar.Visible = false;
+                    progressBar.Style = ProgressBarStyle.Continuous;
+                }
+
+                Interlocked.Exchange(ref _isLoadingFlag, 0);
+            }
+        }
+
+        #endregion
 
         protected override void OnShown(EventArgs e)
         {
@@ -137,12 +183,23 @@ namespace POSPRA.SetupUI
         private void ValidateForm(object sender, EventArgs e)
         {
             //bool validUsername = System.Text.RegularExpressions.Regex.IsMatch(txtUsername.Text, @"^\d{6}$");
-           // bool validPassword = System.Text.RegularExpressions.Regex.IsMatch(txtPassword.Text, @"^[a-zA-Z0-9]{8}$");
-          //  btnOk.Enabled = validUsername;
+            // bool validPassword = System.Text.RegularExpressions.Regex.IsMatch(txtPassword.Text, @"^[a-zA-Z0-9]{8}$");
+            //  btnOk.Enabled = validUsername;
         }
 
         private async void btnOk_Click(object sender, EventArgs e)
         {
+            if (_isLoading)
+            {
+                MessageBox.Show("Configuration is already in progress. Please wait...",
+                    "Please Wait", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Disable button immediately
+            btnOk.Enabled = false;
+            btnOk.Text = "Processing...";
+
             try
             {
                 string username = txtUsername.Text.Trim();
@@ -163,134 +220,145 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                // ✅ Auto-create folder if missing
-                string folderPath = Path.GetDirectoryName(dbPath);
-                if (!Directory.Exists(folderPath))
+                await RunSingleLoad(async () =>
                 {
-                    Directory.CreateDirectory(folderPath);
-                }
-
-                // ✅ Get MAC address
-                string macAddress = ConfigurationManager.AppSettings["mac"] ?? GetMacAddress();
-
-                // ✅ Prepare authentication payload
-                var payload = new
-                {
-                    posId = int.Parse(username),
-                    macAddress = macAddress,
-                    token = password
-                };
-
-                // ✅ Get API URL from App.config
-                string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
-                if (string.IsNullOrWhiteSpace(apiUrl))
-                {
-                    MessageBox.Show("API URL is missing in App.config.", "Configuration Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Add("accept", "text/plain");
-
-                    var jsonContent = new StringContent(
-                        JsonConvert.SerializeObject(payload),
-                        Encoding.UTF8,
-                        "application/json"
-                    );
-
-                    // ✅ Call API
-                    var response = await client.PostAsync(apiUrl, jsonContent);
-                    string responseBody = await response.Content.ReadAsStringAsync();
-
-                    if (!response.IsSuccessStatusCode)
+                    try
                     {
-                        throw new Exception("Authentication failed: Invalid credentials or MAC address.");
+                        _isLoading = true;
+
+                        // ✅ Auto-create folder if missing
+                        string folderPath = Path.GetDirectoryName(dbPath);
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        // ✅ Get MAC address
+                        string macAddress = ConfigurationManager.AppSettings["mac"] ?? GetMacAddress();
+
+                        // ✅ Prepare authentication payload
+                        var payload = new
+                        {
+                            posId = int.Parse(username),
+                            macAddress = macAddress,
+                            token = password
+                        };
+
+                        // ✅ Get API URL from App.config
+                        string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
+                        if (string.IsNullOrWhiteSpace(apiUrl))
+                        {
+                            MessageBox.Show("API URL is missing in App.config.", "Configuration Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        using (var client = new HttpClient())
+                        {
+                            client.DefaultRequestHeaders.Accept.Clear();
+                            client.DefaultRequestHeaders.Add("accept", "text/plain");
+
+                            var jsonContent = new StringContent(
+                                JsonConvert.SerializeObject(payload),
+                                Encoding.UTF8,
+                                "application/json"
+                            );
+
+                            // ✅ Call API
+                            var response = await client.PostAsync(apiUrl, jsonContent);
+                            string responseBody = await response.Content.ReadAsStringAsync();
+
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                throw new Exception("Authentication failed: Invalid credentials or MAC address.");
+                            }
+
+                            // ✅ Parse JSON response
+                            var json = JObject.Parse(responseBody);
+                            string statusCode = json["statusCode"]?.ToString();
+                            bool data = json["data"]?.ToObject<bool>() ?? false;
+                            string message = json["message"]?.ToString();
+
+                            if (statusCode != "200" || !data)
+                            {
+                                throw new Exception("Authentication failed: " + (message ?? "Unknown error"));
+                            }
+
+                            // ✅ Success message
+                            MessageBox.Show("Authentication successful: " + message, "Success",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+
+                        // ✅ Save only Username, Password, and MacAddress to XML (skip DB path)
+                        var doc = new XmlDocument();
+                        doc.Load(_xmlConfigPath);
+
+                        // 🔹 Step 4: Initialize SQLite database
+                        var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
+                            .UseSqlite($"Data Source={dbPath}")
+                            .Options;
+
+                        using (var context = new SqliteDbContext(sqliteOptions))
+                        {
+                            context.Database.EnsureCreated();
+                        }
+
+                        // 🔹 Step 5: Build DI container (if needed later)
+                        var services = new ServiceCollection();
+                        services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
+
+                        UpdateOrCreateNode(doc, "Username", AesEncryptionHelper.Encrypt(username));
+                        UpdateOrCreateNode(doc, "Password", AesEncryptionHelper.Encrypt(password));
+                        UpdateOrCreateNode(doc, "MacAddress", macAddress);
+
+                        doc.Save(_xmlConfigPath);
+
+                        // ✅ Save DB path only in JSON files
+                        SaveDbPathToJson(_jsonWorkerPath, dbPath);  // appsettings.worker.json
+                        SaveDbPathToJson(_jsonMainPath, dbPath);    // appsettings.json
+
+                        // ✅ Save DB path in POSPRA-WinFormsUI.dll.config
+                        SaveDbPathToWinFormsConfig(dbPath);
+
+                        // ✅ Save DB path also in POSPRA.SetupUI.dll.config
+                        try
+                        {
+                            var docSetup = new XmlDocument();
+                            docSetup.Load(_setupConfigPath);
+                            UpdateOrCreateNode(docSetup, "DefaultDBFilePath", dbPath);
+                            docSetup.Save(_setupConfigPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Failed to update SetupUI config: " + ex.Message,
+                                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+
+                        MessageBox.Show("Configuration saved successfully.", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        Environment.Exit(0);
                     }
-
-                    // ✅ Parse JSON response
-                    var json = JObject.Parse(responseBody);
-                    string statusCode = json["statusCode"]?.ToString();
-                    bool data = json["data"]?.ToObject<bool>() ?? false;
-                    string message = json["message"]?.ToString();
-
-                    if (statusCode != "200" || !data)
+                    catch (Exception ex)
                     {
-                        throw new Exception("Authentication failed: " + (message ?? "Unknown error"));
+                        // ✅ Show error to user but do NOT terminate installer
+                        MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                        // Do NOT call Environment.Exit(1);
+                        // Installer will continue to allow retry or close.
                     }
-
-                    // ✅ Success message
-                    MessageBox.Show("Authentication successful: " + message, "Success",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-
-                // ✅ Save only Username, Password, and MacAddress to XML (skip DB path)
-                var doc = new XmlDocument();
-                doc.Load(_xmlConfigPath);
-
-
-                // 🔹 Step 4: Initialize SQLite database
-                var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
-                    .UseSqlite($"Data Source={dbPath}")
-                    .Options;
-
-                using (var context = new SqliteDbContext(sqliteOptions))
-                {
-                    context.Database.EnsureCreated();
-                }
-
-                // 🔹 Step 5: Build DI container (if needed later)
-                var services = new ServiceCollection();
-                services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
-
-
-                UpdateOrCreateNode(doc, "Username", AesEncryptionHelper.Encrypt(username));
-                UpdateOrCreateNode(doc, "Password", AesEncryptionHelper.Encrypt(password));
-                UpdateOrCreateNode(doc, "MacAddress", macAddress);
-
-                doc.Save(_xmlConfigPath);
-
-                // ✅ Save DB path only in JSON files
-                SaveDbPathToJson(_jsonWorkerPath, dbPath);  // appsettings.worker.json
-                SaveDbPathToJson(_jsonMainPath, dbPath);    // appsettings.json
-
-                // ✅ Save DB path in POSPRA-WinFormsUI.dll.config
-                SaveDbPathToWinFormsConfig(dbPath);
-
-                // ✅ Save DB path also in POSPRA.SetupUI.dll.config
-                try
-                {
-                    var docSetup = new XmlDocument();
-                    docSetup.Load(_setupConfigPath);
-                    UpdateOrCreateNode(docSetup, "DefaultDBFilePath", dbPath);
-                    docSetup.Save(_setupConfigPath);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Failed to update SetupUI config: " + ex.Message,
-                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                MessageBox.Show("Configuration saved successfully.", "Success",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                Environment.Exit(0);
+                    finally
+                    {
+                        _isLoading = false;
+                    }
+                });
             }
-            catch (Exception ex)
+            finally
             {
-                // ✅ Show error to user but do NOT terminate installer
-                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                // Do NOT call Environment.Exit(1);
-                // Installer will continue to allow retry or close.
+                btnOk.Enabled = true;
+                btnOk.Text = "OK";
             }
         }
-
-
-
-
 
         private void UpdateOrCreateNode(XmlDocument doc, string key, string value)
         {
@@ -314,6 +382,7 @@ namespace POSPRA.SetupUI
                 node.Attributes["value"].Value = value;
             }
         }
+
         // ✅ JSON updater
         private void SaveDbPathToJson(string jsonFilePath, string dbPath)
         {
@@ -346,6 +415,7 @@ namespace POSPRA.SetupUI
                     "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
         // ✅ Save DB path to WinFormsUI config (POSPRA-WinFormsUI.dll.config)
         private void SaveDbPathToWinFormsConfig(string dbPath)
         {
@@ -383,7 +453,6 @@ namespace POSPRA.SetupUI
             }
         }
 
-
         // ✅ Get MAC address of first active network adapter
         private string GetMacAddress()
         {
@@ -414,12 +483,6 @@ namespace POSPRA.SetupUI
                 // Return MSI error code for cancel
                 Environment.Exit(1602);
             }
-        }
-
-
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            this.Close();
         }
 
         private void btnBrowse_Click_1(object sender, EventArgs e)
