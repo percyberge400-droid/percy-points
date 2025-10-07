@@ -467,6 +467,7 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             InvoicesDataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             InvoicesDataGridView.ColumnHeadersHeight = 50;
+            InvoicesDataGridView.RowTemplate.Height = 40;
             InvoicesDataGridView.Dock = DockStyle.Fill;
             InvoicesDataGridView.EnableHeadersVisualStyles = false;
             InvoicesDataGridView.GridColor = Color.FromArgb(240, 240, 240);
@@ -476,7 +477,6 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.ReadOnly = true;
             InvoicesDataGridView.RowHeadersVisible = false;
             InvoicesDataGridView.RowHeadersWidth = 51;
-            InvoicesDataGridView.RowTemplate.Height = 40;
             InvoicesDataGridView.Size = new Size(1390, 290);
             InvoicesDataGridView.TabIndex = 0;
             // 
@@ -532,6 +532,8 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.Dock = DockStyle.Fill;
             LogsDataGridView.Location = new Point(8, 55);
             LogsDataGridView.Margin = new Padding(3, 4, 3, 4);
+            LogsDataGridView.ColumnHeadersHeight = 50;
+            LogsDataGridView.RowTemplate.Height = 40;
             LogsDataGridView.Name = "LogsDataGridView";
             LogsDataGridView.ReadOnly = true;
             LogsDataGridView.RowHeadersVisible = false;
