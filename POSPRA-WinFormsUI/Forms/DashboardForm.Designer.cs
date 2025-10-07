@@ -164,8 +164,8 @@ namespace POSPRA_WinFormsUI.Forms
             // panelAll
             // 
             panelAll.BackColor = Color.White;
-            panelAll.Controls.Add(labelAllInvoices);
             panelAll.Controls.Add(lblAllTitle);
+            panelAll.Controls.Add(labelAllInvoices);
             panelAll.Dock = DockStyle.Fill;
             panelAll.Location = new Point(18, 19);
             panelAll.Margin = new Padding(8);
@@ -202,8 +202,8 @@ namespace POSPRA_WinFormsUI.Forms
             // panelPending
             // 
             panelPending.BackColor = Color.White;
-            panelPending.Controls.Add(labelPendingInvoice);
             panelPending.Controls.Add(lblPendingTitle);
+            panelPending.Controls.Add(labelPendingInvoice);
             panelPending.Dock = DockStyle.Fill;
             panelPending.Location = new Point(604, 19);
             panelPending.Margin = new Padding(8);
@@ -240,8 +240,8 @@ namespace POSPRA_WinFormsUI.Forms
             // panelPaid
             // 
             panelPaid.BackColor = Color.White;
-            panelPaid.Controls.Add(labelPaidInvoices);
             panelPaid.Controls.Add(lblPaidTitle);
+            panelPaid.Controls.Add(labelPaidInvoices);
             panelPaid.Dock = DockStyle.Fill;
             panelPaid.Location = new Point(1190, 19);
             panelPaid.Margin = new Padding(8);
@@ -327,9 +327,9 @@ namespace POSPRA_WinFormsUI.Forms
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Arial", 12F);
             btnExportInvoice.ForeColor = Color.White;
-            btnExportInvoice.Location = new Point(469, 8);
+            btnExportInvoice.Location = new Point(471, 8);
             btnExportInvoice.Name = "btnExportInvoice";
-            btnExportInvoice.Size = new Size(184, 37);
+            btnExportInvoice.Size = new Size(182, 37);
             btnExportInvoice.TabIndex = 10;
             btnExportInvoice.Text = "📄 Export Invoices";
             btnExportInvoice.UseVisualStyleBackColor = false;
@@ -466,7 +466,7 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.BorderStyle = BorderStyle.None;
             InvoicesDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             InvoicesDataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            InvoicesDataGridView.ColumnHeadersHeight = 40;
+            InvoicesDataGridView.ColumnHeadersHeight = 50;
             InvoicesDataGridView.Dock = DockStyle.Fill;
             InvoicesDataGridView.EnableHeadersVisualStyles = false;
             InvoicesDataGridView.GridColor = Color.FromArgb(240, 240, 240);
@@ -476,7 +476,7 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.ReadOnly = true;
             InvoicesDataGridView.RowHeadersVisible = false;
             InvoicesDataGridView.RowHeadersWidth = 51;
-            InvoicesDataGridView.RowTemplate.Height = 35;
+            InvoicesDataGridView.RowTemplate.Height = 40;
             InvoicesDataGridView.Size = new Size(1390, 290);
             InvoicesDataGridView.TabIndex = 0;
             // 

@@ -1074,7 +1074,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             // Adjust row height so text fits nicely
             //dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
-            dgv.RowTemplate.Height = 35;
+            dgv.RowTemplate.Height = 40;
         }
 
 

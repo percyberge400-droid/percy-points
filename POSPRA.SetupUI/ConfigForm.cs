@@ -4,13 +4,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using POSPRA.Infrastructure.Context;
 using POSPRA.SecurityEncryption;
-using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
-
 
 namespace POSPRA.SetupUI
 {
@@ -144,7 +142,8 @@ namespace POSPRA.SetupUI
             }
             catch (Exception ex)
             {
-                AlertManager.ShowError($"Error reading config: {ex.Message}");
+                //WindowsLocalAppNotification.Show($"Error reading config: {ex.Message}");
+                MessageBox.Show($"Error reading config: {ex.Message}");
             }
         }
 
@@ -193,7 +192,8 @@ namespace POSPRA.SetupUI
         {
             if (_isLoading)
             {
-                AlertManager.ShowInfo("Configuration is already in progress. Please wait...");
+                MessageBox.Show("Configuration is already in progress. Please wait...",
+                    "Please Wait", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -209,13 +209,15 @@ namespace POSPRA.SetupUI
 
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
-                    AlertManager.ShowWarning("Please enter both POID and Access Code.");
+                    MessageBox.Show("Please enter both POID and Access Code.", "Validation Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(dbPath))
                 {
-                    AlertManager.ShowWarning("Please select a database file path.");
+                    MessageBox.Show("Please select a database file path.", "Validation Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -247,7 +249,9 @@ namespace POSPRA.SetupUI
                         string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
                         if (string.IsNullOrWhiteSpace(apiUrl))
                         {
-                            AlertManager.ShowError("API URL is missing in App.config.");
+                            //MessageBox.ShowError("API URL is missing in App.config.");
+                            MessageBox.Show("API URL is missing in App.config.", "Configuration Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return;
                         }
 
@@ -283,7 +287,7 @@ namespace POSPRA.SetupUI
                             }
 
                             // ✅ Success message
-                            AlertManager.ShowSuccess($"Authentication successful:  + message");
+                            MessageBox.Show("API URL is missing in App.config.");
                         }
 
                         // ✅ Save only Username, Password, and MacAddress to XML (skip DB path)
@@ -327,17 +331,19 @@ namespace POSPRA.SetupUI
                         }
                         catch (Exception ex)
                         {
-                            AlertManager.ShowWarning($"Failed to update SetupUI config: {ex.Message}");
+                            MessageBox.Show("Failed to update SetupUI config: " + ex.Message,
+                                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
 
-                        AlertManager.ShowInfo("Saved successfully.");
+                        MessageBox.Show("Configuration saved successfully.", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                         Environment.Exit(0);
                     }
                     catch (Exception ex)
                     {
                         // ✅ Show error to user but do NOT terminate installer
-                        AlertManager.ShowError($"Error: {ex.Message}");
+                        MessageBox.Show($"Error: {ex.Message}");
 
                         // Do NOT call Environment.Exit(1);
                         // Installer will continue to allow retry or close.
@@ -406,7 +412,8 @@ namespace POSPRA.SetupUI
             }
             catch (Exception ex)
             {
-                AlertManager.ShowWarning($"Failed to update {Path.GetFileName(jsonFilePath)}: {ex.Message}");
+                MessageBox.Show($"Failed to update {Path.GetFileName(jsonFilePath)}: " + ex.Message,
+                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -442,7 +449,8 @@ namespace POSPRA.SetupUI
             }
             catch (Exception ex)
             {
-                AlertManager.ShowWarning($"Failed to update WinForms config: {ex.Message}");
+                MessageBox.Show($"Failed to update WinForms config: {ex.Message}", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
