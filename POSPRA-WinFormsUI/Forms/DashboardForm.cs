@@ -1073,7 +1073,8 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
 
             // Adjust row height so text fits nicely
-            dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
+            //dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
+            dgv.RowTemplate.Height = 15;
         }
 
 

@@ -144,7 +144,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             label2.ForeColor = Color.White;
-            label2.Location = new Point(45, 334);
+            label2.Location = new Point(45, 338);
             label2.Name = "label2";
             label2.Size = new Size(107, 23);
             label2.TabIndex = 0;
@@ -178,22 +178,22 @@
             // 
             // txtPassword
             // 
-            txtPassword.Font = new Font("Microsoft Sans Serif", 9F);
-            txtPassword.Location = new Point(45, 360);
+            txtPassword.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtPassword.Location = new Point(45, 364);
             txtPassword.Name = "txtPassword";
             txtPassword.PlaceholderText = "********";
-            txtPassword.Size = new Size(308, 24);
+            txtPassword.Size = new Size(309, 27);
             txtPassword.TabIndex = 1;
             txtPassword.UseSystemPasswordChar = true;
             // 
             // txtUsername
             // 
             txtUsername.BackColor = SystemColors.Window;
-            txtUsername.Font = new Font("Microsoft Sans Serif", 9F);
+            txtUsername.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtUsername.Location = new Point(45, 287);
             txtUsername.Name = "txtUsername";
             txtUsername.PlaceholderText = "123456";
-            txtUsername.Size = new Size(308, 24);
+            txtUsername.Size = new Size(309, 27);
             txtUsername.TabIndex = 0;
             // 
             // lblLoginPortal

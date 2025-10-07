@@ -30,8 +30,8 @@ namespace POSPRA_WinFormsUI.Forms
             btnLogin.TabStop = true;
 
             // Create rounded transparent username box
-            MakeStyledTextBox(txtUsername);
-            MakeStyledTextBox(txtPassword);
+            //MakeStyledTextBox(txtUsername);
+            //MakeStyledTextBox(txtPassword);
 
             // ✅ Load logo dynamically from App.config
             string logoKey = ConfigurationManager.AppSettings["LOGO"];

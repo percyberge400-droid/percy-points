@@ -164,8 +164,8 @@ namespace POSPRA_WinFormsUI.Forms
             // panelAll
             // 
             panelAll.BackColor = Color.White;
-            panelAll.Controls.Add(lblAllTitle);
             panelAll.Controls.Add(labelAllInvoices);
+            panelAll.Controls.Add(lblAllTitle);
             panelAll.Dock = DockStyle.Fill;
             panelAll.Location = new Point(18, 19);
             panelAll.Margin = new Padding(8);
@@ -180,9 +180,9 @@ namespace POSPRA_WinFormsUI.Forms
             lblAllTitle.Dock = DockStyle.Bottom;
             lblAllTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
             lblAllTitle.ForeColor = Color.Black;
-            lblAllTitle.Location = new Point(11, 60);
+            lblAllTitle.Location = new Point(11, 66);
             lblAllTitle.Name = "lblAllTitle";
-            lblAllTitle.Size = new Size(548, 45);
+            lblAllTitle.Size = new Size(548, 39);
             lblAllTitle.TabIndex = 1;
             lblAllTitle.Text = "All Invoices";
             // 
@@ -202,8 +202,8 @@ namespace POSPRA_WinFormsUI.Forms
             // panelPending
             // 
             panelPending.BackColor = Color.White;
-            panelPending.Controls.Add(lblPendingTitle);
             panelPending.Controls.Add(labelPendingInvoice);
+            panelPending.Controls.Add(lblPendingTitle);
             panelPending.Dock = DockStyle.Fill;
             panelPending.Location = new Point(604, 19);
             panelPending.Margin = new Padding(8);
@@ -218,9 +218,9 @@ namespace POSPRA_WinFormsUI.Forms
             lblPendingTitle.Dock = DockStyle.Bottom;
             lblPendingTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblPendingTitle.ForeColor = Color.Black;
-            lblPendingTitle.Location = new Point(11, 60);
+            lblPendingTitle.Location = new Point(11, 66);
             lblPendingTitle.Name = "lblPendingTitle";
-            lblPendingTitle.Size = new Size(548, 45);
+            lblPendingTitle.Size = new Size(548, 39);
             lblPendingTitle.TabIndex = 1;
             lblPendingTitle.Text = "Not Synced";
             // 
@@ -240,8 +240,8 @@ namespace POSPRA_WinFormsUI.Forms
             // panelPaid
             // 
             panelPaid.BackColor = Color.White;
-            panelPaid.Controls.Add(lblPaidTitle);
             panelPaid.Controls.Add(labelPaidInvoices);
+            panelPaid.Controls.Add(lblPaidTitle);
             panelPaid.Dock = DockStyle.Fill;
             panelPaid.Location = new Point(1190, 19);
             panelPaid.Margin = new Padding(8);
@@ -256,9 +256,9 @@ namespace POSPRA_WinFormsUI.Forms
             lblPaidTitle.Dock = DockStyle.Bottom;
             lblPaidTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
             lblPaidTitle.ForeColor = Color.Black;
-            lblPaidTitle.Location = new Point(11, 60);
+            lblPaidTitle.Location = new Point(11, 66);
             lblPaidTitle.Name = "lblPaidTitle";
-            lblPaidTitle.Size = new Size(551, 45);
+            lblPaidTitle.Size = new Size(551, 39);
             lblPaidTitle.TabIndex = 1;
             lblPaidTitle.Text = "Synced Invoices";
             // 
@@ -462,7 +462,6 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             InvoicesDataGridView.AllowUserToAddRows = false;
             InvoicesDataGridView.AllowUserToDeleteRows = false;
-            // InvoicesDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             InvoicesDataGridView.BackgroundColor = Color.White;
             InvoicesDataGridView.BorderStyle = BorderStyle.None;
             InvoicesDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
