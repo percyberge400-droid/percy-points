@@ -51,7 +51,7 @@ namespace POSPRA_WinFormsUI
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                Directory.CreateDirectory(dbDirectory);
+                //Directory.CreateDirectory(dbDirectory);
             }
 
             // ✅ Initialize SQLite database if needed
@@ -61,7 +61,7 @@ namespace POSPRA_WinFormsUI
 
             using (var context = new SqliteDbContext(sqliteOptions))
             {
-                context.Database.EnsureCreated();
+               // context.Database.EnsureCreated();
             }
 
             // ✅ Load JSON config (for any additional modern config)

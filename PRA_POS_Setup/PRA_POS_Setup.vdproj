@@ -317,7 +317,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:PRA POS"
         "ProductCode" = "8:{B48B0DCE-13D5-4CAA-999B-D9D43C92CE2F}"
-        "PackageCode" = "8:{D0B06BAF-EAB7-478F-8613-72C7EC80100B}"
+        "PackageCode" = "8:{49D8E340-949A-4F7E-B81D-12A38C9CD86B}"
         "UpgradeCode" = "8:{0C703B48-1D74-48B8-963D-891E43A7839D}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -448,7 +448,7 @@
             "Target" = "8:_61B25C24B33C4E8285B2B51887C23A93"
             "Folder" = "8:_382BC76B96D6493EBC7EA154229B4C6B"
             "WorkingFolder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Icon" = "8:"
+            "Icon" = "8:_A4429776046444D28BA7C919EF36DC5E"
             "Feature" = "8:"
             }
         }
