@@ -31,6 +31,8 @@ namespace POSPRA_WinFormsUI.Forms
         private int _errorLogsCount = 0;
         private int _warningLogsCount = 0;
         private int _infoLogsCount = 0;
+        private Rectangle _printLinkBounds = Rectangle.Empty;
+        private DataGridViewCell _hoveredCell = null;
 
         public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService)
         {
@@ -339,6 +341,7 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         // Optimized Load Invoices
         // ----------------------------------------
+
         private async Task LoadAndShowInvoicesAsync(bool skipDateFilter = false)
         {
             try
@@ -391,12 +394,12 @@ namespace POSPRA_WinFormsUI.Forms
                     var row = new DataGridViewRow();
                     row.CreateCells(InvoicesDataGridView);
 
-                    // safer column assignment
+                    // Set cell values
                     SetCellValue(row, "colId", i + 1);
                     SetCellValue(row, "colPosId", inv.POSID);
                     SetCellValue(row, "colInvoiceNumber", inv.InvoiceNumber ?? "N/A");
                     SetCellValue(row, "colIsSynced", inv.IsSynced == 1 ? "Yes" : "No");
-                    SetCellValue(row, "colAttemptCount", inv.AttemptCount);
+                    SetCellValue(row, "colPrint", "Print"); // Set Print text
                     SetCellValue(row, "colDateCreated", inv.DateCreated.ToString("dd-MM-yyyy HH:mm:ss"));
 
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
@@ -422,8 +425,6 @@ namespace POSPRA_WinFormsUI.Forms
                 _pendingCount = pendingCount;
                 _syncedCount = syncedCount;
                 DrawInvoicePieChart(panelinvoicechart, _syncedCount, _pendingCount);
-
-
 
                 if (progressBar != null)
                 {
@@ -1048,7 +1049,6 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.AllowUserToDeleteRows = false;
             dgv.AllowUserToResizeRows = false;
             dgv.ReadOnly = true;
-            dgv.RowTemplate.Height = 40;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.MultiSelect = false;
             //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -1075,7 +1075,6 @@ namespace POSPRA_WinFormsUI.Forms
 
             // Adjust row height so text fits nicely
             //dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
-            dgv.RowTemplate.Height = 40;
         }
 
 
@@ -1128,23 +1127,19 @@ namespace POSPRA_WinFormsUI.Forms
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colIsSynced.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colIsSynced.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            var colAttemptCount = new DataGridViewTextBoxColumn
+            var colPrint = new DataGridViewTextBoxColumn
             {
-                Name = "colAttemptCount",
-                HeaderText = "Attempt Count",
+                Name = "colPrint",
+                HeaderText = "     Print",
                 Width = 180,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter // centers cell text
-                }
             };
-
-            // centers header text
-            colAttemptCount.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
+            colPrint.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colPrint.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colDateCreated = new DataGridViewTextBoxColumn
             {
@@ -1154,13 +1149,87 @@ namespace POSPRA_WinFormsUI.Forms
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colDateCreated.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colDateCreated.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
-        colId, colPosId, colInvoiceNumber, colIsSynced, colAttemptCount, colDateCreated
+                colId, colPosId, colInvoiceNumber, colIsSynced, colPrint, colDateCreated
             });
-            // Attach custom cell painting for badges in Type column
+
+            // Attach custom cell painting for badges
             InvoicesDataGridView.CellPainting += InvoicesDataGridView_CellPainting;
+
+            // NEW: Add mouse events for hyperlink hover and click
+            InvoicesDataGridView.CellMouseEnter += InvoicesDataGridView_CellMouseEnter;
+            InvoicesDataGridView.CellMouseLeave += InvoicesDataGridView_CellMouseLeave;
+            InvoicesDataGridView.CellClick += InvoicesDataGridView_CellClick;
+            InvoicesDataGridView.CellMouseMove += InvoicesDataGridView_CellMouseMove;
+        }
+
+        // NEW: Add these event handlers after StyleInvoicesDataGridView method
+
+        private void InvoicesDataGridView_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                _hoveredCell = InvoicesDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                InvoicesDataGridView.InvalidateCell(_hoveredCell);
+            }
+        }
+
+        private void InvoicesDataGridView_CellMouseLeave(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_hoveredCell != null)
+            {
+                var cell = _hoveredCell;
+                _hoveredCell = null;
+                InvoicesDataGridView.InvalidateCell(cell);
+            }
+        }
+
+        private void InvoicesDataGridView_CellMouseMove(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                // Check if mouse is within the text bounds
+                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                var mousePoint = new Point(e.X + cellBounds.X, e.Y + cellBounds.Y);
+
+                if (_printLinkBounds.Contains(mousePoint))
+                {
+                    InvoicesDataGridView.Cursor = Cursors.Hand;
+                }
+                else
+                {
+                    InvoicesDataGridView.Cursor = Cursors.Default;
+                }
+            }
+            else
+            {
+                InvoicesDataGridView.Cursor = Cursors.Default;
+            }
+        }
+        private void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                // Get the actual mouse position
+                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
+
+                // Check if click is within the text bounds
+                if (_printLinkBounds.Contains(mousePos))
+                {
+                    var invoiceNumber = InvoicesDataGridView.Rows[e.RowIndex].Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
+                    MessageBox.Show(
+                        $"Print button clicked for Invoice: {invoiceNumber}",
+                        "Print Invoice",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+                }
+            }
         }
 
         private void StyleLogsDataGridView()
@@ -1225,6 +1294,7 @@ namespace POSPRA_WinFormsUI.Forms
         }
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
+            // Handle IsSynced column with icons
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colIsSynced"].Index)
             {
                 e.PaintBackground(e.CellBounds, true);
@@ -1239,10 +1309,8 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (icon != null)
                 {
-                    // Use 70% of cell height for icon size
                     int iconSize = (int)(e.CellBounds.Height * 0.7);
-                    // Ensure minimum and maximum sizes
-                    iconSize = Math.Max(24, Math.Min(iconSize, 32)); // Min 24px, Max 32px
+                    iconSize = Math.Max(24, Math.Min(iconSize, 32));
 
                     int x = e.CellBounds.X + (e.CellBounds.Width - iconSize) / 2;
                     int y = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
@@ -1251,8 +1319,53 @@ namespace POSPRA_WinFormsUI.Forms
                     e.Handled = true;
                 }
             }
-        }
 
+            // NEW: Handle Print hyperlink column
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                e.PaintBackground(e.CellBounds, true);
+
+                bool isHovered = _hoveredCell != null &&
+                                _hoveredCell.RowIndex == e.RowIndex &&
+                                _hoveredCell.ColumnIndex == e.ColumnIndex;
+
+                bool isSelected = InvoicesDataGridView.Rows[e.RowIndex].Selected;
+
+                // Hyperlink colors - white when selected, otherwise blue/green
+                Color linkColor;
+                if (isSelected)
+                {
+                    linkColor = Color.White;
+                }
+                else
+                {
+                    linkColor = isHovered ? Color.FromArgb(34, 197, 94) : Color.FromArgb(59, 130, 246);
+                }
+
+                FontStyle fontStyle = isHovered ? (FontStyle.Bold | FontStyle.Underline) : FontStyle.Bold;
+
+                string linkText = "Print";
+                using (var font = new Font("Segoe UI", 9.5F, fontStyle))
+                using (var brush = new SolidBrush(linkColor))
+                {
+                    var textSize = e.Graphics.MeasureString(linkText, font);
+                    float x = e.CellBounds.X + (e.CellBounds.Width - textSize.Width) / 2;
+                    float y = e.CellBounds.Y + (e.CellBounds.Height - textSize.Height) / 2;
+
+                    // Store the bounds of the text for hit testing
+                    _printLinkBounds = new Rectangle(
+                        (int)x,
+                        (int)y,
+                        (int)textSize.Width,
+                        (int)textSize.Height
+                    );
+
+                    e.Graphics.DrawString(linkText, font, brush, x, y);
+                }
+
+                e.Handled = true;
+            }
+        }
         /// <summary>
         /// Sets an image inside a button, scales it properly, and centers it.
         /// </summary>

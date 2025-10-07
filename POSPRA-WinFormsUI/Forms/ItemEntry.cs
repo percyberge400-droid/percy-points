@@ -441,6 +441,7 @@ namespace POSPRA_WinFormsUI
                 _ = CreateLog("Saving invoice", AlertType.Info);
                 var output = await _fiscalService.CreateAsync(invoiceDto);
 
+
                 if (output.StatusCode == ApiStatusCode.Success)
                 {
                     WindowsLocalAppNotification.Show("Success", output.Message);
