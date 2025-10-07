@@ -42,7 +42,6 @@
             ProductCatalogueDataGridView.AllowUserToDeleteRows = false;
             ProductCatalogueDataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             ProductCatalogueDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            ProductCatalogueDataGridView.Columns.AddRange(new DataGridViewColumn[] { colItemSrno, colProductCode, colProductDesc, colHScode, colSaleType, PosUOM, colTaxRate, colSROno });
             ProductCatalogueDataGridView.Location = new Point(0, 49);
             ProductCatalogueDataGridView.Margin = new Padding(3, 4, 3, 4);
             ProductCatalogueDataGridView.Name = "ProductCatalogueDataGridView";
@@ -54,67 +53,50 @@
             // 
             // colItemSrno
             // 
-            colItemSrno.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colItemSrno.HeaderText = "Sr. No.";
-            colItemSrno.MinimumWidth = 50;
+            colItemSrno.MinimumWidth = 6;
             colItemSrno.Name = "colItemSrno";
-            colItemSrno.ReadOnly = true;
-            colItemSrno.Width = 90;
+            colItemSrno.Width = 125;
             // 
             // colProductCode
             // 
-            colProductCode.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colProductCode.HeaderText = "Product Code";
             colProductCode.MinimumWidth = 6;
             colProductCode.Name = "colProductCode";
-            colProductCode.ReadOnly = true;
+            colProductCode.Width = 125;
             // 
             // colProductDesc
             // 
-            colProductDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colProductDesc.HeaderText = "Product Description";
             colProductDesc.MinimumWidth = 6;
             colProductDesc.Name = "colProductDesc";
-            colProductDesc.ReadOnly = true;
+            colProductDesc.Width = 125;
             // 
             // colHScode
             // 
-            colHScode.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colHScode.HeaderText = "HSCode";
             colHScode.MinimumWidth = 6;
             colHScode.Name = "colHScode";
-            colHScode.ReadOnly = true;
+            colHScode.Width = 125;
             // 
             // colSaleType
             // 
-            colSaleType.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colSaleType.HeaderText = "Sale Type";
             colSaleType.MinimumWidth = 6;
             colSaleType.Name = "colSaleType";
-            colSaleType.ReadOnly = true;
+            colSaleType.Width = 125;
             // 
             // PosUOM
             // 
-            PosUOM.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            PosUOM.HeaderText = "POS UOM";
             PosUOM.MinimumWidth = 6;
             PosUOM.Name = "PosUOM";
-            PosUOM.ReadOnly = true;
+            PosUOM.Width = 125;
             // 
             // colTaxRate
             // 
-            colTaxRate.HeaderText = "Tax Rate";
             colTaxRate.MinimumWidth = 6;
             colTaxRate.Name = "colTaxRate";
-            colTaxRate.ReadOnly = true;
             colTaxRate.Width = 125;
             // 
             // colSROno
             // 
-            colSROno.HeaderText = "SRO Schedule No.";
             colSROno.MinimumWidth = 6;
             colSROno.Name = "colSROno";
-            colSROno.ReadOnly = true;
             colSROno.Width = 125;
             // 
             // btnNext

@@ -267,19 +267,28 @@ namespace POSPRA_WinFormsUI.Forms
 
             foreach (var product in items)
             {
-                ProductCatalogueDataGridView.Rows.Add(
-                    product.ProductCode?.ToString() ?? "",
-                    product.ProductDescription ?? "",
-                    product.HSCode ?? "",
-                    product.SaleType ?? "",
-                    product.PosUnitOfMeasurement ?? "",
-                    product.TaxRate ?? "",
-                    product.SroScheduleNumber ?? "",
-                    product.ItemSerialNumber ?? ""
+                int rowIndex = ProductCatalogueDataGridView.Rows.Add();
+                var row = ProductCatalogueDataGridView.Rows[rowIndex];
 
-                );
+                void SetCell(string columnName, object? value)
+                {
+                    if (ProductCatalogueDataGridView.Columns.Contains(columnName))
+                        row.Cells[columnName].Value = value ?? "";
+                    else
+                        Console.WriteLine($"⚠ Missing column: {columnName}");
+                }
+
+                SetCell("colItemSrno", product.ItemSerialNumber);
+                SetCell("colProductCode", product.ProductCode);
+                SetCell("colProductDesc", product.ProductDescription);
+                SetCell("colHScode", product.HSCode);
+                SetCell("colSaleType", product.SaleType);
+                SetCell("colPosUOM", product.PosUnitOfMeasurement);
+                SetCell("colTaxRate", product.TaxRate);
+                SetCell("colSROno", product.SroScheduleNumber);
             }
         }
+
 
         private async Task NextPage()
         {
