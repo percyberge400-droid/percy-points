@@ -472,7 +472,7 @@ namespace POSPRA_WinFormsUI
             {
                 _isSaving = false;
                 btnSave.Enabled = true;
-                btnSave.Text = "Save";
+                btnSave.Text = "🖨️ Save and Print";
             }
         }
 
