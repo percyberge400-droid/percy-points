@@ -48,6 +48,8 @@ namespace POSPRA.SetupUI
             this.BringToFront();
             this.Activate();
 
+            this.Load += ConfigForm_Load;
+
             // Optional: Prevent user from sending it to back
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             _xmlConfigPath = xmlConfigPath;
@@ -156,21 +158,6 @@ namespace POSPRA.SetupUI
         }
 
         // ✅ Browse button for selecting DB file path
-        private void btnBrowse_Click(object sender, EventArgs e)
-        {
-            using (var dialog = new SaveFileDialog())
-            {
-                dialog.Title = "Select or create SQLite DB file";
-                dialog.Filter = "SQLite DB (*.db)|*.db|All files (*.*)|*.*";
-                dialog.FileName = "POSPRA.db";
-
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    txtFilePath.Text = dialog.FileName;
-                }
-            }
-        }
-
         private void txtUsername_KeyPress(object sender, KeyPressEventArgs e)
         {
             //if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))

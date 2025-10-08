@@ -109,11 +109,16 @@ namespace POSPRA.Application.Services.FiscalService
                     }
                 }
 
+                InvoiceDto invoice = new()
+                {
+                    FBRInvoiceNumber = fiscalResponse.Data.invoiceNumber
+                };
+
                 // ✅ 4. Return success if fiscal creation worked, but include validation info
                 return new ApiResponse<InvoiceDto>(
                     isValid ? ApiStatusCode.Success : ApiStatusCode.Error,
                     isValid ? ResponseMessages.RecordSaved : "Invoice saved but failed validation",
-                    null,
+                    invoice,
                     isValid ? string.Empty : string.Join(" | ", validation.ErrorMessages)
                 );
             }
@@ -141,7 +146,7 @@ namespace POSPRA.Application.Services.FiscalService
         /// A string containing the encrypted invoice package if successful;
         /// otherwise, an empty string.
         /// </returns>
-        public async Task<ApiResponse<(string EncryptedPackage, int InvoiceId)>> CreateFiscalInvoiceAsync(Invoice invoice)
+        public async Task<ApiResponse<(string EncryptedPackage, int InvoiceId, string invoiceNumber)>> CreateFiscalInvoiceAsync(Invoice invoice)
         {
             try
             {
@@ -179,20 +184,20 @@ namespace POSPRA.Application.Services.FiscalService
                 int invoiceId = await InsertInvoiceAsync(invoice.POSID, encryptedPackage, invoiceNumber);
 
                 // You can return encryptedPackage if needed for fiscal system
-                return new ApiResponse<(string, int)>(
+                return new ApiResponse<(string, int, string)>(
                 ApiStatusCode.Success,
                 ResponseMessages.RecordSaved,
-                (encryptedPackage, invoiceId),
+                (encryptedPackage, invoiceId, invoiceNumber),
                 string.Empty);
             }
             catch (Exception ex)
             {
                 string errorMessage = $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
                 await _logService.LogAsync(new Logs(errorMessage, AlertType.Exception, false));
-                return new ApiResponse<(string, int)>(
+                return new ApiResponse<(string, int, string)>(
                 ApiStatusCode.Error,
                 ResponseMessages.UnknownError,
-                (string.Empty, 0),
+                (string.Empty, 0, string.Empty),
                 string.Empty);
             }
         }

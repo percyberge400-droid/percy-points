@@ -1221,7 +1221,11 @@ namespace POSPRA_WinFormsUI.Forms
                 // Check if click is within the text bounds
                 if (_printLinkBounds.Contains(mousePos))
                 {
+
                     var invoiceNumber = InvoicesDataGridView.Rows[e.RowIndex].Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
+
+                    // call invoice print generator
+                    // invoiceNumber
                     MessageBox.Show(
                         $"Print button clicked for Invoice: {invoiceNumber}",
                         "Print Invoice",

@@ -440,8 +440,8 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
                 var output = await _fiscalService.CreateAsync(invoiceDto);
-
-
+                // call invoice print generator
+                // output.Data.FBRInvoiceNumber
                 if (output.StatusCode == ApiStatusCode.Success)
                 {
                     WindowsLocalAppNotification.Show("Success", output.Message);
