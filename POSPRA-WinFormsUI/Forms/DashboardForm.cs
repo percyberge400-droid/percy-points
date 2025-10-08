@@ -76,18 +76,18 @@ namespace POSPRA_WinFormsUI.Forms
             if (progressBar != null) progressBar.Visible = false;
             ApplyGradientBackground(
                 panelAll,
-                ColorTranslator.FromHtml("#48A787"),
-                ColorTranslator.FromHtml("#0D7351")
-            );
-            ApplyGradientBackground(
-                panelPending,
                 ColorTranslator.FromHtml("#8860C1"),
                 ColorTranslator.FromHtml("#584ABC")
             );
             ApplyGradientBackground(
+                panelPending,
+                ColorTranslator.FromHtml("#E53935"),
+                ColorTranslator.FromHtml("#EF5350")
+            );
+            ApplyGradientBackground(
                 panelPaid,
-                ColorTranslator.FromHtml("#4DBDED"),
-                ColorTranslator.FromHtml("#6694DA")
+                ColorTranslator.FromHtml("#43A047"),
+                ColorTranslator.FromHtml("#66BB6A")
             );
             AddImageToPanelRight(panelAll, Resources.InvoiceAll);
             AddImageToPanelRight(panelPending, Resources.NotSynced);
@@ -1490,8 +1490,8 @@ namespace POSPRA_WinFormsUI.Forms
             List<int> values = new List<int> { pendingCount, syncedCount };
             List<Color> colors = new List<Color>
             {
-                ColorTranslator.FromHtml("#4DBDED"), // Synced
-                ColorTranslator.FromHtml("#8860C1")  // Not Synced
+                ColorTranslator.FromHtml("#66BB6A"), // Synced
+                ColorTranslator.FromHtml("#EF5350")  // Not Synced
             };
             List<string> labels = new List<string> { "Synced", "Not Synced" };
 
