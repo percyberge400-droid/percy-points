@@ -3,6 +3,7 @@ using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
@@ -85,6 +86,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddSingleton<INetworkService, NetworkService>();
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
 
         services.AddHttpContextAccessor();
 

@@ -1,4 +1,5 @@
 ﻿using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
@@ -13,7 +14,7 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly IServiceProvider _provider;
         private readonly ILogService _logService;
         private readonly IFiscalService _fiscalService;
-
+        private readonly IInvoiceService _invoiceService;
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
 
@@ -34,7 +35,7 @@ namespace POSPRA_WinFormsUI.Forms
         private Rectangle _printLinkBounds = Rectangle.Empty;
         private DataGridViewCell _hoveredCell = null;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService)
+        public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService, IInvoiceService invoiceService)
         {
             InitializeComponent();
 
@@ -97,7 +98,7 @@ namespace POSPRA_WinFormsUI.Forms
             SetButtonImage(btnClearFilter, Resources.clearFilter, ColorTranslator.FromHtml("#DC2626"));
 
             InitializeLogStatistics();
-
+            _invoiceService = invoiceService;
         }
         private void InitializeLogStatistics()
         {
@@ -1226,6 +1227,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                     // call invoice print generator
                     // invoiceNumber
+                    var response = _invoiceService.GetInvoiceWithItems(invoiceNumber).Result;
                     MessageBox.Show(
                         $"Print button clicked for Invoice: {invoiceNumber}",
                         "Print Invoice",

@@ -5,6 +5,6 @@ namespace POSPRA.Application.Services.InvoiceService
 {
     public interface IInvoiceService
     {
-        Task<ApiResponse<List<POSVerificationDto>>> POS_VerificationAsync(string bodyPosIds);
+        Task<ApiResponse<InvoiceDto>> GetInvoiceWithItems(string invoiceNumber);
     }
 }
