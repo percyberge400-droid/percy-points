@@ -35,6 +35,12 @@ namespace POSPRA_WinFormsUI.Forms
         private Rectangle _printLinkBounds = Rectangle.Empty;
         private DataGridViewCell _hoveredCell = null;
 
+        private System.Windows.Forms.Timer _autoRefreshTimer;
+        private bool _autoRefreshEnabled = false;
+        private int _lastInvoiceCount = 0;
+        private int _lastLogCount = 0;
+        private DateTime _lastRefreshTime = DateTime.Now;
+
         public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService, IInvoiceService invoiceService)
         {
             InitializeComponent();
@@ -99,7 +105,154 @@ namespace POSPRA_WinFormsUI.Forms
 
             InitializeLogStatistics();
             _invoiceService = invoiceService;
+            InitializeAutoRefreshTimer();
         }
+
+        #region AutoRefresh
+        private void InitializeAutoRefreshTimer()
+        {
+            _autoRefreshTimer = new System.Windows.Forms.Timer();
+            _autoRefreshTimer.Interval = 30000; // 30 seconds
+            _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+
+            // Start auto-refresh by default
+            _autoRefreshEnabled = true;
+            _autoRefreshTimer.Start();
+        }
+
+        private async void AutoRefreshTimer_Tick(object sender, EventArgs e)
+        {
+            // Skip if already loading
+            if (_isLoadingFlag == 1) return;
+
+            // Skip if user is interacting with the grid
+            if (IsUserInteracting()) return;
+
+            try
+            {
+                // Check if data has changed
+                bool hasChanges = await QuickCheckForChangesAsync();
+
+                if (hasChanges)
+                {
+                    // Perform background refresh
+                    await BackgroundRefreshAsync();
+                    _lastRefreshTime = DateTime.Now;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silent fail for auto-refresh
+                Console.WriteLine($"Auto-refresh error: {ex.Message}");
+            }
+        }
+
+        private bool IsUserInteracting()
+        {
+            // Don't refresh if user is selecting, scrolling, or has a cell selected
+            if (InvoicesDataGridView.SelectedCells.Count > 0) return true;
+            if (LogsDataGridView.SelectedCells.Count > 0) return true;
+            if (InvoicesDataGridView.IsCurrentCellInEditMode) return true;
+            if (LogsDataGridView.IsCurrentCellInEditMode) return true;
+
+            return false;
+        }
+
+        private async Task<bool> QuickCheckForChangesAsync()
+        {
+            try
+            {
+                // Get counts only - lightweight operation
+                var invoiceResponse = await _fiscalService.GetAllAsync();
+                var logResponse = await _logService.GetAllAsync();
+
+                if (invoiceResponse?.Data == null || logResponse?.Data == null)
+                    return false;
+
+                // Apply same filters as main load
+                var filteredInvoices = invoiceResponse.Data
+                    .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
+
+                var filteredLogs = logResponse.Data
+                    .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+
+                int currentInvoiceCount = filteredInvoices.Count();
+                int currentLogCount = filteredLogs.Count();
+
+                // Check if counts changed
+                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
+                                 (currentLogCount != _lastLogCount);
+
+                if (hasChanges)
+                {
+                    _lastInvoiceCount = currentInvoiceCount;
+                    _lastLogCount = currentLogCount;
+                }
+
+                return hasChanges;
+            }
+            catch
+            {
+                return false; // Don't refresh on error
+            }
+        }
+
+        private async Task BackgroundRefreshAsync()
+        {
+            // Use existing RunSingleLoad to prevent conflicts
+            await RunSingleLoad(async () =>
+            {
+                // Store current scroll positions
+                int invoiceScroll = InvoicesDataGridView.FirstDisplayedScrollingRowIndex;
+                int logScroll = LogsDataGridView.FirstDisplayedScrollingRowIndex;
+
+                // Refresh data
+                await LoadAndShowInvoicesAsync();
+                await LoadAndShowLogsAsync();
+
+                // Restore scroll positions
+                try
+                {
+                    if (invoiceScroll >= 0 && invoiceScroll < InvoicesDataGridView.Rows.Count)
+                        InvoicesDataGridView.FirstDisplayedScrollingRowIndex = invoiceScroll;
+
+                    if (logScroll >= 0 && logScroll < LogsDataGridView.Rows.Count)
+                        LogsDataGridView.FirstDisplayedScrollingRowIndex = logScroll;
+                }
+                catch { /* Ignore scroll restore errors */ }
+            });
+        }
+
+        public void ToggleAutoRefresh()
+        {
+            _autoRefreshEnabled = !_autoRefreshEnabled;
+
+            if (_autoRefreshEnabled)
+            {
+                _autoRefreshTimer.Start();
+                WindowsLocalAppNotification.Show("Auto-Refresh", "Auto-refresh enabled (30 seconds)");
+            }
+            else
+            {
+                _autoRefreshTimer.Stop();
+                WindowsLocalAppNotification.Show("Auto-Refresh", "Auto-refresh disabled");
+            }
+        }
+
+        public void SetAutoRefreshInterval(int seconds)
+        {
+            if (seconds < 10) seconds = 10; // Minimum 10 seconds
+
+            _autoRefreshTimer.Stop();
+            _autoRefreshTimer.Interval = seconds * 1000;
+
+            if (_autoRefreshEnabled)
+            {
+                _autoRefreshTimer.Start();
+            }
+        }
+        #endregion
+
         private void InitializeLogStatistics()
         {
             // Set initial values
@@ -861,9 +1014,14 @@ namespace POSPRA_WinFormsUI.Forms
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
             ResetSortToDefault();
+
+            // Temporarily stop auto-refresh during manual refresh
+            bool wasAutoRefreshEnabled = _autoRefreshEnabled;
+            if (wasAutoRefreshEnabled)
+                _autoRefreshTimer.Stop();
+
             try
             {
-                // Show loading indicator
                 if (progressBar != null)
                 {
                     progressBar.Visible = true;
@@ -871,42 +1029,49 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.MarqueeAnimationSpeed = 30;
                 }
 
-                // Completely clear all grids first
                 ClearAllGrids();
-
-                // Small delay to ensure UI is cleared
                 await Task.Delay(200);
 
-                // Determine if we should skip date filter
                 bool skipDateFilter = false;
-                // Reset synced filter
                 _filterSyncedOnly = false;
 
-                // Always run single load to prevent overlapping loads
                 await RunSingleLoad(async () =>
                 {
-                    // Reload both grids with fresh data
                     await LoadAndShowInvoicesAsync(skipDateFilter);
                     await LoadAndShowLogsAsync(skipDateFilter);
                 });
+
+                // Update counts for auto-refresh
+                _lastInvoiceCount = InvoicesDataGridView.Rows.Count;
+                _lastLogCount = LogsDataGridView.Rows.Count;
             }
             catch (Exception ex)
             {
-                // Handle any errors during refresh
                 AlertManager.ShowError($"Error refreshing data: {ex.Message}");
             }
             finally
             {
-                // Hide loading indicator
                 if (progressBar != null)
                 {
                     progressBar.Visible = false;
                     progressBar.Style = ProgressBarStyle.Continuous;
                 }
+
+                // Restart auto-refresh
+                if (wasAutoRefreshEnabled)
+                    _autoRefreshTimer.Start();
             }
         }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
 
-
+            if (_autoRefreshTimer != null)
+            {
+                _autoRefreshTimer.Stop();
+                _autoRefreshTimer.Dispose();
+            }
+        }
         private void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             e.ThrowException = false;

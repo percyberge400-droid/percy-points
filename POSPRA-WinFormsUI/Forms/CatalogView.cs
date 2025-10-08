@@ -35,10 +35,8 @@ namespace POSPRA_WinFormsUI.Forms
 
             ProductCatalogueDataGridView.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText;
 
-            // Hide progress bar initially
             if (progressBar != null) progressBar.Visible = false;
 
-            // Load button now loads FROM API and saves TO local DB
             btnLoad.Click += btnLoad_Click;
 
             _searchDebounceTimer = new System.Windows.Forms.Timer();
@@ -47,32 +45,24 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 _searchDebounceTimer.Stop();
 
-                // Check if search box is empty
                 if (string.IsNullOrWhiteSpace(SearchBox.Text))
                 {
-                    // Reload full data from local DB
                     await LoadFromLocalDB();
                 }
                 else
                 {
-                    // Filter based on search text
                     await FilterProductsFromLocalDB();
                 }
             };
 
-            // On form load, display data from LOCAL DB
             this.Load += async (s, e) => await LoadFromLocalDB();
 
-            SearchBox.TextChanged += (s, e) =>
-            {
-                _searchDebounceTimer.Stop();
-                _searchDebounceTimer.Start();
-            };
+            // ✅ Use named event handler for easy removal
+            SearchBox.TextChanged += SearchBox_TextChanged;
 
             btnNext.Click += async (s, e) => await NextPage();
             btnPrev.Click += async (s, e) => await PrevPage();
             StyleProductDataGridView();
-
         }
 
         #region progress bar
@@ -145,7 +135,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 // Re-enable button if user cancels
                 btnLoad.Enabled = true;
-                btnLoad.Text = "Load";
+                btnLoad.Text = "🔄Sync Products From Cloud";
                 return;
             }
 
@@ -155,13 +145,16 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     _isLoading = true;
 
+                    // ✅ STEP 0: Perform hard reset BEFORE starting
+                    await PerformHardReset();
+
                     _ = CreateLog("Starting data refresh from API", AlertType.Info);
                     AlertManager.ShowInfo("Fetching fresh data from server...");
 
                     // Step 1: Fetch all data from API using ProductCatalogueService
                     var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
                     {
-                        numberOfRecords = 1000, // Adjust based on your needs
+                        numberOfRecords = 1000,
                         pageNumber = 1
                     });
 
@@ -171,6 +164,9 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         AlertManager.ShowWarning("No products found on the server.");
                         _ = CreateLog("No products returned from API", AlertType.Warning);
+
+                        // ✅ Hard reset after failure
+                        await PerformHardReset();
                         return;
                     }
 
@@ -184,21 +180,23 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
                         _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
+
+                        // ✅ Hard reset after failure
+                        await PerformHardReset();
                         return;
                     }
 
-                    // treat empty DB as success
                     _ = CreateLog("Local database cleared (or already empty)", AlertType.Info);
-
                     AlertManager.ShowInfo($"Saving {apiProducts.Count} products to local database...");
 
-                    // Update progress bar for saving - use Marquee style for better animation
+                    // Update progress bar for saving
                     if (progressBar != null && apiProducts.Count > 0)
                     {
                         progressBar.Style = ProgressBarStyle.Continuous;
                         progressBar.Minimum = 0;
                         progressBar.Maximum = apiProducts.Count;
                         progressBar.Value = 0;
+                        progressBar.Visible = true;
                         progressBar.Update();
                     }
 
@@ -231,11 +229,11 @@ namespace POSPRA_WinFormsUI.Forms
                             _ = CreateLog($"Exception saving product {dto.ProductCode}: {ex.Message}", AlertType.Error);
                         }
 
-                        // Update progress bar value
+                        // Update progress bar
                         if (progressBar != null)
                         {
                             progressBar.Value = Math.Min(successCount + failCount, progressBar.Maximum);
-                            progressBar.Update(); // Force UI update
+                            progressBar.Update();
                         }
 
                         // Update button text periodically
@@ -263,24 +261,37 @@ namespace POSPRA_WinFormsUI.Forms
                         _ = CreateLog($"Load completed successfully: {successCount} products saved to local DB", AlertType.Success);
                     }
 
-                    // Step 4: Refresh the grid from local DB
+                    // ✅ STEP 4: Perform hard reset AFTER loading
+                    await PerformHardReset();
+
+                    // ✅ STEP 5: Reload fresh data from local DB
                     _currentPage = 1;
                     await LoadFromLocalDB();
+
+                    // ✅ STEP 6: Final UI update
+                    AlertManager.ShowSuccess("Data refresh completed! All filters and states have been reset.");
                 }
                 catch (Exception ex)
                 {
                     AlertManager.ShowError($"Error loading catalogue: {ex.Message}");
                     _ = CreateLog($"Critical error loading catalogue: {ex.Message}", AlertType.Error);
+
+                    // ✅ Hard reset after exception
+                    await PerformHardReset();
                 }
                 finally
                 {
                     _isLoading = false;
                     btnLoad.Enabled = true;
-                    btnLoad.Text = "Load";
+                    btnLoad.Text = "🔄Sync Products From Cloud";
+
+                    if (progressBar != null)
+                    {
+                        progressBar.Visible = false;
+                    }
                 }
             });
         }
-
         /// <summary>
         /// Load products from LOCAL database for display
         /// </summary>
@@ -418,6 +429,74 @@ namespace POSPRA_WinFormsUI.Forms
                 // Suppress logging errors to avoid cascading failures
             }
         }
+
+        #region HardReset
+        private void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            _searchDebounceTimer.Stop();
+            _searchDebounceTimer.Start();
+        }
+
+        private async Task PerformHardReset()
+        {
+            try
+            {
+                // 1. Stop any ongoing operations
+                _searchDebounceTimer?.Stop();
+
+                // 2. Reset all state variables
+                _currentPage = 1;
+                _isLoading = false;
+                _isLoadingFlag = 0;
+
+                // 3. Clear and reset search box
+                SearchBox.TextChanged -= SearchBox_TextChanged; // Temporarily remove handler
+                SearchBox.Clear();
+                SearchBox.Text = string.Empty;
+                SearchBox.TextChanged += SearchBox_TextChanged; // Re-add handler
+
+                // 4. Clear DataGridView completely
+                ProductCatalogueDataGridView.DataSource = null;
+                ProductCatalogueDataGridView.Rows.Clear();
+                ProductCatalogueDataGridView.Refresh();
+
+                // 5. Reset pagination controls
+                lblPageNumber.Text = "Page 1";
+                btnNext.Enabled = false;
+                btnPrev.Enabled = false;
+
+                // 6. Reset button states
+                btnLoad.Enabled = true;
+                btnLoad.Text = "Load";
+
+                // 7. Hide progress bar
+                if (progressBar != null)
+                {
+                    progressBar.Visible = false;
+                    progressBar.Value = 0;
+                    progressBar.Style = ProgressBarStyle.Continuous;
+                }
+
+                // 8. Force garbage collection to free memory
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+
+                // 9. Small delay to ensure UI updates
+                await Task.Delay(100);
+
+                // 10. Force form refresh
+                this.Refresh();
+                Application.DoEvents();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during hard reset: {ex.Message}");
+            }
+        }
+        #endregion
+
 
         #region datagrid style
 
