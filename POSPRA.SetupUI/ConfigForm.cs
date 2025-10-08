@@ -14,6 +14,7 @@ namespace POSPRA.SetupUI
 {
     public partial class ConfigForm : Form
     {
+        // --- Win32 API to force window on top ---
         [DllImport("user32.dll")]
         private static extern bool SetWindowPos(
             IntPtr hWnd,
@@ -24,15 +25,20 @@ namespace POSPRA.SetupUI
             int cy,
             uint uFlags);
 
+        // HWND constants
         private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+
+        // Flags for SetWindowPos
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
 
+        // Paths for different config files
         private readonly string _xmlConfigPath;
-        private readonly string _jsonWorkerPath; //worker json path
-        private readonly string _jsonMainPath;   //API json path
-        private readonly string _winformsConfigPath; // WinFormsUI config path
+        private readonly string _jsonWorkerPath;
+        private readonly string _jsonMainPath;
+        private readonly string _winformsConfigPath;
         private string _setupConfigPath;
 
         private int _isLoadingFlag = 0;
@@ -48,6 +54,7 @@ namespace POSPRA.SetupUI
             _setupConfigPath = setupConfigPath;
             _winformsConfigPath = winformsConfigPath;
 
+            // Hook validation events
             txtUsername.KeyPress += txtUsername_KeyPress;
             txtPassword.KeyPress += txtPassword_KeyPress;
             txtUsername.TextChanged += ValidateForm;
@@ -58,6 +65,7 @@ namespace POSPRA.SetupUI
             // Hide progress bar initially
             if (progressBar != null) progressBar.Visible = false;
 
+            // Load logo from App.config if available
             string logoKey = ConfigurationManager.AppSettings["LOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
@@ -71,8 +79,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        #region Progress Bar
-
+        #region Progress Bar Helper
         private async Task RunSingleLoad(Func<Task> work)
         {
             if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
@@ -101,31 +108,32 @@ namespace POSPRA.SetupUI
                 Interlocked.Exchange(ref _isLoadingFlag, 0);
             }
         }
-
         #endregion
 
-        protected override void OnShown(EventArgs e)
+        // --- Ensure form opens on top of everything ---
+        protected override void OnLoad(EventArgs e)
         {
-            base.OnShown(e);
-            this.CenterToScreen();
-            this.TopMost = true;
+            base.OnLoad(e);
 
+            this.CenterToScreen();  // center form
+            this.TopMost = true;    // mark as topmost
+
+            // Force Win32 TopMost in case another app steals focus
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
                          SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-            this.Activate();
-            this.BringToFront();
+
+            this.Activate();        // bring focus
+            this.BringToFront();    // make sure visible
         }
 
         private void ConfigForm_Load(object sender, EventArgs e)
         {
             this.StartPosition = FormStartPosition.CenterScreen;
-            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
-                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
             try
             {
                 var doc = new XmlDocument();
-                doc.Load(_xmlConfigPath); // ✅ FIXED
+                doc.Load(_xmlConfigPath);
 
                 var userNode = doc.SelectSingleNode("//appSettings/add[@key='Username']");
                 var passNode = doc.SelectSingleNode("//appSettings/add[@key='Password']");
@@ -146,7 +154,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        // ✅ Browse button for selecting DB file path
+        // --- Browse button for selecting DB file path ---
         private void btnBrowse_Click(object sender, EventArgs e)
         {
             using (var dialog = new SaveFileDialog())
@@ -162,31 +170,15 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private void txtUsername_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            //if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-            //    e.Handled = true;
-
-            //if (txtUsername.Text.Length >= 6 && !char.IsControl(e.KeyChar))
-            //    e.Handled = true;
-        }
-
-        private void txtPassword_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            //if (!char.IsControl(e.KeyChar) && !char.IsLetterOrDigit(e.KeyChar))
-            //    e.Handled = true;
-
-            //if (txtPassword.Text.Length >= 8 && !char.IsControl(e.KeyChar))
-            //    e.Handled = true;
-        }
+        private void txtUsername_KeyPress(object sender, KeyPressEventArgs e) { }
+        private void txtPassword_KeyPress(object sender, KeyPressEventArgs e) { }
 
         private void ValidateForm(object sender, EventArgs e)
         {
-            //bool validUsername = System.Text.RegularExpressions.Regex.IsMatch(txtUsername.Text, @"^\d{6}$");
-            // bool validPassword = System.Text.RegularExpressions.Regex.IsMatch(txtPassword.Text, @"^[a-zA-Z0-9]{8}$");
-            //  btnOk.Enabled = validUsername;
+            btnOk.Enabled = !string.IsNullOrWhiteSpace(txtUsername.Text);
         }
 
+        // --- OK button click handler ---
         private async void btnOk_Click(object sender, EventArgs e)
         {
             if (_isLoading)
@@ -196,7 +188,6 @@ namespace POSPRA.SetupUI
                 return;
             }
 
-            // Disable button immediately
             btnOk.Enabled = false;
             btnOk.Text = "Processing...";
 
@@ -205,6 +196,7 @@ namespace POSPRA.SetupUI
                 string username = txtUsername.Text.Trim();
                 string password = txtPassword.Text.Trim();
                 string dbPath = txtFilePath.Text.Trim();
+                string macaddress = txtmac.Text.Trim();
 
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
@@ -226,25 +218,23 @@ namespace POSPRA.SetupUI
                     {
                         _isLoading = true;
 
-                        // ✅ Auto-create folder if missing
+                        // Ensure DB folder exists
                         string folderPath = Path.GetDirectoryName(dbPath);
                         if (!Directory.Exists(folderPath))
-                        {
                             Directory.CreateDirectory(folderPath);
-                        }
 
-                        // ✅ Get MAC address
+                        // Get MAC
                         string macAddress = ConfigurationManager.AppSettings["mac"] ?? GetMacAddress();
 
-                        // ✅ Prepare authentication payload
+                        // Prepare auth payload
                         var payload = new
                         {
                             posId = int.Parse(username),
-                            macAddress = macAddress,
+                            macAddress = macaddress,
                             token = password
                         };
 
-                        // ✅ Get API URL from App.config
+                        // Get API URL
                         string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
                         if (string.IsNullOrWhiteSpace(apiUrl))
                         {
@@ -253,6 +243,7 @@ namespace POSPRA.SetupUI
                             return;
                         }
 
+                        // Call API
                         using (var client = new HttpClient())
                         {
                             client.DefaultRequestHeaders.Accept.Clear();
@@ -264,46 +255,35 @@ namespace POSPRA.SetupUI
                                 "application/json"
                             );
 
-                            // ✅ Call API
                             var response = await client.PostAsync(apiUrl, jsonContent);
                             string responseBody = await response.Content.ReadAsStringAsync();
 
                             if (!response.IsSuccessStatusCode)
-                            {
                                 throw new Exception("Authentication failed: Invalid credentials or MAC address.");
-                            }
 
-                            // ✅ Parse JSON response
                             var json = JObject.Parse(responseBody);
                             string statusCode = json["statusCode"]?.ToString();
                             bool data = json["data"]?.ToObject<bool>() ?? false;
                             string message = json["message"]?.ToString();
 
                             if (statusCode != "200" || !data)
-                            {
                                 throw new Exception("Authentication failed: " + (message ?? "Unknown error"));
-                            }
 
-                            // ✅ Success message
                             MessageBox.Show("Authentication successful: " + message, "Success",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
 
-                        // ✅ Save only Username, Password, and MacAddress to XML (skip DB path)
+                        // Save XML config
                         var doc = new XmlDocument();
                         doc.Load(_xmlConfigPath);
 
-                        // 🔹 Step 4: Initialize SQLite database
                         var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
                             .UseSqlite($"Data Source={dbPath}")
                             .Options;
 
                         using (var context = new SqliteDbContext(sqliteOptions))
-                        {
                             context.Database.EnsureCreated();
-                        }
 
-                        // 🔹 Step 5: Build DI container (if needed later)
                         var services = new ServiceCollection();
                         services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
 
@@ -313,14 +293,10 @@ namespace POSPRA.SetupUI
 
                         doc.Save(_xmlConfigPath);
 
-                        // ✅ Save DB path only in JSON files
-                        SaveDbPathToJson(_jsonWorkerPath, dbPath);  // appsettings.worker.json
-                        SaveDbPathToJson(_jsonMainPath, dbPath);    // appsettings.json
-
-                        // ✅ Save DB path in POSPRA-WinFormsUI.dll.config
+                        SaveDbPathToJson(_jsonWorkerPath, dbPath);
+                        SaveDbPathToJson(_jsonMainPath, dbPath);
                         SaveDbPathToWinFormsConfig(dbPath);
 
-                        // ✅ Save DB path also in POSPRA.SetupUI.dll.config
                         try
                         {
                             var docSetup = new XmlDocument();
@@ -334,6 +310,11 @@ namespace POSPRA.SetupUI
                                 "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
 
+                        // ✅ release topmost before exiting
+                        this.TopMost = false;
+                        SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
+                                     SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
                         MessageBox.Show("Configuration saved successfully.", "Success",
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -341,11 +322,7 @@ namespace POSPRA.SetupUI
                     }
                     catch (Exception ex)
                     {
-                        // ✅ Show error to user but do NOT terminate installer
                         MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                        // Do NOT call Environment.Exit(1);
-                        // Installer will continue to allow retry or close.
                     }
                     finally
                     {
@@ -360,17 +337,15 @@ namespace POSPRA.SetupUI
             }
         }
 
+        // --- Update or create XML node ---
         private void UpdateOrCreateNode(XmlDocument doc, string key, string value)
         {
             var node = doc.SelectSingleNode($"//appSettings/add[@key='{key}']");
             if (node == null)
             {
-                var appSettings = doc.SelectSingleNode("//appSettings");
-                if (appSettings == null)
-                {
-                    appSettings = doc.CreateElement("appSettings");
+                var appSettings = doc.SelectSingleNode("//appSettings") ?? doc.CreateElement("appSettings");
+                if (appSettings.ParentNode == null)
                     doc.DocumentElement.AppendChild(appSettings);
-                }
 
                 XmlElement newNode = doc.CreateElement("add");
                 newNode.SetAttribute("key", key);
@@ -383,13 +358,12 @@ namespace POSPRA.SetupUI
             }
         }
 
-        // ✅ JSON updater
+        // --- Save DB path to JSON ---
         private void SaveDbPathToJson(string jsonFilePath, string dbPath)
         {
             try
             {
                 JObject root;
-
                 if (File.Exists(jsonFilePath))
                 {
                     string text = File.ReadAllText(jsonFilePath);
@@ -401,9 +375,7 @@ namespace POSPRA.SetupUI
                 }
 
                 if (root["AppSettings"] == null || root["AppSettings"].Type != JTokenType.Object)
-                {
                     root["AppSettings"] = new JObject();
-                }
 
                 root["AppSettings"]["DefaultDBFilePath"] = dbPath;
 
@@ -416,7 +388,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        // ✅ Save DB path to WinFormsUI config (POSPRA-WinFormsUI.dll.config)
+        // --- Save DB path to WinForms config ---
         private void SaveDbPathToWinFormsConfig(string dbPath)
         {
             try
@@ -427,12 +399,9 @@ namespace POSPRA.SetupUI
                 var node = doc.SelectSingleNode("//appSettings/add[@key='DefaultDBFilePath']");
                 if (node == null)
                 {
-                    var appSettings = doc.SelectSingleNode("//appSettings");
-                    if (appSettings == null)
-                    {
-                        appSettings = doc.CreateElement("appSettings");
+                    var appSettings = doc.SelectSingleNode("//appSettings") ?? doc.CreateElement("appSettings");
+                    if (appSettings.ParentNode == null)
                         doc.DocumentElement.AppendChild(appSettings);
-                    }
 
                     XmlElement newNode = doc.CreateElement("add");
                     newNode.SetAttribute("key", "DefaultDBFilePath");
@@ -453,7 +422,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        // ✅ Get MAC address of first active network adapter
+        // --- Get MAC address ---
         private string GetMacAddress()
         {
             try
@@ -469,6 +438,7 @@ namespace POSPRA.SetupUI
             }
         }
 
+        // --- Cancel button ---
         private void btnCancel_Click(object sender, EventArgs e)
         {
             var result = MessageBox.Show(
@@ -480,23 +450,13 @@ namespace POSPRA.SetupUI
 
             if (result == DialogResult.Yes)
             {
-                // Return MSI error code for cancel
+                // ✅ release topmost before exiting
+                this.TopMost = false;
+                SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
+                             SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+                // MSI cancel error code
                 Environment.Exit(1602);
-            }
-        }
-
-        private void btnBrowse_Click_1(object sender, EventArgs e)
-        {
-            using (var dialog = new SaveFileDialog())
-            {
-                dialog.Title = "Select or create SQLite DB file";
-                dialog.Filter = "SQLite DB (*.db)|*.db|All files (*.*)|*.*";
-                dialog.FileName = "POSPRA.db";
-
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    txtFilePath.Text = dialog.FileName;
-                }
             }
         }
     }

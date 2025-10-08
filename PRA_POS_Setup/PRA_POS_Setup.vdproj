@@ -21,7 +21,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_33B6ACB34D414841AA8AB332BABECCF8"
+        "MsmKey" = "8:_0B30FBE02EB9475694BDA463DF6FA0CE"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5AB303553D0E42CCAD64BF098DFFFFB8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -33,19 +39,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_6FBB79873CD540CDA9F2551EB454FC38"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_977E17D9C23B43ED819DB85E18C291E8"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A4429776046444D28BA7C919EF36DC5E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -117,13 +111,18 @@
             "PromptEnabled" = "11:TRUE"
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
-            "ComponentsUrl" = "8:"
+            "ComponentsUrl" = "8:C:\\Program Files (x86)\\Microsoft SDKs\\ClickOnce Bootstrapper\\Packages\\net9desktopruntime_x64"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.NetCore.CoreRuntime.9.0.x64"
                     {
-                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    "Name" = "8:.NET Runtime 9.0.8 (x64)"
+                    "ProductCode" = "8:Microsoft.NetCore.CoreRuntime.9.0.x64"
+                    }
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.NetCore.DesktopRuntime.9.0.x64"
+                    {
+                    "Name" = "8:.NET Desktop Runtime 9.0.8 (x64)"
+                    "ProductCode" = "8:Microsoft.NetCore.DesktopRuntime.9.0.x64"
                     }
                 }
             }
@@ -200,9 +199,9 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_01E5A3C92BB44CF9B2AD374D985D6301"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0B30FBE02EB9475694BDA463DF6FA0CE"
             {
-            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\InstallPOSPRAService.bat"
+            "SourcePath" = "8:InstallPOSPRAService.bat"
             "TargetName" = "8:InstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
@@ -220,9 +219,9 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6FBB79873CD540CDA9F2551EB454FC38"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5AB303553D0E42CCAD64BF098DFFFFB8"
             {
-            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\UninstallPOSPRAService.bat"
+            "SourcePath" = "8:UninstallPOSPRAService.bat"
             "TargetName" = "8:UninstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
@@ -240,9 +239,9 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A4429776046444D28BA7C919EF36DC5E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5AC2958FE064416DADA1AD4375BBE5CB"
             {
-            "SourcePath" = "8:C:\\Users\\asharib.kamal\\Downloads\\allfiles\\pral.ico"
+            "SourcePath" = "8:C:\\Users\\talha.arif\\Downloads\\pral.ico"
             "TargetName" = "8:pral.ico"
             "Tag" = "8:"
             "Folder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
@@ -315,10 +314,10 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:PRA POS"
-        "ProductCode" = "8:{B48B0DCE-13D5-4CAA-999B-D9D43C92CE2F}"
-        "PackageCode" = "8:{49D8E340-949A-4F7E-B81D-12A38C9CD86B}"
-        "UpgradeCode" = "8:{0C703B48-1D74-48B8-963D-891E43A7839D}"
+        "ProductName" = "8:POS Component"
+        "ProductCode" = "8:{B3C7EF26-471E-41DE-B583-99CE59B6839C}"
+        "PackageCode" = "8:{CB799205-7055-413E-8A34-AB1A6F8C52AD}"
+        "UpgradeCode" = "8:{8A6F8D16-D2CC-4497-A092-976D6B26C77A}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
@@ -328,13 +327,13 @@
         "Manufacturer" = "8:PRAL FBR"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:PRA POS"
+        "Title" = "8:POS Component"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:PRAL"
+        "ARPCONTACT" = "8:POS Component"
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
-        "ARPPRODUCTICON" = "8:_A4429776046444D28BA7C919EF36DC5E"
+        "ARPPRODUCTICON" = "8:_5AC2958FE064416DADA1AD4375BBE5CB"
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
@@ -448,7 +447,7 @@
             "Target" = "8:_61B25C24B33C4E8285B2B51887C23A93"
             "Folder" = "8:_382BC76B96D6493EBC7EA154229B4C6B"
             "WorkingFolder" = "8:_F227C5EB51A94013B9F32EEEBEA13153"
-            "Icon" = "8:_A4429776046444D28BA7C919EF36DC5E"
+            "Icon" = "8:_5AC2958FE064416DADA1AD4375BBE5CB"
             "Feature" = "8:"
             }
         }

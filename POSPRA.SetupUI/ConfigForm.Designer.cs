@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigForm));
             mainPanel = new Panel();
+            btnCancel = new Button();
             progressBar = new ProgressBar();
             headerPanel = new Panel();
             lblSubtitle = new Label();
@@ -39,12 +40,13 @@
             btnBrowse = new Button();
             txtFilePath = new TextBox();
             label3 = new Label();
+            txtmac = new TextBox();
             txtPassword = new TextBox();
+            mac = new Label();
             label2 = new Label();
             txtUsername = new TextBox();
             label1 = new Label();
             btnOk = new Button();
-            btnCancel = new Button();
             mainPanel.SuspendLayout();
             headerPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -60,7 +62,9 @@
             mainPanel.Controls.Add(btnBrowse);
             mainPanel.Controls.Add(txtFilePath);
             mainPanel.Controls.Add(label3);
+            mainPanel.Controls.Add(txtmac);
             mainPanel.Controls.Add(txtPassword);
+            mainPanel.Controls.Add(mac);
             mainPanel.Controls.Add(label2);
             mainPanel.Controls.Add(txtUsername);
             mainPanel.Controls.Add(label1);
@@ -71,9 +75,26 @@
             mainPanel.Size = new Size(727, 528);
             mainPanel.TabIndex = 0;
             // 
+            // btnCancel
+            // 
+            btnCancel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnCancel.BackColor = Color.Red;
+            btnCancel.Cursor = Cursors.Hand;
+            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.FlatStyle = FlatStyle.Flat;
+            btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            btnCancel.ForeColor = Color.White;
+            btnCancel.Location = new Point(400, 442);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(110, 45);
+            btnCancel.TabIndex = 11;
+            btnCancel.Text = "Close";
+            btnCancel.UseVisualStyleBackColor = false;
+            btnCancel.Click += btnCancel_Click;
+            // 
             // progressBar
             // 
-            progressBar.Location = new Point(220, 449);
+            progressBar.Location = new Point(220, 493);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(290, 32);
             progressBar.TabIndex = 9;
@@ -153,7 +174,7 @@
             btnBrowse.TabIndex = 3;
             btnBrowse.Text = "...";
             btnBrowse.UseVisualStyleBackColor = false;
-            btnBrowse.Click += btnBrowse_Click_1;
+            btnBrowse.Click += btnBrowse_Click;
             // 
             // txtFilePath
             // 
@@ -176,6 +197,18 @@
             label3.TabIndex = 7;
             label3.Text = "DB File Path";
             // 
+            // txtmac
+            // 
+            txtmac.BackColor = Color.White;
+            txtmac.BorderStyle = BorderStyle.FixedSingle;
+            txtmac.Font = new Font("Segoe UI", 11F);
+            txtmac.Location = new Point(220, 404);
+            txtmac.MaxLength = 120;
+            txtmac.Name = "txtmac";
+            txtmac.PasswordChar = '•';
+            txtmac.Size = new Size(290, 32);
+            txtmac.TabIndex = 2;
+            // 
             // txtPassword
             // 
             txtPassword.BackColor = Color.White;
@@ -187,6 +220,17 @@
             txtPassword.PasswordChar = '•';
             txtPassword.Size = new Size(290, 32);
             txtPassword.TabIndex = 2;
+            // 
+            // mac
+            // 
+            mac.AutoSize = true;
+            mac.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            mac.ForeColor = Color.FromArgb(64, 64, 64);
+            mac.Location = new Point(220, 378);
+            mac.Name = "mac";
+            mac.Size = new Size(108, 23);
+            mac.TabIndex = 5;
+            mac.Text = "Mac Address";
             // 
             // label2
             // 
@@ -229,30 +273,13 @@
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnOk.ForeColor = Color.White;
-            btnOk.Location = new Point(220, 380);
+            btnOk.Location = new Point(220, 442);
             btnOk.Name = "btnOk";
             btnOk.Size = new Size(110, 45);
             btnOk.TabIndex = 4;
             btnOk.Text = "Okay";
             btnOk.UseVisualStyleBackColor = false;
             btnOk.Click += btnOk_Click;
-            // 
-            // btnCancel
-            // 
-            btnCancel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnCancel.BackColor = Color.Red;
-            btnCancel.Cursor = Cursors.Hand;
-            btnCancel.FlatAppearance.BorderSize = 0;
-            btnCancel.FlatStyle = FlatStyle.Flat;
-            btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(400, 380);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(110, 45);
-            btnCancel.TabIndex = 11;
-            btnCancel.Text = "Close";
-            btnCancel.UseVisualStyleBackColor = false;
-            btnCancel.Click += btnCancel_Click;
             // 
             // ConfigForm
             // 
@@ -307,5 +334,7 @@
         }
         private ProgressBar progressBar;
         private Button btnCancel;
+        private TextBox txtmac;
+        private Label mac;
     }
 }
