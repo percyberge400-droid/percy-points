@@ -67,7 +67,7 @@ TestResults/
 
 # Cache
 *.cache
-*.config
+#*.config
 *.dll
 *.exe
 *.pdb
