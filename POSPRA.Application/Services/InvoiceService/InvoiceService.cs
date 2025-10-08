@@ -1,61 +1,69 @@
-﻿using System.Data;
-using AutoMapper;
-using Microsoft.Data.SqlClient; // ✅ correct namespace
-using POSPRA.Application.Services.HelperService;
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
 using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDtos;
-using POSPRA.Repositories.BaseRepository;
+using POSPRA.Repositories.FiscalRepository;
+using System.Text.Json;
 
 namespace POSPRA.Application.Services.InvoiceService
 {
     public class InvoiceService : IInvoiceService
     {
-        private readonly IRequestHeaderService _requestHeaderService;
-        private readonly SqlServerRepository<object> _sqlServerRepository;
         public readonly IMapper _mapper;
+        private readonly IFiscalRepository _fileRecordRepository;
+        private readonly AppSettings _settings;
 
-        public InvoiceService(IRequestHeaderService requestHeaderService, SqlServerRepository<object> sqlServerRepository, IMapper mapper)
+        public InvoiceService(IMapper mapper,
+            IFiscalRepository fileRecordRepository,
+            IOptions<AppSettings> options)
         {
-            _requestHeaderService = requestHeaderService;
-            _sqlServerRepository = sqlServerRepository;
             _mapper = mapper;
+            _settings = options.Value;
+            _fileRecordRepository = fileRecordRepository;
         }
 
-        public async Task<ApiResponse<List<POSVerificationDto>>> POS_VerificationAsync(string bodyPosIds)
+        public async Task<ApiResponse<InvoiceDto>> GetInvoiceWithItems(string invoiceNumber)
         {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             try
             {
-                var posId = _requestHeaderService.GetPosId();
-
-                var parameters = new[]
+                var output = await _fileRecordRepository.FirstOrDefaultAsync(x => x.InvoiceNumber == invoiceNumber);
+                if (output != null)
                 {
-                    new SqlParameter("@POSID", SqlDbType.BigInt) { Value = posId },
-                    new SqlParameter("@POSList", SqlDbType.NVarChar, -1) { Value = bodyPosIds }
-                };
+                    var decrypted = ModernAESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
+                    var jsonPart = decrypted.Split('|')[0];
+                    if (string.IsNullOrWhiteSpace(jsonPart) ||
+                        JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto)
+                        return new ApiResponse<InvoiceDto>(
+                            statusCode: ApiStatusCode.Error,
+                            message: ResponseMessages.DataNotFound,
+                            data: null!
+                        );
 
-                // ✅ Generic executor: returns List<Dictionary<string, object?>>
-                var rawResults = await _sqlServerRepository.ExecuteProcedureAsync<Dictionary<string, object?>>(
-                    "SP_POSVerification",
-                    parameters: parameters);
+                    return new ApiResponse<InvoiceDto>(
+                        statusCode: ApiStatusCode.Success,
+                        message: ResponseMessages.RecordFound,
+                        data: invoiceDto
+                    );
+                }
 
-                // ✅ AutoMapper converts dictionary rows to POSVerificationDTO
-                var dtoResults = _mapper.Map<List<POSVerificationDto>>(rawResults);
-
-                return new ApiResponse<List<POSVerificationDto>>(
-                    statusCode: ApiStatusCode.Success,
-                    message: dtoResults.Count > 0
-                        ? "POS verification records found"
-                        : "No records found",
-                    data: dtoResults
+                return new ApiResponse<InvoiceDto>(
+                    statusCode: ApiStatusCode.Error,
+                    message: ResponseMessages.DataNotFound,
+                    data: null!
                 );
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<POSVerificationDto>>(
+                return new ApiResponse<InvoiceDto>(
                     statusCode: ApiStatusCode.Error,
-                    message: "Error fetching POS verification: " + ex.Message,
-                    data: null
+                    message: ResponseMessages.UnknownError,
+                    data: null!
                 );
             }
         }
