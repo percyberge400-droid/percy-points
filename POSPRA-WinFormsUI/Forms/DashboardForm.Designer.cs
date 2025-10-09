@@ -533,12 +533,10 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.Location = new Point(8, 55);
             LogsDataGridView.Margin = new Padding(3, 4, 3, 4);
             LogsDataGridView.Name = "LogsDataGridView";
-            LogsDataGridView.RowTemplate.Height = 40;
-            LogsDataGridView.RowTemplate.MinimumHeight = 40;
-            LogsDataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             LogsDataGridView.ReadOnly = true;
             LogsDataGridView.RowHeadersVisible = false;
             LogsDataGridView.RowHeadersWidth = 51;
+            LogsDataGridView.RowTemplate.Height = 40;
             LogsDataGridView.Size = new Size(1390, 218);
             LogsDataGridView.TabIndex = 0;
             // 

@@ -146,9 +146,9 @@
             label2.ForeColor = Color.White;
             label2.Location = new Point(45, 338);
             label2.Name = "label2";
-            label2.Size = new Size(107, 23);
+            label2.Size = new Size(57, 23);
             label2.TabIndex = 0;
-            label2.Text = "Access Code";
+            label2.Text = "Token";
             // 
             // label1
             // 

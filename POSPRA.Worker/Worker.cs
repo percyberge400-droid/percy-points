@@ -52,7 +52,7 @@ namespace POSPRA.Worker
         protected override async Task ExecuteAsync(CancellationToken token)
         {
             var id = Guid.NewGuid().ToString();
-            await LogAsync(AlertType.Info, "Worker service started.", id, AlertType.Startup);
+            await LogAsync(AlertType.Info, "POS service started.", id, AlertType.Startup);
 
             bool wasInternetAvailable = true; // Track previous state to reduce repeated logs
 
@@ -143,7 +143,7 @@ namespace POSPRA.Worker
                             Convert.ToInt32(ApiStatusCode.Success)
                         );
                 }
-                else if (response.StatusCode==ApiStatusCode.NotFound)
+                else if (response.StatusCode == ApiStatusCode.NotFound)
                 {
                     return;
                 }

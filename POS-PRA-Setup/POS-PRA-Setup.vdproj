@@ -21,7 +21,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_2F2FF6E1B09E446590D11A8E41ED957A"
+        "MsmKey" = "8:_20747768ECA342FDB7622F5F84B7B262"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -45,6 +45,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_4B43C7ED913F41FFB0C1E73842F75461"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_6F25B2E1C6BE4DDF94A78A1BDFE8E007"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -58,12 +64,6 @@
         "Entry"
         {
         "MsmKey" = "8:_BB24F3ACBB854B98BB3FFB882140C1C8"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_EDC9E208B4574F7DB9F5A67BA3B56018"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -85,6 +85,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
         "Release"
         {
@@ -101,6 +117,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
     }
     "Deployable"
@@ -174,9 +198,9 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2F2FF6E1B09E446590D11A8E41ED957A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_20747768ECA342FDB7622F5F84B7B262"
             {
-            "SourcePath" = "8:C:\\Users\\ilhan.sarfraz\\Desktop\\installer-req\\UninstallPOSPRAService.bat"
+            "SourcePath" = "8:C:\\Users\\ilhan.sarfraz\\Desktop\\UninstallPOSPRAService.bat"
             "TargetName" = "8:UninstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -214,9 +238,9 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EDC9E208B4574F7DB9F5A67BA3B56018"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4B43C7ED913F41FFB0C1E73842F75461"
             {
-            "SourcePath" = "8:C:\\Users\\ilhan.sarfraz\\Desktop\\installer-req\\InstallPOSPRAService.bat"
+            "SourcePath" = "8:C:\\Users\\ilhan.sarfraz\\Desktop\\InstallPOSPRAService.bat"
             "TargetName" = "8:InstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -291,7 +315,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:POS-Component"
         "ProductCode" = "8:{6A2879D1-E93D-422F-978D-B231820AA62B}"
-        "PackageCode" = "8:{13769675-7FF5-40BB-9640-B620B6BB3675}"
+        "PackageCode" = "8:{12EE3CE0-D93F-4698-8287-9D4338A73E9E}"
         "UpgradeCode" = "8:{239EA055-E78F-4033-95C6-4DA1C9496960}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"

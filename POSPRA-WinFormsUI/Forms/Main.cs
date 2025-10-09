@@ -241,11 +241,13 @@ namespace POSPRA_WinFormsUI.Forms
                         if (!isRunning && wasRunning)
                         {
                             WindowsLocalAppNotification.Show("POS Service Alert", "POS service is inactive!");
+                            _ = CreateLog("POS service is inactive!", AlertType.Warning);
                             _workerServiceAlertShown = true;
                         }
                         else if (isRunning && !wasRunning)
                         {
                             WindowsLocalAppNotification.Show("POS Service Alert", "POS service restored!");
+                            _ = CreateLog("POS service restored!", AlertType.Success);
                             _workerServiceAlertShown = false;
                         }
 
