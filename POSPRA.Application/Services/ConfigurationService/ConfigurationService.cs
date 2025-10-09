@@ -9,10 +9,17 @@ namespace POSPRA.Application.Services.ConfigurationService
 
         public async Task<bool> IsCloudSyncEnabledAsync(GetByPosIdDto dto)
         {
-            var config = await _configurationRepository
+            try
+            {
+                var config = await _configurationRepository
                 .FirstOrDefaultAsync(x => x.POSID == dto.PosId);
 
-            return config?.IsCloudSyncEnabled ?? true;
+                return config?.IsCloudSyncEnabled ?? false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }
