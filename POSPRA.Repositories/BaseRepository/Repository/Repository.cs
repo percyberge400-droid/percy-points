@@ -53,9 +53,31 @@ namespace POSPRA.Repositories.BaseRepository.Repository
             await _dbSet.AddRangeAsync(entities);
 
         /// <inheritdoc/>
-        public void Update(T entity) =>
+        public Task UpdateAsync(T entity)
+        {
+            var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey();
+            if (key == null)
+                throw new InvalidOperationException($"Entity {typeof(T).Name} does not have a primary key defined.");
+
+            var keyValues = key.Properties
+                .Select(p => typeof(T).GetProperty(p.Name).GetValue(entity))
+                .ToArray();
+
+            var trackedEntity = _context.ChangeTracker.Entries<T>()
+                .FirstOrDefault(e => key.Properties
+                    .Select(p => e.Property(p.Name).CurrentValue)
+                    .SequenceEqual(keyValues));
+
+            if (trackedEntity != null)
+            {
+                trackedEntity.State = EntityState.Detached;
+            }
+
             _dbSet.Update(entity);
 
+            // No real async operation here, so just return a completed Task
+            return Task.CompletedTask;
+        }
         /// <inheritdoc/>
         public void Remove(T entity) =>
             _dbSet.Remove(entity);

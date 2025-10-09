@@ -1,4 +1,4 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
@@ -12,8 +12,8 @@ namespace POSPRA_WinFormsUI.Forms
     public partial class DashboardForm : Form
     {
         private readonly IServiceProvider _provider;
+        private readonly IFileRecordService _fileRecordService;
         private readonly ILogService _logService;
-        private readonly IFiscalService _fiscalService;
         private readonly IInvoiceService _invoiceService;
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
@@ -35,7 +35,7 @@ namespace POSPRA_WinFormsUI.Forms
         private Rectangle _printLinkBounds = Rectangle.Empty;
         private DataGridViewCell _hoveredCell = null;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService, IInvoiceService invoiceService)
+        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService)
         {
             InitializeComponent();
 
@@ -44,7 +44,6 @@ namespace POSPRA_WinFormsUI.Forms
             this.Load += DashboardForm_Load;
 
             _provider = provider;
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
             FormBorderStyle = FormBorderStyle.None;
@@ -99,6 +98,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             InitializeLogStatistics();
             _invoiceService = invoiceService;
+            _fileRecordService = fileRecordService;
         }
         private void InitializeLogStatistics()
         {
@@ -347,7 +347,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var response = await _fiscalService.GetAllAsync();
+                var response = await _fileRecordService.GetAllAsync();
                 InvoicesDataGridView.Rows.Clear();
 
                 if (response?.Data == null || !response.Data.Any())

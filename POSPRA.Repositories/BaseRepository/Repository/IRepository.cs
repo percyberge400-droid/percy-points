@@ -43,7 +43,7 @@ namespace POSPRA.Repositories.BaseRepository.Repository
         /// <summary>
         /// Updates an existing entity in the context.
         /// </summary>
-        void Update(T entity);
+        Task UpdateAsync(T entity);
 
         /// <summary>
         /// Update a collection of entities in a single call.

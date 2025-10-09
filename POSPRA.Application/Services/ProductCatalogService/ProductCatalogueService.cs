@@ -6,6 +6,7 @@ using POSPRA.DTOs;
 using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
+using POSPRA.Repositories.UnitOfWork;
 
 namespace POSPRA.Application.Services.ProductCatalogService
 {
@@ -13,12 +14,15 @@ namespace POSPRA.Application.Services.ProductCatalogService
     {
         private readonly SqlServerRepository<ProductCatalogue> _productCatalogueRepository;
         private readonly IMapper _mapper;
+        private readonly IProductCatalogueSQLiteRepository _productCatalogueSQLiteRepository;
+        private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
 
         public ProductCatalogueService(IProductCatalogueSQLServerRepository productCatalogueRepository, IMapper mapper,
-            SqlServerRepository<ProductCatalogue> sqlServerRepository)
+            SqlServerRepository<ProductCatalogue> sqlServerRepository, IProductCatalogueSQLiteRepository productCatalogueSQLiteRepository)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _productCatalogueRepository = sqlServerRepository;
+            _productCatalogueSQLiteRepository = productCatalogueSQLiteRepository;
         }
 
         public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(ProductCatalogueQueryDto dto)
@@ -55,6 +59,71 @@ namespace POSPRA.Application.Services.ProductCatalogService
             {
                 throw;
             }
+        }
+
+        /// <summary>
+        /// This method is used to create product catalogue in SQLite.
+        /// </summary>
+        /// <param name="productCatalogueDto"></param>
+        /// <returns></returns>
+        public async Task<ApiResponse<ProductCatalogueDto>> PostProductCatalog(ProductCatalogueDto productCatalogueDto)
+        {
+            if (productCatalogueDto == null)
+            {
+                return new ApiResponse<ProductCatalogueDto>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null!,
+                    string.Empty);
+            }
+
+            var entities = _mapper.Map<ProductCatalogue>(productCatalogueDto);
+            if (entities is not null)
+            {
+                await _productCatalogueSQLiteRepository.AddAsync(entities);
+                await _sqliteUnitOfWork.SaveChangesAsync();
+            }
+
+            var updatedDtos = _mapper.Map<ProductCatalogueDto>(entities);
+
+            return new ApiResponse<ProductCatalogueDto>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordSaved,
+                updatedDtos,
+                string.Empty);
+        }
+        /// <summary>
+        /// This API is used to get product catalog.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetProductCatalogue()
+        {
+            var output = await _productCatalogueSQLiteRepository.GetAllAsync();
+            var updatedDtos = _mapper.Map<List<ProductCatalogueDto>>(output);
+
+            if (updatedDtos.Any())
+                return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, updatedDtos, string.Empty);
+
+            return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
+        }
+
+        /// <summary>
+        /// This API is used to delete product catalog.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiResponse<object>> DeleteProductCatalogue()
+        {
+            var entities = await _productCatalogueSQLiteRepository.GetAllAsync();
+
+            if (entities.Any())
+            {
+                _productCatalogueSQLiteRepository.RemoveRange(entities);
+                await _sqliteUnitOfWork.SaveChangesAsync();
+
+                return new ApiResponse<object>(ApiStatusCode.Success, ResponseMessages.RecordDeleted, null, string.Empty);
+            }
+
+            return new ApiResponse<object>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
         }
     }
 }

@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
@@ -13,16 +15,15 @@ using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
-using POSPRA.Infrastructure.Data;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
-using POSPRA.Repositories.FiscalRepository;
+using POSPRA.Repositories.ConfigurationRepository;
+using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
-using System.Configuration; // ✅ Needed for ConfigurationManager
 using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
@@ -42,9 +43,9 @@ namespace POSPRA_WinFormsUI
             // ✅ Read from App.config
             string? dbPath = System.Configuration.ConfigurationManager.AppSettings["DefaultDBFilePath"];
 
+            // Fallback path if config value is missing or empty
             if (string.IsNullOrWhiteSpace(dbPath))
             {
-                // fallback path if not found
                 dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
             }
 
@@ -52,7 +53,7 @@ namespace POSPRA_WinFormsUI
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                //Directory.CreateDirectory(dbDirectory);
+                Directory.CreateDirectory(dbDirectory); // ✅ This line must be active
             }
 
             // ✅ Initialize SQLite database if needed
@@ -62,7 +63,7 @@ namespace POSPRA_WinFormsUI
 
             using (var context = new SqliteDbContext(sqliteOptions))
             {
-               // context.Database.EnsureCreated();
+                context.Database.EnsureCreated(); // Creates the DB file & schema if not present
             }
 
             // ✅ Load JSON config (for any additional modern config)
@@ -92,17 +93,19 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IFiscalRepository, FiscalRepository>();
+            services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IFiscalService, FiscalService>();
+            services.AddScoped<IFileRecordService, FileRecordService>();
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
+            services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+            services.AddScoped<IConfigurationService, ConfigurationService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IInvoiceService, InvoiceService>();

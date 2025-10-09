@@ -46,7 +46,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async Task CreateLog(string message, string type)
         {
-            await _logService.LogAsync(new Logs { Message = message, Type = type });
+            await _logService.CreateLogAsync(new Logs { Message = message, Type = type });
         }
 
         private bool ValidateDateRange()
