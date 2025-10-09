@@ -48,7 +48,6 @@ namespace POSPRA_WinFormsUI.Forms
             this.Load += (s, e) => CenterProgressBar();
             this.Resize += (s, e) => CenterProgressBar();
             this.Load += DashboardForm_Load;
-
             _provider = provider;
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
@@ -1783,11 +1782,6 @@ namespace POSPRA_WinFormsUI.Forms
                 // Silently handle errors in statistics refresh
                 Console.WriteLine($"Error refreshing log statistics: {ex.Message}");
             }
-        }
-
-        private void DashboardForm_Load_1(object sender, EventArgs e)
-        {
-
         }
     }
 }

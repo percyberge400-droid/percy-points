@@ -62,7 +62,7 @@ namespace POSPRA.Worker
                         //var logCloudSyncService = workerScope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
 
                         // ✅ Check if Cloud Sync is enabled
-                        if (await configurationService.IsCloudSyncEnabledAsync(new GetByPosIdDto { PosId = 110050 }))
+                        if (await configurationService.IsCloudSyncEnabledAsync(new GetByPosIdDto { PosId = _appSettings.POS }))
                         {
                             // 🔹 Sync invoices
                             await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
