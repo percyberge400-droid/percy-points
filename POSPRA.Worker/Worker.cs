@@ -62,16 +62,46 @@ namespace POSPRA.Worker
                         //var logCloudSyncService = workerScope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
 
                         // ✅ Check if Cloud Sync is enabled
-                        if (await configurationService.IsCloudSyncEnabledAsync(new GetByPosIdDto { PosId = 110050 }))
-                        {
-                            // 🔹 Sync invoices
-                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
+                        bool isCloudSyncEnabled = false;
 
-                            // 🔹 Sync logs
-                            //await logCloudSyncService.SyncLogAsync(cancellationToken, workerInstanceId);
+                        try
+                        {
+                            isCloudSyncEnabled = await configurationService.IsCloudSyncEnabledAsync(
+                                new GetByPosIdDto { PosId = _appSettings.POS }
+                            );
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            await LogWarningAsync($"Network issue while checking cloud sync status: {ex.Message}", workerName, workerInstanceId);
+                        }
+                        catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+                        {
+                            // Worker stopped gracefully
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            await LogErrorAsync($"Unexpected error while checking cloud sync status: {ex}", workerName, workerInstanceId);
+                        }
+
+                        // Continue only if sync is enabled and network still okay
+                        if (isCloudSyncEnabled)
+                        {
+                            try
+                            {
+                                await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
+                                // await logCloudSyncService.SyncLogAsync(cancellationToken, workerInstanceId);
+                            }
+                            catch (HttpRequestException ex)
+                            {
+                                await LogWarningAsync($"Network issue during invoice sync: {ex.Message}", workerName, workerInstanceId);
+                            }
+                            catch (Exception ex)
+                            {
+                                await LogErrorAsync($"Unexpected error during invoice sync: {ex}", workerName, workerInstanceId);
+                            }
                         }
                     }
-
                     // ⏳ delay before next iteration
                     await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                 }
@@ -86,5 +116,20 @@ namespace POSPRA.Worker
                 }
             }
         }
+
+        private async Task LogWarningAsync(string message, string workerName, string workerInstanceId)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var logService = scope.ServiceProvider.GetRequiredService<IWorkerLogService>();
+            await logService.LogAsync(AlertType.Warning, message, workerName, workerInstanceId, "NetworkIssue");
+        }
+
+        private async Task LogErrorAsync(string message, string workerName, string workerInstanceId)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var logService = scope.ServiceProvider.GetRequiredService<IWorkerLogService>();
+            await logService.LogAsync(AlertType.Error, message, workerName, workerInstanceId, "WorkerError");
+        }
+
     }
 }

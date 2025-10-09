@@ -93,6 +93,7 @@ namespace POSPRA_WinFormsUI
 
             SetupContextMenu();
             CaptureOriginalLayout();
+            CaptureOriginalLayout();
             InitializeEmptyGrid();
 
             StyleProductDataGridView();

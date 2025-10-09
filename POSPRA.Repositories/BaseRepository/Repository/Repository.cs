@@ -1,5 +1,5 @@
-﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace POSPRA.Repositories.BaseRepository.Repository
 {
@@ -96,7 +96,7 @@ namespace POSPRA.Repositories.BaseRepository.Repository
 
         /// <inheritdoc/>
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate) =>
-            await _dbSet.FirstOrDefaultAsync(predicate);
+           await _dbSet.FirstOrDefaultAsync(predicate);
 
         /// <summary>
         /// Updates a collection of entities in a single call.

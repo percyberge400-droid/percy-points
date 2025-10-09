@@ -105,8 +105,8 @@ namespace POSPRA.Application.Services.FileRecordService
                     POSID = posId,
                     InvoiceNumber = invoiceNumber,
                     InvoiceData = encryptedData,
-                    DateCreated = DateTime.UtcNow,
-                    DateModified = DateTime.UtcNow,
+                    DateCreated = DateTime.Now,
+                    DateModified = DateTime.Now,
                     IsSynced = (int)InvoiceStatus.NotSynced,
                     AttemptCount = 0
                 };
