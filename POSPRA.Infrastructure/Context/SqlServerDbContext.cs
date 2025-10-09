@@ -16,7 +16,7 @@ namespace POSPRA.Infrastructure.Context
         public DbSet<PosClients> PosClients { get; set; } = null!;
         public DbSet<Invoice> Invoice { get; set; } = null!;
         public DbSet<InvoiceItems> InvoiceItems { get; set; } = null!;
-        public DbSet<PosConfiguration> POSConfigurations { get; set; } = null!;
+        public DbSet<POSConfigurations> POSConfigurations { get; set; } = null!;
         public DbSet<PosStatus> POSStatus { get; set; }
         public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
         public DbSet<Logs> Logs { get; set; } = null!;

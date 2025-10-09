@@ -7,7 +7,6 @@ using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.BaseRepository;
-using POSPRA.Repositories.FiscalRepository;
 using POSPRA.Repositories.UnitOfWork;
 using System.Text.Json;
 
@@ -21,19 +20,13 @@ namespace POSPRA.Application.Services.LiveService
     public class LiveService(
         IOptions<AppSettings> options,
         SqlServerRepository<Invoice> invoiceRepository,
-        SqlServerRepository<InvoiceItems> invoiceItemsRepository,
         IMapper mapper,
-        ISqlServerUnitOfWork sqlServerUnitOfWork,
-        ISqliteUnitOfWork sqliteUnitOfWork,
-        IFiscalRepository fiscalRepository) : ILiveService
+        ISqlServerUnitOfWork sqlServerUnitOfWork) : ILiveService
     {
         private readonly AppSettings _settings = options.Value;
         private readonly SqlServerRepository<Invoice> _invoiceRepository = invoiceRepository;
-        private readonly SqlServerRepository<InvoiceItems> _invoiceItemsRepository = invoiceItemsRepository;
         private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork = sqlServerUnitOfWork;
-        private readonly ISqliteUnitOfWork _sqliteUnitOfWork = sqliteUnitOfWork;
-        private readonly IFiscalRepository _fiscalRepository = fiscalRepository;
 
         /// <summary>
         /// Decrypts a list of incoming <see cref="FileRecordDTO"/> objects,

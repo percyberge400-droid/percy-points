@@ -1,5 +1,4 @@
-﻿using POSPRA.Application.Services.FiscalService;
-using POSPRA.Application.Services.LogService;
+﻿using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
@@ -11,7 +10,6 @@ namespace POSPRA_WinFormsUI.Forms
     public partial class CatalogView : Form
     {
         private readonly ILogService _logService;
-        private readonly IFiscalService _fiscalService;
         private readonly IProductCatalogueService _productCatalogueService;
         private int _currentPage = 1;
         private int _pageSize = 50;
@@ -22,14 +20,13 @@ namespace POSPRA_WinFormsUI.Forms
         private const int SEARCH_DEBOUNCE_MS = 300;
 
 
-        public CatalogView(IFiscalService fiscalService, IProductCatalogueService productCatalogueService, ILogService logService)
+        public CatalogView(IProductCatalogueService productCatalogueService, ILogService logService)
         {
             InitializeComponent();
 
             this.Load += (s, e) => CenterProgressBar();
             this.Resize += (s, e) => CenterProgressBar();
 
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _productCatalogueService = productCatalogueService ?? throw new ArgumentNullException(nameof(productCatalogueService));
             _logService = logService;
 
@@ -174,7 +171,7 @@ namespace POSPRA_WinFormsUI.Forms
                     _ = CreateLog($"Fetched {apiProducts.Count} products from API", AlertType.Info);
 
                     // Step 2: Clear old data from local DB using FiscalService
-                    var clearResult = await _fiscalService.DeleteProductCatalogue();
+                    var clearResult = await _productCatalogueService.DeleteProductCatalogue();
 
                     if (clearResult.StatusCode != ApiStatusCode.Success && clearResult.StatusCode != ApiStatusCode.NotFound)
                     {
@@ -209,7 +206,7 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         try
                         {
-                            var output = await _fiscalService.PostProductCatalog(dto);
+                            var output = await _productCatalogueService.PostProductCatalog(dto);
 
                             if (output.StatusCode == ApiStatusCode.Success)
                             {
@@ -302,7 +299,7 @@ namespace POSPRA_WinFormsUI.Forms
                 try
                 {
                     // Fetch from local DB using FiscalService
-                    var response = await _fiscalService.GetProductCatalogue();
+                    var response = await _productCatalogueService.GetProductCatalogue();
 
                     var list = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
                     PopulateGrid(list);
@@ -335,7 +332,7 @@ namespace POSPRA_WinFormsUI.Forms
                         btnNext.Enabled = true;
                         btnPrev.Enabled = _currentPage > 1;
 
-                        var response = await _fiscalService.GetProductCatalogue();
+                        var response = await _productCatalogueService.GetProductCatalogue();
                         var list = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
                         PopulateGrid(list);
                         lblPageNumber.Text = $"Page {_currentPage}";
@@ -346,7 +343,7 @@ namespace POSPRA_WinFormsUI.Forms
                     btnPrev.Enabled = false;
 
                     // Fetch all items from local DB and filter in memory (original logic)
-                    var allResponse = await _fiscalService.GetProductCatalogue();
+                    var allResponse = await _productCatalogueService.GetProductCatalogue();
 
                     var allItems = allResponse?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
@@ -422,7 +419,7 @@ namespace POSPRA_WinFormsUI.Forms
                     Type = type,
                 };
 
-                await _logService.LogAsync(log);
+                await _logService.CreateLogAsync(log);
             }
             catch
             {

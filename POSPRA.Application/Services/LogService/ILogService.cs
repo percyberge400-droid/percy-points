@@ -1,6 +1,7 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.LogDtos;
+using POSPRA.DTOs.LogDTOs;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -10,13 +11,17 @@ namespace POSPRA.Application.Services.LogService
     /// </summary>
     public interface ILogService
     {
+        Task<ApiResponse<List<LogDto>>> GetAllCloudAsync();
+        Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs();
 
         Task<ApiResponse<List<LogDto>>> GetAllAsync();
 
-        /// <summary>
-        /// Persists a log entry to the **local SQLite** database.
-        /// </summary>
-        Task LogAsync(Logs model);
+        Task<ApiResponse<bool>> UpdateLog(List<Logs> dtos);
+        Task<ApiResponse<List<LogDto>>> UpdateLogAsync(List<LogDto> logDtos);
+
+        Task CreateLogAsync(Logs model);
+
+        Task<ApiResponse<List<Logs>>> CreateCloudLog(List<SyncLogDto> dto);
 
         Logs BuildLog(
                 string message,
@@ -27,10 +32,5 @@ namespace POSPRA.Application.Services.LogService
                 string? userName = null,
                 string? clientIp = null,
                 string? userAgent = null);
-        /// <summary>
-        /// Persists an error log entry to the **SQL Server** database.
-        /// </summary>
-        /// 
-        Task SaveErrorLogAsync(ErrorLogDto dto);
     }
 }

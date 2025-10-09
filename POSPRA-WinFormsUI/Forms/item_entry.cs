@@ -1,4 +1,6 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using POSPRA.Application.Services.FileRecordService;
+using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
@@ -24,23 +26,22 @@ namespace POSPRA_WinFormsUI
         private static List<InvoiceItems> _sessionItems = new();
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
-        private readonly IFiscalService _fiscalService;
         private bool _isSaving = false;
 
         //logs
         private readonly ILogService _logService;
+        private readonly IInvoiceService _invoiceService;
 
         #endregion
 
         #region Constructor / Initialization
 
-        public item_entry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
+        public item_entry(IHttpClientFactory httpClientFactory, ILogService logService, IInvoiceService invoiceService)
         {
             InitializeComponent();
             this.Load += item_entry_Load;
 
 
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
 
 
             // Load POSID from app.config (stored encrypted)
@@ -95,6 +96,7 @@ namespace POSPRA_WinFormsUI
 
 
             _logService = logService;
+            _invoiceService = invoiceService;
         }
 
         #endregion
@@ -230,7 +232,7 @@ namespace POSPRA_WinFormsUI
                 Type = type,
             };
 
-            await _logService.LogAsync(log);
+            await _logService.CreateLogAsync(log);
         }
 
         private void SetupContextMenu()
@@ -432,7 +434,7 @@ namespace POSPRA_WinFormsUI
 
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
-                var output = await _fiscalService.CreateAsync(invoiceDto);
+                var output = await _invoiceService.CreateAsync(invoiceDto);
 
                 if (output.StatusCode == ApiStatusCode.Success)
                 {

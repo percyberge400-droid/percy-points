@@ -1,5 +1,6 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
@@ -25,24 +26,25 @@ namespace POSPRA_WinFormsUI
         private static List<InvoiceItems> _sessionItems = new();
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
-        private readonly IFiscalService _fiscalService;
         private bool _isSaving = false;
 
         //logs
         private readonly ILogService _logService;
+        private readonly IInvoiceService _invoiceService;
+        private readonly IProductCatalogueService _productCatalogueService;
 
         #endregion
 
         #region Constructor / Initialization
 
-        public ItemEntry(IFiscalService fiscalService, IHttpClientFactory httpClientFactory, ILogService logService)
+        public ItemEntry(
+            IHttpClientFactory httpClientFactory,
+            ILogService logService,
+            IProductCatalogueService productCatalogueService,
+            IInvoiceService invoiceService)
         {
             InitializeComponent();
             this.Load += item_entry_Load;
-
-
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
-
 
             // Load POSID from app.config (stored encrypted)
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
@@ -97,6 +99,8 @@ namespace POSPRA_WinFormsUI
             SetButtonImage(btnsearch, Resources.search, Color.Black);
 
             _logService = logService;
+            _productCatalogueService = productCatalogueService;
+            _invoiceService = invoiceService;
         }
 
         private void BtnSave_MouseEnter(object? sender, EventArgs e)
@@ -237,7 +241,7 @@ namespace POSPRA_WinFormsUI
                 Type = type,
             };
 
-            await _logService.LogAsync(log);
+            await _logService.CreateLogAsync(log);
         }
 
         private void SetupContextMenu()
@@ -439,7 +443,7 @@ namespace POSPRA_WinFormsUI
 
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
-                var output = await _fiscalService.CreateAsync(invoiceDto);
+                var output = await _invoiceService.CreateAsync(invoiceDto);
                 // call invoice print generator
                 // output.Data.FBRInvoiceNumber
                 if (output.StatusCode == ApiStatusCode.Success)
@@ -535,7 +539,7 @@ namespace POSPRA_WinFormsUI
         // Call this from your click handler (unchanged)
         private async void btnsearch_Click(object sender, EventArgs e)
         {
-            var response = await _fiscalService.GetProductCatalogue();
+            var response = await _productCatalogueService.GetProductCatalogue();
             var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
             using (var dlg = CreateRealtimeSearchDialog(allItems.ToList()))

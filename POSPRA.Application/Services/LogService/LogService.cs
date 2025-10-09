@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Identity.Client;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.LogDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
@@ -20,9 +22,10 @@ namespace POSPRA.Application.Services.LogService
     {
         private readonly ILogSQLiteRepository _logSQLiteRepository;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
-        private readonly SqlServerRepository<object> _sqlServerRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AutoMapper.IMapper _mapper;
+        private readonly ILogSQLServerRepository _logSQLServerRepository;
+        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogService"/>.
@@ -31,31 +34,112 @@ namespace POSPRA.Application.Services.LogService
         /// <param name="sqliteUnitOfWork">Unit of Work for SQLite context.</param>
         public LogService(ILogSQLiteRepository logSQLiteRepository,
             ISqliteUnitOfWork sqliteUnitOfWork,
-            SqlServerRepository<object> sqlServerRepository,
             IHttpContextAccessor httpContextAccessor,
-            AutoMapper.IMapper mapper)
+            AutoMapper.IMapper mapper,
+            ILogSQLServerRepository logSQLServerRepository,
+            ISqlServerUnitOfWork sqlServerUnitOfWork)
         {
             _logSQLiteRepository = logSQLiteRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
-            _sqlServerRepository = sqlServerRepository;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
+            _logSQLServerRepository = logSQLServerRepository;
+            _sqlServerUnitOfWork = sqlServerUnitOfWork;
         }
 
+        public async Task<ApiResponse<List<LogDto>>> GetAllCloudAsync()
+        {
+            var allRecords = await _logSQLServerRepository.GetAllAsync();
+            var logDtos = _mapper.Map<List<LogDto>>(allRecords);
+
+            if (logDtos.Any())
+                return new ApiResponse<List<LogDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, logDtos, string.Empty);
+
+            return new ApiResponse<List<LogDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null!, string.Empty);
+        }
+
+        public async Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs()
+        {
+            // Await the repository call directly (don't use .Result)
+            var allRecords = await _logSQLiteRepository.GetAllAsync();
+
+            // Filter in memory for unsynced records
+            var unsynced = allRecords
+                .Where(x => !x.IsSynced)
+                .Take(1000)
+                .ToList();
+
+            // Map to DTOs
+            var logDtos = _mapper.Map<List<SyncLogDto>>(unsynced);
+            if (logDtos.Any())
+                return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, logDtos, string.Empty);
+
+            return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null!, string.Empty);
+        }
 
         public async Task<ApiResponse<List<LogDto>>> GetAllAsync()
         {
             var output = await _logSQLiteRepository.GetAllAsync();
             var logDTO = _mapper.Map<List<LogDto>>(output);
 
-            return new ApiResponse<List<LogDto>>(null, null, logDTO, null);
+            return new ApiResponse<List<LogDto>>(null!, null!, logDTO, null!);
+        }
+
+        public async Task<ApiResponse<bool>> UpdateLog(List<Logs> dtos)
+        {
+            if (dtos == null || !dtos.Any())
+                return new ApiResponse<bool>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    false,
+                    string.Empty);
+
+            _logSQLiteRepository.UpdateRange(dtos);
+           await _sqliteUnitOfWork.SaveChangesAsync();
+
+            return new ApiResponse<bool>(
+            ApiStatusCode.Success,
+            ResponseMessages.RecordUpdated,
+            true,
+            string.Empty);
+        }
+
+        public async Task<ApiResponse<List<LogDto>>> UpdateLogAsync(List<LogDto> logDtos)
+        {
+            if (logDtos == null || !logDtos.Any())
+            {
+                return new ApiResponse<List<LogDto>>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null!,
+                    string.Empty);
+            }
+
+            // Map to entities
+            var entities = _mapper.Map<List<Logs>>(logDtos);
+
+            // Mark all as synced
+            entities.ForEach(log => log.IsSynced = true);
+
+            // Update in batch
+            _logSQLServerRepository.UpdateRange(entities);
+            await _sqlServerUnitOfWork.SaveChangesAsync();
+
+            // Map back to DTOs
+            var updatedDtos = _mapper.Map<List<LogDto>>(entities);
+
+            return new ApiResponse<List<LogDto>>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordUpdated,
+                updatedDtos,
+                string.Empty);
         }
 
         /// <summary>
         /// Logs to local SQLite with retry and fallback-to-file.
         /// Automatically fills CreatedAtUtc/CreatedAtPk in the entity.
         /// </summary>
-        public async Task LogAsync(Logs model)
+        public async Task CreateLogAsync(Logs model)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -100,6 +184,36 @@ namespace POSPRA.Application.Services.LogService
             }
         }
 
+        public async Task<ApiResponse<List<Logs>>> CreateCloudLog(List<SyncLogDto> dto)
+        {
+            if (dto is null || !dto.Any())
+                return new ApiResponse<List<Logs>>(ApiStatusCode.Error, ResponseMessages.InvalidInput, null!, string.Empty);
+
+            var logs = _mapper.Map<List<Logs>>(dto);
+            
+            await _logSQLServerRepository.AddRangeAsync(logs);
+            await _sqlServerUnitOfWork.SaveChangesAsync();
+
+            // Simulate response evaluation (you can replace this with your actual logic)
+            List<Logs> syncedRecords = new List<Logs>();
+            bool anySaved = true;
+
+            foreach (var item in logs)
+            {
+                item.IsSynced = true;
+                syncedRecords.Add(item);
+            }
+
+            if (anySaved)
+            {
+                return new ApiResponse<List<Logs>>(ApiStatusCode.Success, ResponseMessages.RecordSaved, syncedRecords, string.Empty);
+            }
+            else
+            {
+                return new ApiResponse<List<Logs>>(ApiStatusCode.Error, "No records were synced.", null!, string.Empty);
+            }
+        }
+
         /// <summary>
         /// Build a fully populated Logs entity from the current HTTP context
         /// and any extra data you supply.
@@ -139,7 +253,6 @@ namespace POSPRA.Application.Services.LogService
                 AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString()
             };
         }
-
 
         /// <summary>
         /// Creates a backup of the SQLite database.
@@ -187,34 +300,6 @@ namespace POSPRA.Application.Services.LogService
                 {
                     // swallow exception to prevent app crash
                 }
-            }
-        }
-
-
-        // ✅ 2. Central SQL Server error log
-        public async Task SaveErrorLogAsync(ErrorLogDto dto)
-        {
-            try
-            {
-                var parameters = new[]
-                {
-                    new Microsoft.Data.SqlClient.SqlParameter("@POSID",          SqlDbType.BigInt) { Value = dto.POSID },
-                    new Microsoft.Data.SqlClient.SqlParameter("@ActualData",     SqlDbType.VarChar, 8000) { Value =dto.ActualData},
-                    new Microsoft.Data.SqlClient.SqlParameter("@IsValidSignature",SqlDbType.Bit)   { Value =dto.IsValidSignature},
-                    new Microsoft.Data.SqlClient.SqlParameter("@Message",        SqlDbType.VarChar, 8000) { Value =dto.Message},
-                    new Microsoft.Data.SqlClient.SqlParameter("@TotalFiles",     SqlDbType.Int)    { Value =dto.TotalFiles}
-                };
-
-                // We don’t need row results, so use object as T and no mapper.
-                await _sqlServerRepository.ExecuteProcedureAsync<object>(
-                    "sp_SaveErroLog",
-                    map: null,
-                    parameters: parameters
-                );
-            }
-            catch (Exception ex)
-            {
-                throw; // or swallow if you prefer
             }
         }
     }

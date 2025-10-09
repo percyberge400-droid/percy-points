@@ -1,4 +1,4 @@
-﻿using POSPRA.Application.Services.FiscalService;
+﻿using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
@@ -12,8 +12,8 @@ namespace POSPRA_WinFormsUI.Forms
     public partial class DashboardForm : Form
     {
         private readonly IServiceProvider _provider;
+        private readonly IFileRecordService _fileRecordService;
         private readonly ILogService _logService;
-        private readonly IFiscalService _fiscalService;
         private readonly IInvoiceService _invoiceService;
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
@@ -41,7 +41,7 @@ namespace POSPRA_WinFormsUI.Forms
         private int _lastLogCount = 0;
         private DateTime _lastRefreshTime = DateTime.Now;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService, IFiscalService fiscalService, IInvoiceService invoiceService)
+        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService)
         {
             InitializeComponent();
 
@@ -50,7 +50,6 @@ namespace POSPRA_WinFormsUI.Forms
             this.Load += DashboardForm_Load;
 
             _provider = provider;
-            _fiscalService = fiscalService ?? throw new ArgumentNullException(nameof(fiscalService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
             FormBorderStyle = FormBorderStyle.None;
@@ -104,8 +103,10 @@ namespace POSPRA_WinFormsUI.Forms
             SetButtonImage(btnClearFilter, Resources.clearFilter, ColorTranslator.FromHtml("#DC2626"));
 
             InitializeLogStatistics();
-            _invoiceService = invoiceService;
             InitializeAutoRefreshTimer();
+            _invoiceService = invoiceService;
+            _fileRecordService = fileRecordService;
+
         }
 
         #region AutoRefresh
@@ -163,7 +164,7 @@ namespace POSPRA_WinFormsUI.Forms
             try
             {
                 // Get counts only - lightweight operation
-                var invoiceResponse = await _fiscalService.GetAllAsync();
+                var invoiceResponse = await _fileRecordService.GetAllAsync();
                 var logResponse = await _logService.GetAllAsync();
 
                 if (invoiceResponse?.Data == null || logResponse?.Data == null)
@@ -252,7 +253,6 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
         #endregion
-
         private void InitializeLogStatistics()
         {
             // Set initial values
@@ -500,7 +500,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var response = await _fiscalService.GetAllAsync();
+                var response = await _fileRecordService.GetAllAsync();
                 InvoicesDataGridView.Rows.Clear();
 
                 if (response?.Data == null || !response.Data.Any())

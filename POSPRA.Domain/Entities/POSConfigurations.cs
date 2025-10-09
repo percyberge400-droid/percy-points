@@ -1,6 +1,6 @@
 ﻿namespace POSPRA.Domain.Entities
 {
-    public class PosConfiguration
+    public class POSConfigurations
     {
         public int Id { get; set; }
         public int? LogInterval { get; set; }
@@ -13,6 +13,7 @@
         public string? FilePath { get; set; }
         public string? Version { get; set; }
         public bool IsActive { get; set; }
+        public bool IsCloudSyncEnabled { get; set; }
         public DateTime? DateCreated { get; set; }
         public long? POSID { get; set; }
         public int? FileSize { get; set; }

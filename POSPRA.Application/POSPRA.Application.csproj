@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Services\FiscalService\SendInvalidModelToServer.cs" />
+    <Compile Remove="Services\CloudSyncService\NewFolder\**" />
+    <Compile Remove="Services\FiscalService\**" />
+    <EmbeddedResource Remove="Services\CloudSyncService\NewFolder\**" />
+    <EmbeddedResource Remove="Services\FiscalService\**" />
+    <None Remove="Services\CloudSyncService\NewFolder\**" />
+    <None Remove="Services\FiscalService\**" />
   </ItemGroup>
 
   <ItemGroup>
