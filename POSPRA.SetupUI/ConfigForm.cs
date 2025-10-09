@@ -54,7 +54,9 @@ namespace POSPRA.SetupUI
             this.BringToFront();
             this.Activate();
 
-            this.Load += ConfigForm_Load;
+            //this.StartPosition = FormStartPosition.CenterScreen;
+
+            //this.Load += ConfigForm_Load;
 
             // Optional: Prevent user from sending it to back
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -75,6 +77,8 @@ namespace POSPRA.SetupUI
             // Hide progress bar initially
             if (progressBar != null) progressBar.Visible = false;
 
+
+
             // Load logo from App.config if available
             string logoKey = ConfigurationManager.AppSettings["LOGO"];
             if (!string.IsNullOrEmpty(logoKey))
@@ -87,6 +91,16 @@ namespace POSPRA.SetupUI
                     LOGO_img.AutoSize = true;
                 }
             }
+            string value = ConfigurationManager.AppSettings["DefaultDBFilePath"];
+            ClearAllFields();
+
+            // Load default DB path from App.config
+            string defaultPath = ConfigurationManager.AppSettings["DefaultDBFilePath"];
+            if (!string.IsNullOrWhiteSpace(defaultPath))
+            {
+                txtFilePath.Text = defaultPath;
+            }
+
         }
 
         #region Progress Bar Helper
@@ -136,35 +150,6 @@ namespace POSPRA.SetupUI
             this.BringToFront();    // make sure visible
         }
 
-        private void ConfigForm_Load(object sender, EventArgs e)
-        {
-            this.StartPosition = FormStartPosition.CenterScreen;
-
-            try
-            {
-                var doc = new XmlDocument();
-                doc.Load(_xmlConfigPath);
-
-                var userNode = doc.SelectSingleNode("//appSettings/add[@key='Username']");
-                var passNode = doc.SelectSingleNode("//appSettings/add[@key='Password']");
-                var dbPathNode = doc.SelectSingleNode("//appSettings/add[@key='DefaultDBFilePath']");
-
-                if (userNode != null)
-                    txtUsername.Text = AesEncryptionHelper.Decrypt(userNode.Attributes["value"].Value);
-
-                if (passNode != null)
-                    txtPassword.Text = AesEncryptionHelper.Decrypt(passNode.Attributes["value"].Value);
-
-                if (dbPathNode != null)
-                    txtFilePath.Text = dbPathNode.Attributes["value"].Value; // not encrypted
-            }
-            catch (Exception ex)
-            {
-                //WindowsLocalAppNotification.Show($"Error reading config: {ex.Message}");
-                MessageBox.Show($"Error reading config: {ex.Message}");
-            }
-        }
-
         // --- Browse button for selecting DB file path ---
         private void btnBrowse_Click(object sender, EventArgs e)
         {
@@ -180,6 +165,13 @@ namespace POSPRA.SetupUI
                 }
             }
         }
+
+        private void ClearAllFields()
+        {
+            txtUsername.Clear();
+            txtPassword.Clear();
+        }
+
 
         private void txtUsername_KeyPress(object sender, KeyPressEventArgs e) { }
         private void txtPassword_KeyPress(object sender, KeyPressEventArgs e) { }
@@ -207,7 +199,6 @@ namespace POSPRA.SetupUI
                 string username = txtUsername.Text.Trim();
                 string password = txtPassword.Text.Trim();
                 string dbPath = txtFilePath.Text.Trim();
-                string macaddress = txtmac.Text.Trim();
 
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
@@ -235,7 +226,7 @@ namespace POSPRA.SetupUI
                             Directory.CreateDirectory(folderPath);
 
                         // Get MAC
-                        string macAddress = ConfigurationManager.AppSettings["mac"] ?? GetMacAddress();
+                        string macaddress = GetMacAddress();
 
                         // Prepare auth payload
                         var payload = new
@@ -280,9 +271,6 @@ namespace POSPRA.SetupUI
 
                             if (statusCode != "200" || !data)
                                 throw new Exception("Authentication failed: " + (message ?? "Unknown error"));
-
-                            MessageBox.Show("Authentication successful: " + message, "Success",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
 
                         // Save XML config
@@ -301,7 +289,7 @@ namespace POSPRA.SetupUI
 
                         UpdateOrCreateNode(doc, "Username", AesEncryptionHelper.Encrypt(username));
                         UpdateOrCreateNode(doc, "Password", AesEncryptionHelper.Encrypt(password));
-                        UpdateOrCreateNode(doc, "MacAddress", macAddress);
+                        UpdateOrCreateNode(doc, "MacAddress", macaddress);
 
                         doc.Save(_xmlConfigPath);
 
@@ -326,9 +314,6 @@ namespace POSPRA.SetupUI
                         this.TopMost = false;
                         SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
                                      SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
-                        MessageBox.Show("Configuration saved successfully.", "Success",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                         Environment.Exit(0);
                     }

@@ -40,13 +40,11 @@
             btnBrowse = new Button();
             txtFilePath = new TextBox();
             label3 = new Label();
-            txtmac = new TextBox();
             txtPassword = new TextBox();
-            mac = new Label();
             label2 = new Label();
             txtUsername = new TextBox();
-            label1 = new Label();
             btnOk = new Button();
+            label1 = new Label();
             mainPanel.SuspendLayout();
             headerPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -56,18 +54,16 @@
             // mainPanel
             // 
             mainPanel.BackColor = Color.White;
+            mainPanel.Controls.Add(label1);
             mainPanel.Controls.Add(btnCancel);
             mainPanel.Controls.Add(progressBar);
             mainPanel.Controls.Add(headerPanel);
             mainPanel.Controls.Add(btnBrowse);
             mainPanel.Controls.Add(txtFilePath);
             mainPanel.Controls.Add(label3);
-            mainPanel.Controls.Add(txtmac);
             mainPanel.Controls.Add(txtPassword);
-            mainPanel.Controls.Add(mac);
             mainPanel.Controls.Add(label2);
             mainPanel.Controls.Add(txtUsername);
-            mainPanel.Controls.Add(label1);
             mainPanel.Controls.Add(btnOk);
             mainPanel.Dock = DockStyle.Fill;
             mainPanel.Location = new Point(0, 0);
@@ -84,7 +80,7 @@
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(400, 442);
+            btnCancel.Location = new Point(400, 388);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(110, 45);
             btnCancel.TabIndex = 11;
@@ -94,7 +90,7 @@
             // 
             // progressBar
             // 
-            progressBar.Location = new Point(220, 493);
+            progressBar.Location = new Point(220, 451);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(290, 32);
             progressBar.TabIndex = 9;
@@ -168,7 +164,7 @@
             btnBrowse.FlatStyle = FlatStyle.Flat;
             btnBrowse.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
             btnBrowse.ForeColor = Color.White;
-            btnBrowse.Location = new Point(460, 330);
+            btnBrowse.Location = new Point(460, 335);
             btnBrowse.Name = "btnBrowse";
             btnBrowse.Size = new Size(50, 32);
             btnBrowse.TabIndex = 3;
@@ -181,7 +177,7 @@
             txtFilePath.BackColor = Color.White;
             txtFilePath.BorderStyle = BorderStyle.FixedSingle;
             txtFilePath.Font = new Font("Segoe UI", 11F);
-            txtFilePath.Location = new Point(220, 330);
+            txtFilePath.Location = new Point(220, 335);
             txtFilePath.Name = "txtFilePath";
             txtFilePath.Size = new Size(230, 32);
             txtFilePath.TabIndex = 8;
@@ -191,79 +187,45 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label3.ForeColor = Color.FromArgb(64, 64, 64);
-            label3.Location = new Point(220, 300);
+            label3.Location = new Point(220, 305);
             label3.Name = "label3";
-            label3.Size = new Size(103, 23);
+            label3.Size = new Size(147, 23);
             label3.TabIndex = 7;
-            label3.Text = "DB File Path";
-            // 
-            // txtmac
-            // 
-            txtmac.BackColor = Color.White;
-            txtmac.BorderStyle = BorderStyle.FixedSingle;
-            txtmac.Font = new Font("Segoe UI", 11F);
-            txtmac.Location = new Point(220, 404);
-            txtmac.MaxLength = 120;
-            txtmac.Name = "txtmac";
-            txtmac.PasswordChar = '•';
-            txtmac.Size = new Size(290, 32);
-            txtmac.TabIndex = 2;
+            label3.Text = "Local DB File Path";
             // 
             // txtPassword
             // 
             txtPassword.BackColor = Color.White;
             txtPassword.BorderStyle = BorderStyle.FixedSingle;
             txtPassword.Font = new Font("Segoe UI", 11F);
-            txtPassword.Location = new Point(220, 250);
+            txtPassword.Location = new Point(220, 255);
             txtPassword.MaxLength = 120;
             txtPassword.Name = "txtPassword";
             txtPassword.PasswordChar = '•';
             txtPassword.Size = new Size(290, 32);
             txtPassword.TabIndex = 2;
             // 
-            // mac
-            // 
-            mac.AutoSize = true;
-            mac.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            mac.ForeColor = Color.FromArgb(64, 64, 64);
-            mac.Location = new Point(220, 378);
-            mac.Name = "mac";
-            mac.Size = new Size(108, 23);
-            mac.TabIndex = 5;
-            mac.Text = "Mac Address";
-            // 
             // label2
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label2.ForeColor = Color.FromArgb(64, 64, 64);
-            label2.Location = new Point(220, 220);
+            label2.Location = new Point(220, 225);
             label2.Name = "label2";
-            label2.Size = new Size(105, 23);
+            label2.Size = new Size(55, 23);
             label2.TabIndex = 5;
-            label2.Text = "Access Code";
+            label2.Text = "Token";
             // 
             // txtUsername
             // 
             txtUsername.BackColor = Color.White;
             txtUsername.BorderStyle = BorderStyle.FixedSingle;
             txtUsername.Font = new Font("Segoe UI", 11F);
-            txtUsername.Location = new Point(220, 170);
+            txtUsername.Location = new Point(220, 175);
             txtUsername.MaxLength = 120;
             txtUsername.Name = "txtUsername";
             txtUsername.Size = new Size(290, 32);
             txtUsername.TabIndex = 1;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
-            label1.ForeColor = Color.FromArgb(64, 64, 64);
-            label1.Location = new Point(220, 140);
-            label1.Name = "label1";
-            label1.Size = new Size(64, 23);
-            label1.TabIndex = 3;
-            label1.Text = "POS ID";
             // 
             // btnOk
             // 
@@ -273,7 +235,7 @@
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnOk.ForeColor = Color.White;
-            btnOk.Location = new Point(220, 442);
+            btnOk.Location = new Point(220, 388);
             btnOk.Name = "btnOk";
             btnOk.Size = new Size(110, 45);
             btnOk.TabIndex = 4;
@@ -281,17 +243,31 @@
             btnOk.UseVisualStyleBackColor = false;
             btnOk.Click += btnOk_Click;
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            label1.ForeColor = Color.FromArgb(64, 64, 64);
+            label1.Location = new Point(220, 144);
+            label1.Name = "label1";
+            label1.Size = new Size(64, 23);
+            label1.TabIndex = 12;
+            label1.Text = "POS ID";
+            // 
             // ConfigForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(727, 528);
+            ControlBox = false;
             Controls.Add(mainPanel);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            FormBorderStyle = FormBorderStyle.None;
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "ConfigForm";
+            ShowIcon = false;
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "POS Configuration";
             TopMost = true;
             mainPanel.ResumeLayout(false);
             mainPanel.PerformLayout();
@@ -300,6 +276,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ((System.ComponentModel.ISupportInitialize)LOGO_img).EndInit();
             ResumeLayout(false);
+
         }
 
         #endregion
@@ -310,7 +287,6 @@
         private Label lblSubtitle;
         private PictureBox pictureBox1;
         private PictureBox LOGO_img;
-        private Label label1;
         private TextBox txtUsername;
         private Label label2;
         private TextBox txtPassword;
@@ -334,7 +310,6 @@
         }
         private ProgressBar progressBar;
         private Button btnCancel;
-        private TextBox txtmac;
-        private Label mac;
+        private Label label1;
     }
 }
