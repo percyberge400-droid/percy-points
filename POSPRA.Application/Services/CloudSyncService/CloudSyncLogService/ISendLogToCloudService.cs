@@ -2,6 +2,6 @@
 {
     public interface ISendLogToCloudService
     {
-        Task SyncLogAsync(CancellationToken token, string workerId);
+        Task SyncLogAsync();
     }
 }
