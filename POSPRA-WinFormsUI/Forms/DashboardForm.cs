@@ -70,6 +70,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.Click += btnFilterSynced_Click;
             btnFilter.Click += btnFilterInvoices_Click;
             btnExportInvoice.Click += btnExportInvoice_Click;
+            btnSyncLogs.Click += btnSyncLogs_Click;
 
             btnExportLogs.Click += btnExportLogs_Click;
             panelinvoicechart.Resize -= Panel_Resize;
@@ -610,25 +611,27 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         // Optimized Load Logs
         // ----------------------------------------
-        private async Task LoadAndShowLogsAsync(bool skipDateFilter = false)
+        private async Task LoadAndShowLogsAsync(IEnumerable<LogDto>? preloadedLogs = null, bool skipDateFilter = false)
         {
             try
             {
-                var response = await _logService.GetAllAsync();
+                // ✅ Use preloaded logs (from cloud sync) if provided
+                var response = preloadedLogs == null ? await _logService.GetAllAsync() : null;
+                var logs = preloadedLogs ?? response?.Data;
+
                 LogsDataGridView.Rows.Clear();
 
-                if (response?.Data == null || !response.Data.Any())
+                if (logs == null || !logs.Any())
                 {
                     WindowsLocalAppNotification.Show("Logs", "No logs available to display");
                     AlertManager.ShowWarning("No logs available to display");
 
-                    // Reset log statistics
                     CalculateLogStatistics(null);
                     UpdateLogStatisticsDisplay();
                     return;
                 }
 
-                IEnumerable<LogDto> filteredLogs = response.Data;
+                IEnumerable<LogDto> filteredLogs = logs;
 
                 if (!skipDateFilter)
                 {
@@ -637,14 +640,13 @@ namespace POSPRA_WinFormsUI.Forms
                         l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
-                // ✅ Order by CreatedAtPk DESC (latest log first)
+                // ✅ Order by date (latest first)
                 var logsList = filteredLogs
                     .OrderByDescending(l => l.CreatedAtPk)
                     .ToList();
 
                 int totalLogs = logsList.Count;
 
-                // Calculate log statistics
                 CalculateLogStatistics(logsList);
                 UpdateLogStatisticsDisplay();
 
@@ -660,14 +662,12 @@ namespace POSPRA_WinFormsUI.Forms
                 }
 
                 var rows = new List<DataGridViewRow>();
-
                 for (int i = 0; i < logsList.Count; i++)
                 {
                     var log = logsList[i];
                     var row = new DataGridViewRow();
                     row.CreateCells(LogsDataGridView);
 
-                    // ✅ Sr No. (1 = latest log at the top)
                     row.Cells[LogsDataGridView.Columns["colLogID"].Index].Value = i + 1;
                     row.Cells[LogsDataGridView.Columns["colMessage"].Index].Value = log.Message ?? "No message";
                     row.Cells[LogsDataGridView.Columns["colException"].Index].Value = log.Type ?? "N/A";
@@ -689,18 +689,15 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     progressBar.Visible = false;
                 }
+
                 LogsDataGridView.ClearSelection();
-                if (LogsDataGridView.Rows.Count > 0)
-                {
-                    LogsDataGridView.CurrentCell = null;
-                }
+                LogsDataGridView.CurrentCell = null;
             }
             catch (Exception ex)
             {
                 LogsDataGridView.ResumeLayout(true);
                 if (progressBar != null) progressBar.Visible = false;
 
-                // Reset log statistics on error
                 CalculateLogStatistics(null);
                 UpdateLogStatisticsDisplay();
 
@@ -790,6 +787,65 @@ namespace POSPRA_WinFormsUI.Forms
             }
 
             return field;
+        }
+
+
+        // ----------------------------------------
+        // Sync Logs Button
+        // ----------------------------------------
+        private async void btnSyncLogs_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // ✅ Get cloud logs
+                var cloudResponse = await _logService.GetAllCloudAsync();
+                LogsDataGridView.Rows.Clear();
+
+                if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
+                {
+                    WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
+                    AlertManager.ShowWarning("No synced logs available to display");
+                    return;
+                }
+
+                // ✅ Get local logs
+                var localResponse = await _logService.GetAllAsync();
+
+                // ✅ Merge and remove duplicates
+                var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
+
+                // ✅ Pass merged logs to loader
+                await LoadAndShowLogsAsync(mergedLogs);
+            }
+            catch (Exception ex)
+            {
+                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
+                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+            }
+        }
+        private List<LogDto> MergeLogs(IEnumerable<LogDto>? localLogs, IEnumerable<LogDto>? cloudLogs)
+        {
+            var merged = new List<LogDto>();
+
+            if (localLogs != null)
+                merged.AddRange(localLogs);
+
+            if (cloudLogs != null)
+                merged.AddRange(cloudLogs);
+
+            // ✅ Deduplicate based on Message, Type, and Timestamp
+            var deduped = merged
+                .GroupBy(l => new
+                {
+                    Message = l.Message?.Trim() ?? "",
+                    Type = l.Type?.Trim() ?? "",
+                    Timestamp = l.CreatedAtPk.ToString("yyyy-MM-dd HH:mm:ss")
+                })
+                .Select(g => g.First())
+                .OrderByDescending(l => l.CreatedAtPk)
+                .ToList();
+
+            return deduped;
         }
 
 
@@ -1037,7 +1093,7 @@ namespace POSPRA_WinFormsUI.Forms
                 await RunSingleLoad(async () =>
                 {
                     await LoadAndShowInvoicesAsync(skipDateFilter);
-                    await LoadAndShowLogsAsync(skipDateFilter);
+                    await LoadAndShowLogsAsync(skipDateFilter: skipDateFilter);
                 });
 
                 // Update counts for auto-refresh
@@ -1754,34 +1810,6 @@ namespace POSPRA_WinFormsUI.Forms
         {
             base.OnResize(e);
             UpdateLogStatisticsLayout();
-        }
-
-        // Optional: Add method to refresh log statistics independently
-        public async Task RefreshLogStatisticsAsync()
-        {
-            try
-            {
-                var response = await _logService.GetAllAsync();
-                if (response?.Data != null)
-                {
-                    IEnumerable<LogDto> filteredLogs = response.Data;
-
-                    if (!_isInitialLoad) // Apply date filter after initial load
-                    {
-                        filteredLogs = filteredLogs.Where(l =>
-                            l.CreatedAtPk >= _startDate &&
-                            l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
-                    }
-
-                    CalculateLogStatistics(filteredLogs);
-                    UpdateLogStatisticsDisplay();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Silently handle errors in statistics refresh
-                Console.WriteLine($"Error refreshing log statistics: {ex.Message}");
-            }
         }
     }
 }

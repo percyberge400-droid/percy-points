@@ -94,6 +94,7 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView = new DataGridView();
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();
+            btnSyncLogs = new Button();
             btnExportLogs = new Button();
             LogsDataGridView = new DataGridView();
             labelLogsTitle = new Label();
@@ -497,6 +498,7 @@ namespace POSPRA_WinFormsUI.Forms
             // panelLogs
             // 
             panelLogs.BackColor = Color.White;
+            panelLogs.Controls.Add(btnSyncLogs);
             panelLogs.Controls.Add(btnExportLogs);
             panelLogs.Controls.Add(LogsDataGridView);
             panelLogs.Controls.Add(labelLogsTitle);
@@ -507,6 +509,22 @@ namespace POSPRA_WinFormsUI.Forms
             panelLogs.Padding = new Padding(8);
             panelLogs.Size = new Size(1406, 281);
             panelLogs.TabIndex = 1;
+            // 
+            // btnSyncLogs
+            // 
+            btnSyncLogs.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnSyncLogs.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnSyncLogs.BackColor = Color.SlateBlue;
+            btnSyncLogs.FlatAppearance.BorderSize = 0;
+            btnSyncLogs.FlatStyle = FlatStyle.Flat;
+            btnSyncLogs.Font = new Font("Arial", 12F);
+            btnSyncLogs.ForeColor = Color.White;
+            btnSyncLogs.Location = new Point(1055, 8);
+            btnSyncLogs.Name = "btnSyncLogs";
+            btnSyncLogs.Size = new Size(167, 39);
+            btnSyncLogs.TabIndex = 10;
+            btnSyncLogs.Text = "🔄 Sync Logs";
+            btnSyncLogs.UseVisualStyleBackColor = false;
             // 
             // btnExportLogs
             // 
@@ -810,5 +828,6 @@ namespace POSPRA_WinFormsUI.Forms
         private Label lblInfoLogsTitle;
         private Label lblInfoLogsCount;
         private Button btnExportInvoice;
+        private Button btnSyncLogs;
     }
 }

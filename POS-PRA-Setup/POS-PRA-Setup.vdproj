@@ -21,18 +21,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_20747768ECA342FDB7622F5F84B7B262"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_38D557D1250A40F790B45FC05B2051FA"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_3C450B3E45344B30B48E9C92CB6937DF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -45,7 +33,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_4B43C7ED913F41FFB0C1E73842F75461"
+        "MsmKey" = "8:_6248D1220BA4487881F8E46A518F1F56"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_692A5D731DE14C739D425992B8585880"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -64,6 +58,12 @@
         "Entry"
         {
         "MsmKey" = "8:_BB24F3ACBB854B98BB3FFB882140C1C8"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_FA3B41E9BC5B41F59E24DC9D28FC5CFD"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -124,6 +124,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
     }
@@ -198,9 +206,9 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_20747768ECA342FDB7622F5F84B7B262"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6248D1220BA4487881F8E46A518F1F56"
             {
-            "SourcePath" = "8:C:\\Users\\ilhan.sarfraz\\Desktop\\UninstallPOSPRAService.bat"
+            "SourcePath" = "8:..\\POSPRA.SetupUI\\Resources\\UninstallPOSPRAService.bat"
             "TargetName" = "8:UninstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -218,10 +226,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_38D557D1250A40F790B45FC05B2051FA"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_692A5D731DE14C739D425992B8585880"
             {
-            "SourcePath" = "8:C:\\Users\\ilhan.sarfraz\\Desktop\\installer-req\\pral.ico"
-            "TargetName" = "8:pral.ico"
+            "SourcePath" = "8:..\\POSPRA.SetupUI\\Resources\\InstallPOSPRAService.bat"
+            "TargetName" = "8:InstallPOSPRAService.bat"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
             "Condition" = "8:"
@@ -238,10 +246,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4B43C7ED913F41FFB0C1E73842F75461"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FA3B41E9BC5B41F59E24DC9D28FC5CFD"
             {
-            "SourcePath" = "8:C:\\Users\\ilhan.sarfraz\\Desktop\\InstallPOSPRAService.bat"
-            "TargetName" = "8:InstallPOSPRAService.bat"
+            "SourcePath" = "8:..\\POSPRA.SetupUI\\Resources\\pral.ico"
+            "TargetName" = "8:pral.ico"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
             "Condition" = "8:"
@@ -332,7 +340,7 @@
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
-        "ARPPRODUCTICON" = "8:_38D557D1250A40F790B45FC05B2051FA"
+        "ARPPRODUCTICON" = "8:_FA3B41E9BC5B41F59E24DC9D28FC5CFD"
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
@@ -435,9 +443,9 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_4FA03F4F2CEB4415A0559533820E9530"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_35981B9B05574802916957C762746ED5"
             {
-            "Name" = "8:POS-Component"
+            "Name" = "8:POSPRA"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -446,7 +454,7 @@
             "Target" = "8:_6F25B2E1C6BE4DDF94A78A1BDFE8E007"
             "Folder" = "8:_D18129811498406CB2254900844FC780"
             "WorkingFolder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
-            "Icon" = "8:_38D557D1250A40F790B45FC05B2051FA"
+            "Icon" = "8:_FA3B41E9BC5B41F59E24DC9D28FC5CFD"
             "Feature" = "8:"
             }
         }
