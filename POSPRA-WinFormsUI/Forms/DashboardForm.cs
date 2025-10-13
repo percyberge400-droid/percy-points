@@ -1272,7 +1272,6 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ReadOnly = true;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.MultiSelect = false;
-            //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             // Column header style
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
@@ -1286,16 +1285,17 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = dgv.ColumnHeadersDefaultCellStyle.BackColor;
             dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = dgv.ColumnHeadersDefaultCellStyle.ForeColor;
 
-
-            // Cell style (adjusted)
+            // Cell style - FIXED
             dgv.DefaultCellStyle.BackColor = Color.White;
             dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
-            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F); // slightly bigger & cleaner
-            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6); // less vertical padding
+            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
+            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6);  // Back to original
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;  // ← Add this
 
-            // Adjust row height so text fits nicely
-            //dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
+            // ✅ Set proper row height
+            dgv.RowTemplate.Height = 40;  // ← Reduced from 48
+            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
         }
 
 
@@ -1611,9 +1611,10 @@ namespace POSPRA_WinFormsUI.Forms
                 if (value.Equals("Information", StringComparison.OrdinalIgnoreCase) ||
                     value.Equals("Info", StringComparison.OrdinalIgnoreCase))
                 {
-                    badgeColor = Color.LightGray;
-                    textColor = Color.Black;
+                    badgeColor = Color.FromArgb(219, 234, 254);
+                    textColor = Color.FromArgb(37, 99, 235);
                 }
+
                 else if (value.Equals("Warning", StringComparison.OrdinalIgnoreCase))
                 {
                     badgeColor = Color.FromArgb(254, 243, 199);
