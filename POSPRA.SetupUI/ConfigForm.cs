@@ -188,8 +188,8 @@ namespace POSPRA.SetupUI
                 string username = txtUsername.Text.Trim();
                 string password = txtPassword.Text.Trim();
                 string dbPath = txtFilePath.Text.Trim();
-                MessageBox.Show(_jsonWorkerPath);
-                MessageBox.Show(_jsonMainPath);
+                //MessageBox.Show(_jsonWorkerPath);
+                //MessageBox.Show(_jsonMainPath);
 
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
@@ -363,14 +363,6 @@ namespace POSPRA.SetupUI
                 // ✅ Show confirmation
                 string savedPath = root["AppSettings"]["DefaultDBFilePath"]?.ToString() ?? "(no path found)";
                 string savedPos = root["AppSettings"]["POS"]?.ToString() ?? "(no POS found)";
-                MessageBox.Show(
-                    $"AppSettings updated successfully:\n\n" +
-                    $"📁 Database Path: {savedPath}\n" +
-                    $"🏷️ POS ID: {savedPos}",
-                    "Configuration Updated",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
             }
             catch (Exception ex)
             {

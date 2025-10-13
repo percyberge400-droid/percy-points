@@ -39,12 +39,12 @@ namespace POSPRA.Application.Services.CloudSyncService.WorkerLogService
 
         public async Task LogStartup(string workerName, string workerId)
         {
-            await LogAsync(AlertType.Info, "Worker service started.", workerName, workerId, AlertType.Startup);
+            await LogAsync(AlertType.Info, "POS service started.", workerName, workerId, AlertType.Startup);
         }
 
         public async Task LogShutdown(string workerName, string workerId)
         {
-            await LogAsync(AlertType.Info, "Worker service stopped.", workerName, workerId, AlertType.Shutdown);
+            await LogAsync(AlertType.Info, "POS service stopped.", workerName, workerId, AlertType.Shutdown);
         }
     }
 }
