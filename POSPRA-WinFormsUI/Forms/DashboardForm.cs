@@ -1604,15 +1604,15 @@ namespace POSPRA_WinFormsUI.Forms
             if (e.ColumnIndex == 2 && e.RowIndex >= 0)
             {
                 var value = e.Value?.ToString() ?? "";
+                Color badgeColor = Color.FromArgb(209, 250, 229);
+                Color textColor = Color.FromArgb(5, 150, 105);
 
-                Color badgeColor = Color.LightGray;
-                Color textColor = Color.Black;
 
                 if (value.Equals("Information", StringComparison.OrdinalIgnoreCase) ||
                     value.Equals("Info", StringComparison.OrdinalIgnoreCase))
                 {
-                    badgeColor = Color.FromArgb(209, 250, 229);
-                    textColor = Color.FromArgb(5, 150, 105);
+                    badgeColor = Color.LightGray;
+                    textColor = Color.Black;
                 }
                 else if (value.Equals("Warning", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1810,6 +1810,11 @@ namespace POSPRA_WinFormsUI.Forms
         {
             base.OnResize(e);
             UpdateLogStatisticsLayout();
+        }
+
+        private void panelinvoicechart_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

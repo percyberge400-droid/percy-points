@@ -615,7 +615,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             // panelTotalLogs
             // 
-            panelTotalLogs.BackColor = Color.FromArgb(240, 248, 255);
+            panelTotalLogs.BackColor = Color.FromArgb(236, 253, 245);
             panelTotalLogs.BorderStyle = BorderStyle.FixedSingle;
             panelTotalLogs.Controls.Add(lblTotalLogsTitle);
             panelTotalLogs.Controls.Add(lblTotalLogsCount);
@@ -644,7 +644,7 @@ namespace POSPRA_WinFormsUI.Forms
             lblTotalLogsCount.AutoSize = true;
             lblTotalLogsCount.Dock = DockStyle.Top;
             lblTotalLogsCount.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotalLogsCount.ForeColor = Color.FromArgb(59, 130, 246);
+            lblTotalLogsCount.ForeColor = Color.FromArgb(16, 185, 129);
             lblTotalLogsCount.Location = new Point(8, 8);
             lblTotalLogsCount.Name = "lblTotalLogsCount";
             lblTotalLogsCount.Size = new Size(35, 41);
@@ -732,7 +732,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             // panelInfoLogs
             // 
-            panelInfoLogs.BackColor = Color.FromArgb(236, 253, 245);
+            panelInfoLogs.BackColor = Color.AliceBlue;
             panelInfoLogs.BorderStyle = BorderStyle.FixedSingle;
             panelInfoLogs.Controls.Add(lblInfoLogsTitle);
             panelInfoLogs.Controls.Add(lblInfoLogsCount);
@@ -761,7 +761,7 @@ namespace POSPRA_WinFormsUI.Forms
             lblInfoLogsCount.AutoSize = true;
             lblInfoLogsCount.Dock = DockStyle.Top;
             lblInfoLogsCount.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblInfoLogsCount.ForeColor = Color.FromArgb(16, 185, 129);
+            lblInfoLogsCount.ForeColor = Color.FromArgb(59, 130, 246);
             lblInfoLogsCount.Location = new Point(8, 8);
             lblInfoLogsCount.Name = "lblInfoLogsCount";
             lblInfoLogsCount.Size = new Size(35, 41);

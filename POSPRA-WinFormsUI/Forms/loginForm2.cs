@@ -2,12 +2,14 @@
 using POSPRA.SecurityEncryption;
 using System.Configuration;
 using System.Drawing.Drawing2D;
+using System.ServiceProcess;
 
 namespace POSPRA_WinFormsUI.Forms
 {
     public partial class LoginForm2 : Form
     {
         private readonly IServiceProvider _provider;
+        private const string SERVICE_NAME = "POSPRAWorker";
         public LoginForm2(IServiceProvider provider)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
@@ -29,6 +31,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnLogin.NotifyDefault(false);
             btnLogin.TabStop = true;
 
+            this.Load += LoginForm2_Load;
             // Create rounded transparent username box
             //MakeStyledTextBox(txtUsername);
             //MakeStyledTextBox(txtPassword);
@@ -58,7 +61,56 @@ namespace POSPRA_WinFormsUI.Forms
                 prawebsite.Text = website;
         }
 
+        private async void LoginForm2_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                await RestartServiceAlwaysAsync(SERVICE_NAME);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Service restart failed: {ex.Message}",
+                    "Service Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
 
+        /// <summary>
+        /// Restarts the given service whether it is running or stopped.
+        /// </summary>
+        private async Task RestartServiceAlwaysAsync(string serviceName)
+        {
+            await Task.Run(() =>
+            {
+                using (var service = new ServiceController(serviceName))
+                {
+                    try
+                    {
+                        // If service exists
+                        var status = service.Status;
+
+                        // Try stopping if running
+                        if (status == ServiceControllerStatus.Running ||
+                            status == ServiceControllerStatus.StartPending)
+                        {
+                            service.Stop();
+                            service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30));
+                        }
+
+                        // Start regardless of previous state
+                        service.Start();
+                        service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        throw new InvalidOperationException($"Service '{serviceName}' may not exist or is inaccessible.\n{ex.Message}");
+                    }
+                    catch (System.ServiceProcess.TimeoutException)
+                    {
+                        throw new System.TimeoutException($"Timeout while restarting '{serviceName}'.");
+                    }
+                }
+            });
+        }
         private void btnLogin_Click(object sender, EventArgs e)
         {
             try

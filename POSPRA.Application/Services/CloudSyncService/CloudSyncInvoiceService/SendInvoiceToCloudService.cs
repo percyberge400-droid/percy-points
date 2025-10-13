@@ -1,6 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
@@ -11,6 +9,8 @@ using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
+using System.Text;
+using System.Text.Json;
 
 public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 {
@@ -70,18 +70,46 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
                     using var updateScope = _scopeFactory.CreateScope();
                     var fiscal = updateScope.ServiceProvider.GetRequiredService<IFileRecordService>();
                     await fiscal.UpdateFileRecordsAsync(files, false);
+
+                    // 👇 Log each synced file/invoice individually
+                    foreach (var file in files)
+                    {
+                        string fileId = file.InvoiceNumber ?? "";
+                        await _workerLogService.LogAsync(
+                            AlertType.Info,
+                            $"Invoice number '{fileId}' synced successfully.",
+                            nameof(SendInvoiceToCloudService),
+                            id,
+                            "InvoiceSynced"
+                        );
+                    }
                 }
             }
             else if (response.StatusCode != ApiStatusCode.NotFound)
             {
-                await _workerLogService.LogAsync(AlertType.Warning, $"Sync failed: {response.StatusCode}", nameof(SendInvoiceToCloudService), id, "SyncFailed");
+                await _workerLogService.LogAsync(
+                    AlertType.Warning,
+                    $"Sync failed: {response.StatusCode}",
+                    nameof(SendInvoiceToCloudService),
+                    id,
+                    "SyncFailed"
+                );
             }
         }
         catch (Exception ex)
         {
-            await _workerLogService.LogAsync(AlertType.Exception, ex.Message, nameof(SendInvoiceToCloudService), id, "SyncException", null, ex.ToString());
+            await _workerLogService.LogAsync(
+                AlertType.Exception,
+                ex.Message,
+                nameof(SendInvoiceToCloudService),
+                id,
+                "SyncException",
+                null,
+                ex.ToString()
+            );
         }
     }
+
 
     private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, List<FileRecordDto> fileRecordDtos, CancellationToken token)
     {

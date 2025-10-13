@@ -444,7 +444,19 @@ namespace POSPRA_WinFormsUI
 
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
+
+                addedItems.Clear();
+                CurrentInvoice = null;
+                _sessionItems.Clear();
+                dataGridView1.Rows.Clear();
+                ClearInvoiceFields();
+                UpdateInvoiceTotals();
+                _isSaving = false;
+                btnSave.Enabled = true;
+                btnSave.Text = "🖨️ Save and Print";
+
                 var output = await _invoiceService.CreateAsync(invoiceDto);
+
                 // call invoice print generator
                 // output.Data.FBRInvoiceNumber
                 if (output.StatusCode == ApiStatusCode.Success)
@@ -452,13 +464,6 @@ namespace POSPRA_WinFormsUI
                     WindowsLocalAppNotification.Show("Success", output.Message);
                     AlertManager.ShowSuccess(output.Message);
                     _ = CreateLog(output.Message, AlertType.Info);
-
-                    addedItems.Clear();
-                    CurrentInvoice = null;
-                    _sessionItems.Clear();
-                    dataGridView1.Rows.Clear();
-                    ClearInvoiceFields();
-                    UpdateInvoiceTotals();
                 }
                 else
                 {
@@ -472,12 +477,6 @@ namespace POSPRA_WinFormsUI
                 WindowsLocalAppNotification.Show("Error", $"Error saving invoice: {ex.Message}");
                 AlertManager.ShowError($"Error saving invoice: {ex.Message}");
                 _ = CreateLog("Error saving invoice", AlertType.Error);
-            }
-            finally
-            {
-                _isSaving = false;
-                btnSave.Enabled = true;
-                btnSave.Text = "🖨️ Save and Print";
             }
         }
 
@@ -1041,7 +1040,6 @@ namespace POSPRA_WinFormsUI
 
         private void ClearInvoiceFields()
         {
-            posid.Clear();
             USIN.Clear();
             refUSIN.Clear();
             buyerntn.Clear();
