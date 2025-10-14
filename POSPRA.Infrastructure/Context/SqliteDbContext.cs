@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POSPRA.Domain.Entities;
-using System;
-using System.IO;
 
 namespace POSPRA.Infrastructure.Context
 {

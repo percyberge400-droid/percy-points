@@ -79,7 +79,7 @@ namespace POSPRA.Application.Services.FileRecordService
             return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
         }
 
-        public async Task<ApiResponse<FileRecordDto>> GetByInvoiceIdAsync(long invoiceId)
+        public async Task<ApiResponse<FileRecordDto>> GetByInvoiceIdAsync(int invoiceId)
         {
             var output = await _fileRecordRepository.GetByIdAsync(invoiceId);
             var fileRecrodDTO = _mapper.Map<FileRecordDto>(output);
@@ -105,8 +105,8 @@ namespace POSPRA.Application.Services.FileRecordService
                     POSID = posId,
                     InvoiceNumber = invoiceNumber,
                     InvoiceData = encryptedData,
-                    DateCreated = DateTime.UtcNow,
-                    DateModified = DateTime.UtcNow,
+                    DateCreated = DateTime.Now,
+                    DateModified = DateTime.Now,
                     IsSynced = (int)InvoiceStatus.NotSynced,
                     AttemptCount = 0
                 };
@@ -146,12 +146,23 @@ namespace POSPRA.Application.Services.FileRecordService
                     string.Empty);
             }
 
-            var entities = _mapper.Map<List<FileRecord>>(fileRecordDtos);
+            dynamic updatedDtos;
+
             if (!isSingle)
+            {
+                var entities = _mapper.Map<List<FileRecord>>(fileRecordDtos);
                 _fileRecordRepository.UpdateRange(entities);
+                updatedDtos = _mapper.Map<List<FileRecordDto>>(entities);
+            }
+            else
+            {
+                var entity = _mapper.Map<FileRecord>(fileRecordDtos.FirstOrDefault());
+                await _fileRecordRepository.UpdateAsync(entity);
+                updatedDtos = _mapper.Map<FileRecordDto>(entity);
+            }
+
             await _sqliteUnitOfWork.SaveChangesAsync();
 
-            var updatedDtos = _mapper.Map<List<FileRecordDto>>(entities);
 
             return new ApiResponse<List<FileRecordDto>>(
                 ApiStatusCode.Success,

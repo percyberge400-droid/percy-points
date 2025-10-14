@@ -1,5 +1,4 @@
-﻿using System.Text;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using POSPRA.Application.Services.FileRecordService;
@@ -13,35 +12,86 @@ using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.Repositories.FileRecordRepository;
+using System.Text;
+using System.Text.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace POSPRA.Application.Services.InvoiceService
 {
     public class InvoiceService : IInvoiceService
     {
+        public readonly IMapper _mapper;
+        private readonly IFileRecordRepository _fileRecordRepository;
+        private readonly AppSettings _settings;
         private readonly InvoiceValidatorService _invoiceValidatorService;
-        private readonly IMapper _mapper;
         private readonly INetworkService _networkService;
-        private readonly ILogService _logService;
         private readonly ILiveService _liveService;
         private readonly IFileRecordService _fileRecordService;
-        private readonly AppSettings _settings;
+        private readonly ILogService _logService;
 
-        public InvoiceService(InvoiceValidatorService invoiceValidatorService,
-            IMapper mapper,
+        public InvoiceService(IMapper mapper,
+            IOptions<AppSettings> options,
+            InvoiceValidatorService invoiceValidatorService,
             INetworkService networkService,
-            ILogService logService,
             ILiveService liveService,
             IFileRecordService fileRecordService,
-            IOptions<AppSettings> options
-            )
+            ILogService logService,
+            IFileRecordRepository fileRecordRepository)
         {
-            _invoiceValidatorService = invoiceValidatorService;
             _mapper = mapper;
+            _settings = options.Value;
+            _invoiceValidatorService = invoiceValidatorService;
             _networkService = networkService;
-            _logService = logService;
             _liveService = liveService;
             _fileRecordService = fileRecordService;
-            _settings = options.Value;
+            _logService = logService;
+            _fileRecordRepository = fileRecordRepository;
+        }
+
+        public async Task<ApiResponse<InvoiceDto>> GetInvoiceWithItems(string invoiceNumber)
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            try
+            {
+                var output = await _fileRecordRepository.FirstOrDefaultAsync(x => x.InvoiceNumber == invoiceNumber);
+                if (output != null)
+                {
+                    var decrypted = ModernAESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
+                    var jsonPart = decrypted.Split('|')[0];
+                    if (string.IsNullOrWhiteSpace(jsonPart) ||
+                        JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto)
+                        return new ApiResponse<InvoiceDto>(
+                            statusCode: ApiStatusCode.Error,
+                            message: ResponseMessages.DataNotFound,
+                            data: null!
+                        );
+
+                    return new ApiResponse<InvoiceDto>(
+                        statusCode: ApiStatusCode.Success,
+                        message: ResponseMessages.RecordFound,
+                        data: invoiceDto
+                    );
+                }
+
+                return new ApiResponse<InvoiceDto>(
+                    statusCode: ApiStatusCode.Error,
+                    message: ResponseMessages.DataNotFound,
+                    data: null!
+                );
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<InvoiceDto>(
+                    statusCode: ApiStatusCode.Error,
+                    message: ResponseMessages.UnknownError,
+                    data: null!
+                );
+            }
         }
 
         /// <summary>
@@ -90,7 +140,8 @@ namespace POSPRA.Application.Services.InvoiceService
                         if (record.StatusCode == ApiStatusCode.Success)
                         {
                             record.Data.IsSynced = (int)InvoiceStatus.Synced;
-                            await _fileRecordService.UpdateFileRecordAsync(_mapper.Map<FileRecordDto>(record));
+                            
+                            await _fileRecordService.UpdateFileRecordAsync(record.Data);
                         }
                     }
                 }

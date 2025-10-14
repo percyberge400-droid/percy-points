@@ -3,6 +3,9 @@ using POSPRA.API.Controllers;
 using POSPRA.API.Middlewares;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.ClientService;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
+using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
@@ -65,8 +68,8 @@ namespace POSPRA.API
             // 🔧 Controllers
             //----------------------------------------------------
             builder.Services.AddControllers()
-            .AddApplicationPart(typeof(InvoiceController).Assembly)
-            .AddApplicationPart(typeof(FileRecordController).Assembly);
+                .PartManager.ApplicationParts.Add(
+                    new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(FileRecordController).Assembly));
 
             //----------------------------------------------------
             // 🔧 Database configuration
@@ -115,10 +118,12 @@ namespace POSPRA.API
             builder.Services.AddScoped<INetworkService, NetworkService>();
             builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             builder.Services.AddScoped<IClientService, ClientService>();
-            builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
-            builder.Services.AddScoped<IFileRecordService, FileRecordService>();
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
-            builder.Services.AddScoped<IPosService, PosService>();
+            builder.Services.AddScoped<IFileRecordService, FileRecordService>();
+            builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
+            builder.Services.AddScoped<IWorkerLogService, WorkerLogService>();
+            builder.Services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
+            builder.Services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
 
             builder.Services.AddHttpClient<HttpService>();
             builder.Services.AddHttpContextAccessor();

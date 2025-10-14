@@ -1,7 +1,5 @@
-﻿using System.ComponentModel;
-using System.Data;
-using System.Text;
-using POSPRA.Application.Services.FileRecordService;
+﻿using POSPRA.Application.Services.FileRecordService;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
@@ -11,9 +9,9 @@ namespace POSPRA_WinFormsUI.Forms
     public partial class DashboardForm : Form
     {
         private readonly IServiceProvider _provider;
-        private readonly ILogService _logService;
         private readonly IFileRecordService _fileRecordService;
-
+        private readonly ILogService _logService;
+        private readonly IInvoiceService _invoiceService;
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
 
@@ -31,15 +29,22 @@ namespace POSPRA_WinFormsUI.Forms
         private int _errorLogsCount = 0;
         private int _warningLogsCount = 0;
         private int _infoLogsCount = 0;
+        private Rectangle _printLinkBounds = Rectangle.Empty;
+        private DataGridViewCell _hoveredCell = null;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService)
+        private System.Windows.Forms.Timer _autoRefreshTimer;
+        private bool _autoRefreshEnabled = false;
+        private int _lastInvoiceCount = 0;
+        private int _lastLogCount = 0;
+        private DateTime _lastRefreshTime = DateTime.Now;
+
+        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService)
         {
             InitializeComponent();
 
             this.Load += (s, e) => CenterProgressBar();
             this.Resize += (s, e) => CenterProgressBar();
             this.Load += DashboardForm_Load;
-
             _provider = provider;
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
@@ -62,6 +67,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.Click += btnFilterSynced_Click;
             btnFilter.Click += btnFilterInvoices_Click;
             btnExportInvoice.Click += btnExportInvoice_Click;
+            btnSyncLogs.Click += btnSyncLogs_Click;
 
             btnExportLogs.Click += btnExportLogs_Click;
             panelinvoicechart.Resize -= Panel_Resize;
@@ -73,18 +79,18 @@ namespace POSPRA_WinFormsUI.Forms
             if (progressBar != null) progressBar.Visible = false;
             ApplyGradientBackground(
                 panelAll,
-                ColorTranslator.FromHtml("#48A787"),
-                ColorTranslator.FromHtml("#0D7351")
-            );
-            ApplyGradientBackground(
-                panelPending,
                 ColorTranslator.FromHtml("#8860C1"),
                 ColorTranslator.FromHtml("#584ABC")
             );
             ApplyGradientBackground(
+                panelPending,
+                ColorTranslator.FromHtml("#E53935"),
+                ColorTranslator.FromHtml("#EF5350")
+            );
+            ApplyGradientBackground(
                 panelPaid,
-                ColorTranslator.FromHtml("#4DBDED"),
-                ColorTranslator.FromHtml("#6694DA")
+                ColorTranslator.FromHtml("#43A047"),
+                ColorTranslator.FromHtml("#66BB6A")
             );
             AddImageToPanelRight(panelAll, Resources.InvoiceAll);
             AddImageToPanelRight(panelPending, Resources.NotSynced);
@@ -94,8 +100,156 @@ namespace POSPRA_WinFormsUI.Forms
             SetButtonImage(btnClearFilter, Resources.clearFilter, ColorTranslator.FromHtml("#DC2626"));
 
             InitializeLogStatistics();
+            InitializeAutoRefreshTimer();
+            _invoiceService = invoiceService;
+            _fileRecordService = fileRecordService;
 
         }
+
+        #region AutoRefresh
+        private void InitializeAutoRefreshTimer()
+        {
+            _autoRefreshTimer = new System.Windows.Forms.Timer();
+            _autoRefreshTimer.Interval = 30000; // 30 seconds
+            _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+
+            // Start auto-refresh by default
+            _autoRefreshEnabled = true;
+            _autoRefreshTimer.Start();
+        }
+
+        private async void AutoRefreshTimer_Tick(object sender, EventArgs e)
+        {
+            // Skip if already loading
+            if (_isLoadingFlag == 1) return;
+
+            // Skip if user is interacting with the grid
+            if (IsUserInteracting()) return;
+
+            try
+            {
+                // Check if data has changed
+                bool hasChanges = await QuickCheckForChangesAsync();
+
+                if (hasChanges)
+                {
+                    // Perform background refresh
+                    await BackgroundRefreshAsync();
+                    _lastRefreshTime = DateTime.Now;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silent fail for auto-refresh
+                Console.WriteLine($"Auto-refresh error: {ex.Message}");
+            }
+        }
+
+        private bool IsUserInteracting()
+        {
+            // Don't refresh if user is selecting, scrolling, or has a cell selected
+            if (InvoicesDataGridView.SelectedCells.Count > 0) return true;
+            if (LogsDataGridView.SelectedCells.Count > 0) return true;
+            if (InvoicesDataGridView.IsCurrentCellInEditMode) return true;
+            if (LogsDataGridView.IsCurrentCellInEditMode) return true;
+
+            return false;
+        }
+
+        private async Task<bool> QuickCheckForChangesAsync()
+        {
+            try
+            {
+                // Get counts only - lightweight operation
+                var invoiceResponse = await _fileRecordService.GetAllAsync();
+                var logResponse = await _logService.GetAllAsync();
+
+                if (invoiceResponse?.Data == null || logResponse?.Data == null)
+                    return false;
+
+                // Apply same filters as main load
+                var filteredInvoices = invoiceResponse.Data
+                    .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
+
+                var filteredLogs = logResponse.Data
+                    .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+
+                int currentInvoiceCount = filteredInvoices.Count();
+                int currentLogCount = filteredLogs.Count();
+
+                // Check if counts changed
+                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
+                                 (currentLogCount != _lastLogCount);
+
+                if (hasChanges)
+                {
+                    _lastInvoiceCount = currentInvoiceCount;
+                    _lastLogCount = currentLogCount;
+                }
+
+                return hasChanges;
+            }
+            catch
+            {
+                return false; // Don't refresh on error
+            }
+        }
+
+        private async Task BackgroundRefreshAsync()
+        {
+            // Use existing RunSingleLoad to prevent conflicts
+            await RunSingleLoad(async () =>
+            {
+                // Store current scroll positions
+                int invoiceScroll = InvoicesDataGridView.FirstDisplayedScrollingRowIndex;
+                int logScroll = LogsDataGridView.FirstDisplayedScrollingRowIndex;
+
+                // Refresh data
+                await LoadAndShowInvoicesAsync();
+                await LoadAndShowLogsAsync();
+
+                // Restore scroll positions
+                try
+                {
+                    if (invoiceScroll >= 0 && invoiceScroll < InvoicesDataGridView.Rows.Count)
+                        InvoicesDataGridView.FirstDisplayedScrollingRowIndex = invoiceScroll;
+
+                    if (logScroll >= 0 && logScroll < LogsDataGridView.Rows.Count)
+                        LogsDataGridView.FirstDisplayedScrollingRowIndex = logScroll;
+                }
+                catch { /* Ignore scroll restore errors */ }
+            });
+        }
+
+        public void ToggleAutoRefresh()
+        {
+            _autoRefreshEnabled = !_autoRefreshEnabled;
+
+            if (_autoRefreshEnabled)
+            {
+                _autoRefreshTimer.Start();
+                WindowsLocalAppNotification.Show("Auto-Refresh", "Auto-refresh enabled (30 seconds)");
+            }
+            else
+            {
+                _autoRefreshTimer.Stop();
+                WindowsLocalAppNotification.Show("Auto-Refresh", "Auto-refresh disabled");
+            }
+        }
+
+        public void SetAutoRefreshInterval(int seconds)
+        {
+            if (seconds < 10) seconds = 10; // Minimum 10 seconds
+
+            _autoRefreshTimer.Stop();
+            _autoRefreshTimer.Interval = seconds * 1000;
+
+            if (_autoRefreshEnabled)
+            {
+                _autoRefreshTimer.Start();
+            }
+        }
+        #endregion
         private void InitializeLogStatistics()
         {
             // Set initial values
@@ -338,6 +492,7 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         // Optimized Load Invoices
         // ----------------------------------------
+
         private async Task LoadAndShowInvoicesAsync(bool skipDateFilter = false)
         {
             try
@@ -390,12 +545,12 @@ namespace POSPRA_WinFormsUI.Forms
                     var row = new DataGridViewRow();
                     row.CreateCells(InvoicesDataGridView);
 
-                    // safer column assignment
+                    // Set cell values
                     SetCellValue(row, "colId", i + 1);
                     SetCellValue(row, "colPosId", inv.POSID);
                     SetCellValue(row, "colInvoiceNumber", inv.InvoiceNumber ?? "N/A");
                     SetCellValue(row, "colIsSynced", inv.IsSynced == 1 ? "Yes" : "No");
-                    SetCellValue(row, "colAttemptCount", inv.AttemptCount);
+                    SetCellValue(row, "colPrint", "Print"); // Set Print text
                     SetCellValue(row, "colDateCreated", inv.DateCreated.ToString("dd-MM-yyyy HH:mm:ss"));
 
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
@@ -421,8 +576,6 @@ namespace POSPRA_WinFormsUI.Forms
                 _pendingCount = pendingCount;
                 _syncedCount = syncedCount;
                 DrawInvoicePieChart(panelinvoicechart, _syncedCount, _pendingCount);
-
-
 
                 if (progressBar != null)
                 {
@@ -455,25 +608,27 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         // Optimized Load Logs
         // ----------------------------------------
-        private async Task LoadAndShowLogsAsync(bool skipDateFilter = false)
+        private async Task LoadAndShowLogsAsync(IEnumerable<LogDto>? preloadedLogs = null, bool skipDateFilter = false)
         {
             try
             {
-                var response = await _logService.GetAllAsync();
+                // ✅ Use preloaded logs (from cloud sync) if provided
+                var response = preloadedLogs == null ? await _logService.GetAllAsync() : null;
+                var logs = preloadedLogs ?? response?.Data;
+
                 LogsDataGridView.Rows.Clear();
 
-                if (response?.Data == null || !response.Data.Any())
+                if (logs == null || !logs.Any())
                 {
                     WindowsLocalAppNotification.Show("Logs", "No logs available to display");
                     AlertManager.ShowWarning("No logs available to display");
 
-                    // Reset log statistics
                     CalculateLogStatistics(null);
                     UpdateLogStatisticsDisplay();
                     return;
                 }
 
-                IEnumerable<LogDto> filteredLogs = response.Data;
+                IEnumerable<LogDto> filteredLogs = logs;
 
                 if (!skipDateFilter)
                 {
@@ -482,14 +637,13 @@ namespace POSPRA_WinFormsUI.Forms
                         l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
-                // ✅ Order by CreatedAtPk DESC (latest log first)
+                // ✅ Order by date (latest first)
                 var logsList = filteredLogs
                     .OrderByDescending(l => l.CreatedAtPk)
                     .ToList();
 
                 int totalLogs = logsList.Count;
 
-                // Calculate log statistics
                 CalculateLogStatistics(logsList);
                 UpdateLogStatisticsDisplay();
 
@@ -505,14 +659,12 @@ namespace POSPRA_WinFormsUI.Forms
                 }
 
                 var rows = new List<DataGridViewRow>();
-
                 for (int i = 0; i < logsList.Count; i++)
                 {
                     var log = logsList[i];
                     var row = new DataGridViewRow();
                     row.CreateCells(LogsDataGridView);
 
-                    // ✅ Sr No. (1 = latest log at the top)
                     row.Cells[LogsDataGridView.Columns["colLogID"].Index].Value = i + 1;
                     row.Cells[LogsDataGridView.Columns["colMessage"].Index].Value = log.Message ?? "No message";
                     row.Cells[LogsDataGridView.Columns["colException"].Index].Value = log.Type ?? "N/A";
@@ -534,18 +686,15 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     progressBar.Visible = false;
                 }
+
                 LogsDataGridView.ClearSelection();
-                if (LogsDataGridView.Rows.Count > 0)
-                {
-                    LogsDataGridView.CurrentCell = null;
-                }
+                LogsDataGridView.CurrentCell = null;
             }
             catch (Exception ex)
             {
                 LogsDataGridView.ResumeLayout(true);
                 if (progressBar != null) progressBar.Visible = false;
 
-                // Reset log statistics on error
                 CalculateLogStatistics(null);
                 UpdateLogStatisticsDisplay();
 
@@ -570,7 +719,7 @@ namespace POSPRA_WinFormsUI.Forms
                 using (SaveFileDialog sfd = new())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
-                    sfd.FileName = $"Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                    sfd.FileName = $"Local_Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
                     sfd.OverwritePrompt = true;
 
                     if (sfd.ShowDialog() == DialogResult.OK)
@@ -635,6 +784,65 @@ namespace POSPRA_WinFormsUI.Forms
             }
 
             return field;
+        }
+
+
+        // ----------------------------------------
+        // Sync Logs Button
+        // ----------------------------------------
+        private async void btnSyncLogs_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // ✅ Get cloud logs
+                var cloudResponse = await _logService.GetAllCloudAsync();
+                LogsDataGridView.Rows.Clear();
+
+                if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
+                {
+                    WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
+                    AlertManager.ShowWarning("No synced logs available to display");
+                    return;
+                }
+
+                // ✅ Get local logs
+                var localResponse = await _logService.GetAllAsync();
+
+                // ✅ Merge and remove duplicates
+                var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
+
+                // ✅ Pass merged logs to loader
+                await LoadAndShowLogsAsync(mergedLogs);
+            }
+            catch (Exception ex)
+            {
+                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
+                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+            }
+        }
+        private List<LogDto> MergeLogs(IEnumerable<LogDto>? localLogs, IEnumerable<LogDto>? cloudLogs)
+        {
+            var merged = new List<LogDto>();
+
+            if (localLogs != null)
+                merged.AddRange(localLogs);
+
+            if (cloudLogs != null)
+                merged.AddRange(cloudLogs);
+
+            // ✅ Deduplicate based on Message, Type, and Timestamp
+            var deduped = merged
+                .GroupBy(l => new
+                {
+                    Message = l.Message?.Trim() ?? "",
+                    Type = l.Type?.Trim() ?? "",
+                    Timestamp = l.CreatedAtPk.ToString("yyyy-MM-dd HH:mm:ss")
+                })
+                .Select(g => g.First())
+                .OrderByDescending(l => l.CreatedAtPk)
+                .ToList();
+
+            return deduped;
         }
 
 
@@ -858,9 +1066,14 @@ namespace POSPRA_WinFormsUI.Forms
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
             ResetSortToDefault();
+
+            // Temporarily stop auto-refresh during manual refresh
+            bool wasAutoRefreshEnabled = _autoRefreshEnabled;
+            if (wasAutoRefreshEnabled)
+                _autoRefreshTimer.Stop();
+
             try
             {
-                // Show loading indicator
                 if (progressBar != null)
                 {
                     progressBar.Visible = true;
@@ -868,42 +1081,49 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.MarqueeAnimationSpeed = 30;
                 }
 
-                // Completely clear all grids first
                 ClearAllGrids();
-
-                // Small delay to ensure UI is cleared
                 await Task.Delay(200);
 
-                // Determine if we should skip date filter
                 bool skipDateFilter = false;
-                // Reset synced filter
                 _filterSyncedOnly = false;
 
-                // Always run single load to prevent overlapping loads
                 await RunSingleLoad(async () =>
                 {
-                    // Reload both grids with fresh data
                     await LoadAndShowInvoicesAsync(skipDateFilter);
-                    await LoadAndShowLogsAsync(skipDateFilter);
+                    await LoadAndShowLogsAsync(skipDateFilter: skipDateFilter);
                 });
+
+                // Update counts for auto-refresh
+                _lastInvoiceCount = InvoicesDataGridView.Rows.Count;
+                _lastLogCount = LogsDataGridView.Rows.Count;
             }
             catch (Exception ex)
             {
-                // Handle any errors during refresh
                 AlertManager.ShowError($"Error refreshing data: {ex.Message}");
             }
             finally
             {
-                // Hide loading indicator
                 if (progressBar != null)
                 {
                     progressBar.Visible = false;
                     progressBar.Style = ProgressBarStyle.Continuous;
                 }
+
+                // Restart auto-refresh
+                if (wasAutoRefreshEnabled)
+                    _autoRefreshTimer.Start();
             }
         }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
 
-
+            if (_autoRefreshTimer != null)
+            {
+                _autoRefreshTimer.Stop();
+                _autoRefreshTimer.Dispose();
+            }
+        }
         private void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             e.ThrowException = false;
@@ -1049,7 +1269,6 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ReadOnly = true;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.MultiSelect = false;
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             // Column header style
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
@@ -1059,16 +1278,21 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dgv.ColumnHeadersHeight = 52;
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dgv.EnableHeadersVisualStyles = false;
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = dgv.ColumnHeadersDefaultCellStyle.BackColor;
+            dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = dgv.ColumnHeadersDefaultCellStyle.ForeColor;
 
-            // Cell style (adjusted)
+            // Cell style - FIXED
             dgv.DefaultCellStyle.BackColor = Color.White;
             dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
-            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F); // slightly bigger & cleaner
-            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6); // less vertical padding
+            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
+            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6);  // Back to original
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;  // ← Add this
 
-            // Adjust row height so text fits nicely
-            dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
+            // ✅ Set proper row height
+            dgv.RowTemplate.Height = 40;  // ← Reduced from 48
+            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
         }
 
 
@@ -1085,7 +1309,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colId",
                 HeaderText = "Sr. No.",
-                Width = 80,
+                Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -1117,35 +1341,118 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colIsSynced",
                 HeaderText = "Invoice Synced",
-                Width = 150,
+                Width = 180,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colIsSynced.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colIsSynced.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            var colAttemptCount = new DataGridViewTextBoxColumn
+            var colPrint = new DataGridViewTextBoxColumn
             {
-                Name = "colAttemptCount",
-                HeaderText = "Attempt Count",
-                Width = 140,
+                Name = "colPrint",
+                HeaderText = "     Print",
+                Width = 180,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colPrint.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colPrint.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colDateCreated = new DataGridViewTextBoxColumn
             {
                 Name = "colDateCreated",
                 HeaderText = "Date Created",
-                Width = 180,
+                Width = 220,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colDateCreated.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colDateCreated.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             InvoicesDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
-        colId, colPosId, colInvoiceNumber, colIsSynced, colAttemptCount, colDateCreated
+                colId, colPosId, colInvoiceNumber, colIsSynced, colPrint, colDateCreated
             });
-            // Attach custom cell painting for badges in Type column
+
+            // Attach custom cell painting for badges
             InvoicesDataGridView.CellPainting += InvoicesDataGridView_CellPainting;
+
+            // NEW: Add mouse events for hyperlink hover and click
+            InvoicesDataGridView.CellMouseEnter += InvoicesDataGridView_CellMouseEnter;
+            InvoicesDataGridView.CellMouseLeave += InvoicesDataGridView_CellMouseLeave;
+            InvoicesDataGridView.CellClick += InvoicesDataGridView_CellClick;
+            InvoicesDataGridView.CellMouseMove += InvoicesDataGridView_CellMouseMove;
+        }
+
+        // NEW: Add these event handlers after StyleInvoicesDataGridView method
+
+        private void InvoicesDataGridView_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                _hoveredCell = InvoicesDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                InvoicesDataGridView.InvalidateCell(_hoveredCell);
+            }
+        }
+
+        private void InvoicesDataGridView_CellMouseLeave(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_hoveredCell != null)
+            {
+                var cell = _hoveredCell;
+                _hoveredCell = null;
+                InvoicesDataGridView.InvalidateCell(cell);
+            }
+        }
+
+        private void InvoicesDataGridView_CellMouseMove(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                // Check if mouse is within the text bounds
+                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                var mousePoint = new Point(e.X + cellBounds.X, e.Y + cellBounds.Y);
+
+                if (_printLinkBounds.Contains(mousePoint))
+                {
+                    InvoicesDataGridView.Cursor = Cursors.Hand;
+                }
+                else
+                {
+                    InvoicesDataGridView.Cursor = Cursors.Default;
+                }
+            }
+            else
+            {
+                InvoicesDataGridView.Cursor = Cursors.Default;
+            }
+        }
+        private void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                // Get the actual mouse position
+                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
+
+                // Check if click is within the text bounds
+                if (_printLinkBounds.Contains(mousePos))
+                {
+
+                    var invoiceNumber = InvoicesDataGridView.Rows[e.RowIndex].Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
+
+                    // call invoice print generator
+                    // invoiceNumber
+                    var response = _invoiceService.GetInvoiceWithItems(invoiceNumber).Result;
+                    MessageBox.Show(
+                        $"Print button clicked for Invoice: {invoiceNumber}",
+                        "Print Invoice",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+                }
+            }
         }
 
         private void StyleLogsDataGridView()
@@ -1161,7 +1468,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colLogID",
                 HeaderText = "Sr. No.",
-                Width = 80,
+                Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -1187,13 +1494,15 @@ namespace POSPRA_WinFormsUI.Forms
                 Width = 150,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
+
             };
+            colException.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colDateTime = new DataGridViewTextBoxColumn
             {
                 Name = "logdatetime",
                 HeaderText = "Date/Time",
-                Width = 180,
+                Width = 220,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
@@ -1208,6 +1517,7 @@ namespace POSPRA_WinFormsUI.Forms
         }
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
+            // Handle IsSynced column with icons
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colIsSynced"].Index)
             {
                 e.PaintBackground(e.CellBounds, true);
@@ -1222,10 +1532,8 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (icon != null)
                 {
-                    // Use 70% of cell height for icon size
                     int iconSize = (int)(e.CellBounds.Height * 0.7);
-                    // Ensure minimum and maximum sizes
-                    iconSize = Math.Max(24, Math.Min(iconSize, 32)); // Min 24px, Max 32px
+                    iconSize = Math.Max(24, Math.Min(iconSize, 32));
 
                     int x = e.CellBounds.X + (e.CellBounds.Width - iconSize) / 2;
                     int y = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
@@ -1234,8 +1542,53 @@ namespace POSPRA_WinFormsUI.Forms
                     e.Handled = true;
                 }
             }
-        }
 
+            // NEW: Handle Print hyperlink column
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                e.PaintBackground(e.CellBounds, true);
+
+                bool isHovered = _hoveredCell != null &&
+                                _hoveredCell.RowIndex == e.RowIndex &&
+                                _hoveredCell.ColumnIndex == e.ColumnIndex;
+
+                bool isSelected = InvoicesDataGridView.Rows[e.RowIndex].Selected;
+
+                // Hyperlink colors - white when selected, otherwise blue/green
+                Color linkColor;
+                if (isSelected)
+                {
+                    linkColor = Color.White;
+                }
+                else
+                {
+                    linkColor = isHovered ? Color.FromArgb(34, 197, 94) : Color.FromArgb(59, 130, 246);
+                }
+
+                FontStyle fontStyle = isHovered ? (FontStyle.Bold | FontStyle.Underline) : FontStyle.Bold;
+
+                string linkText = "Print";
+                using (var font = new Font("Segoe UI", 9.5F, fontStyle))
+                using (var brush = new SolidBrush(linkColor))
+                {
+                    var textSize = e.Graphics.MeasureString(linkText, font);
+                    float x = e.CellBounds.X + (e.CellBounds.Width - textSize.Width) / 2;
+                    float y = e.CellBounds.Y + (e.CellBounds.Height - textSize.Height) / 2;
+
+                    // Store the bounds of the text for hit testing
+                    _printLinkBounds = new Rectangle(
+                        (int)x,
+                        (int)y,
+                        (int)textSize.Width,
+                        (int)textSize.Height
+                    );
+
+                    e.Graphics.DrawString(linkText, font, brush, x, y);
+                }
+
+                e.Handled = true;
+            }
+        }
         /// <summary>
         /// Sets an image inside a button, scales it properly, and centers it.
         /// </summary>
@@ -1248,26 +1601,28 @@ namespace POSPRA_WinFormsUI.Forms
             if (e.ColumnIndex == 2 && e.RowIndex >= 0)
             {
                 var value = e.Value?.ToString() ?? "";
+                Color badgeColor = Color.FromArgb(209, 250, 229);
+                Color textColor = Color.FromArgb(5, 150, 105);
 
-                Color badgeColor = Color.LightGray;
-                Color textColor = Color.Black;
 
                 if (value.Equals("Information", StringComparison.OrdinalIgnoreCase) ||
                     value.Equals("Info", StringComparison.OrdinalIgnoreCase))
                 {
-                    badgeColor = Color.FromArgb(209, 250, 229);
-                    textColor = Color.FromArgb(5, 150, 105);
+                    badgeColor = Color.FromArgb(219, 234, 254);
+                    textColor = Color.FromArgb(37, 99, 235);
                 }
+
                 else if (value.Equals("Warning", StringComparison.OrdinalIgnoreCase))
                 {
-                    badgeColor = Color.FromArgb(254, 226, 226);
-                    textColor = Color.FromArgb(220, 38, 38);
+                    badgeColor = Color.FromArgb(254, 243, 199);
+                    textColor = Color.FromArgb(217, 119, 6);
+
                 }
                 else if (value.Equals("Exception", StringComparison.OrdinalIgnoreCase) ||
                          value.Equals("Error", StringComparison.OrdinalIgnoreCase))
                 {
-                    badgeColor = Color.FromArgb(254, 243, 199);
-                    textColor = Color.FromArgb(217, 119, 6);
+                    badgeColor = Color.FromArgb(254, 226, 226);
+                    textColor = Color.FromArgb(220, 38, 38);
                 }
 
                 if (!string.IsNullOrEmpty(value))
@@ -1352,13 +1707,13 @@ namespace POSPRA_WinFormsUI.Forms
             panel.Controls.Clear();
 
             // Values and labels
-            List<int> values = new() { pendingCount, syncedCount };
-            List<Color> colors = new()
+            List<int> values = new List<int> { pendingCount, syncedCount };
+            List<Color> colors = new List<Color>
             {
-        ColorTranslator.FromHtml("#4DBDED"), // Synced
-        ColorTranslator.FromHtml("#8860C1")  // Not Synced
-    };
-            List<string> labels = new() { "Synced", "Not Synced" };
+                ColorTranslator.FromHtml("#66BB6A"), // Synced
+                ColorTranslator.FromHtml("#EF5350")  // Not Synced
+            };
+            List<string> labels = new List<string> { "Synced", "Not Synced" };
 
             float total = values.Sum();
             if (total == 0) total = 1; // prevent division by zero
@@ -1455,32 +1810,9 @@ namespace POSPRA_WinFormsUI.Forms
             UpdateLogStatisticsLayout();
         }
 
-        // Optional: Add method to refresh log statistics independently
-        public async Task RefreshLogStatisticsAsync()
+        private void panelinvoicechart_Paint(object sender, PaintEventArgs e)
         {
-            try
-            {
-                var response = await _logService.GetAllAsync();
-                if (response?.Data != null)
-                {
-                    IEnumerable<LogDto> filteredLogs = response.Data;
 
-                    if (!_isInitialLoad) // Apply date filter after initial load
-                    {
-                        filteredLogs = filteredLogs.Where(l =>
-                            l.CreatedAtPk >= _startDate &&
-                            l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
-                    }
-
-                    CalculateLogStatistics(filteredLogs);
-                    UpdateLogStatisticsDisplay();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Silently handle errors in statistics refresh
-                Console.WriteLine($"Error refreshing log statistics: {ex.Message}");
-            }
         }
     }
 }

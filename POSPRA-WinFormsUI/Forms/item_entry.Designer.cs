@@ -833,6 +833,10 @@
             // 
             // item_entry
             // 
+            ControlBox = false;                       // remove close/min/max
+            Text = string.Empty;                      // remove leftover caption space
+            Name = "item_entry";
+
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(248, 250, 252);
@@ -855,59 +859,59 @@
         #endregion
 
         // Custom method to initialize DataGridView columns
-        private void InitializeDataGridViewColumns()
-        {
-            // Clear any existing columns
-            dataGridView1.Columns.Clear();
+        //private void InitializeDataGridViewColumns()
+        //{
+        //    // Clear any existing columns
+        //    dataGridView1.Columns.Clear();
 
-            // Set DataGridView properties
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        //    // Set DataGridView properties
+        //    dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
-            // Common cell styles
-            var headerStyle = new DataGridViewCellStyle
-            {
-                Alignment = DataGridViewContentAlignment.MiddleLeft,
-                BackColor = Color.White,
-                Font = new Font("Microsoft Sans Serif", 9F),
-                ForeColor = Color.FromArgb(107, 114, 128),
-                SelectionBackColor = Color.White,
-                SelectionForeColor = Color.FromArgb(107, 114, 128)
-            };
+        //    // Common cell styles
+        //    var headerStyle = new DataGridViewCellStyle
+        //    {
+        //        Alignment = DataGridViewContentAlignment.MiddleLeft,
+        //        BackColor = Color.White,
+        //        Font = new Font("Microsoft Sans Serif", 9F),
+        //        ForeColor = Color.FromArgb(107, 114, 128),
+        //        SelectionBackColor = Color.White,
+        //        SelectionForeColor = Color.FromArgb(107, 114, 128)
+        //    };
 
-            var rowStyle = new DataGridViewCellStyle
-            {
-                Alignment = DataGridViewContentAlignment.MiddleLeft,
-                BackColor = Color.White,
-                Font = new Font("Microsoft Sans Serif", 9F),
-                ForeColor = Color.FromArgb(75, 85, 99),
-                SelectionBackColor = Color.FromArgb(248, 250, 252),
-                SelectionForeColor = Color.FromArgb(75, 85, 99),
-                WrapMode = DataGridViewTriState.False
-            };
+        //    var rowStyle = new DataGridViewCellStyle
+        //    {
+        //        Alignment = DataGridViewContentAlignment.MiddleLeft,
+        //        BackColor = Color.White,
+        //        Font = new Font("Microsoft Sans Serif", 9F),
+        //        ForeColor = Color.FromArgb(75, 85, 99),
+        //        SelectionBackColor = Color.FromArgb(248, 250, 252),
+        //        SelectionForeColor = Color.FromArgb(75, 85, 99),
+        //        WrapMode = DataGridViewTriState.False
+        //    };
 
-            // Update DataGridView styles
-            dataGridView1.ColumnHeadersDefaultCellStyle = headerStyle;
-            dataGridView1.DefaultCellStyle = rowStyle;
+        //    // Update DataGridView styles
+        //    dataGridView1.ColumnHeadersDefaultCellStyle = headerStyle;
+        //    dataGridView1.DefaultCellStyle = rowStyle;
 
-            // Add columns with relative FillWeight
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[]
-            {
-                new DataGridViewTextBoxColumn { Name = "colSrNo", HeaderText = "Sr. No.", ReadOnly = true, FillWeight = 50 },
-                new DataGridViewTextBoxColumn { Name = "colProductCode", HeaderText = "Item Code", ReadOnly = true, FillWeight = 80 },
-                new DataGridViewTextBoxColumn { Name = "colHSCode", HeaderText = "HS Code", ReadOnly = true, FillWeight = 80 },
-                new DataGridViewTextBoxColumn { Name = "colProductDescription", HeaderText = "Item Name", ReadOnly = true, FillWeight = 150 },
-                new DataGridViewTextBoxColumn { Name = "colQuantity", HeaderText = "Quantity", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 80 },
-                new DataGridViewTextBoxColumn { Name = "colRate", HeaderText = "Rate", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 80 },
-                new DataGridViewTextBoxColumn { Name = "colDiscount", HeaderText = "Discount (Amt)", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 90 },
-                new DataGridViewTextBoxColumn { Name = "colSalesValueExcST", HeaderText = "Sales Value (exc ST)", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 120 },
-                new DataGridViewTextBoxColumn { Name = "colTotalValue", HeaderText = "Total Value", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 120 },
-                new DataGridViewTextBoxColumn { Name = "colSalesTax", HeaderText = "Tax Rate (%)", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 80 },
-                new DataGridViewTextBoxColumn { Name = "colExtraTax", HeaderText = "Tax Charged", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 100 },
-                new DataGridViewTextBoxColumn { Name = "colFutureTax", HeaderText = "Further Tax", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 90 },
-                new DataGridViewTextBoxColumn { Name = "colInvoiceType", HeaderText = "Inv Type", ReadOnly = true, FillWeight = 70 },
-                new DataGridViewTextBoxColumn { Name = "colRefUSIN", HeaderText = "Ref USIN", ReadOnly = true, FillWeight = 100 }
-            });
-        }
+        //    // Add columns with relative FillWeight
+        //    dataGridView1.Columns.AddRange(new DataGridViewColumn[]
+        //    {
+        //        new DataGridViewTextBoxColumn { Name = "colSrNo", HeaderText = "Sr. No.", ReadOnly = true, FillWeight = 50 },
+        //        new DataGridViewTextBoxColumn { Name = "colProductCode", HeaderText = "Item Code", ReadOnly = true, FillWeight = 80 },
+        //        new DataGridViewTextBoxColumn { Name = "colHSCode", HeaderText = "HS Code", ReadOnly = true, FillWeight = 80 },
+        //        new DataGridViewTextBoxColumn { Name = "colProductDescription", HeaderText = "Item Name", ReadOnly = true, FillWeight = 150 },
+        //        new DataGridViewTextBoxColumn { Name = "colQuantity", HeaderText = "Quantity", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 80 },
+        //        new DataGridViewTextBoxColumn { Name = "colRate", HeaderText = "Rate", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 80 },
+        //        new DataGridViewTextBoxColumn { Name = "colDiscount", HeaderText = "Discount (Amt)", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 90 },
+        //        new DataGridViewTextBoxColumn { Name = "colSalesValueExcST", HeaderText = "Sales Value (exc ST)", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 120 },
+        //        new DataGridViewTextBoxColumn { Name = "colTotalValue", HeaderText = "Total Value", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 120 },
+        //        new DataGridViewTextBoxColumn { Name = "colSalesTax", HeaderText = "Tax Rate (%)", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 80 },
+        //        new DataGridViewTextBoxColumn { Name = "colExtraTax", HeaderText = "Tax Charged", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 100 },
+        //        new DataGridViewTextBoxColumn { Name = "colFutureTax", HeaderText = "Further Tax", ReadOnly = true, DefaultCellStyle = new DataGridViewCellStyle { Format = "0.00", Alignment = DataGridViewContentAlignment.MiddleRight }, FillWeight = 90 },
+        //        new DataGridViewTextBoxColumn { Name = "colInvoiceType", HeaderText = "Inv Type", ReadOnly = true, FillWeight = 70 },
+        //        new DataGridViewTextBoxColumn { Name = "colRefUSIN", HeaderText = "Ref USIN", ReadOnly = true, FillWeight = 100 }
+        //    });
+        //}
 
         // Custom method to initialize ComboBoxes
         private void InitializeComboBoxes()
@@ -939,7 +943,7 @@
         // Event handler for form load
         private void item_entry_Load(object sender, EventArgs e)
         {
-            InitializeDataGridViewColumns();
+            //InitializeDataGridViewColumns();
             InitializeComboBoxes();
         }
 

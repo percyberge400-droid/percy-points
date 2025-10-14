@@ -40,12 +40,15 @@ namespace POSPRA_WinFormsUI.Forms
             try
             {
                 // Get AES-encrypted values from config
-                string encUsername = ConfigurationManager.AppSettings["Username"];
-                string encPassword = ConfigurationManager.AppSettings["Password"];
+                //string encUsername = ConfigurationManager.AppSettings["Username"];
+                //string encPassword = ConfigurationManager.AppSettings["Password"];
+                string configUsername = ConfigurationManager.AppSettings["Username"];
+                string configPassword = ConfigurationManager.AppSettings["Password"];
 
-                // 🔑 Decrypt values before using
-                string configUsername = AesEncryptionHelper.Decrypt(encUsername);
-                string configPassword = AesEncryptionHelper.Decrypt(encPassword);
+                //// 🔑 Decrypt values before using
+                //string configUsername = AesEncryptionHelper.Decrypt(encUsername);
+                //string configPassword = AesEncryptionHelper.Decrypt(encPassword);
+        
 
                 string enteredUsername = txtUsername.Text.Trim();
                 string enteredPassword = txtPassword.Text.Trim();

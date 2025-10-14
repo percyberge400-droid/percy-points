@@ -1,5 +1,5 @@
-﻿using System.Configuration;
-using System.Drawing.Drawing2D;
+﻿using POSPRA.Application.Services.FileRecordService;
+using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
@@ -24,11 +24,12 @@ namespace POSPRA_WinFormsUI
         private static List<InvoiceItems> _sessionItems = new();
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
-        private readonly IInvoiceService _invoiceService;
         private bool _isSaving = false;
 
         //logs
         private readonly ILogService _logService;
+        private readonly IInvoiceService _invoiceService;
+
         #endregion
 
         #region Constructor / Initialization
@@ -36,13 +37,15 @@ namespace POSPRA_WinFormsUI
         public item_entry(IHttpClientFactory httpClientFactory, ILogService logService, IInvoiceService invoiceService)
         {
             InitializeComponent();
+            this.Load += item_entry_Load;
+
 
 
 
             // Load POSID from app.config (stored encrypted)
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
             var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
-            posid.Text = decryptedPosId;   // show real POSID in UI
+            posid.Text = encryptedPosId;   // show real POSID in UI
 
 
 
@@ -86,7 +89,12 @@ namespace POSPRA_WinFormsUI
             SetupContextMenu();
             CaptureOriginalLayout();
             InitializeEmptyGrid();
+
+            StyleProductDataGridView();
+
+
             _logService = logService;
+            _invoiceService = invoiceService;
         }
 
         #endregion
@@ -1069,5 +1077,291 @@ namespace POSPRA_WinFormsUI
         }
 
         #endregion
+
+        #region datagrid style
+
+        private void StyleDataGridView(DataGridView dgv)
+        {
+            // General settings
+            dgv.BorderStyle = BorderStyle.None;
+            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
+            dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgv.GridColor = Color.FromArgb(226, 232, 240);
+            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(59, 130, 246);
+            dgv.DefaultCellStyle.SelectionForeColor = Color.White;
+            dgv.BackgroundColor = Color.White;
+            dgv.RowHeadersVisible = false;
+            dgv.EnableHeadersVisualStyles = false;
+            dgv.AllowUserToAddRows = false;
+            dgv.AllowUserToDeleteRows = false;
+            dgv.AllowUserToResizeRows = false;
+            dgv.ReadOnly = true;
+            dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgv.MultiSelect = false;
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+            // ✅ Prevent selecting headers
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(51, 51, 51);
+            dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = Color.White;
+            dgv.RowHeadersDefaultCellStyle.SelectionBackColor = Color.White;
+            dgv.RowHeadersDefaultCellStyle.SelectionForeColor = Color.Black;
+
+            // Column header style
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
+            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.ColumnHeadersHeight = 52;
+            dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+
+            // Cell style (adjusted)
+            dgv.DefaultCellStyle.BackColor = Color.White;
+            dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
+            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
+            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6);
+            dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+
+            // Adjust row height so text fits nicely
+            dgv.RowTemplate.Height = dgv.DefaultCellStyle.Font.Height + dgv.DefaultCellStyle.Padding.Vertical + 12;
+        }
+
+        private void StyleProductDataGridView()
+        {
+            // Clear existing columns
+            dataGridView1.Columns.Clear();
+
+            // Apply your base style
+            StyleDataGridView(dataGridView1);
+
+            // Define product grid columns
+            var colSrNo = new DataGridViewTextBoxColumn
+            {
+                Name = "colSrNo",
+                HeaderText = "Sr. No.",
+                Width = 80,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    ForeColor = Color.FromArgb(107, 114, 128),
+                    Font = new Font("Segoe UI", 9F)
+                }
+            };
+
+            var colProductCode = new DataGridViewTextBoxColumn
+            {
+                Name = "colProductCode",
+                HeaderText = "Item Code",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colHSCode = new DataGridViewTextBoxColumn
+            {
+                Name = "colHSCode",
+                HeaderText = "HS Code",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colProductDescription = new DataGridViewTextBoxColumn
+            {
+                Name = "colProductDescription",
+                HeaderText = "Item Name",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colQuantity = new DataGridViewTextBoxColumn
+            {
+                Name = "colQuantity",
+                HeaderText = "Quantity",
+                Width = 100,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colRate = new DataGridViewTextBoxColumn
+            {
+                Name = "colRate",
+                HeaderText = "Rate",
+                Width = 100,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colDiscount = new DataGridViewTextBoxColumn
+            {
+                Name = "colDiscount",
+                HeaderText = "Discount (Amt)",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colSalesValueExcST = new DataGridViewTextBoxColumn
+            {
+                Name = "colSalesValueExcST",
+                HeaderText = "Sales Value (exc ST)",
+                Width = 140,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colTotalValue = new DataGridViewTextBoxColumn
+            {
+                Name = "colTotalValue",
+                HeaderText = "Total Value",
+                Width = 140,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colSalesTax = new DataGridViewTextBoxColumn
+            {
+                Name = "colSalesTax",
+                HeaderText = "Tax Rate (%)",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colExtraTax = new DataGridViewTextBoxColumn
+            {
+                Name = "colExtraTax",
+                HeaderText = "Tax Charged",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colFutureTax = new DataGridViewTextBoxColumn
+            {
+                Name = "colFutureTax",
+                HeaderText = "Further Tax",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colInvoiceType = new DataGridViewTextBoxColumn
+            {
+                Name = "colInvoiceType",
+                HeaderText = "Inv Type",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            var colRefUSIN = new DataGridViewTextBoxColumn
+            {
+                Name = "colRefUSIN",
+                HeaderText = "Ref USIN",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+            };
+
+            // Add all columns
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[]
+            {
+        colSrNo, colProductCode, colHSCode, colProductDescription, colQuantity,
+        colRate, colDiscount, colSalesValueExcST, colTotalValue,
+        colSalesTax, colExtraTax, colFutureTax, colInvoiceType, colRefUSIN
+            });
+        }
+        #endregion
+
+        #region Control Helper
+        private void SetButtonImage(Button btn, Image img, Color bgColor)
+        {
+            if (btn == null) return;
+
+            // Set background color
+            btn.BackColor = bgColor;
+
+            if (img == null)
+            {
+                btn.Image = null;
+                return;
+            }
+
+            // Dispose previous image to prevent memory leaks
+            if (btn.Image != null)
+            {
+                btn.Image.Dispose();
+                btn.Image = null;
+            }
+
+            // Calculate maximum size to fit inside button, leaving some padding
+            int padding = 8;
+            int maxWidth = btn.Width - padding;
+            int maxHeight = btn.Height - padding;
+
+            // Calculate scaled size while keeping aspect ratio
+            double ratioX = (double)maxWidth / img.Width;
+            double ratioY = (double)maxHeight / img.Height;
+            double ratio = Math.Min(ratioX, ratioY);
+
+            int newWidth = (int)(img.Width * ratio);
+            int newHeight = (int)(img.Height * ratio);
+
+            // Resize the image
+            Image resized = new Bitmap(img, new Size(newWidth, newHeight));
+
+            // Apply image to button
+            btn.Image = resized;
+            btn.ImageAlign = ContentAlignment.MiddleCenter; // center
+            btn.Text = ""; // remove text if needed
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.BackgroundImageLayout = ImageLayout.None;
+        }
+
+        #endregion
+
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using System.ServiceProcess;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
@@ -168,7 +166,7 @@ namespace POSPRA_WinFormsUI.Forms
                         }
                         else if (!online)
                         {
-                            if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 3)
+                            if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 5)
                             {
                                 string msg = "Internet connection still offline";
                                 if (offlineSince.HasValue)
@@ -182,7 +180,7 @@ namespace POSPRA_WinFormsUI.Forms
                         }
 
                         wasOnline = online;
-                        await Task.Delay(2000, ct);
+                        await Task.Delay(5000, ct);
                     }
                     catch (TaskCanceledException)
                     {
@@ -238,11 +236,13 @@ namespace POSPRA_WinFormsUI.Forms
                         if (!isRunning && wasRunning)
                         {
                             WindowsLocalAppNotification.Show("POS Service Alert", "POS service is inactive!");
+                            _ = CreateLog("POS service is inactive!", AlertType.Warning);
                             _workerServiceAlertShown = true;
                         }
                         else if (isRunning && !wasRunning)
                         {
                             WindowsLocalAppNotification.Show("POS Service Alert", "POS service restored!");
+                            _ = CreateLog("POS service restored!", AlertType.Success);
                             _workerServiceAlertShown = false;
                         }
 
@@ -363,7 +363,7 @@ namespace POSPRA_WinFormsUI.Forms
             Form childForm = v switch
             {
                 "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
-                "Invoice Entry" => _provider.GetRequiredService<item_entry>(),
+                "Invoice Entry" => _provider.GetRequiredService<ItemEntry>(),
                 "Export Invoice" => _provider.GetRequiredService<ExportInvoiceForm>(),
                 "Catalog View" => _provider.GetRequiredService<CatalogView>(),
                 _ => throw new NotImplementedException()

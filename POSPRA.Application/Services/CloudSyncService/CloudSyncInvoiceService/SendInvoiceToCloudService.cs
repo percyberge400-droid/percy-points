@@ -1,6 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
@@ -11,6 +9,11 @@ using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
+<<<<<<< HEAD
+=======
+using System.Text;
+using System.Text.Json;
+>>>>>>> ilhan-master-9
 
 public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 {
@@ -70,19 +73,61 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
                     using var updateScope = _scopeFactory.CreateScope();
                     var fiscal = updateScope.ServiceProvider.GetRequiredService<IFileRecordService>();
                     await fiscal.UpdateFileRecordsAsync(files, false);
+<<<<<<< HEAD
+=======
+
+                    // 👇 Log each synced file/invoice individually
+                    foreach (var file in files)
+                    {
+                        string fileId = file.InvoiceNumber ?? "";
+                        await _workerLogService.LogAsync(
+                            AlertType.Info,
+                            $"Invoice number '{fileId}' synced successfully.",
+                            nameof(SendInvoiceToCloudService),
+                            id,
+                            "InvoiceSynced"
+                        );
+                    }
+>>>>>>> ilhan-master-9
                 }
             }
             else if (response.StatusCode != ApiStatusCode.NotFound)
             {
+<<<<<<< HEAD
                 await _workerLogService.LogAsync(AlertType.Warning, $"Sync failed: {response.StatusCode}", nameof(SendInvoiceToCloudService), id, "SyncFailed");
+=======
+                await _workerLogService.LogAsync(
+                    AlertType.Warning,
+                    $"Sync failed: {response.StatusCode}",
+                    nameof(SendInvoiceToCloudService),
+                    id,
+                    "SyncFailed"
+                );
+>>>>>>> ilhan-master-9
             }
         }
         catch (Exception ex)
         {
+<<<<<<< HEAD
             await _workerLogService.LogAsync(AlertType.Exception, ex.Message, nameof(SendInvoiceToCloudService), id, "SyncException", null, ex.ToString());
         }
     }
 
+=======
+            await _workerLogService.LogAsync(
+                AlertType.Exception,
+                ex.Message,
+                nameof(SendInvoiceToCloudService),
+                id,
+                "SyncException",
+                null,
+                ex.ToString()
+            );
+        }
+    }
+
+
+>>>>>>> ilhan-master-9
     private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, List<FileRecordDto> fileRecordDtos, CancellationToken token)
     {
         try
@@ -95,7 +140,11 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 
             var jsonBody = JsonSerializer.Serialize(fileRecordDtos);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+<<<<<<< HEAD
             var url = $"{_baseUrl}{Endpoints.DecryptSave.TrimStart('/')}";
+=======
+            var url = $"{_baseUrl}{Endpoints.DecryptSave}";
+>>>>>>> ilhan-master-9
 
             var resp = await _http.PostAsync(url, content, token);
             if (!resp.IsSuccessStatusCode)

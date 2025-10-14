@@ -20,282 +20,178 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             label1 = new Label();
-            dateTimePickerFrom = new DateTimePicker();
             lblExportStatus = new Label();
-            DateFromLbl = new Label();
-            progressBarExport = new ProgressBar();
-            dateTimePickerTo = new DateTimePicker();
-            ExportInvoiceBtn = new Button();
-            RegLbl = new Label();
+            panelPending = new Panel();
             ToDateLbl = new Label();
+            DateFromLbl = new Label();
+            RegLbl = new Label();
+            progressBarExport = new ProgressBar();
             RegNoTxtBox = new TextBox();
-            tableLayoutPanel1 = new TableLayoutPanel();
-            tableLayoutPanel5 = new TableLayoutPanel();
-            tableLayoutPanel4 = new TableLayoutPanel();
-            tableLayoutPanel3 = new TableLayoutPanel();
-            tableLayoutPanel2 = new TableLayoutPanel();
-            tableLayoutPanel6 = new TableLayoutPanel();
-            tableLayoutPanel1.SuspendLayout();
-            tableLayoutPanel5.SuspendLayout();
-            tableLayoutPanel4.SuspendLayout();
-            tableLayoutPanel3.SuspendLayout();
-            tableLayoutPanel2.SuspendLayout();
-            tableLayoutPanel6.SuspendLayout();
+            dateTimePickerTo = new DateTimePicker();
+            dateTimePickerFrom = new DateTimePicker();
+            ExportInvoiceBtn = new Button();
+            panelPending.SuspendLayout();
             SuspendLayout();
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Font = new Font("Microsoft Sans Serif", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(3, 0);
+            label1.Dock = DockStyle.Top;
+            label1.Font = new Font("Segoe UI Semibold", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label1.ForeColor = Color.FromArgb(64, 64, 64);
+            label1.Location = new Point(0, 0);
             label1.Name = "label1";
-            label1.Size = new Size(126, 64);
-            label1.TabIndex = 59;
-            label1.Text = "Export Invoices";
-            // 
-            // dateTimePickerFrom
-            // 
-            dateTimePickerFrom.CalendarFont = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dateTimePickerFrom.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dateTimePickerFrom.Format = DateTimePickerFormat.Short;
-            dateTimePickerFrom.Location = new Point(3, 76);
-            dateTimePickerFrom.MinDate = new DateTime(1947, 10, 10, 0, 0, 0, 0);
-            dateTimePickerFrom.Name = "dateTimePickerFrom";
-            dateTimePickerFrom.Size = new Size(156, 24);
-            dateTimePickerFrom.TabIndex = 55;
+            label1.Size = new Size(271, 41);
+            label1.TabIndex = 0;
+            label1.Text = "EXPORT INVOICES";
+            label1.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblExportStatus
             // 
-            lblExportStatus.AutoSize = true;
-            lblExportStatus.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
-            lblExportStatus.ForeColor = Color.Green;
-            lblExportStatus.Location = new Point(3, 0);
+            lblExportStatus.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            lblExportStatus.ForeColor = Color.FromArgb(100, 100, 100);
+            lblExportStatus.Location = new Point(60, 265);
             lblExportStatus.Name = "lblExportStatus";
-            lblExportStatus.Size = new Size(0, 18);
-            lblExportStatus.TabIndex = 50;
+            lblExportStatus.Size = new Size(560, 40);
+            lblExportStatus.TabIndex = 0;
+            lblExportStatus.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // panelPending
+            // 
+            panelPending.Anchor = AnchorStyles.None;
+            panelPending.BackColor = Color.Gainsboro;
+            panelPending.Controls.Add(lblExportStatus);
+            panelPending.Controls.Add(ToDateLbl);
+            panelPending.Controls.Add(DateFromLbl);
+            panelPending.Controls.Add(RegLbl);
+            panelPending.Controls.Add(progressBarExport);
+            panelPending.Controls.Add(RegNoTxtBox);
+            panelPending.Controls.Add(dateTimePickerTo);
+            panelPending.Controls.Add(dateTimePickerFrom);
+            panelPending.Controls.Add(ExportInvoiceBtn);
+            panelPending.Location = new Point(150, 90);
+            panelPending.Name = "panelPending";
+            panelPending.Padding = new Padding(20);
+            panelPending.Size = new Size(680, 320);
+            panelPending.TabIndex = 1;
+            // 
+            // ToDateLbl
+            // 
+            ToDateLbl.Font = new Font("Segoe UI", 10F);
+            ToDateLbl.Location = new Point(340, 60);
+            ToDateLbl.Name = "ToDateLbl";
+            ToDateLbl.Size = new Size(71, 23);
+            ToDateLbl.TabIndex = 1;
+            ToDateLbl.Text = "To Date";
             // 
             // DateFromLbl
             // 
-            DateFromLbl.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            DateFromLbl.AutoSize = true;
-            DateFromLbl.Font = new Font("Microsoft Sans Serif", 10.2F);
-            DateFromLbl.Location = new Point(3, 53);
+            DateFromLbl.Font = new Font("Segoe UI", 10F);
+            DateFromLbl.Location = new Point(60, 60);
             DateFromLbl.Name = "DateFromLbl";
-            DateFromLbl.Size = new Size(89, 20);
-            DateFromLbl.TabIndex = 52;
+            DateFromLbl.Size = new Size(93, 23);
+            DateFromLbl.TabIndex = 2;
             DateFromLbl.Text = "From Date";
+            // 
+            // RegLbl
+            // 
+            RegLbl.Font = new Font("Segoe UI", 10F);
+            RegLbl.Location = new Point(60, 110);
+            RegLbl.Name = "RegLbl";
+            RegLbl.Size = new Size(121, 23);
+            RegLbl.TabIndex = 3;
+            RegLbl.Text = "Registration #";
             // 
             // progressBarExport
             // 
-            progressBarExport.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            progressBarExport.ForeColor = Color.FromArgb(128, 255, 128);
-            progressBarExport.Location = new Point(390, 3);
+            progressBarExport.ForeColor = Color.MediumSeaGreen;
+            progressBarExport.Location = new Point(60, 230);
+            progressBarExport.MarqueeAnimationSpeed = 40;
             progressBarExport.Name = "progressBarExport";
-            progressBarExport.Size = new Size(381, 25);
-            progressBarExport.TabIndex = 58;
+            progressBarExport.Size = new Size(500, 20);
+            progressBarExport.Style = ProgressBarStyle.Marquee;
+            progressBarExport.TabIndex = 4;
             progressBarExport.Visible = false;
+            // 
+            // RegNoTxtBox
+            // 
+            RegNoTxtBox.BackColor = Color.White;
+            RegNoTxtBox.BorderStyle = BorderStyle.FixedSingle;
+            RegNoTxtBox.Font = new Font("Segoe UI", 9.5F);
+            RegNoTxtBox.Location = new Point(187, 108);
+            RegNoTxtBox.Name = "RegNoTxtBox";
+            RegNoTxtBox.Size = new Size(373, 29);
+            RegNoTxtBox.TabIndex = 5;
             // 
             // dateTimePickerTo
             // 
-            dateTimePickerTo.Font = new Font("Microsoft Sans Serif", 9F);
-            dateTimePickerTo.Format = DateTimePickerFormat.Short;
-            dateTimePickerTo.Location = new Point(3, 76);
+            dateTimePickerTo.CustomFormat = "dd MMM yyyy";
+            dateTimePickerTo.Font = new Font("Segoe UI", 9.5F);
+            dateTimePickerTo.Format = DateTimePickerFormat.Custom;
+            dateTimePickerTo.Location = new Point(417, 58);
             dateTimePickerTo.Name = "dateTimePickerTo";
-            dateTimePickerTo.Size = new Size(156, 24);
-            dateTimePickerTo.TabIndex = 56;
+            dateTimePickerTo.Size = new Size(143, 29);
+            dateTimePickerTo.TabIndex = 6;
+            // 
+            // dateTimePickerFrom
+            // 
+            dateTimePickerFrom.CalendarForeColor = Color.Black;
+            dateTimePickerFrom.CalendarMonthBackground = Color.White;
+            dateTimePickerFrom.CustomFormat = "dd MMM yyyy";
+            dateTimePickerFrom.Font = new Font("Segoe UI", 9.5F);
+            dateTimePickerFrom.Format = DateTimePickerFormat.Custom;
+            dateTimePickerFrom.Location = new Point(159, 58);
+            dateTimePickerFrom.Name = "dateTimePickerFrom";
+            dateTimePickerFrom.Size = new Size(143, 29);
+            dateTimePickerFrom.TabIndex = 7;
             // 
             // ExportInvoiceBtn
             // 
             ExportInvoiceBtn.BackColor = Color.MediumSeaGreen;
+            ExportInvoiceBtn.Cursor = Cursors.Hand;
+            ExportInvoiceBtn.FlatAppearance.BorderSize = 0;
             ExportInvoiceBtn.FlatStyle = FlatStyle.Flat;
-            ExportInvoiceBtn.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold);
-            ExportInvoiceBtn.ForeColor = Color.Transparent;
-            ExportInvoiceBtn.Location = new Point(3, 76);
+            ExportInvoiceBtn.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold);
+            ExportInvoiceBtn.ForeColor = Color.White;
+            ExportInvoiceBtn.Location = new Point(60, 170);
             ExportInvoiceBtn.Name = "ExportInvoiceBtn";
-            ExportInvoiceBtn.Size = new Size(175, 50);
-            ExportInvoiceBtn.TabIndex = 51;
-            ExportInvoiceBtn.Text = "📤 Export Invoices";
+            ExportInvoiceBtn.Size = new Size(500, 40);
+            ExportInvoiceBtn.TabIndex = 8;
+            ExportInvoiceBtn.Text = "📤  Export Invoices";
             ExportInvoiceBtn.UseVisualStyleBackColor = false;
-            ExportInvoiceBtn.AutoSizeChanged += ExportInvoiceBtn_Click;
             ExportInvoiceBtn.Click += ExportInvoiceBtn_Click;
-            // 
-            // RegLbl
-            // 
-            RegLbl.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            RegLbl.AutoSize = true;
-            RegLbl.Font = new Font("Microsoft Sans Serif", 10.2F);
-            RegLbl.Location = new Point(3, 53);
-            RegLbl.Name = "RegLbl";
-            RegLbl.Size = new Size(163, 20);
-            RegLbl.TabIndex = 53;
-            RegLbl.Text = "Registration Number";
-            // 
-            // ToDateLbl
-            // 
-            ToDateLbl.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            ToDateLbl.AutoSize = true;
-            ToDateLbl.Font = new Font("Microsoft Sans Serif", 10.2F);
-            ToDateLbl.Location = new Point(3, 53);
-            ToDateLbl.Name = "ToDateLbl";
-            ToDateLbl.Size = new Size(69, 20);
-            ToDateLbl.TabIndex = 54;
-            ToDateLbl.Text = "To Date";
-            // 
-            // RegNoTxtBox
-            // 
-            RegNoTxtBox.Location = new Point(3, 76);
-            RegNoTxtBox.Name = "RegNoTxtBox";
-            RegNoTxtBox.Size = new Size(161, 24);
-            RegNoTxtBox.TabIndex = 60;
-            // 
-            // tableLayoutPanel1
-            // 
-            tableLayoutPanel1.ColumnCount = 6;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.09058F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.0905848F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.0905848F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.0905848F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.343276F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39.2943954F));
-            tableLayoutPanel1.Controls.Add(tableLayoutPanel5, 3, 0);
-            tableLayoutPanel1.Controls.Add(tableLayoutPanel4, 2, 0);
-            tableLayoutPanel1.Controls.Add(tableLayoutPanel3, 1, 0);
-            tableLayoutPanel1.Controls.Add(label1, 0, 0);
-            tableLayoutPanel1.Controls.Add(tableLayoutPanel6, 4, 0);
-            tableLayoutPanel1.Dock = DockStyle.Top;
-            tableLayoutPanel1.Location = new Point(0, 0);
-            tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 1;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel1.Size = new Size(1597, 153);
-            tableLayoutPanel1.TabIndex = 61;
-            // 
-            // tableLayoutPanel5
-            // 
-            tableLayoutPanel5.ColumnCount = 1;
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel5.Controls.Add(RegLbl, 0, 0);
-            tableLayoutPanel5.Controls.Add(RegNoTxtBox, 0, 1);
-            tableLayoutPanel5.Location = new Point(582, 3);
-            tableLayoutPanel5.Name = "tableLayoutPanel5";
-            tableLayoutPanel5.RowCount = 2;
-            tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel5.Size = new Size(187, 147);
-            tableLayoutPanel5.TabIndex = 65;
-            // 
-            // tableLayoutPanel4
-            // 
-            tableLayoutPanel4.ColumnCount = 1;
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel4.Controls.Add(ToDateLbl, 0, 0);
-            tableLayoutPanel4.Controls.Add(dateTimePickerTo, 0, 1);
-            tableLayoutPanel4.Location = new Point(389, 3);
-            tableLayoutPanel4.Name = "tableLayoutPanel4";
-            tableLayoutPanel4.RowCount = 2;
-            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel4.Size = new Size(187, 147);
-            tableLayoutPanel4.TabIndex = 64;
-            // 
-            // tableLayoutPanel3
-            // 
-            tableLayoutPanel3.ColumnCount = 1;
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel3.Controls.Add(DateFromLbl, 0, 0);
-            tableLayoutPanel3.Controls.Add(dateTimePickerFrom, 0, 1);
-            tableLayoutPanel3.Location = new Point(196, 3);
-            tableLayoutPanel3.Name = "tableLayoutPanel3";
-            tableLayoutPanel3.RowCount = 2;
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.Size = new Size(187, 147);
-            tableLayoutPanel3.TabIndex = 63;
-            // 
-            // tableLayoutPanel2
-            // 
-            tableLayoutPanel2.ColumnCount = 2;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Controls.Add(lblExportStatus, 0, 0);
-            tableLayoutPanel2.Controls.Add(progressBarExport, 1, 0);
-            tableLayoutPanel2.Location = new Point(196, 169);
-            tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 1;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.Size = new Size(774, 130);
-            tableLayoutPanel2.TabIndex = 62;
-            // 
-            // tableLayoutPanel6
-            // 
-            tableLayoutPanel6.ColumnCount = 1;
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel6.Controls.Add(ExportInvoiceBtn, 0, 1);
-            tableLayoutPanel6.Dock = DockStyle.Fill;
-            tableLayoutPanel6.Location = new Point(775, 3);
-            tableLayoutPanel6.Name = "tableLayoutPanel6";
-            tableLayoutPanel6.RowCount = 2;
-            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel6.Size = new Size(191, 147);
-            tableLayoutPanel6.TabIndex = 66;
             // 
             // ExportInvoiceForm
             // 
-            AutoScaleDimensions = new SizeF(9F, 18F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1597, 547);
-            Controls.Add(tableLayoutPanel2);
-            Controls.Add(tableLayoutPanel1);
-            Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            BackColor = Color.FromArgb(245, 247, 250);
+            ClientSize = new Size(980, 540);
+            Controls.Add(label1);
+            Controls.Add(panelPending);
+            Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "ExportInvoiceForm";
-            Text = "ExportInvoiceForm";
-            Load += ExportInvoiceForm_Load;
-            tableLayoutPanel1.ResumeLayout(false);
-            tableLayoutPanel1.PerformLayout();
-            tableLayoutPanel5.ResumeLayout(false);
-            tableLayoutPanel5.PerformLayout();
-            tableLayoutPanel4.ResumeLayout(false);
-            tableLayoutPanel4.PerformLayout();
-            tableLayoutPanel3.ResumeLayout(false);
-            tableLayoutPanel3.PerformLayout();
-            tableLayoutPanel2.ResumeLayout(false);
-            tableLayoutPanel2.PerformLayout();
-            tableLayoutPanel6.ResumeLayout(false);
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "📤 Export Invoices";
+            panelPending.ResumeLayout(false);
+            panelPending.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
-
-        #endregion
-
         private Label label1;
-        private DateTimePicker dateTimePickerFrom;
         private Label lblExportStatus;
-        private Label DateFromLbl;
-        private ProgressBar progressBarExport;
-        private DateTimePicker dateTimePickerTo;
-        private Button ExportInvoiceBtn;
-        private Label RegLbl;
+        private Panel panelPending;
         private Label ToDateLbl;
+        private Label DateFromLbl;
+        private Label RegLbl;
+        private ProgressBar progressBarExport;
         private TextBox RegNoTxtBox;
-        private TableLayoutPanel tableLayoutPanel1;
-        private TableLayoutPanel tableLayoutPanel5;
-        private TableLayoutPanel tableLayoutPanel4;
-        private TableLayoutPanel tableLayoutPanel3;
-        private TableLayoutPanel tableLayoutPanel2;
-        private TableLayoutPanel tableLayoutPanel6;
+        private DateTimePicker dateTimePickerTo;
+        private DateTimePicker dateTimePickerFrom;
+        private Button ExportInvoiceBtn;
     }
 }

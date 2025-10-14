@@ -20,10 +20,8 @@ namespace POSPRA.Application.Services.LiveService
     public class LiveService(
         IOptions<AppSettings> options,
         SqlServerRepository<Invoice> invoiceRepository,
-        SqlServerRepository<InvoiceItems> invoiceItemsRepository,
         IMapper mapper,
-        ISqlServerUnitOfWork sqlServerUnitOfWork
-        ) : ILiveService
+        ISqlServerUnitOfWork sqlServerUnitOfWork) : ILiveService
     {
         private readonly AppSettings _settings = options.Value;
         private readonly SqlServerRepository<Invoice> _invoiceRepository = invoiceRepository;

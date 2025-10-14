@@ -40,10 +40,21 @@ var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         //----------------------------------------------------
+        // 🔧 Read SQLite DB file path from AppSettings
+        //----------------------------------------------------
+        var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
+        var dbPath = appSettings.DefaultDBFilePath;
+
+        //if (string.IsNullOrWhiteSpace(dbPath))
+        //    throw new Exception("❌ DefaultDBFilePath is missing in appsettings.worker.json");
+
+        //if (!File.Exists(dbPath))
+        //    throw new FileNotFoundException($"❌ SQLite database not found at path: {dbPath}");
+
+        //----------------------------------------------------
         // 🔧 Database configuration
         //----------------------------------------------------
-        // SQLite
-        var dbPath = SqliteDbContext.GetDbPath();
+        // SQLite (use existing DB)
         services.AddDbContext<SqliteDbContext>(options =>
             options.UseSqlite($"Data Source={dbPath}"));
 
@@ -77,17 +88,16 @@ var builder = Host.CreateDefaultBuilder(args)
         // 🔧 Services
         //----------------------------------------------------
         services.AddScoped<ILiveService, LiveService>();
+        services.AddScoped<IFileRecordService, FileRecordService>();
         services.AddScoped<InvoiceValidatorService>();
         services.AddSingleton<INetworkService, NetworkService>();
         services.AddScoped<ILogService, LogService>();
         services.AddScoped<IRequestHeaderService, RequestHeaderService>();
-        services.AddScoped<IConfigurationService, ConfigurationService>();
-        services.AddScoped<IFileRecordService, FileRecordService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IConfigurationService, ConfigurationService>();
+        services.AddScoped<IWorkerLogService, WorkerLogService>();
         services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
         services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
-        services.AddScoped<IWorkerLogService, WorkerLogService>();
-
         services.AddHttpContextAccessor();
 
         //----------------------------------------------------
@@ -108,18 +118,14 @@ var builder = Host.CreateDefaultBuilder(args)
 
 var host = builder.Build();
 
-// ✅ Ensure SQLite DB is created with all tables before the worker starts
+// ✅ Log database path (for diagnostics)
 using (var scope = host.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-    db.Database.EnsureCreated();   // Creates DB + tables if missing
-                                   // If you use migrations instead of EnsureCreated, call:
-                                   // db.Database.Migrate();
-
-    // Optional: log the path
     var dbPath = db.Database.GetDbConnection().DataSource;
-    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
-        $"[{DateTime.Now}] Database ensured at: {dbPath}{Environment.NewLine}");
+
+    //File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
+    //    $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
 }
 
 await host.RunAsync();

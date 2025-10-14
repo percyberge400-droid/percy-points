@@ -3,6 +3,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.DTOs.LogDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.DTOs.ProductCatalogDtos;
 
 namespace POSPRA.Application.AutoMapperProfile
@@ -23,6 +24,9 @@ namespace POSPRA.Application.AutoMapperProfile
             CreateMap<ProductCatalogueDto, ProductCatalogue>();
             CreateMap<ProductCatalogue, ProductCatalogueDto>();
 
+            CreateMap<Logs, SyncLogDto>();
+            CreateMap<SyncLogDto, Logs>();
+
             // DTO ➜ Entity
             // Parent mapping
             CreateMap<InvoiceDto, Invoice>()
@@ -36,6 +40,9 @@ namespace POSPRA.Application.AutoMapperProfile
             CreateMap<InvoiceItemDto, InvoiceItems>()
                 .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
+
+            //CreateMap<SyncLogDto, Logs>()
+            //    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => 0));
         }
     }
 }

@@ -10,15 +10,10 @@ namespace POSPRA.API.Controllers
     {
         private readonly IInvoiceService _invoiceService = invoiceService;
 
-        /// <summary>
-        /// Creates a new fiscal invoice based on the provided invoice data.
-        /// </summary>
-        /// <param name="dto">
-        /// The invoice information to be stored as a fiscal record.
-        /// </param>
-        /// <returns>
-        /// The result of the create operation, including the saved invoice data.
-        /// </returns>
+        [HttpGet("getInvoiceWithItems")]
+        public async Task<IActionResult> GetInvoice(string invoiceNumber) =>
+            Ok(await _invoiceService.GetInvoiceWithItems(invoiceNumber));
+
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] InvoiceDto dto) =>
             Ok(await _invoiceService.CreateAsync(dto));
