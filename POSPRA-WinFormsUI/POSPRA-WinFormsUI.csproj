@@ -25,6 +25,8 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
     <PackageReference Include="Microsoft.ReportingServices.ReportViewerControl.Winforms" Version="150.1652.0" />
+    <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="170.128.0" />
+    <PackageReference Include="QRCoder" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,6 +45,21 @@
       <HintPath>bin\Debug\net9.0-windows10.0.17763.0\Microsoft.CommunityToolkit.WinUI.Notifications.dll</HintPath>
     </Reference>
 	  <ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Forms\ReportDataSet.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ReportDataSet.xsd</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Forms\ReportDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>ReportDataSet.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

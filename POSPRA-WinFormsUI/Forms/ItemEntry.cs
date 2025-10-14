@@ -7,6 +7,7 @@ using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
+using POSPRA_WinFormsUI.Forms;
 using System.Configuration;
 using System.Drawing.Drawing2D;
 using AlertType = POSPRA.Application.Utility.AlertType;
@@ -444,7 +445,8 @@ namespace POSPRA_WinFormsUI
 
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
-
+                InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                printForm.ShowDialog();
                 addedItems.Clear();
                 CurrentInvoice = null;
                 _sessionItems.Clear();

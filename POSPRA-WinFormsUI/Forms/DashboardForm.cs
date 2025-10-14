@@ -1448,12 +1448,16 @@ namespace POSPRA_WinFormsUI.Forms
                     // call invoice print generator
                     // invoiceNumber
                     var response = _invoiceService.GetInvoiceWithItems(invoiceNumber).Result;
-                    MessageBox.Show(
-                        $"Print button clicked for Invoice: {invoiceNumber}",
-                        "Print Invoice",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
+                    if (response == null)
+                    {
+                        MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    // Opens preview; user can print from the report viewer toolbar 
+                    InvoiceReport printForm = new InvoiceReport(response.Data);
+                    printForm.ShowDialog();             
+                   
                 }
             }
         }

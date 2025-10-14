@@ -20,7 +20,7 @@ namespace POSPRA.Application.Services.ClientService
         {
 
             var entity = await _clientRepository.FirstOrDefaultAsync(m =>
-                                m.POSBranchID == dto.PosId &&
+                                m.POSRegistrationNumber == dto.PosId &&
                                 m.MAC_Address == dto.MacAddress &&
                                 m.Token == dto.Token);
             if (entity == null)
