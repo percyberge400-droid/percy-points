@@ -140,11 +140,8 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 
             var jsonBody = JsonSerializer.Serialize(fileRecordDtos);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-<<<<<<< HEAD
-            var url = $"{_baseUrl}{Endpoints.DecryptSave.TrimStart('/')}";
-=======
+
             var url = $"{_baseUrl}{Endpoints.DecryptSave}";
->>>>>>> ilhan-master-9
 
             var resp = await _http.PostAsync(url, content, token);
             if (!resp.IsSuccessStatusCode)
