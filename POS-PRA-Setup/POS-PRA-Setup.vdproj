@@ -321,9 +321,9 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:POS-Component"
+        "ProductName" = "8:POS Component"
         "ProductCode" = "8:{6A2879D1-E93D-422F-978D-B231820AA62B}"
-        "PackageCode" = "8:{12EE3CE0-D93F-4698-8287-9D4338A73E9E}"
+        "PackageCode" = "8:{CD22D334-5935-4E83-8B31-ACCE072B8C9E}"
         "UpgradeCode" = "8:{239EA055-E78F-4033-95C6-4DA1C9496960}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -334,9 +334,9 @@
         "Manufacturer" = "8:PRAL"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:POS-PRA-Setup"
+        "Title" = "8:POS Component"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:POS-PRA"
+        "ARPCONTACT" = "8:POS Component"
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
@@ -1110,7 +1110,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B197E02983A840AD81E08012CDDD90BA"
             {
-            "SourcePath" = "8:..\\POSPRA.API\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.Api\\obj\\Debug\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"

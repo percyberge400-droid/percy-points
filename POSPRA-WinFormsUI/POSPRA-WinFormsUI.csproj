@@ -24,9 +24,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
-    <PackageReference Include="Microsoft.ReportingServices.ReportViewerControl.Winforms" Version="150.1652.0" />
     <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="170.128.0" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
+    <PackageReference Include="ReportViewerCore.NETCore" Version="15.1.26" />
+    <PackageReference Include="ReportViewerCore.WinForms" Version="15.1.26" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +57,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Forms\InvoiceReport.rdlc">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Forms\ReportDataSet.xsd">
       <Generator>MSDataSetGenerator</Generator>
       <LastGenOutput>ReportDataSet.Designer.cs</LastGenOutput>

@@ -50,15 +50,19 @@ namespace POSPRA_WinFormsUI.Forms
             };
 
             _reportViewer.LocalReport.EnableExternalImages = true;
-            // optional — set zoom mode
+
+            Controls.Add(_reportViewer);
+
+            // ✅ Load the report and data first
+            LoadReport();
+
+            // ✅ Only after loading & refreshing the report — apply layout settings
             _reportViewer.SetDisplayMode(DisplayMode.PrintLayout);
             _reportViewer.ZoomMode = ZoomMode.PageWidth;
-    
-            Controls.Add(_reportViewer);
-            LoadReport();
         }
 
-        
+
+
         #endregion
 
 
@@ -247,7 +251,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                 // 4️⃣ Refresh to display the data
                 _reportViewer.RefreshReport();
-                MessageBox.Show($"Header rows: {header.Rows.Count}, Body rows: {body.Rows.Count},Invoice Number {_invoiceNumber}");
+                //MessageBox.Show($"Header rows: {header.Rows.Count}, Body rows: {body.Rows.Count},Invoice Number {_invoiceNumber}");
 
             }
             catch (Exception ex)
