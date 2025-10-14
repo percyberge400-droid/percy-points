@@ -3,6 +3,9 @@ using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.ComponentModel;
+using System.Data;
+using System.Text;
 namespace POSPRA_WinFormsUI.Forms
 
 {
@@ -716,7 +719,7 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new())
+                using (SaveFileDialog sfd = new SaveFileDialog())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Local_Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
@@ -724,7 +727,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new();
+                        StringBuilder csvContent = new StringBuilder();
 
                         // ✅ Write headers
                         var headers = InvoicesDataGridView.Columns
@@ -859,14 +862,14 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new())
+                using (SaveFileDialog sfd = new SaveFileDialog())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Logs_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new();
+                        StringBuilder csvContent = new StringBuilder();
 
                         // ✅ Write headers
                         var headers = LogsDataGridView.Columns
@@ -1192,7 +1195,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (panel == null || image == null) return;
 
             // Create PictureBox
-            PictureBox pic = new()
+            PictureBox pic = new PictureBox
             {
                 Image = image,
                 SizeMode = PictureBoxSizeMode.Zoom,
@@ -1719,7 +1722,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (total == 0) total = 1; // prevent division by zero
 
             // ---------- Header ----------
-            Label header = new()
+            Label header = new Label
             {
                 Text = "ALL INVOICES DETAIL",
                 AutoSize = false,
@@ -1746,11 +1749,11 @@ namespace POSPRA_WinFormsUI.Forms
             int pieY = header.Bottom + ((availableHeight - pieSize) / 2) + 10;
 
             // Draw pie chart
-            Bitmap bmp = new(pieSize, pieSize);
+            Bitmap bmp = new Bitmap(pieSize, pieSize);
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                Rectangle rect = new(0, 0, pieSize, pieSize);
+                Rectangle rect = new Rectangle(0, 0, pieSize, pieSize);
                 float startAngle = 0;
 
                 for (int i = 0; i < values.Count; i++)
@@ -1762,7 +1765,7 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             }
 
-            PictureBox pic = new()
+            PictureBox pic = new PictureBox
             {
                 Image = bmp,
                 SizeMode = PictureBoxSizeMode.Normal,
@@ -1784,7 +1787,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 int offsetX = i * spacingX;
 
-                Panel colorBox = new()
+                Panel colorBox = new Panel
                 {
                     BackColor = colors[i],
                     Size = new Size(boxSize, boxSize),
@@ -1792,7 +1795,7 @@ namespace POSPRA_WinFormsUI.Forms
                 };
                 panel.Controls.Add(colorBox);
 
-                Label lbl = new()
+                Label lbl = new Label
                 {
                     Text = $"{labels[i]}: {values[i]}",
                     ForeColor = Color.Black,

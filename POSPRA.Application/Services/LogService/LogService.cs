@@ -9,6 +9,8 @@ using POSPRA.DTOs.LogDTOs;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Data;
+using System.Reflection;
 
 namespace POSPRA.Application.Services.LogService
 {
@@ -75,60 +77,10 @@ namespace POSPRA.Application.Services.LogService
             return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null!, string.Empty);
         }
 
-        public async Task<ApiResponse<List<LogDto>>> GetAllCloudAsync()
-        {
-            var allRecords = await _logSQLServerRepository.GetAllAsync();
-            var logDtos = _mapper.Map<List<LogDto>>(allRecords);
-
-            if (logDtos.Any())
-                return new ApiResponse<List<LogDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, logDtos, string.Empty);
-
-            return new ApiResponse<List<LogDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
-        }
-
         public async Task<ApiResponse<List<LogDto>>> GetAllAsync()
         {
-            var allRecords = await _logSQLiteRepository.GetAllAsync();
-            var logDtos = _mapper.Map<List<LogDto>>(allRecords);
-
-            if (logDtos.Any())
-                return new ApiResponse<List<LogDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, logDtos, string.Empty);
-
-            return new ApiResponse<List<LogDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
-        }
-
-        public async Task<ApiResponse<List<LogDto>>> CreateCloudLog(List<LogDto> dto)
-        {
-            if (dto is null || !dto.Any())
-                return new ApiResponse<List<LogDto>>(ApiStatusCode.Error, ResponseMessages.InvalidInput, dto, string.Empty);
-
-            var logs = _mapper.Map<List<Logs>>(dto);
-            await _logSQLServerRepository.AddRangeAsync(logs);
-            await _sqlServerUnitOfWork.SaveChangesAsync();
-
-            return new ApiResponse<List<LogDto>>(ApiStatusCode.Success, ResponseMessages.RecordSaved, null, string.Empty);
-        }
-
-        public async Task<ApiResponse<List<LogDto>>> UpdateLogAsync(List<LogDto> logDtos)
-        {
-            if (logDtos == null || !logDtos.Any())
-            {
-                return new ApiResponse<List<LogDto>>(
-                    ApiStatusCode.Error,
-                    ResponseMessages.DataNotFound,
-                    null!,
-                    string.Empty);
-            }
-
-            // Map to entities
-            var entities = _mapper.Map<List<Logs>>(logDtos);
-
-            // Mark all as synced
-            entities.ForEach(log => log.IsSynced = true);
-
-            // Update in batch
-            _logSQLServerRepository.UpdateRange(entities);
-            await _sqlServerUnitOfWork.SaveChangesAsync();
+            var output = await _logSQLiteRepository.GetAllAsync();
+            var logDTO = _mapper.Map<List<LogDto>>(output);
 
             return new ApiResponse<List<LogDto>>(null!, null!, logDTO, null!);
         }

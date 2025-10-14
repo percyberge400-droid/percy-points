@@ -7,6 +7,8 @@ using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
+using System.Drawing.Drawing2D;
 using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI

@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Utility;
@@ -9,6 +8,7 @@ using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Text.Json;
 
 namespace POSPRA.Application.Services.LiveService
 {

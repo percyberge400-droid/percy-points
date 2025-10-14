@@ -14,9 +14,6 @@ namespace POSPRA.Application.Services.LogService
         Task<ApiResponse<List<LogDto>>> GetAllCloudAsync();
         Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs();
 
-        Task<ApiResponse<List<LogDto>>> GetAllCloudAsync();
-        Task<ApiResponse<List<LogDto>>> GetAllUnsyncCloudAsync();
-
         Task<ApiResponse<List<LogDto>>> GetAllAsync();
 
         Task<ApiResponse<bool>> UpdateLog(List<Logs> dtos);

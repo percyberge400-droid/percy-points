@@ -9,11 +9,8 @@ using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
-<<<<<<< HEAD
-=======
 using System.Text;
 using System.Text.Json;
->>>>>>> ilhan-master-9
 
 public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 {
@@ -73,8 +70,6 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
                     using var updateScope = _scopeFactory.CreateScope();
                     var fiscal = updateScope.ServiceProvider.GetRequiredService<IFileRecordService>();
                     await fiscal.UpdateFileRecordsAsync(files, false);
-<<<<<<< HEAD
-=======
 
                     // 👇 Log each synced file/invoice individually
                     foreach (var file in files)
@@ -88,14 +83,10 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
                             "InvoiceSynced"
                         );
                     }
->>>>>>> ilhan-master-9
                 }
             }
             else if (response.StatusCode != ApiStatusCode.NotFound)
             {
-<<<<<<< HEAD
-                await _workerLogService.LogAsync(AlertType.Warning, $"Sync failed: {response.StatusCode}", nameof(SendInvoiceToCloudService), id, "SyncFailed");
-=======
                 await _workerLogService.LogAsync(
                     AlertType.Warning,
                     $"Sync failed: {response.StatusCode}",
@@ -103,17 +94,10 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
                     id,
                     "SyncFailed"
                 );
->>>>>>> ilhan-master-9
             }
         }
         catch (Exception ex)
         {
-<<<<<<< HEAD
-            await _workerLogService.LogAsync(AlertType.Exception, ex.Message, nameof(SendInvoiceToCloudService), id, "SyncException", null, ex.ToString());
-        }
-    }
-
-=======
             await _workerLogService.LogAsync(
                 AlertType.Exception,
                 ex.Message,
@@ -127,7 +111,6 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
     }
 
 
->>>>>>> ilhan-master-9
     private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, List<FileRecordDto> fileRecordDtos, CancellationToken token)
     {
         try
@@ -140,7 +123,6 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 
             var jsonBody = JsonSerializer.Serialize(fileRecordDtos);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-
             var url = $"{_baseUrl}{Endpoints.DecryptSave}";
 
             var resp = await _http.PostAsync(url, content, token);

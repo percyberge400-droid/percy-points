@@ -2,6 +2,8 @@
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Net.NetworkInformation;
+using System.ServiceProcess;
 using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -12,7 +14,7 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly ILogService _logService;
         private CancellationTokenSource _internetCheckCts;
         private CancellationTokenSource _workerServiceCts;
-        private readonly List<Form> _independentForms = new();
+        private readonly List<Form> _independentForms = new List<Form>();
         private DateTime? offlineSince = null;
         private bool? wasOnline = null;
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
