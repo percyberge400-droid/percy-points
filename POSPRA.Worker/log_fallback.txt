@@ -108,3 +108,6 @@
 2025-10-06T09:40:49.0530144Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
 2025-10-06T09:40:55.2331871Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
 2025-10-06T09:41:01.5578504Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-14T06:11:33.7360542Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-10-14T06:12:59.7558179Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-10-14T06:14:10.8312792Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.

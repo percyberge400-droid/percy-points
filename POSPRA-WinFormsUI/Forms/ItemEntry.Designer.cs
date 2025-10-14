@@ -31,6 +31,9 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
+            label4 = new Label();
+            itemDiscountAmount = new TextBox();
+            itemDiscountPercent = new TextBox();
             TaxChargedlbl = new Label();
             TaxCharged = new TextBox();
             pctCode = new TextBox();
@@ -38,7 +41,6 @@
             salevalue = new TextBox();
             salevaluelbl = new Label();
             TaxRatebox = new TextBox();
-            itemDiscount = new TextBox();
             itemDiscountlbl = new Label();
             totalamount = new TextBox();
             ItemCode = new TextBox();
@@ -113,6 +115,9 @@
             pnlBasicInfo.BackColor = Color.FromArgb(250, 250, 250);
             pnlBasicInfo.BackgroundImageLayout = ImageLayout.None;
             pnlBasicInfo.BorderStyle = BorderStyle.FixedSingle;
+            pnlBasicInfo.Controls.Add(label4);
+            pnlBasicInfo.Controls.Add(itemDiscountAmount);
+            pnlBasicInfo.Controls.Add(itemDiscountPercent);
             pnlBasicInfo.Controls.Add(TaxChargedlbl);
             pnlBasicInfo.Controls.Add(TaxCharged);
             pnlBasicInfo.Controls.Add(pctCode);
@@ -120,7 +125,6 @@
             pnlBasicInfo.Controls.Add(salevalue);
             pnlBasicInfo.Controls.Add(salevaluelbl);
             pnlBasicInfo.Controls.Add(TaxRatebox);
-            pnlBasicInfo.Controls.Add(itemDiscount);
             pnlBasicInfo.Controls.Add(itemDiscountlbl);
             pnlBasicInfo.Controls.Add(totalamount);
             pnlBasicInfo.Controls.Add(ItemCode);
@@ -139,6 +143,37 @@
             pnlBasicInfo.Name = "pnlBasicInfo";
             pnlBasicInfo.Size = new Size(1145, 167);
             pnlBasicInfo.TabIndex = 6;
+            // 
+            // label4
+            // 
+            label4.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label4.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            label4.ForeColor = Color.FromArgb(75, 85, 99);
+            label4.Location = new Point(1011, 17);
+            label4.Name = "label4";
+            label4.Size = new Size(108, 20);
+            label4.TabIndex = 60;
+            label4.Text = "Discount (Rs.)";
+            // 
+            // itemDiscountAmount
+            // 
+            itemDiscountAmount.Font = new Font("Microsoft Sans Serif", 9F);
+            itemDiscountAmount.Location = new Point(1011, 44);
+            itemDiscountAmount.Name = "itemDiscountAmount";
+            itemDiscountAmount.PlaceholderText = "Calculated Rs.";
+            itemDiscountAmount.ReadOnly = true;
+            itemDiscountAmount.Size = new Size(100, 24);
+            itemDiscountAmount.TabIndex = 59;
+            // 
+            // itemDiscountPercent
+            // 
+            itemDiscountPercent.Font = new Font("Microsoft Sans Serif", 9F);
+            itemDiscountPercent.Location = new Point(909, 44);
+            itemDiscountPercent.Name = "itemDiscountPercent";
+            itemDiscountPercent.PlaceholderText = "Discount %";
+            itemDiscountPercent.Size = new Size(96, 24);
+            itemDiscountPercent.TabIndex = 58;
+            itemDiscountPercent.Text = "10";
             // 
             // TaxChargedlbl
             // 
@@ -159,7 +194,7 @@
             TaxCharged.Name = "TaxCharged";
             TaxCharged.PlaceholderText = "Tax Charged";
             TaxCharged.ReadOnly = true;
-            TaxCharged.Size = new Size(192, 24);
+            TaxCharged.Size = new Size(202, 24);
             TaxCharged.TabIndex = 57;
             // 
             // pctCode
@@ -216,16 +251,6 @@
             TaxRatebox.TabIndex = 12;
             TaxRatebox.Text = "10";
             // 
-            // itemDiscount
-            // 
-            itemDiscount.Font = new Font("Microsoft Sans Serif", 9F);
-            itemDiscount.Location = new Point(911, 42);
-            itemDiscount.Name = "itemDiscount";
-            itemDiscount.PlaceholderText = "Discount";
-            itemDiscount.Size = new Size(192, 24);
-            itemDiscount.TabIndex = 13;
-            itemDiscount.Text = "5";
-            // 
             // itemDiscountlbl
             // 
             itemDiscountlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -233,9 +258,9 @@
             itemDiscountlbl.ForeColor = Color.FromArgb(75, 85, 99);
             itemDiscountlbl.Location = new Point(909, 17);
             itemDiscountlbl.Name = "itemDiscountlbl";
-            itemDiscountlbl.Size = new Size(167, 20);
+            itemDiscountlbl.Size = new Size(96, 20);
             itemDiscountlbl.TabIndex = 14;
-            itemDiscountlbl.Text = "Discount";
+            itemDiscountlbl.Text = "Discount (%)";
             // 
             // totalamount
             // 
@@ -287,7 +312,7 @@
             FurtureTax.Font = new Font("Microsoft Sans Serif", 9F);
             FurtureTax.Location = new Point(677, 113);
             FurtureTax.Name = "FurtureTax";
-            FurtureTax.PlaceholderText = "Furture Tax";
+            FurtureTax.PlaceholderText = "Further Tax";
             FurtureTax.Size = new Size(203, 24);
             FurtureTax.TabIndex = 17;
             // 
@@ -937,13 +962,15 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(248, 250, 252);
             ClientSize = new Size(1202, 900);
-            ControlBox = false;
+            ControlBox = true;
             Controls.Add(contentPanel);
             Font = new Font("Microsoft Sans Serif", 9F);
-            FormBorderStyle = FormBorderStyle.None;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "ItemEntry";
+            Text = "Item Entry";
             WindowState = FormWindowState.Maximized;
             Load += item_entry_Load;
+            StartPosition = FormStartPosition.CenterScreen;
             pnlBasicInfo.ResumeLayout(false);
             pnlBasicInfo.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
@@ -1076,7 +1103,6 @@
         private Label lblItemEntry;
         private Button btnEdit;
         private TextBox TaxRatebox;
-        private TextBox itemDiscount;
         private Button btnSave;
         private DataGridView dataGridView1;
         private Label lblInvoicesListing;
@@ -1132,5 +1158,8 @@
         private Button btnclear;
         private Button btnsearch;
         private TextBox SearchBox;
+        private TextBox itemDiscountAmount;
+        private TextBox itemDiscountPercent;
+        private Label label4;
     }
 }

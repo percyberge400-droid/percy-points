@@ -102,17 +102,17 @@ namespace POSPRA_WinFormsUI.Forms
             panellogchart = new Panel();
             tableLayoutPanelLogStats = new TableLayoutPanel();
             panelTotalLogs = new Panel();
-            lblTotalLogsTitle = new Label();
             lblTotalLogsCount = new Label();
-            panelErrorLogs = new Panel();
-            lblErrorLogsTitle = new Label();
-            lblErrorLogsCount = new Label();
+            lblTotalLogsTitle = new Label();
             panelWarningLogs = new Panel();
             lblWarningLogsTitle = new Label();
             lblWarningLogsCount = new Label();
             panelInfoLogs = new Panel();
             lblInfoLogsTitle = new Label();
             lblInfoLogsCount = new Label();
+            panelErrorLogs = new Panel();
+            lblErrorLogsTitle = new Label();
+            lblErrorLogsCount = new Label();
             tableLayoutPanelTop.SuspendLayout();
             panelAll.SuspendLayout();
             panelPending.SuspendLayout();
@@ -125,9 +125,9 @@ namespace POSPRA_WinFormsUI.Forms
             panellogchart.SuspendLayout();
             tableLayoutPanelLogStats.SuspendLayout();
             panelTotalLogs.SuspendLayout();
-            panelErrorLogs.SuspendLayout();
             panelWarningLogs.SuspendLayout();
             panelInfoLogs.SuspendLayout();
+            panelErrorLogs.SuspendLayout();
             SuspendLayout();
             // 
             // settings
@@ -148,7 +148,7 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 23F));
+            tableLayoutPanelTop.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 262F));
             tableLayoutPanelTop.Controls.Add(panelAll, 0, 0);
             tableLayoutPanelTop.Controls.Add(panelPending, 1, 0);
             tableLayoutPanelTop.Controls.Add(panelPaid, 2, 0);
@@ -159,7 +159,7 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanelTop.Padding = new Padding(10, 11, 10, 11);
             tableLayoutPanelTop.RowCount = 1;
             tableLayoutPanelTop.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanelTop.Size = new Size(1781, 155);
+            tableLayoutPanelTop.Size = new Size(1445, 155);
             tableLayoutPanelTop.TabIndex = 1;
             // 
             // panelAll
@@ -172,30 +172,30 @@ namespace POSPRA_WinFormsUI.Forms
             panelAll.Margin = new Padding(8);
             panelAll.Name = "panelAll";
             panelAll.Padding = new Padding(11, 12, 11, 12);
-            panelAll.Size = new Size(570, 117);
+            panelAll.Size = new Size(459, 117);
             panelAll.TabIndex = 0;
             // 
             // lblAllTitle
             // 
             lblAllTitle.BackColor = Color.Transparent;
             lblAllTitle.Dock = DockStyle.Bottom;
-            lblAllTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            lblAllTitle.Font = new Font("Microsoft Sans Serif", 10.8F);
             lblAllTitle.ForeColor = Color.Black;
-            lblAllTitle.Location = new Point(11, 66);
+            lblAllTitle.Location = new Point(11, 81);
             lblAllTitle.Name = "lblAllTitle";
-            lblAllTitle.Size = new Size(548, 39);
+            lblAllTitle.Size = new Size(437, 24);
             lblAllTitle.TabIndex = 1;
             lblAllTitle.Text = "All Invoices";
             // 
             // labelAllInvoices
             // 
-            labelAllInvoices.AutoSize = true;
-            labelAllInvoices.Dock = DockStyle.Fill;
-            labelAllInvoices.Font = new Font("Microsoft Sans Serif", 28.2F, FontStyle.Bold);
+            labelAllInvoices.Dock = DockStyle.Top;
+            labelAllInvoices.Font = new Font("Microsoft Sans Serif", 25.8000011F, FontStyle.Bold);
             labelAllInvoices.ForeColor = Color.White;
             labelAllInvoices.Location = new Point(11, 12);
+            labelAllInvoices.Margin = new Padding(3, 0, 3, 3);
             labelAllInvoices.Name = "labelAllInvoices";
-            labelAllInvoices.Size = new Size(50, 54);
+            labelAllInvoices.Size = new Size(437, 29);
             labelAllInvoices.TabIndex = 0;
             labelAllInvoices.Text = "0";
             labelAllInvoices.TextAlign = ContentAlignment.MiddleCenter;
@@ -206,34 +206,34 @@ namespace POSPRA_WinFormsUI.Forms
             panelPending.Controls.Add(lblPendingTitle);
             panelPending.Controls.Add(labelPendingInvoice);
             panelPending.Dock = DockStyle.Fill;
-            panelPending.Location = new Point(604, 19);
+            panelPending.Location = new Point(493, 19);
             panelPending.Margin = new Padding(8);
             panelPending.Name = "panelPending";
             panelPending.Padding = new Padding(11, 12, 11, 12);
-            panelPending.Size = new Size(570, 117);
+            panelPending.Size = new Size(459, 117);
             panelPending.TabIndex = 1;
             // 
             // lblPendingTitle
             // 
             lblPendingTitle.BackColor = Color.Transparent;
             lblPendingTitle.Dock = DockStyle.Bottom;
-            lblPendingTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblPendingTitle.Font = new Font("Microsoft Sans Serif", 10.8F);
             lblPendingTitle.ForeColor = Color.Black;
-            lblPendingTitle.Location = new Point(11, 66);
+            lblPendingTitle.Location = new Point(11, 81);
             lblPendingTitle.Name = "lblPendingTitle";
-            lblPendingTitle.Size = new Size(548, 39);
+            lblPendingTitle.Size = new Size(437, 24);
             lblPendingTitle.TabIndex = 1;
             lblPendingTitle.Text = "Not Synced";
             // 
             // labelPendingInvoice
             // 
-            labelPendingInvoice.AutoSize = true;
-            labelPendingInvoice.Dock = DockStyle.Fill;
-            labelPendingInvoice.Font = new Font("Microsoft Sans Serif", 28.2F, FontStyle.Bold);
+            labelPendingInvoice.Dock = DockStyle.Top;
+            labelPendingInvoice.Font = new Font("Microsoft Sans Serif", 25.8000011F, FontStyle.Bold);
             labelPendingInvoice.ForeColor = Color.White;
             labelPendingInvoice.Location = new Point(11, 12);
+            labelPendingInvoice.Margin = new Padding(3, 0, 3, 3);
             labelPendingInvoice.Name = "labelPendingInvoice";
-            labelPendingInvoice.Size = new Size(50, 54);
+            labelPendingInvoice.Size = new Size(437, 29);
             labelPendingInvoice.TabIndex = 0;
             labelPendingInvoice.Text = "0";
             labelPendingInvoice.TextAlign = ContentAlignment.MiddleCenter;
@@ -244,34 +244,34 @@ namespace POSPRA_WinFormsUI.Forms
             panelPaid.Controls.Add(lblPaidTitle);
             panelPaid.Controls.Add(labelPaidInvoices);
             panelPaid.Dock = DockStyle.Fill;
-            panelPaid.Location = new Point(1190, 19);
+            panelPaid.Location = new Point(968, 19);
             panelPaid.Margin = new Padding(8);
             panelPaid.Name = "panelPaid";
             panelPaid.Padding = new Padding(11, 12, 11, 12);
-            panelPaid.Size = new Size(573, 117);
+            panelPaid.Size = new Size(459, 117);
             panelPaid.TabIndex = 2;
             // 
             // lblPaidTitle
             // 
             lblPaidTitle.BackColor = Color.Transparent;
             lblPaidTitle.Dock = DockStyle.Bottom;
-            lblPaidTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            lblPaidTitle.Font = new Font("Microsoft Sans Serif", 10.8F);
             lblPaidTitle.ForeColor = Color.Black;
-            lblPaidTitle.Location = new Point(11, 66);
+            lblPaidTitle.Location = new Point(11, 81);
             lblPaidTitle.Name = "lblPaidTitle";
-            lblPaidTitle.Size = new Size(551, 39);
+            lblPaidTitle.Size = new Size(437, 24);
             lblPaidTitle.TabIndex = 1;
             lblPaidTitle.Text = "Synced Invoices";
             // 
             // labelPaidInvoices
             // 
-            labelPaidInvoices.AutoSize = true;
-            labelPaidInvoices.Dock = DockStyle.Fill;
-            labelPaidInvoices.Font = new Font("Microsoft Sans Serif", 28.2F, FontStyle.Bold);
+            labelPaidInvoices.Dock = DockStyle.Top;
+            labelPaidInvoices.Font = new Font("Microsoft Sans Serif", 25.8000011F, FontStyle.Bold);
             labelPaidInvoices.ForeColor = Color.White;
             labelPaidInvoices.Location = new Point(11, 12);
+            labelPaidInvoices.Margin = new Padding(3, 0, 3, 3);
             labelPaidInvoices.Name = "labelPaidInvoices";
-            labelPaidInvoices.Size = new Size(50, 54);
+            labelPaidInvoices.Size = new Size(437, 29);
             labelPaidInvoices.TabIndex = 0;
             labelPaidInvoices.Text = "0";
             labelPaidInvoices.TextAlign = ContentAlignment.MiddleCenter;
@@ -291,9 +291,9 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanelMain.Name = "tableLayoutPanelMain";
             tableLayoutPanelMain.Padding = new Padding(10, 11, 10, 11);
             tableLayoutPanelMain.RowCount = 2;
-            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 55.5045853F));
-            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 44.4954147F));
-            tableLayoutPanelMain.Size = new Size(1781, 676);
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 52.1406746F));
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 47.8593254F));
+            tableLayoutPanelMain.Size = new Size(1445, 676);
             tableLayoutPanelMain.TabIndex = 0;
             // 
             // panelInvoices
@@ -316,7 +316,7 @@ namespace POSPRA_WinFormsUI.Forms
             panelInvoices.Margin = new Padding(6, 5, 6, 5);
             panelInvoices.Name = "panelInvoices";
             panelInvoices.Padding = new Padding(8);
-            panelInvoices.Size = new Size(1406, 353);
+            panelInvoices.Size = new Size(1135, 331);
             panelInvoices.TabIndex = 0;
             // 
             // btnExportInvoice
@@ -328,7 +328,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Arial", 12F);
             btnExportInvoice.ForeColor = Color.White;
-            btnExportInvoice.Location = new Point(471, 8);
+            btnExportInvoice.Location = new Point(200, 8);
             btnExportInvoice.Name = "btnExportInvoice";
             btnExportInvoice.Size = new Size(182, 37);
             btnExportInvoice.TabIndex = 10;
@@ -344,7 +344,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilter.FlatStyle = FlatStyle.Flat;
             btnFilter.Font = new Font("Microsoft Sans Serif", 10.8F);
             btnFilter.ForeColor = Color.White;
-            btnFilter.Location = new Point(1107, 8);
+            btnFilter.Location = new Point(837, 8);
             btnFilter.Name = "btnFilter";
             btnFilter.Size = new Size(64, 37);
             btnFilter.TabIndex = 12;
@@ -359,7 +359,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnRefresh.FlatStyle = FlatStyle.Flat;
             btnRefresh.Font = new Font("Microsoft Sans Serif", 10.8F);
             btnRefresh.ForeColor = Color.White;
-            btnRefresh.Location = new Point(1247, 8);
+            btnRefresh.Location = new Point(976, 8);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(64, 37);
             btnRefresh.TabIndex = 0;
@@ -369,7 +369,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             progressBar.Anchor = AnchorStyles.None;
             progressBar.ForeColor = Color.SeaGreen;
-            progressBar.Location = new Point(118, -59);
+            progressBar.Location = new Point(-18, -69);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(400, 25);
             progressBar.Step = 1;
@@ -386,7 +386,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.FlatStyle = FlatStyle.Flat;
             btnFilterSynced.Font = new Font("Arial", 10.8F);
             btnFilterSynced.ForeColor = Color.White;
-            btnFilterSynced.Location = new Point(659, 8);
+            btnFilterSynced.Location = new Point(389, 8);
             btnFilterSynced.Name = "btnFilterSynced";
             btnFilterSynced.Size = new Size(190, 37);
             btnFilterSynced.TabIndex = 5;
@@ -402,7 +402,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnClearFilter.FlatStyle = FlatStyle.Flat;
             btnClearFilter.Font = new Font("Microsoft Sans Serif", 10.8F);
             btnClearFilter.ForeColor = Color.White;
-            btnClearFilter.Location = new Point(1177, 8);
+            btnClearFilter.Location = new Point(906, 8);
             btnClearFilter.Name = "btnClearFilter";
             btnClearFilter.Size = new Size(64, 37);
             btnClearFilter.TabIndex = 4;
@@ -417,7 +417,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnToday.FlatStyle = FlatStyle.Flat;
             btnToday.Font = new Font("Arial", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             btnToday.ForeColor = Color.White;
-            btnToday.Location = new Point(1318, 8);
+            btnToday.Location = new Point(1047, 8);
             btnToday.Name = "btnToday";
             btnToday.Size = new Size(77, 37);
             btnToday.TabIndex = 3;
@@ -431,9 +431,9 @@ namespace POSPRA_WinFormsUI.Forms
             lblDateRange.Cursor = Cursors.Hand;
             lblDateRange.Font = new Font("Segoe UI", 9F);
             lblDateRange.ForeColor = Color.FromArgb(55, 65, 81);
-            lblDateRange.Location = new Point(860, 8);
+            lblDateRange.Location = new Point(589, 8);
             lblDateRange.Name = "lblDateRange";
-            lblDateRange.Padding = new Padding(12, 7, 30, 7);
+            lblDateRange.Padding = new Padding(11, 7, 30, 7);
             lblDateRange.Size = new Size(240, 37);
             lblDateRange.TabIndex = 9;
             lblDateRange.Text = "📅  Wed, Sep 25, 2025 - Thu, Oct 2, 2025";
@@ -443,7 +443,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             dtpStartDate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             dtpStartDate.Format = DateTimePickerFormat.Short;
-            dtpStartDate.Location = new Point(903, 16);
+            dtpStartDate.Location = new Point(632, 16);
             dtpStartDate.Name = "dtpStartDate";
             dtpStartDate.Size = new Size(15, 27);
             dtpStartDate.TabIndex = 10;
@@ -453,7 +453,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             dtpEndDate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             dtpEndDate.Format = DateTimePickerFormat.Short;
-            dtpEndDate.Location = new Point(1013, 16);
+            dtpEndDate.Location = new Point(742, 16);
             dtpEndDate.Name = "dtpEndDate";
             dtpEndDate.Size = new Size(15, 27);
             dtpEndDate.TabIndex = 11;
@@ -478,7 +478,7 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.RowHeadersVisible = false;
             InvoicesDataGridView.RowHeadersWidth = 51;
             InvoicesDataGridView.RowTemplate.Height = 40;
-            InvoicesDataGridView.Size = new Size(1390, 290);
+            InvoicesDataGridView.Size = new Size(1119, 268);
             InvoicesDataGridView.TabIndex = 0;
             // 
             // labelInvoicesTitle
@@ -503,11 +503,11 @@ namespace POSPRA_WinFormsUI.Forms
             panelLogs.Controls.Add(LogsDataGridView);
             panelLogs.Controls.Add(labelLogsTitle);
             panelLogs.Dock = DockStyle.Fill;
-            panelLogs.Location = new Point(16, 379);
+            panelLogs.Location = new Point(16, 357);
             panelLogs.Margin = new Padding(6, 5, 6, 5);
             panelLogs.Name = "panelLogs";
             panelLogs.Padding = new Padding(8);
-            panelLogs.Size = new Size(1406, 281);
+            panelLogs.Size = new Size(1135, 303);
             panelLogs.TabIndex = 1;
             // 
             // btnSyncLogs
@@ -519,7 +519,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnSyncLogs.FlatStyle = FlatStyle.Flat;
             btnSyncLogs.Font = new Font("Arial", 12F);
             btnSyncLogs.ForeColor = Color.White;
-            btnSyncLogs.Location = new Point(1055, 8);
+            btnSyncLogs.Location = new Point(784, 8);
             btnSyncLogs.Name = "btnSyncLogs";
             btnSyncLogs.Size = new Size(167, 39);
             btnSyncLogs.TabIndex = 10;
@@ -535,7 +535,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnExportLogs.FlatStyle = FlatStyle.Flat;
             btnExportLogs.Font = new Font("Arial", 12F);
             btnExportLogs.ForeColor = Color.White;
-            btnExportLogs.Location = new Point(1228, 8);
+            btnExportLogs.Location = new Point(957, 8);
             btnExportLogs.Name = "btnExportLogs";
             btnExportLogs.Size = new Size(167, 39);
             btnExportLogs.TabIndex = 9;
@@ -555,7 +555,7 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.RowHeadersVisible = false;
             LogsDataGridView.RowHeadersWidth = 51;
             LogsDataGridView.RowTemplate.Height = 40;
-            LogsDataGridView.Size = new Size(1390, 218);
+            LogsDataGridView.Size = new Size(1119, 240);
             LogsDataGridView.TabIndex = 0;
             // 
             // labelLogsTitle
@@ -575,11 +575,11 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             panelinvoicechart.BackColor = Color.White;
             panelinvoicechart.Dock = DockStyle.Fill;
-            panelinvoicechart.Location = new Point(1434, 16);
+            panelinvoicechart.Location = new Point(1163, 16);
             panelinvoicechart.Margin = new Padding(6, 5, 6, 5);
             panelinvoicechart.Name = "panelinvoicechart";
             panelinvoicechart.Padding = new Padding(8);
-            panelinvoicechart.Size = new Size(331, 353);
+            panelinvoicechart.Size = new Size(266, 331);
             panelinvoicechart.TabIndex = 2;
             // 
             // panellogchart
@@ -587,57 +587,46 @@ namespace POSPRA_WinFormsUI.Forms
             panellogchart.BackColor = Color.White;
             panellogchart.Controls.Add(tableLayoutPanelLogStats);
             panellogchart.Dock = DockStyle.Fill;
-            panellogchart.Location = new Point(1434, 379);
+            panellogchart.Location = new Point(1163, 357);
             panellogchart.Margin = new Padding(6, 5, 6, 5);
             panellogchart.Name = "panellogchart";
             panellogchart.Padding = new Padding(8);
-            panellogchart.Size = new Size(331, 281);
+            panellogchart.Size = new Size(266, 303);
             panellogchart.TabIndex = 3;
             // 
             // tableLayoutPanelLogStats
             // 
             tableLayoutPanelLogStats.ColumnCount = 2;
-            tableLayoutPanelLogStats.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanelLogStats.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanelLogStats.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50.0225143F));
+            tableLayoutPanelLogStats.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49.9774857F));
             tableLayoutPanelLogStats.Controls.Add(panelTotalLogs, 0, 0);
-            tableLayoutPanelLogStats.Controls.Add(panelErrorLogs, 1, 0);
             tableLayoutPanelLogStats.Controls.Add(panelWarningLogs, 0, 1);
             tableLayoutPanelLogStats.Controls.Add(panelInfoLogs, 1, 1);
+            tableLayoutPanelLogStats.Controls.Add(panelErrorLogs, 1, 0);
             tableLayoutPanelLogStats.Dock = DockStyle.Fill;
             tableLayoutPanelLogStats.Location = new Point(8, 8);
             tableLayoutPanelLogStats.Margin = new Padding(0);
             tableLayoutPanelLogStats.Name = "tableLayoutPanelLogStats";
-            tableLayoutPanelLogStats.RowCount = 2;
+            tableLayoutPanelLogStats.RowCount = 1;
             tableLayoutPanelLogStats.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tableLayoutPanelLogStats.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanelLogStats.Size = new Size(315, 265);
+            tableLayoutPanelLogStats.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanelLogStats.Size = new Size(250, 287);
             tableLayoutPanelLogStats.TabIndex = 0;
             // 
             // panelTotalLogs
             // 
             panelTotalLogs.BackColor = Color.FromArgb(236, 253, 245);
             panelTotalLogs.BorderStyle = BorderStyle.FixedSingle;
-            panelTotalLogs.Controls.Add(lblTotalLogsTitle);
             panelTotalLogs.Controls.Add(lblTotalLogsCount);
+            panelTotalLogs.Controls.Add(lblTotalLogsTitle);
             panelTotalLogs.Dock = DockStyle.Fill;
             panelTotalLogs.Location = new Point(5, 5);
             panelTotalLogs.Margin = new Padding(5);
             panelTotalLogs.Name = "panelTotalLogs";
             panelTotalLogs.Padding = new Padding(8);
-            panelTotalLogs.Size = new Size(147, 122);
+            panelTotalLogs.Size = new Size(115, 133);
             panelTotalLogs.TabIndex = 0;
-            // 
-            // lblTotalLogsTitle
-            // 
-            lblTotalLogsTitle.Dock = DockStyle.Bottom;
-            lblTotalLogsTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblTotalLogsTitle.ForeColor = Color.FromArgb(55, 65, 81);
-            lblTotalLogsTitle.Location = new Point(8, 77);
-            lblTotalLogsTitle.Name = "lblTotalLogsTitle";
-            lblTotalLogsTitle.Size = new Size(129, 35);
-            lblTotalLogsTitle.TabIndex = 1;
-            lblTotalLogsTitle.Text = "Success Logs";
-            lblTotalLogsTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblTotalLogsCount
             // 
@@ -652,44 +641,17 @@ namespace POSPRA_WinFormsUI.Forms
             lblTotalLogsCount.Text = "0";
             lblTotalLogsCount.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // panelErrorLogs
+            // lblTotalLogsTitle
             // 
-            panelErrorLogs.BackColor = Color.FromArgb(255, 241, 242);
-            panelErrorLogs.BorderStyle = BorderStyle.FixedSingle;
-            panelErrorLogs.Controls.Add(lblErrorLogsTitle);
-            panelErrorLogs.Controls.Add(lblErrorLogsCount);
-            panelErrorLogs.Dock = DockStyle.Fill;
-            panelErrorLogs.Location = new Point(162, 5);
-            panelErrorLogs.Margin = new Padding(5);
-            panelErrorLogs.Name = "panelErrorLogs";
-            panelErrorLogs.Padding = new Padding(8);
-            panelErrorLogs.Size = new Size(148, 122);
-            panelErrorLogs.TabIndex = 1;
-            // 
-            // lblErrorLogsTitle
-            // 
-            lblErrorLogsTitle.Dock = DockStyle.Bottom;
-            lblErrorLogsTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblErrorLogsTitle.ForeColor = Color.FromArgb(55, 65, 81);
-            lblErrorLogsTitle.Location = new Point(8, 77);
-            lblErrorLogsTitle.Name = "lblErrorLogsTitle";
-            lblErrorLogsTitle.Size = new Size(130, 35);
-            lblErrorLogsTitle.TabIndex = 1;
-            lblErrorLogsTitle.Text = "Error Logs";
-            lblErrorLogsTitle.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // lblErrorLogsCount
-            // 
-            lblErrorLogsCount.AutoSize = true;
-            lblErrorLogsCount.Dock = DockStyle.Top;
-            lblErrorLogsCount.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblErrorLogsCount.ForeColor = Color.FromArgb(239, 68, 68);
-            lblErrorLogsCount.Location = new Point(8, 8);
-            lblErrorLogsCount.Name = "lblErrorLogsCount";
-            lblErrorLogsCount.Size = new Size(35, 41);
-            lblErrorLogsCount.TabIndex = 0;
-            lblErrorLogsCount.Text = "0";
-            lblErrorLogsCount.TextAlign = ContentAlignment.MiddleCenter;
+            lblTotalLogsTitle.Dock = DockStyle.Bottom;
+            lblTotalLogsTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblTotalLogsTitle.ForeColor = Color.FromArgb(55, 65, 81);
+            lblTotalLogsTitle.Location = new Point(8, 96);
+            lblTotalLogsTitle.Name = "lblTotalLogsTitle";
+            lblTotalLogsTitle.Size = new Size(97, 27);
+            lblTotalLogsTitle.TabIndex = 1;
+            lblTotalLogsTitle.Text = "Success Logs";
+            lblTotalLogsTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // panelWarningLogs
             // 
@@ -698,11 +660,11 @@ namespace POSPRA_WinFormsUI.Forms
             panelWarningLogs.Controls.Add(lblWarningLogsTitle);
             panelWarningLogs.Controls.Add(lblWarningLogsCount);
             panelWarningLogs.Dock = DockStyle.Fill;
-            panelWarningLogs.Location = new Point(5, 137);
+            panelWarningLogs.Location = new Point(5, 148);
             panelWarningLogs.Margin = new Padding(5);
             panelWarningLogs.Name = "panelWarningLogs";
             panelWarningLogs.Padding = new Padding(8);
-            panelWarningLogs.Size = new Size(147, 123);
+            panelWarningLogs.Size = new Size(115, 134);
             panelWarningLogs.TabIndex = 2;
             // 
             // lblWarningLogsTitle
@@ -710,9 +672,9 @@ namespace POSPRA_WinFormsUI.Forms
             lblWarningLogsTitle.Dock = DockStyle.Bottom;
             lblWarningLogsTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lblWarningLogsTitle.ForeColor = Color.FromArgb(55, 65, 81);
-            lblWarningLogsTitle.Location = new Point(8, 78);
+            lblWarningLogsTitle.Location = new Point(8, 97);
             lblWarningLogsTitle.Name = "lblWarningLogsTitle";
-            lblWarningLogsTitle.Size = new Size(129, 35);
+            lblWarningLogsTitle.Size = new Size(97, 27);
             lblWarningLogsTitle.TabIndex = 1;
             lblWarningLogsTitle.Text = "Warning Logs";
             lblWarningLogsTitle.TextAlign = ContentAlignment.MiddleCenter;
@@ -737,11 +699,11 @@ namespace POSPRA_WinFormsUI.Forms
             panelInfoLogs.Controls.Add(lblInfoLogsTitle);
             panelInfoLogs.Controls.Add(lblInfoLogsCount);
             panelInfoLogs.Dock = DockStyle.Fill;
-            panelInfoLogs.Location = new Point(162, 137);
+            panelInfoLogs.Location = new Point(130, 148);
             panelInfoLogs.Margin = new Padding(5);
             panelInfoLogs.Name = "panelInfoLogs";
             panelInfoLogs.Padding = new Padding(8);
-            panelInfoLogs.Size = new Size(148, 123);
+            panelInfoLogs.Size = new Size(115, 134);
             panelInfoLogs.TabIndex = 3;
             // 
             // lblInfoLogsTitle
@@ -749,9 +711,9 @@ namespace POSPRA_WinFormsUI.Forms
             lblInfoLogsTitle.Dock = DockStyle.Bottom;
             lblInfoLogsTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lblInfoLogsTitle.ForeColor = Color.FromArgb(55, 65, 81);
-            lblInfoLogsTitle.Location = new Point(8, 78);
+            lblInfoLogsTitle.Location = new Point(8, 97);
             lblInfoLogsTitle.Name = "lblInfoLogsTitle";
-            lblInfoLogsTitle.Size = new Size(130, 35);
+            lblInfoLogsTitle.Size = new Size(97, 27);
             lblInfoLogsTitle.TabIndex = 1;
             lblInfoLogsTitle.Text = "Info Logs";
             lblInfoLogsTitle.TextAlign = ContentAlignment.MiddleCenter;
@@ -769,11 +731,50 @@ namespace POSPRA_WinFormsUI.Forms
             lblInfoLogsCount.Text = "0";
             lblInfoLogsCount.TextAlign = ContentAlignment.MiddleCenter;
             // 
+            // panelErrorLogs
+            // 
+            panelErrorLogs.BackColor = Color.FromArgb(255, 241, 242);
+            panelErrorLogs.BorderStyle = BorderStyle.FixedSingle;
+            panelErrorLogs.Controls.Add(lblErrorLogsTitle);
+            panelErrorLogs.Controls.Add(lblErrorLogsCount);
+            panelErrorLogs.Dock = DockStyle.Fill;
+            panelErrorLogs.Location = new Point(130, 5);
+            panelErrorLogs.Margin = new Padding(5);
+            panelErrorLogs.Name = "panelErrorLogs";
+            panelErrorLogs.Padding = new Padding(8);
+            panelErrorLogs.Size = new Size(115, 133);
+            panelErrorLogs.TabIndex = 1;
+            // 
+            // lblErrorLogsTitle
+            // 
+            lblErrorLogsTitle.Dock = DockStyle.Bottom;
+            lblErrorLogsTitle.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblErrorLogsTitle.ForeColor = Color.FromArgb(55, 65, 81);
+            lblErrorLogsTitle.Location = new Point(8, 96);
+            lblErrorLogsTitle.Name = "lblErrorLogsTitle";
+            lblErrorLogsTitle.Size = new Size(97, 27);
+            lblErrorLogsTitle.TabIndex = 1;
+            lblErrorLogsTitle.Text = "Error Logs";
+            lblErrorLogsTitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // lblErrorLogsCount
+            // 
+            lblErrorLogsCount.AutoSize = true;
+            lblErrorLogsCount.Dock = DockStyle.Top;
+            lblErrorLogsCount.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblErrorLogsCount.ForeColor = Color.FromArgb(239, 68, 68);
+            lblErrorLogsCount.Location = new Point(8, 8);
+            lblErrorLogsCount.Name = "lblErrorLogsCount";
+            lblErrorLogsCount.Size = new Size(35, 41);
+            lblErrorLogsCount.TabIndex = 0;
+            lblErrorLogsCount.Text = "0";
+            lblErrorLogsCount.TextAlign = ContentAlignment.MiddleCenter;
+            // 
             // DashboardForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1781, 831);
+            ClientSize = new Size(1445, 831);
             Controls.Add(tableLayoutPanelMain);
             Controls.Add(tableLayoutPanelTop);
             Name = "DashboardForm";
@@ -781,11 +782,8 @@ namespace POSPRA_WinFormsUI.Forms
             Text = "Dashboard";
             tableLayoutPanelTop.ResumeLayout(false);
             panelAll.ResumeLayout(false);
-            panelAll.PerformLayout();
             panelPending.ResumeLayout(false);
-            panelPending.PerformLayout();
             panelPaid.ResumeLayout(false);
-            panelPaid.PerformLayout();
             tableLayoutPanelMain.ResumeLayout(false);
             panelInvoices.ResumeLayout(false);
             panelInvoices.PerformLayout();
@@ -797,12 +795,12 @@ namespace POSPRA_WinFormsUI.Forms
             tableLayoutPanelLogStats.ResumeLayout(false);
             panelTotalLogs.ResumeLayout(false);
             panelTotalLogs.PerformLayout();
-            panelErrorLogs.ResumeLayout(false);
-            panelErrorLogs.PerformLayout();
             panelWarningLogs.ResumeLayout(false);
             panelWarningLogs.PerformLayout();
             panelInfoLogs.ResumeLayout(false);
             panelInfoLogs.PerformLayout();
+            panelErrorLogs.ResumeLayout(false);
+            panelErrorLogs.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -821,13 +819,21 @@ namespace POSPRA_WinFormsUI.Forms
         private Panel panelErrorLogs;
         private Label lblErrorLogsTitle;
         private Label lblErrorLogsCount;
+        private Button btnExportInvoice;
+        private Button btnSyncLogs;
         private Panel panelWarningLogs;
         private Label lblWarningLogsTitle;
         private Label lblWarningLogsCount;
         private Panel panelInfoLogs;
         private Label lblInfoLogsTitle;
         private Label lblInfoLogsCount;
-        private Button btnExportInvoice;
-        private Button btnSyncLogs;
+        private Panel panel4;
+        private Label label5;
+        private Label label6;
+        private Panel panel1;
+        private Label label2;
+        private Label label3;
+        private Label label1;
+
     }
 }

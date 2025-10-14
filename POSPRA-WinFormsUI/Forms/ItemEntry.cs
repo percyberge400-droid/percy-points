@@ -33,6 +33,7 @@ namespace POSPRA_WinFormsUI
         private readonly IInvoiceService _invoiceService;
         private readonly IProductCatalogueService _productCatalogueService;
 
+
         #endregion
 
         #region Constructor / Initialization
@@ -69,7 +70,6 @@ namespace POSPRA_WinFormsUI
 
             qty.TextChanged += RecalculateTotals;
             salevalue.TextChanged += RecalculateTotals;
-            itemDiscount.TextChanged += RecalculateTotals;
             TaxRatebox.TextChanged += RecalculateTotals;
             FurtureTax.TextChanged += RecalculateTotals;
 
@@ -83,11 +83,12 @@ namespace POSPRA_WinFormsUI
             pctCode.KeyPress += NumericOnlyWithLength_KeyPress;
             totalamount.KeyPress += NumericOnlyWithLength_KeyPress;
             TaxRatebox.KeyPress += NumericOnlyWithLength_KeyPress;
-            itemDiscount.KeyPress += NumericOnlyWithLength_KeyPress;
             qty.KeyPress += NumericOnlyWithLength_KeyPress;
             salevalue.KeyPress += NumericOnlyWithLength_KeyPress;
             FurtureTax.KeyPress += NumericOnlyWithLength_KeyPress;
             TaxCharged.KeyPress += NumericOnlyWithLength_KeyPress;
+            itemDiscountPercent.TextChanged += RecalculateTotals;
+            itemDiscountPercent.KeyPress += NumericOnlyWithLength_KeyPress;
 
             invoicetype.SelectedIndexChanged += Invoicetype_SelectedIndexChanged;
 
@@ -103,13 +104,12 @@ namespace POSPRA_WinFormsUI
             _productCatalogueService = productCatalogueService;
             _invoiceService = invoiceService;
         }
-
+        #endregion
         private void BtnSave_MouseEnter(object? sender, EventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        #endregion
 
         #region NumericOnly_KeyPress
         private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
@@ -198,6 +198,33 @@ namespace POSPRA_WinFormsUI
                     if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
                         e.Handled = true;
                     break;
+                case "itemdiscountpercent":
+                    // Allow digits, decimal point, and control characters
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    // Only one decimal point allowed
+                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    // Limit percentage to 100
+                    if (!char.IsControl(e.KeyChar))
+                    {
+                        string futureText = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
+                        if (decimal.TryParse(futureText, out decimal val) && val > 100)
+                        {
+                            e.Handled = true;
+                            return;
+                        }
+                    }
+                    // Max 6 characters (e.g., "100.00")
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 6)
+                        e.Handled = true;
+                    break;
             }
         }
 
@@ -260,43 +287,53 @@ namespace POSPRA_WinFormsUI
             // Parse input values
             decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
             decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+
+            // Get tax rate percentage from textbox
             decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
-            decimal discountFlat = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m;
+
+            // Get discount percentage
+            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? dp : 0m;
+
             decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
             // Step 1: Calculate gross amount (quantity × sale value per unit)
             decimal grossAmount = quantity * saleValuePerUnit;
 
-            // Step 2: Deduct flat discount
-            decimal amountAfterDiscount = grossAmount - discountFlat;
+            // Step 2: Calculate discount amount from percentage
+            decimal discountAmount = grossAmount * (discountPercent / 100m);
+
+            // Update the readonly discount amount field
+            itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
+
+            // Step 3: Amount after discount
+            decimal amountAfterDiscount = grossAmount - discountAmount;
             if (amountAfterDiscount < 0) amountAfterDiscount = 0;
 
-            // Step 3: Calculate tax on amount after discount (percentage of after-discount amount)
+            // Step 4: Calculate tax on amount after discount (percentage of after-discount amount)
             decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
 
-            // Step 4: Calculate further tax (percentage of after-discount amount)
+            // Step 5: Calculate further tax (percentage of amount after discount)
             decimal furtherTaxAmount = amountAfterDiscount * (furtherTaxPercent / 100m);
 
-            // Step 5: Calculate final total
+            // Step 6: Calculate final total
             decimal totalAmount = amountAfterDiscount + taxAmount + furtherTaxAmount;
 
             return new InvoiceItems
             {
-                ItemCode = ItemCode.Text.Trim(),
+                ItemCode = pctCode.Text.Trim(),        // PCT Code becomes Item Code
                 ItemName = ItemName.Text.Trim(),
-                PCTCode = pctCode.Text.Trim(),
+                PCTCode = ItemCode.Text.Trim(),        // HS Code becomes PCT Code
                 Quantity = quantity,
                 SaleValue = saleValuePerUnit,
-                Discount = discountFlat,           // Flat amount
-                TaxRate = (double)taxRatePercent,  // Percentage
-                TaxCharged = taxAmount,            // Calculated tax amount
-                FurtherTax = furtherTaxAmount,     // Calculated further tax amount
+                Discount = discountAmount,             // Store calculated amount
+                TaxRate = (double)taxRatePercent,      // Store percentage
+                TaxCharged = taxAmount,                // Calculated tax amount
+                FurtherTax = furtherTaxAmount,         // Calculated further tax amount
                 TotalAmount = totalAmount,
                 InvoiceType = GetSelectedInvoiceType(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
         }
-
         #endregion
 
         #region Buttons: Proceed (Add/Update), Save, Edit, Remove
@@ -928,12 +965,21 @@ namespace POSPRA_WinFormsUI
 
         private void DisplayProductInfo(ProductCatalogueDto product)
         {
-            pctCode.Text = product.ProductCode?.ToString() ?? "";
-            ItemName.Text = product.ProductDescription;
-            ItemCode.Text = product.HSCode;
-            TaxRatebox.Text = product.TaxRate?.ToString() ?? "0";
-        }
+            ItemCode.Text = product.ProductCode?.ToString() ?? "";     // PCT Code in pctCode field
+            ItemName.Text = product.ProductDescription ?? "";
+            pctCode.Text = product.HSCode ?? "";                      // HS Code in ItemCode field
 
+            // Set tax rate percentage from product catalog
+            // TaxRate is already a string or nullable decimal - handle both cases
+            if (product.TaxRate != null)
+            {
+                TaxRatebox.Text = product.TaxRate.ToString();
+            }
+            else
+            {
+                TaxRatebox.Text = "0";
+            }
+        }
 
         #endregion
 
@@ -941,19 +987,19 @@ namespace POSPRA_WinFormsUI
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
         {
-            row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";
+            row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";         // PCT Code
             row.Cells["colProductDescription"].Value = inputData.ItemName ?? "";
-            row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";
+            row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";               // HS Code
             row.Cells["colQuantity"].Value = (inputData.Quantity ?? 0m).ToString("0.00");
             row.Cells["colRate"].Value = (inputData.SaleValue ?? 0m).ToString("0.00");
-            row.Cells["colDiscount"].Value = (inputData.Discount ?? 0m).ToString("0.00");
+            row.Cells["colDiscount"].Value = (inputData.Discount ?? 0m).ToString("0.00");  // Discount amount
 
             // Sales value excluding sales tax: (quantity × rate) - discount
             decimal salesValueExcTax = (inputData.Quantity ?? 0) * (inputData.SaleValue ?? 0) - (inputData.Discount ?? 0);
             row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
 
             row.Cells["colTotalValue"].Value = (inputData.TotalAmount ?? 0m).ToString("0.00");
-            row.Cells["colSalesTax"].Value = inputData.TaxRate.ToString("0.00");
+            row.Cells["colSalesTax"].Value = inputData.TaxRate.ToString("0.00");      // Tax rate percentage
             row.Cells["colExtraTax"].Value = (inputData.TaxCharged ?? 0m).ToString("0.00");
             row.Cells["colFutureTax"].Value = (inputData.FurtherTax ?? 0m).ToString("0.00");
         }
@@ -978,16 +1024,31 @@ namespace POSPRA_WinFormsUI
 
         private void LoadItemForEditing(InvoiceItems item)
         {
-            ItemCode.Text = item.ItemCode ?? "";
+            pctCode.Text = item.ItemCode ?? "";        // PCT Code
             ItemName.Text = item.ItemName ?? "";
-            pctCode.Text = item.PCTCode ?? "";
+            ItemCode.Text = item.PCTCode ?? "";        // HS Code
             qty.Text = (item.Quantity ?? 0m).ToString();
             salevalue.Text = (item.SaleValue ?? 0m).ToString();
-            itemDiscount.Text = (item.Discount ?? 0m).ToString(); // Flat discount amount
-            TaxRatebox.Text = item.TaxRate.ToString(); // Tax rate percentage
+
+            // Calculate back discount percentage from stored amount
+            decimal grossAmount = (item.Quantity ?? 0) * (item.SaleValue ?? 0);
+            if (grossAmount > 0 && item.Discount.HasValue && item.Discount.Value > 0)
+            {
+                decimal discountPercent = (item.Discount.Value / grossAmount) * 100m;
+                itemDiscountPercent.Text = Math.Round(discountPercent, 2).ToString();
+                itemDiscountAmount.Text = Math.Round(item.Discount.Value, 2).ToString("0.00");
+            }
+            else
+            {
+                itemDiscountPercent.Text = "0";
+                itemDiscountAmount.Text = "0.00";
+            }
+
+            // Set tax rate percentage in textbox
+            TaxRatebox.Text = item.TaxRate.ToString();
 
             // Calculate back the further tax percentage from stored amount
-            decimal afterDiscount = (item.Quantity ?? 0) * (item.SaleValue ?? 0) - (item.Discount ?? 0);
+            decimal afterDiscount = grossAmount - (item.Discount ?? 0);
             if (afterDiscount > 0 && item.FurtherTax.HasValue && item.FurtherTax.Value > 0)
             {
                 decimal furtherTaxPercent = (item.FurtherTax.Value / afterDiscount) * 100m;
@@ -1012,7 +1073,8 @@ namespace POSPRA_WinFormsUI
             totalamount.Clear();
             TaxRatebox.Clear();
             TaxCharged.Clear();
-            itemDiscount.Clear();
+            itemDiscountPercent.Clear();
+            itemDiscountAmount.Clear();
             FurtureTax.Clear();
         }
 
@@ -1093,23 +1155,23 @@ namespace POSPRA_WinFormsUI
             var row = dataGridView1.Rows[rowIndex];
 
             row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
-            row.Cells["colProductCode"].Value = item.ItemCode ?? "";
-            row.Cells["colHSCode"].Value = item.PCTCode ?? "";
+            row.Cells["colProductCode"].Value = item.ItemCode ?? "";         // PCT Code
+            row.Cells["colHSCode"].Value = item.PCTCode ?? "";               // HS Code
             row.Cells["colProductDescription"].Value = item.ItemName ?? "";
 
             row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
             row.Cells["colRate"].Value = (item.SaleValue ?? 0m).ToString("0.00");
-            row.Cells["colDiscount"].Value = (item.Discount ?? 0m).ToString("0.00");
+            row.Cells["colDiscount"].Value = (item.Discount ?? 0m).ToString("0.00");  // Discount amount
 
-            // Sales value excluding sales tax: (quantity × rate) - flat discount
+            // Sales value excluding sales tax: (quantity × rate) - discount
             decimal qty = item.Quantity ?? 0m;
             decimal rate = item.SaleValue ?? 0m;
-            decimal discountFlat = item.Discount ?? 0m;
-            decimal salesValueExcTax = Math.Round((qty * rate) - discountFlat, 2);
+            decimal discountAmount = item.Discount ?? 0m;
+            decimal salesValueExcTax = Math.Round((qty * rate) - discountAmount, 2);
             row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
 
             row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
-            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");
+            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");          // Tax rate percentage
             row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");
             row.Cells["colFutureTax"].Value = (item.FurtherTax ?? 0m).ToString("0.00");
 
@@ -1142,24 +1204,33 @@ namespace POSPRA_WinFormsUI
             // Parse input values
             decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
             decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+
+            // Get tax rate percentage from textbox
             decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
-            decimal discountFlat = decimal.TryParse(itemDiscount.Text, out var d) ? d : 0m;
+
+            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? dp : 0m;
             decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
             // Step 1: Calculate gross sale amount
             decimal grossAmount = quantity * saleValuePerUnit;
 
-            // Step 2: Deduct flat discount
-            decimal amountAfterDiscount = grossAmount - discountFlat;
+            // Step 2: Calculate discount amount from percentage
+            decimal discountAmount = grossAmount * (discountPercent / 100m);
+
+            // Update readonly discount amount field
+            itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
+
+            // Step 3: Deduct discount
+            decimal amountAfterDiscount = grossAmount - discountAmount;
             if (amountAfterDiscount < 0) amountAfterDiscount = 0;
 
-            // Step 3: Calculate tax (percentage of amount after discount)
+            // Step 4: Calculate tax (percentage of amount after discount)
             decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
 
-            // Step 4: Calculate further tax (percentage of amount after discount)
+            // Step 5: Calculate further tax (percentage of amount after discount)
             decimal furtherTaxAmount = amountAfterDiscount * (furtherTaxPercent / 100m);
 
-            // Step 5: Calculate final total
+            // Step 6: Calculate final total
             decimal totalAmount = amountAfterDiscount + taxAmount + furtherTaxAmount;
 
             // Update UI
