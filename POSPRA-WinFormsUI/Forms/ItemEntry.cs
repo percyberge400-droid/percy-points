@@ -432,12 +432,6 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
-        private void BtnSave_MouseEnter(object? sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-
         #region NumericOnly_KeyPress
         private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -611,39 +605,26 @@ namespace POSPRA_WinFormsUI
 
         private InvoiceItems GetTextboxData()
         {
-            // Parse input values
-            decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
-            decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+            // Parse with better error handling
+            decimal quantity = decimal.TryParse(qty.Text, out var q) ? Math.Max(0, q) : 0m;
+            decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? Math.Max(0, sv) : 0m;
+            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? Math.Max(0, tr) : 0m;
+            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? Math.Max(0, Math.Min(100, dp)) : 0m;
+            decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? Math.Max(0, ft) : 0m;
 
-            // Get tax rate percentage from textbox
-            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
-
-            // Get discount percentage
-            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? dp : 0m;
-
-            decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
-
-            // Step 1: Calculate gross amount (quantity × sale value per unit)
+            // Calculations
             decimal grossAmount = quantity * saleValuePerUnit;
-
-            // Step 2: Calculate discount amount from percentage
             decimal discountAmount = grossAmount * (discountPercent / 100m);
+            decimal amountAfterDiscount = Math.Max(0, grossAmount - discountAmount);
 
-            // Update the readonly discount amount field
-            itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
-
-            // Step 3: Amount after discount
-            decimal amountAfterDiscount = grossAmount - discountAmount;
-            if (amountAfterDiscount < 0) amountAfterDiscount = 0;
-
-            // Step 4: Calculate tax on amount after discount (percentage of after-discount amount)
             decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
-
-            // Step 5: Calculate further tax (percentage of amount after discount)
             decimal furtherTaxAmount = amountAfterDiscount * (furtherTaxPercent / 100m);
-
-            // Step 6: Calculate final total
             decimal totalAmount = amountAfterDiscount + taxAmount + furtherTaxAmount;
+
+            // Update UI fields
+            itemDiscountAmount.Text = discountAmount.ToString("0.00");
+            totalamount.Text = totalAmount.ToString("0.00");
+            TaxCharged.Text = taxAmount.ToString("0.00");
 
             return new InvoiceItems
             {
@@ -845,7 +826,18 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowError($"Error saving invoice: {ex.Message}");
                 _ = CreateLog("Error saving invoice", AlertType.Error);
             }
+            finally
+            {
+                _isSaving = false;
+                btnSave.Enabled = true;
+                btnSave.Text = "🖨️ Save and Print";
+            }
         }
+        private void BtnSave_MouseEnter(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
 
         private void btnEdit_Click(object sender, EventArgs e)
         {

@@ -448,7 +448,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                // ✅ Temporarily disable auto-refresh during initial load
+                // Temporarily disable auto-refresh during initial load
                 _autoRefreshTimer.Stop();
 
                 _startDate = DateTime.Today.AddDays(-7);
@@ -464,7 +464,7 @@ namespace POSPRA_WinFormsUI.Forms
                     await LoadAndShowLogsAsync();
                 });
 
-                // ✅ Initialize counts after initial load
+                // Initialize counts after initial load
                 _lastInvoiceCount = InvoicesDataGridView.Rows.Count;
                 _lastLogCount = LogsDataGridView.Rows.Count;
                 _lastRefreshTime = DateTime.Now;
@@ -473,7 +473,7 @@ namespace POSPRA_WinFormsUI.Forms
                 LogsDataGridView.DataError += dataGridView_DataError;
                 _isInitialLoad = false;
 
-                // ✅ Re-enable auto-refresh after successful initial load
+                // Re-enable auto-refresh after successful initial load
                 if (_autoRefreshEnabled)
                 {
                     _autoRefreshTimer.Start();
@@ -656,7 +656,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                // ✅ Use preloaded logs (from cloud sync) if provided
+                // Use preloaded logs (from cloud sync) if provided
                 var response = preloadedLogs == null ? await _logService.GetAllAsync() : null;
                 var logs = preloadedLogs ?? response?.Data;
 
@@ -809,14 +809,14 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         StringBuilder csvContent = new StringBuilder();
 
-                        // ✅ Write headers
+                        // Write headers
                         var headers = InvoicesDataGridView.Columns
                             .Cast<DataGridViewColumn>()
                             .Where(c => c.Visible)
                             .Select(c => EscapeCsvField(c.HeaderText));
                         csvContent.AppendLine(string.Join(",", headers));
 
-                        // ✅ Write rows
+                        // Write rows
                         foreach (DataGridViewRow row in InvoicesDataGridView.Rows)
                         {
                             if (!row.IsNewRow)
@@ -828,7 +828,7 @@ namespace POSPRA_WinFormsUI.Forms
                             }
                         }
 
-                        // ✅ Save file
+                        // Save file
                         await File.WriteAllTextAsync(sfd.FileName, csvContent.ToString(), Encoding.UTF8);
 
                         // Show success message with file location
@@ -876,7 +876,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                // ✅ Get cloud logs
+                // Get cloud logs
                 var cloudResponse = await _logService.GetAllCloudAsync();
                 LogsDataGridView.Rows.Clear();
 
@@ -887,13 +887,13 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                // ✅ Get local logs
+                // Get local logs
                 var localResponse = await _logService.GetAllAsync();
 
-                // ✅ Merge and remove duplicates
+                // Merge and remove duplicates
                 var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
 
-                // ✅ Pass merged logs to loader
+                // Pass merged logs to loader
                 await LoadAndShowLogsAsync(mergedLogs);
             }
             catch (Exception ex)
@@ -913,7 +913,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (cloudLogs != null)
                 merged.AddRange(cloudLogs);
 
-            // ✅ Deduplicate based on Message, Type, and Timestamp
+            // Deduplicate based on Message, Type, and Timestamp
             var deduped = merged
                 .GroupBy(l => new
                 {
@@ -951,14 +951,14 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         StringBuilder csvContent = new StringBuilder();
 
-                        // ✅ Write headers
+                        // Write headers
                         var headers = LogsDataGridView.Columns
                             .Cast<DataGridViewColumn>()
                             .Where(c => c.Visible) // only visible columns
                             .Select(c => c.HeaderText);
                         csvContent.AppendLine(string.Join(",", headers));
 
-                        // ✅ Write rows
+                        // Write rows
                         foreach (DataGridViewRow row in LogsDataGridView.Rows)
                         {
                             if (!row.IsNewRow)
@@ -970,7 +970,7 @@ namespace POSPRA_WinFormsUI.Forms
                             }
                         }
 
-                        // ✅ Save file
+                        // Save file
                         await File.WriteAllTextAsync(sfd.FileName, csvContent.ToString(), Encoding.UTF8);
 
                         MessageBox.Show("Logs exported successfully!", "Export Logs", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1293,16 +1293,16 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     lbl.Dock = DockStyle.None;
                     lbl.AutoSize = false;
-                    lbl.ForeColor = Color.White; // ✅ Always white text
+                    lbl.ForeColor = Color.White; // Always white text
 
-                    if (lbl.Font.Size > 20) // ✅ Number label
+                    if (lbl.Font.Size > 20) // Number label
                     {
                         lbl.TextAlign = ContentAlignment.TopLeft;
                         lbl.Location = new Point(15, 15);
                         lbl.Width = panel.Width - width - 30;
                         lbl.Height = (int)(panel.Height * 0.6);
                     }
-                    else // ✅ Title label
+                    else // Title label
                     {
                         lbl.TextAlign = ContentAlignment.MiddleLeft;
                         lbl.Location = new Point(15, (int)(panel.Height * 0.55)); // 🔼 slightly higher
@@ -1372,7 +1372,7 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
-            // ✅ Set proper row height
+            // Set proper row height
             dgv.RowTemplate.Height = 40;  // ← Reduced from 48
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
         }
@@ -1715,7 +1715,7 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     e.PaintBackground(e.CellBounds, true);
 
-                    // ✅ Fixed badge width, dynamic badge height
+                    // Fixed badge width, dynamic badge height
                     int badgeWidth = 120;
                     int padding = 8; // space above/below inside the row
                     int badgeHeight = e.CellBounds.Height - padding;
@@ -1784,7 +1784,7 @@ namespace POSPRA_WinFormsUI.Forms
             int panelWidth = panel.Width;
             int panelHeight = panel.Height;
 
-            // ✅ Prevent invalid drawing when minimized or too small
+            // Prevent invalid drawing when minimized or too small
             if (panelWidth <= 0 || panelHeight <= 0) return;
 
             panel.Controls.Clear();

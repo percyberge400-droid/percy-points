@@ -7,6 +7,21 @@ using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms
 {
+    public static class ControlExtensions
+    {
+        public static void InvokeIfRequired(this Control control, Action action)
+        {
+            if (control.InvokeRequired)
+            {
+                try { control.Invoke(action); }
+                catch (ObjectDisposedException) { }
+            }
+            else
+            {
+                action();
+            }
+        }
+    }
     public partial class CatalogView : Form
     {
         private readonly ILogService _logService;
@@ -82,28 +97,44 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 if (progressBar != null)
                 {
-                    progressBar.Style = ProgressBarStyle.Marquee;
-                    progressBar.MarqueeAnimationSpeed = 30;
-                    progressBar.Visible = true;
-                    progressBar.BringToFront();
-                    progressBar.Update();
+                    progressBar.InvokeIfRequired(() =>
+                    {
+                        progressBar.Style = ProgressBarStyle.Marquee;
+                        progressBar.MarqueeAnimationSpeed = 30;
+                        progressBar.Visible = true;
+                        progressBar.BringToFront();
+                        progressBar.Update();
+                    });
                 }
 
                 await work();
             }
             finally
             {
-                if (progressBar != null)
+                try
                 {
-                    progressBar.Visible = false;
-                    progressBar.Style = ProgressBarStyle.Continuous;
+                    if (progressBar != null)
+                    {
+                        progressBar.InvokeIfRequired(() =>
+                        {
+                            progressBar.Visible = false;
+                            progressBar.Style = ProgressBarStyle.Continuous;
+                        });
+                    }
                 }
-
-                Interlocked.Exchange(ref _isLoadingFlag, 0);
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠ Progress bar cleanup failed: {ex.Message}");
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _isLoadingFlag, 0);
+                }
             }
         }
 
         #endregion
+
 
 
 
