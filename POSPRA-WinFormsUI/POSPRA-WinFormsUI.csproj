@@ -11,6 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Reports\InvoiceReport.rdlc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Reports\InvoiceReport.rdlc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
     <PackageReference Include="Guna.UI2.WinForms" Version="2.0.4.7" />
@@ -49,7 +59,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Forms\ReportDataSet.Designer.cs">
+    <Compile Update="Reports\ReportDataSet.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ReportDataSet.xsd</DependentUpon>
@@ -57,10 +67,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Forms\InvoiceReport.rdlc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Forms\ReportDataSet.xsd">
+    <None Update="Reports\ReportDataSet.xsd">
       <Generator>MSDataSetGenerator</Generator>
       <LastGenOutput>ReportDataSet.Designer.cs</LastGenOutput>
     </None>
