@@ -41,7 +41,6 @@
             salevalue = new TextBox();
             salevaluelbl = new Label();
             TaxRatebox = new TextBox();
-            itemDiscount = new TextBox();
             itemDiscountlbl = new Label();
             totalamount = new TextBox();
             ItemCode = new TextBox();
@@ -126,7 +125,6 @@
             pnlBasicInfo.Controls.Add(salevalue);
             pnlBasicInfo.Controls.Add(salevaluelbl);
             pnlBasicInfo.Controls.Add(TaxRatebox);
-            pnlBasicInfo.Controls.Add(itemDiscount);
             pnlBasicInfo.Controls.Add(itemDiscountlbl);
             pnlBasicInfo.Controls.Add(totalamount);
             pnlBasicInfo.Controls.Add(ItemCode);
@@ -252,16 +250,6 @@
             TaxRatebox.Size = new Size(200, 24);
             TaxRatebox.TabIndex = 12;
             TaxRatebox.Text = "10";
-            // 
-            // itemDiscount
-            // 
-            itemDiscount.Font = new Font("Microsoft Sans Serif", 9F);
-            itemDiscount.Location = new Point(911, 42);
-            itemDiscount.Name = "itemDiscount";
-            itemDiscount.PlaceholderText = "Discount";
-            itemDiscount.Size = new Size(192, 24);
-            itemDiscount.TabIndex = 13;
-            itemDiscount.Text = "5";
             // 
             // itemDiscountlbl
             // 
