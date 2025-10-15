@@ -41,6 +41,8 @@ namespace POSPRA_WinFormsUI.Forms
         private int _lastLogCount = 0;
         private DateTime _lastRefreshTime = DateTime.Now;
 
+        private int _printingRowIndex = -1;
+
         public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService)
         {
             InitializeComponent();
@@ -874,6 +876,10 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         private async void btnSyncLogs_Click(object sender, EventArgs e)
         {
+            // Disable button immediately to prevent multiple clicks
+            btnSyncLogs.Enabled = false;
+            btnSyncLogs.Text = "Syncing...";
+
             try
             {
                 // Get cloud logs
@@ -895,11 +901,19 @@ namespace POSPRA_WinFormsUI.Forms
 
                 // Pass merged logs to loader
                 await LoadAndShowLogsAsync(mergedLogs);
+
+                AlertManager.ShowSuccess("Logs synced successfully");
             }
             catch (Exception ex)
             {
-                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
-                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading synced logs: {ex.Message}");
+                AlertManager.ShowError($"Error loading synced logs: {ex.Message}");
+            }
+            finally
+            {
+                // Always re-enable button (even if exception occurs)
+                btnSyncLogs.Enabled = true;
+                btnSyncLogs.Text = "Sync Logs";
             }
         }
 
@@ -1313,7 +1327,6 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-
         private void ApplyGradientBackground(Control control, Color startColor, Color endColor)
         {
             control.Paint += (s, e) =>
@@ -1508,7 +1521,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        private void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
             {
@@ -1519,25 +1532,228 @@ namespace POSPRA_WinFormsUI.Forms
                 // Check if click is within the text bounds
                 if (_printLinkBounds.Contains(mousePos))
                 {
-
                     var invoiceNumber = InvoicesDataGridView.Rows[e.RowIndex].Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
 
-                    // call invoice print generator
-                    // invoiceNumber
-                    var response = _invoiceService.GetInvoiceWithItems(invoiceNumber).Result;
-                    if (response == null)
+                    try
                     {
-                        MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
-                    // Opens preview; user can print from the report viewer toolbar 
-                    InvoiceReport printForm = new InvoiceReport(response.Data);
-                    printForm.ShowDialog();
+                        // Set printing state
+                        _printingRowIndex = e.RowIndex;
 
+                        // Change row appearance to grey and update text
+                        var row = InvoicesDataGridView.Rows[e.RowIndex];
+                        row.DefaultCellStyle.BackColor = Color.LightGray;
+                        row.DefaultCellStyle.SelectionBackColor = Color.Gray;
+
+                        // Force refresh of the Print cell
+                        InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
+                        Application.DoEvents(); // Force UI update
+
+                        // Show and center loader
+                        if (progressBar != null)
+                        {
+                            CenterProgressBar(); // Ensure proper positioning
+                            progressBar.Style = ProgressBarStyle.Marquee;
+                            progressBar.MarqueeAnimationSpeed = 30;
+                            progressBar.Visible = true;
+                            progressBar.BringToFront();
+                            progressBar.Refresh(); // Force immediate display
+                            Application.DoEvents(); // Process UI events
+                        }
+
+                        // Disable the grid to prevent multiple clicks
+                        InvoicesDataGridView.Enabled = false;
+                        this.Cursor = Cursors.WaitCursor; // Show wait cursor
+
+                        // Small delay to ensure UI updates are visible
+                        await Task.Delay(100);
+
+                        // Call invoice print generator
+                        var response = await _invoiceService.GetInvoiceWithItems(invoiceNumber);
+
+                        if (response == null)
+                        {
+                            // Hide loader before showing error dialog
+                            if (progressBar != null)
+                            {
+                                progressBar.Visible = false;
+                                progressBar.Style = ProgressBarStyle.Continuous;
+                            }
+
+                            InvoicesDataGridView.Enabled = true;
+                            this.Cursor = Cursors.Default;
+
+                            MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
+                        // Keep loader visible while creating the print form
+                        InvoiceReport printForm = null;
+                        await Task.Run(() =>
+                        {
+                            // Create the form on UI thread
+                            this.Invoke(new Action(() =>
+                            {
+                                printForm = new InvoiceReport(response.Data);
+                            }));
+                        });
+
+                        // Hide loader AFTER form is created but BEFORE showing it
+                        if (progressBar != null)
+                        {
+                            progressBar.Visible = false;
+                            progressBar.Style = ProgressBarStyle.Continuous;
+                        }
+
+                        // Re-enable grid and restore cursor
+                        InvoicesDataGridView.Enabled = true;
+                        this.Cursor = Cursors.Default;
+
+                        // Now show the print dialog
+                        printForm?.ShowDialog();
+
+                        // Print successful - reset row appearance
+                        row.DefaultCellStyle.BackColor = Color.White;
+                        row.DefaultCellStyle.SelectionBackColor = Color.FromArgb(59, 130, 246);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error printing invoice: {ex.Message}", "Print Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        // Always hide loader and reset state
+                        if (progressBar != null)
+                        {
+                            progressBar.Visible = false;
+                            progressBar.Style = ProgressBarStyle.Continuous;
+                        }
+
+                        // Re-enable grid if not already enabled
+                        InvoicesDataGridView.Enabled = true;
+                        this.Cursor = Cursors.Default; // Restore cursor
+
+                        // Reset printing state
+                        _printingRowIndex = -1;
+                        InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
+                    }
                 }
             }
         }
+
+        private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            // Handle IsSynced column with icons
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colIsSynced"].Index)
+            {
+                e.PaintBackground(e.CellBounds, true);
+
+                string value = e.Value?.ToString() ?? "";
+                Image icon = null;
+
+                if (value.Equals("Yes", StringComparison.OrdinalIgnoreCase))
+                    icon = Resources.GreenTick;
+                else if (value.Equals("No", StringComparison.OrdinalIgnoreCase))
+                    icon = Resources.RedCross;
+
+                if (icon != null)
+                {
+                    int iconSize = (int)(e.CellBounds.Height * 0.7);
+                    iconSize = Math.Max(24, Math.Min(iconSize, 32));
+
+                    int x = e.CellBounds.X + (e.CellBounds.Width - iconSize) / 2;
+                    int y = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
+
+                    e.Graphics.DrawImage(icon, new Rectangle(x, y, iconSize, iconSize));
+                    e.Handled = true;
+                }
+            }
+
+            // Handle Print hyperlink column
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                e.PaintBackground(e.CellBounds, true);
+
+                bool isHovered = _hoveredCell != null &&
+                                _hoveredCell.RowIndex == e.RowIndex &&
+                                _hoveredCell.ColumnIndex == e.ColumnIndex;
+
+                bool isSelected = InvoicesDataGridView.Rows[e.RowIndex].Selected;
+                bool isPrinting = _printingRowIndex == e.RowIndex;
+
+                // Change text based on printing state
+                string linkText = isPrinting ? "Printing..." : "Print";
+
+                // Hyperlink colors - white when selected, otherwise blue/green
+                Color linkColor;
+                if (isSelected)
+                {
+                    linkColor = Color.White;
+                }
+                else if (isPrinting)
+                {
+                    linkColor = Color.Gray; // Gray color when printing
+                }
+                else
+                {
+                    linkColor = isHovered ? Color.FromArgb(34, 197, 94) : Color.FromArgb(59, 130, 246);
+                }
+
+                FontStyle fontStyle = isHovered && !isPrinting ? (FontStyle.Bold | FontStyle.Underline) : FontStyle.Bold;
+
+                using (var font = new Font("Segoe UI", 9.5F, fontStyle))
+                using (var brush = new SolidBrush(linkColor))
+                {
+                    var textSize = e.Graphics.MeasureString(linkText, font);
+                    float x = e.CellBounds.X + (e.CellBounds.Width - textSize.Width) / 2;
+                    float y = e.CellBounds.Y + (e.CellBounds.Height - textSize.Height) / 2;
+
+                    // Store the bounds of the text for hit testing
+                    _printLinkBounds = new Rectangle(
+                        (int)x,
+                        (int)y,
+                        (int)textSize.Width,
+                        (int)textSize.Height
+                    );
+
+                    e.Graphics.DrawString(linkText, font, brush, x, y);
+                }
+
+                e.Handled = true;
+            }
+
+            // NEW: Make Invoice Number column bold
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colInvoiceNumber"].Index)
+            {
+                e.PaintBackground(e.CellBounds, true);
+
+                string value = e.Value?.ToString() ?? "";
+
+                using (var font = new Font("Segoe UI", 10F, FontStyle.Bold))
+                using (var brush = new SolidBrush(e.CellStyle.ForeColor))
+                {
+                    var stringFormat = new StringFormat
+                    {
+                        Alignment = StringAlignment.Near,
+                        LineAlignment = StringAlignment.Center,
+                        Trimming = StringTrimming.EllipsisCharacter
+                    };
+
+                    var textRect = new RectangleF(
+                        e.CellBounds.X + 8,
+                        e.CellBounds.Y,
+                        e.CellBounds.Width - 16,
+                        e.CellBounds.Height
+                    );
+
+                    e.Graphics.DrawString(value, font, brush, textRect, stringFormat);
+                }
+
+                e.Handled = true;
+            }
+        }
+
         private void StyleLogsDataGridView()
         {
             // Clear existing columns first
@@ -1601,80 +1817,6 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.CellPainting += LogsDataGridView_CellPainting;
         }
 
-        private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
-        {
-            // Handle IsSynced column with icons
-            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colIsSynced"].Index)
-            {
-                e.PaintBackground(e.CellBounds, true);
-
-                string value = e.Value?.ToString() ?? "";
-                Image icon = null;
-
-                if (value.Equals("Yes", StringComparison.OrdinalIgnoreCase))
-                    icon = Resources.GreenTick;
-                else if (value.Equals("No", StringComparison.OrdinalIgnoreCase))
-                    icon = Resources.RedCross;
-
-                if (icon != null)
-                {
-                    int iconSize = (int)(e.CellBounds.Height * 0.7);
-                    iconSize = Math.Max(24, Math.Min(iconSize, 32));
-
-                    int x = e.CellBounds.X + (e.CellBounds.Width - iconSize) / 2;
-                    int y = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
-
-                    e.Graphics.DrawImage(icon, new Rectangle(x, y, iconSize, iconSize));
-                    e.Handled = true;
-                }
-            }
-
-            // NEW: Handle Print hyperlink column
-            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
-            {
-                e.PaintBackground(e.CellBounds, true);
-
-                bool isHovered = _hoveredCell != null &&
-                                _hoveredCell.RowIndex == e.RowIndex &&
-                                _hoveredCell.ColumnIndex == e.ColumnIndex;
-
-                bool isSelected = InvoicesDataGridView.Rows[e.RowIndex].Selected;
-
-                // Hyperlink colors - white when selected, otherwise blue/green
-                Color linkColor;
-                if (isSelected)
-                {
-                    linkColor = Color.White;
-                }
-                else
-                {
-                    linkColor = isHovered ? Color.FromArgb(34, 197, 94) : Color.FromArgb(59, 130, 246);
-                }
-
-                FontStyle fontStyle = isHovered ? (FontStyle.Bold | FontStyle.Underline) : FontStyle.Bold;
-
-                string linkText = "Print";
-                using (var font = new Font("Segoe UI", 9.5F, fontStyle))
-                using (var brush = new SolidBrush(linkColor))
-                {
-                    var textSize = e.Graphics.MeasureString(linkText, font);
-                    float x = e.CellBounds.X + (e.CellBounds.Width - textSize.Width) / 2;
-                    float y = e.CellBounds.Y + (e.CellBounds.Height - textSize.Height) / 2;
-
-                    // Store the bounds of the text for hit testing
-                    _printLinkBounds = new Rectangle(
-                        (int)x,
-                        (int)y,
-                        (int)textSize.Width,
-                        (int)textSize.Height
-                    );
-
-                    e.Graphics.DrawString(linkText, font, brush, x, y);
-                }
-
-                e.Handled = true;
-            }
-        }
         /// <summary>
         /// Sets an image inside a button, scales it properly, and centers it.
         /// </summary>
@@ -1690,19 +1832,16 @@ namespace POSPRA_WinFormsUI.Forms
                 Color badgeColor = Color.FromArgb(209, 250, 229);
                 Color textColor = Color.FromArgb(5, 150, 105);
 
-
                 if (value.Equals("Information", StringComparison.OrdinalIgnoreCase) ||
                     value.Equals("Info", StringComparison.OrdinalIgnoreCase))
                 {
                     badgeColor = Color.FromArgb(219, 234, 254);
                     textColor = Color.FromArgb(37, 99, 235);
                 }
-
                 else if (value.Equals("Warning", StringComparison.OrdinalIgnoreCase))
                 {
                     badgeColor = Color.FromArgb(254, 243, 199);
                     textColor = Color.FromArgb(217, 119, 6);
-
                 }
                 else if (value.Equals("Exception", StringComparison.OrdinalIgnoreCase) ||
                          value.Equals("Error", StringComparison.OrdinalIgnoreCase))
@@ -1715,16 +1854,13 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     e.PaintBackground(e.CellBounds, true);
 
-                    // Fixed badge width, dynamic badge height
                     int badgeWidth = 120;
-                    int padding = 8; // space above/below inside the row
+                    int padding = 8;
                     int badgeHeight = e.CellBounds.Height - padding;
 
-                    // Center vertically
                     int x = e.CellBounds.X + 15;
                     int y = e.CellBounds.Y + (e.CellBounds.Height - badgeHeight) / 2;
 
-                    // Create rounded rectangle for badge
                     using (var path = GetRoundedRect(new Rectangle(x, y, badgeWidth, badgeHeight), 6))
                     {
                         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -1734,7 +1870,6 @@ namespace POSPRA_WinFormsUI.Forms
                         }
                     }
 
-                    // Draw centered text
                     TextRenderer.DrawText(
                         e.Graphics,
                         value,
@@ -1747,8 +1882,37 @@ namespace POSPRA_WinFormsUI.Forms
                     e.Handled = true;
                 }
             }
-        }
 
+            // NEW: Make Message column (colMessage - index 1) bold
+            if (e.ColumnIndex == 1 && e.RowIndex >= 0)
+            {
+                e.PaintBackground(e.CellBounds, true);
+
+                string value = e.Value?.ToString() ?? "";
+
+                using (var font = new Font("Segoe UI", 10F, FontStyle.Bold))
+                using (var brush = new SolidBrush(e.CellStyle.ForeColor))
+                {
+                    var stringFormat = new StringFormat
+                    {
+                        Alignment = StringAlignment.Near,
+                        LineAlignment = StringAlignment.Center,
+                        Trimming = StringTrimming.EllipsisCharacter
+                    };
+
+                    var textRect = new RectangleF(
+                        e.CellBounds.X + 8,
+                        e.CellBounds.Y,
+                        e.CellBounds.Width - 16,
+                        e.CellBounds.Height
+                    );
+
+                    e.Graphics.DrawString(value, font, brush, textRect, stringFormat);
+                }
+
+                e.Handled = true;
+            }
+        }
         private System.Drawing.Drawing2D.GraphicsPath GetRoundedRect(Rectangle bounds, int radius)
         {
             var path = new System.Drawing.Drawing2D.GraphicsPath();
