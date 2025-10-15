@@ -108,19 +108,6 @@
 2025-10-06T09:40:49.0530144Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
 2025-10-06T09:40:55.2331871Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
 2025-10-06T09:41:01.5578504Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:12:09.6026104Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:12:42.3636416Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:12:43.1293337Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:12:54.2949947Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:12:55.5098051Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:03.6976555Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:04.6582946Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:11.8681752Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:12.9899525Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:24.1110040Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:31.3197559Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:32.2238902Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:39.4956837Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:41.5224033Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:48.7523177Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
-2025-10-15T05:13:49.8477812Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-10-14T06:11:33.7360542Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-10-14T06:12:59.7558179Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-10-14T06:14:10.8312792Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.

@@ -206,6 +206,109 @@ namespace POSPRA_WinFormsUI.Forms
                 // Store current scroll positions
                 int invoiceScroll = InvoicesDataGridView.FirstDisplayedScrollingRowIndex;
                 int logScroll = LogsDataGridView.FirstDisplayedScrollingRowIndex;
+            InitializeAutoRefreshTimer();
+            _invoiceService = invoiceService;
+            _fileRecordService = fileRecordService;
+
+        }
+
+        #region AutoRefresh
+        private void InitializeAutoRefreshTimer()
+        {
+            _autoRefreshTimer = new System.Windows.Forms.Timer();
+            _autoRefreshTimer.Interval = 30000; // 30 seconds
+            _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+
+            // Start auto-refresh by default
+            _autoRefreshEnabled = true;
+            _autoRefreshTimer.Start();
+        }
+
+        private async void AutoRefreshTimer_Tick(object sender, EventArgs e)
+        {
+            // Skip if already loading
+            if (_isLoadingFlag == 1) return;
+
+            // Skip if user is interacting with the grid
+            if (IsUserInteracting()) return;
+
+            try
+            {
+                // Check if data has changed
+                bool hasChanges = await QuickCheckForChangesAsync();
+
+                if (hasChanges)
+                {
+                    // Perform background refresh
+                    await BackgroundRefreshAsync();
+                    _lastRefreshTime = DateTime.Now;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silent fail for auto-refresh
+                Console.WriteLine($"Auto-refresh error: {ex.Message}");
+            }
+        }
+
+        private bool IsUserInteracting()
+        {
+            // Don't refresh if user is selecting, scrolling, or has a cell selected
+            if (InvoicesDataGridView.SelectedCells.Count > 0) return true;
+            if (LogsDataGridView.SelectedCells.Count > 0) return true;
+            if (InvoicesDataGridView.IsCurrentCellInEditMode) return true;
+            if (LogsDataGridView.IsCurrentCellInEditMode) return true;
+
+            return false;
+        }
+
+        private async Task<bool> QuickCheckForChangesAsync()
+        {
+            try
+            {
+                // Get counts only - lightweight operation
+                var invoiceResponse = await _fileRecordService.GetAllAsync();
+                var logResponse = await _logService.GetAllAsync();
+
+                if (invoiceResponse?.Data == null || logResponse?.Data == null)
+                    return false;
+
+                // Apply same filters as main load
+                var filteredInvoices = invoiceResponse.Data
+                    .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
+
+                var filteredLogs = logResponse.Data
+                    .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+
+                int currentInvoiceCount = filteredInvoices.Count();
+                int currentLogCount = filteredLogs.Count();
+
+                // Check if counts changed
+                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
+                                 (currentLogCount != _lastLogCount);
+
+                if (hasChanges)
+                {
+                    _lastInvoiceCount = currentInvoiceCount;
+                    _lastLogCount = currentLogCount;
+                }
+
+                return hasChanges;
+            }
+            catch
+            {
+                return false; // Don't refresh on error
+            }
+        }
+
+        private async Task BackgroundRefreshAsync()
+        {
+            // Use existing RunSingleLoad to prevent conflicts
+            await RunSingleLoad(async () =>
+            {
+                // Store current scroll positions
+                int invoiceScroll = InvoicesDataGridView.FirstDisplayedScrollingRowIndex;
+                int logScroll = LogsDataGridView.FirstDisplayedScrollingRowIndex;
 
                 // Refresh data
                 await LoadAndShowInvoicesAsync();
@@ -253,11 +356,13 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
         #endregion
+
         private void InitializeLogStatistics()
         {
             // Set initial values
             UpdateLogStatisticsDisplay();
         }
+
         private void UpdateLogStatisticsDisplay()
         {
             // Update the labels with current counts
@@ -317,6 +422,7 @@ namespace POSPRA_WinFormsUI.Forms
             UpdateStatPanelFonts(panelWarningLogs, lblWarningLogsCount, lblWarningLogsTitle, countFontSize, titleFontSize);
             UpdateStatPanelFonts(panelInfoLogs, lblInfoLogsCount, lblInfoLogsTitle, countFontSize, titleFontSize);
         }
+
         private void UpdateStatPanelFonts(Panel panel, Label countLabel, Label titleLabel, int countSize, int titleSize)
         {
             if (countLabel != null)
@@ -355,6 +461,7 @@ namespace POSPRA_WinFormsUI.Forms
                 titleLabel.TextAlign = ContentAlignment.MiddleCenter;
             }
         }
+
         private void CenterProgressBar()
         {
             if (progressBar != null && InvoicesDataGridView != null)
@@ -365,6 +472,7 @@ namespace POSPRA_WinFormsUI.Forms
                 progressBar.BringToFront();
             }
         }
+
         private void LblDateRange_Click(object sender, EventArgs e)
         {
             dtpStartDate.Visible = true;
@@ -588,6 +696,28 @@ namespace POSPRA_WinFormsUI.Forms
                 if (InvoicesDataGridView.Rows.Count > 0)
                 {
                     InvoicesDataGridView.CurrentCell = null;
+                    InvoicesDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                    foreach (DataGridViewColumn col in InvoicesDataGridView.Columns)
+                    {
+                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    }
+                    if (InvoicesDataGridView.Columns.Contains("colId"))
+                        InvoicesDataGridView.Columns["colId"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+                    if (InvoicesDataGridView.Columns.Contains("colPosId"))
+                        InvoicesDataGridView.Columns["colPosId"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+                    if (InvoicesDataGridView.Columns.Contains("colIsSynced"))
+                        InvoicesDataGridView.Columns["colIsSynced"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+                    if (InvoicesDataGridView.Columns.Contains("colPrint"))
+                        InvoicesDataGridView.Columns["colPrint"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+                    if (InvoicesDataGridView.Columns.Contains("colInvoiceNumber"))
+                        InvoicesDataGridView.Columns["colInvoiceNumber"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                    if (InvoicesDataGridView.Columns.Contains("colDateCreated"))
+                        InvoicesDataGridView.Columns["colDateCreated"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
                 }
             }
             catch (Exception ex)
@@ -599,6 +729,7 @@ namespace POSPRA_WinFormsUI.Forms
                 AlertManager.ShowError($"Error loading invoices: {ex.Message}");
             }
         }
+
         private void SetCellValue(DataGridViewRow row, string columnName, object value)
         {
             if (InvoicesDataGridView.Columns.Contains(columnName))
@@ -640,7 +771,7 @@ namespace POSPRA_WinFormsUI.Forms
                         l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
-                // ✅ Order by date (latest first)
+                // Order by date (latest first)
                 var logsList = filteredLogs
                     .OrderByDescending(l => l.CreatedAtPk)
                     .ToList();
@@ -692,6 +823,45 @@ namespace POSPRA_WinFormsUI.Forms
 
                 LogsDataGridView.ClearSelection();
                 LogsDataGridView.CurrentCell = null;
+
+                // Make column sizing explicit
+                LogsDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+
+                // Sr No
+                if (LogsDataGridView.Columns.Contains("colLogID"))
+                {
+                    var c = LogsDataGridView.Columns["colLogID"];
+                    c.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                    c.MinimumWidth = 40;
+                }
+
+                // Message (long text) should fill
+                if (LogsDataGridView.Columns.Contains("colMessage"))
+                {
+                    var c = LogsDataGridView.Columns["colMessage"];
+                    c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    c.MinimumWidth = 250;
+                }
+
+                // Type / Exception column: compact and centered
+                if (LogsDataGridView.Columns.Contains("colException"))
+                {
+                    var c = LogsDataGridView.Columns["colException"];
+                    c.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                    c.MinimumWidth = 170;             // ensure it's never too narrow
+                    c.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    c.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+                }
+
+                // Date/time: compact
+                if (LogsDataGridView.Columns.Contains("logdatetime"))
+                {
+                    var c = LogsDataGridView.Columns["logdatetime"];
+                    c.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                    c.MinimumWidth = 120;
+                    c.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                }
+
             }
             catch (Exception ex)
             {
@@ -787,6 +957,65 @@ namespace POSPRA_WinFormsUI.Forms
             }
 
             return field;
+        }
+
+        // ----------------------------------------
+        // Sync Logs Button
+        // ----------------------------------------
+        private async void btnSyncLogs_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // ✅ Get cloud logs
+                var cloudResponse = await _logService.GetAllCloudAsync();
+                LogsDataGridView.Rows.Clear();
+
+                if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
+                {
+                    WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
+                    AlertManager.ShowWarning("No synced logs available to display");
+                    return;
+                }
+
+                // ✅ Get local logs
+                var localResponse = await _logService.GetAllAsync();
+
+                // ✅ Merge and remove duplicates
+                var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
+
+                // ✅ Pass merged logs to loader
+                await LoadAndShowLogsAsync(mergedLogs);
+            }
+            catch (Exception ex)
+            {
+                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
+                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+            }
+        }
+
+        private List<LogDto> MergeLogs(IEnumerable<LogDto>? localLogs, IEnumerable<LogDto>? cloudLogs)
+        {
+            var merged = new List<LogDto>();
+
+            if (localLogs != null)
+                merged.AddRange(localLogs);
+
+            if (cloudLogs != null)
+                merged.AddRange(cloudLogs);
+
+            // ✅ Deduplicate based on Message, Type, and Timestamp
+            var deduped = merged
+                .GroupBy(l => new
+                {
+                    Message = l.Message?.Trim() ?? "",
+                    Type = l.Type?.Trim() ?? "",
+                    Timestamp = l.CreatedAtPk.ToString("yyyy-MM-dd HH:mm:ss")
+                })
+                .Select(g => g.First())
+                .OrderByDescending(l => l.CreatedAtPk)
+                .ToList();
+
+            return deduped;
         }
 
 
@@ -951,8 +1180,6 @@ namespace POSPRA_WinFormsUI.Forms
             _isSyncedSortDescending = !_isSyncedSortDescending;
         }
 
-
-
         private async void btnToday_Click(object sender, EventArgs e)
         {
             ResetSortToDefault();
@@ -985,7 +1212,6 @@ namespace POSPRA_WinFormsUI.Forms
                 await LoadAndShowLogsAsync(skipDateFilter: true);
             });
         }
-
 
         private void ClearDataGridView(DataGridView dataGridView)
         {
@@ -1121,12 +1347,17 @@ namespace POSPRA_WinFormsUI.Forms
         {
             base.OnFormClosing(e);
 
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+
             if (_autoRefreshTimer != null)
             {
                 _autoRefreshTimer.Stop();
                 _autoRefreshTimer.Dispose();
             }
         }
+
         private void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             e.ThrowException = false;
@@ -1289,15 +1520,14 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.DefaultCellStyle.BackColor = Color.White;
             dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
             dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
-            dgv.DefaultCellStyle.Padding = new Padding(12, 6, 12, 6);  // Back to original
+            dgv.DefaultCellStyle.Padding = new Padding(8, 4, 8, 4);
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;  // ← Add this
+            dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
             // ✅ Set proper row height
             dgv.RowTemplate.Height = 40;  // ← Reduced from 48
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
         }
-
 
         private void StyleInvoicesDataGridView()
         {
@@ -1388,8 +1618,6 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.CellMouseMove += InvoicesDataGridView_CellMouseMove;
         }
 
-        // NEW: Add these event handlers after StyleInvoicesDataGridView method
-
         private void InvoicesDataGridView_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
@@ -1408,6 +1636,13 @@ namespace POSPRA_WinFormsUI.Forms
                 InvoicesDataGridView.InvalidateCell(cell);
             }
         }
+        private void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                // Get the actual mouse position
+                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
 
         private void InvoicesDataGridView_CellMouseMove(object sender, DataGridViewCellMouseEventArgs e)
         {
@@ -1423,22 +1658,6 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else
                 {
-                    InvoicesDataGridView.Cursor = Cursors.Default;
-                }
-            }
-            else
-            {
-                InvoicesDataGridView.Cursor = Cursors.Default;
-            }
-        }
-        private void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
-            {
-                // Get the actual mouse position
-                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
-                var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
-
                 // Check if click is within the text bounds
                 if (_printLinkBounds.Contains(mousePos))
                 {
@@ -1458,6 +1677,42 @@ namespace POSPRA_WinFormsUI.Forms
                     InvoiceReport printForm = new InvoiceReport(response.Data);
                     printForm.ShowDialog();             
                    
+                }
+            }
+        }
+
+                    InvoicesDataGridView.Cursor = Cursors.Default;
+                }
+            }
+            else
+            {
+                InvoicesDataGridView.Cursor = Cursors.Default;
+            }
+        }
+
+        private void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            {
+                // Get the actual mouse position
+                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
+
+                // Check if click is within the text bounds
+                if (_printLinkBounds.Contains(mousePos))
+                {
+
+                    var invoiceNumber = InvoicesDataGridView.Rows[e.RowIndex].Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
+
+                    // call invoice print generator
+                    // invoiceNumber
+                    var response = _invoiceService.GetInvoiceWithItems(invoiceNumber).Result;
+                    MessageBox.Show(
+                        $"Print button clicked for Invoice: {invoiceNumber}",
+                        "Print Invoice",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
                 }
             }
         }
@@ -1498,11 +1753,12 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 Name = "colException",
                 HeaderText = "Type",
-                Width = 150,
+                Width = 170,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
 
             };
+            colException.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colException.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colDateTime = new DataGridViewTextBoxColumn
@@ -1513,6 +1769,7 @@ namespace POSPRA_WinFormsUI.Forms
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colDateTime.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             LogsDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
@@ -1522,6 +1779,7 @@ namespace POSPRA_WinFormsUI.Forms
             // Attach custom cell painting for badges in Type column
             LogsDataGridView.CellPainting += LogsDataGridView_CellPainting;
         }
+
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
             // Handle IsSynced column with icons
@@ -1670,7 +1928,6 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-
         private System.Drawing.Drawing2D.GraphicsPath GetRoundedRect(Rectangle bounds, int radius)
         {
             var path = new System.Drawing.Drawing2D.GraphicsPath();
@@ -1685,9 +1942,6 @@ namespace POSPRA_WinFormsUI.Forms
             return path;
         }
 
-
-
-        // Call these methods in your DashboardForm_Load or InitializeComponent
         private void ApplyDataGridStyles()
         {
             StyleInvoicesDataGridView();
@@ -1701,6 +1955,7 @@ namespace POSPRA_WinFormsUI.Forms
                 DrawInvoicePieChart(panel, _syncedCount, _pendingCount);
             }
         }
+
         private void DrawInvoicePieChart(Panel panel, int pendingCount, int syncedCount)
         {
             if (panel == null) return;
@@ -1811,6 +2066,7 @@ namespace POSPRA_WinFormsUI.Forms
                 panel.Controls.Add(lbl);
             }
         }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -1818,6 +2074,11 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         private void panelinvoicechart_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void tableLayoutPanelLogStats_Paint(object sender, PaintEventArgs e)
         {
 
         }

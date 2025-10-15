@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
-using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
 using POSPRA.Application.Services.NetworkService;

@@ -377,8 +377,10 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.FormBorderStyle = FormBorderStyle.None;
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
-            childForm.WindowState = FormWindowState.Maximized;
+            childForm.Location = new Point(0, 0);
+            childForm.Size = this.ClientSize;
             childForm.Show();
+            //childForm.Refresh ();
         }
 
     }

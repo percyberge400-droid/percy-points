@@ -28,9 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
+            label4 = new Label();
+            itemDiscountAmount = new TextBox();
+            itemDiscountPercent = new TextBox();
             TaxChargedlbl = new Label();
             TaxCharged = new TextBox();
             pctCode = new TextBox();
@@ -113,6 +116,9 @@
             pnlBasicInfo.BackColor = Color.FromArgb(250, 250, 250);
             pnlBasicInfo.BackgroundImageLayout = ImageLayout.None;
             pnlBasicInfo.BorderStyle = BorderStyle.FixedSingle;
+            pnlBasicInfo.Controls.Add(label4);
+            pnlBasicInfo.Controls.Add(itemDiscountAmount);
+            pnlBasicInfo.Controls.Add(itemDiscountPercent);
             pnlBasicInfo.Controls.Add(TaxChargedlbl);
             pnlBasicInfo.Controls.Add(TaxCharged);
             pnlBasicInfo.Controls.Add(pctCode);
@@ -140,6 +146,37 @@
             pnlBasicInfo.Size = new Size(1145, 167);
             pnlBasicInfo.TabIndex = 6;
             // 
+            // label4
+            // 
+            label4.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label4.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            label4.ForeColor = Color.FromArgb(75, 85, 99);
+            label4.Location = new Point(1011, 17);
+            label4.Name = "label4";
+            label4.Size = new Size(108, 20);
+            label4.TabIndex = 60;
+            label4.Text = "Discount (Rs.)";
+            // 
+            // itemDiscountAmount
+            // 
+            itemDiscountAmount.Font = new Font("Microsoft Sans Serif", 9F);
+            itemDiscountAmount.Location = new Point(1011, 44);
+            itemDiscountAmount.Name = "itemDiscountAmount";
+            itemDiscountAmount.PlaceholderText = "Calculated Rs.";
+            itemDiscountAmount.ReadOnly = true;
+            itemDiscountAmount.Size = new Size(100, 24);
+            itemDiscountAmount.TabIndex = 59;
+            // 
+            // itemDiscountPercent
+            // 
+            itemDiscountPercent.Font = new Font("Microsoft Sans Serif", 9F);
+            itemDiscountPercent.Location = new Point(909, 44);
+            itemDiscountPercent.Name = "itemDiscountPercent";
+            itemDiscountPercent.PlaceholderText = "Discount %";
+            itemDiscountPercent.Size = new Size(96, 24);
+            itemDiscountPercent.TabIndex = 58;
+            itemDiscountPercent.Text = "10";
+            // 
             // TaxChargedlbl
             // 
             TaxChargedlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -159,7 +196,7 @@
             TaxCharged.Name = "TaxCharged";
             TaxCharged.PlaceholderText = "Tax Charged";
             TaxCharged.ReadOnly = true;
-            TaxCharged.Size = new Size(192, 24);
+            TaxCharged.Size = new Size(202, 24);
             TaxCharged.TabIndex = 57;
             // 
             // pctCode
@@ -233,9 +270,9 @@
             itemDiscountlbl.ForeColor = Color.FromArgb(75, 85, 99);
             itemDiscountlbl.Location = new Point(909, 17);
             itemDiscountlbl.Name = "itemDiscountlbl";
-            itemDiscountlbl.Size = new Size(167, 20);
+            itemDiscountlbl.Size = new Size(96, 20);
             itemDiscountlbl.TabIndex = 14;
-            itemDiscountlbl.Text = "Discount";
+            itemDiscountlbl.Text = "Discount (%)";
             // 
             // totalamount
             // 
@@ -287,7 +324,7 @@
             FurtureTax.Font = new Font("Microsoft Sans Serif", 9F);
             FurtureTax.Location = new Point(677, 113);
             FurtureTax.Name = "FurtureTax";
-            FurtureTax.PlaceholderText = "Furture Tax";
+            FurtureTax.PlaceholderText = "Further Tax";
             FurtureTax.Size = new Size(203, 24);
             FurtureTax.TabIndex = 17;
             // 
@@ -380,7 +417,7 @@
             // 
             // btnSave
             // 
-            btnSave.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnSave.Anchor = AnchorStyles.Bottom;
             btnSave.BackColor = Color.SeaGreen;
             btnSave.FlatAppearance.BorderSize = 0;
             btnSave.FlatStyle = FlatStyle.Flat;
@@ -398,24 +435,25 @@
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.AllowUserToResizeRows = false;
+            dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.White;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
-            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.White;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle3.SelectionBackColor = Color.White;
+            dataGridViewCellStyle3.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.White;
+            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 419);
@@ -504,11 +542,11 @@
             btnsearch.FlatStyle = FlatStyle.Flat;
             btnsearch.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnsearch.ForeColor = Color.Transparent;
-            btnsearch.Location = new Point(236, 173);
+            btnsearch.Location = new Point(238, 172);
             btnsearch.Name = "btnsearch";
-            btnsearch.Size = new Size(49, 32);
+            btnsearch.Size = new Size(50, 34);
             btnsearch.TabIndex = 18;
-            btnsearch.Text = "Search";
+            btnsearch.Text = "🔍";
             btnsearch.UseVisualStyleBackColor = false;
             // 
             // btnclear
@@ -550,6 +588,7 @@
             // 
             // label1
             // 
+            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
             label1.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold);
             label1.ForeColor = Color.FromArgb(17, 24, 39);
@@ -561,6 +600,7 @@
             // 
             // panel3
             // 
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel3.BackColor = Color.White;
             panel3.BorderStyle = BorderStyle.FixedSingle;
             panel3.Controls.Add(refUSIN);
@@ -660,6 +700,7 @@
             // 
             // panel2
             // 
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel2.BackColor = Color.White;
             panel2.BorderStyle = BorderStyle.FixedSingle;
             panel2.Controls.Add(label17);
@@ -757,6 +798,7 @@
             // 
             // panel1
             // 
+            panel1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.Gainsboro;
             panel1.BorderStyle = BorderStyle.FixedSingle;
             panel1.Controls.Add(TotalBillAmountlbl);
@@ -940,9 +982,10 @@
             ControlBox = false;
             Controls.Add(contentPanel);
             Font = new Font("Microsoft Sans Serif", 9F);
-            FormBorderStyle = FormBorderStyle.None;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "ItemEntry";
-            WindowState = FormWindowState.Maximized;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Item Entry";
             Load += item_entry_Load;
             pnlBasicInfo.ResumeLayout(false);
             pnlBasicInfo.PerformLayout();
@@ -1047,6 +1090,8 @@
         {
             //InitializeDataGridViewColumns();
             InitializeComboBoxes();
+            //ImproveLayoutFormatting();
+
         }
 
         // Field declarations
@@ -1132,5 +1177,8 @@
         private Button btnclear;
         private Button btnsearch;
         private TextBox SearchBox;
+        private TextBox itemDiscountAmount;
+        private TextBox itemDiscountPercent;
+        private Label label4;
     }
 }
