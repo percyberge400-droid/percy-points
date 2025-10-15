@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
             label4 = new Label();
             itemDiscountAmount = new TextBox();
@@ -199,7 +199,6 @@
             // 
             // pctCode
             // 
-            pctCode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             pctCode.BackColor = Color.White;
             pctCode.Font = new Font("Microsoft Sans Serif", 9F);
             pctCode.ImeMode = ImeMode.Disable;
@@ -274,7 +273,6 @@
             // 
             // ItemCode
             // 
-            ItemCode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             ItemCode.BackColor = Color.White;
             ItemCode.Font = new Font("Microsoft Sans Serif", 9F);
             ItemCode.ImeMode = ImeMode.Disable;
@@ -405,7 +403,7 @@
             // 
             // btnSave
             // 
-            btnSave.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnSave.Anchor = AnchorStyles.Bottom;
             btnSave.BackColor = Color.SeaGreen;
             btnSave.FlatAppearance.BorderSize = 0;
             btnSave.FlatStyle = FlatStyle.Flat;
@@ -423,24 +421,25 @@
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.AllowUserToResizeRows = false;
+            dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.White;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
-            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.White;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle3.SelectionBackColor = Color.White;
+            dataGridViewCellStyle3.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.White;
+            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 419);
@@ -523,17 +522,16 @@
             // 
             // btnsearch
             // 
-            btnsearch.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             btnsearch.BackColor = Color.Teal;
             btnsearch.FlatAppearance.BorderSize = 0;
             btnsearch.FlatStyle = FlatStyle.Flat;
             btnsearch.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnsearch.ForeColor = Color.Transparent;
-            btnsearch.Location = new Point(236, 173);
+            btnsearch.Location = new Point(238, 172);
             btnsearch.Name = "btnsearch";
-            btnsearch.Size = new Size(49, 32);
+            btnsearch.Size = new Size(50, 34);
             btnsearch.TabIndex = 18;
-            btnsearch.Text = "Search";
+            btnsearch.Text = "🔍";
             btnsearch.UseVisualStyleBackColor = false;
             // 
             // btnclear
@@ -575,6 +573,7 @@
             // 
             // label1
             // 
+            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
             label1.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold);
             label1.ForeColor = Color.FromArgb(17, 24, 39);
@@ -586,6 +585,7 @@
             // 
             // panel3
             // 
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel3.BackColor = Color.White;
             panel3.BorderStyle = BorderStyle.FixedSingle;
             panel3.Controls.Add(refUSIN);
@@ -685,6 +685,7 @@
             // 
             // panel2
             // 
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel2.BackColor = Color.White;
             panel2.BorderStyle = BorderStyle.FixedSingle;
             panel2.Controls.Add(label17);
@@ -782,6 +783,7 @@
             // 
             // panel1
             // 
+            panel1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.Gainsboro;
             panel1.BorderStyle = BorderStyle.FixedSingle;
             panel1.Controls.Add(TotalBillAmountlbl);
@@ -962,15 +964,13 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(248, 250, 252);
             ClientSize = new Size(1202, 900);
-            ControlBox = true;
             Controls.Add(contentPanel);
             Font = new Font("Microsoft Sans Serif", 9F);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "ItemEntry";
-            Text = "Item Entry";
-            WindowState = FormWindowState.Maximized;
-            Load += item_entry_Load;
             StartPosition = FormStartPosition.CenterScreen;
+            Text = "Item Entry";
+            Load += item_entry_Load;
             pnlBasicInfo.ResumeLayout(false);
             pnlBasicInfo.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
@@ -1074,6 +1074,8 @@
         {
             //InitializeDataGridViewColumns();
             InitializeComboBoxes();
+            //ImproveLayoutFormatting();
+
         }
 
         // Field declarations

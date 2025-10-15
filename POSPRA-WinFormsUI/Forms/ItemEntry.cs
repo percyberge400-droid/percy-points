@@ -47,6 +47,17 @@ namespace POSPRA_WinFormsUI
             InitializeComponent();
             this.Load += item_entry_Load;
 
+            this.Shown += (s, e) =>
+            {
+                if (!_originalLayoutCaptured)
+                {
+                    CaptureOriginalLayout();
+                }
+            };
+
+            //FixLayoutIssues();
+            SetupPanelResizeHandlers();
+
             // Load POSID from app.config (stored encrypted)
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
             var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
@@ -104,7 +115,322 @@ namespace POSPRA_WinFormsUI
             _productCatalogueService = productCatalogueService;
             _invoiceService = invoiceService;
         }
+
         #endregion
+
+        #region Panel Content Resize Handlers
+
+        private void SetupPanelResizeHandlers()
+        {
+            // Wire up form resize to handle panel positioning
+            this.Resize += Form_Resize_Panels;
+
+            panel2.Resize += Panel2_Resize;
+            panel3.Resize += Panel3_Resize;
+            pnlBasicInfo.Resize += PnlBasicInfo_Resize;
+            panel1.Resize += Panel1_Resize;
+        }
+        private void Form_Resize_Panels(object sender, EventArgs e)
+        {
+            if (this.ClientSize.Width == 0) return;
+
+            // Calculate 45% width for each panel
+            int formWidth = this.ClientSize.Width;
+            int leftMargin = (int)(formWidth * 0.015); // 1.5% left margin
+            int middleGap = (int)(formWidth * 0.010);   // 1% gap between panels
+            int rightMargin = (int)(formWidth * 0.015); // 1.5% right margin
+
+            int panelWidth = (int)(formWidth * 0.48);  // 48% for each panel
+
+            // Position Panel 2 (Buyer Information)
+            panel2.Location = new Point(leftMargin, panel2.Location.Y);
+            panel2.Size = new Size(panelWidth, 87);
+
+            // Position Panel 3 (Invoice Information) 
+            int panel3X = leftMargin + panelWidth + middleGap;
+            panel3.Location = new Point(panel3X, panel3.Location.Y);
+            panel3.Size = new Size(panelWidth, 87);
+
+            // Update label positions if needed
+            if (label3 != null) // "BUYER INFORMATION" label
+            {
+                label3.Location = new Point(leftMargin, label3.Location.Y);
+            }
+
+            if (label2 != null) // "INVOICE INFORMATION" label
+            {
+                label2.Location = new Point(panel3X, label2.Location.Y);
+            }
+        }
+
+        private void Panel2_Resize(object sender, EventArgs e)
+        {
+            if (panel2.Width == 0 || panel2.Height == 0) return;
+
+            // Panel 2: 4 columns - Buyer CNIC, Buyer NTN, Buyer Name, Buyer Phone
+            int leftPadding = 16;
+            int rightPadding = 16;
+            int spacing = 12;
+
+            int availableWidth = panel2.Width - leftPadding - rightPadding - (spacing * 3);
+            int colWidth = availableWidth / 4;
+
+            int labelY = 18;
+            int controlY = 41;
+            int controlHeight = 24;
+
+            // Column 1 - Buyer CNIC
+            int col1X = leftPadding;
+            label20.Location = new Point(col1X, labelY);
+            label20.AutoSize = true;
+            buyercnic.Location = new Point(col1X, controlY);
+            buyercnic.Size = new Size(colWidth, controlHeight);
+
+            // Column 2 - Buyer NTN
+            int col2X = col1X + colWidth + spacing;
+            label19.Location = new Point(col2X, labelY);
+            label19.AutoSize = true;
+            buyerntn.Location = new Point(col2X, controlY);
+            buyerntn.Size = new Size(colWidth, controlHeight);
+
+            // Column 3 - Buyer Name
+            int col3X = col2X + colWidth + spacing;
+            label18.Location = new Point(col3X, labelY);
+            label18.AutoSize = true;
+            BuyerBname.Location = new Point(col3X, controlY);
+            BuyerBname.Size = new Size(colWidth, controlHeight);
+
+            // Column 4 - Buyer Phone
+            int col4X = col3X + colWidth + spacing;
+            label17.Location = new Point(col4X, labelY);
+            label17.AutoSize = true;
+            buyerphone.Location = new Point(col4X, controlY);
+            buyerphone.Size = new Size(colWidth, controlHeight);
+        }
+
+        private void Panel3_Resize(object sender, EventArgs e)
+        {
+            if (panel3.Width == 0 || panel3.Height == 0) return;
+
+            // Panel 3: 4 columns - Invoice Type, Payment Mode, USIN, Ref USIN
+            int leftPadding = 16;
+            int rightPadding = 16;
+            int spacing = 12;
+
+            int availableWidth = panel3.Width - leftPadding - rightPadding - (spacing * 3);
+            int colWidth = availableWidth / 4;
+
+            int labelY = 18;
+            int controlY = 41;
+            int comboHeight = 26;
+            int textHeight = 24;
+
+            // Column 1 - Invoice Type
+            int col1X = leftPadding;
+            invoicetypelbl.Location = new Point(col1X, labelY);
+            invoicetypelbl.AutoSize = true;
+            invoicetype.Location = new Point(col1X, controlY);
+            invoicetype.Size = new Size(colWidth, comboHeight);
+
+            // Column 2 - Payment Mode
+            int col2X = col1X + colWidth + spacing;
+            paymentmodelbl.Location = new Point(col2X, labelY);
+            paymentmodelbl.AutoSize = true;
+            paymentmode.Location = new Point(col2X, controlY);
+            paymentmode.Size = new Size(colWidth, comboHeight);
+
+            // Column 3 - USIN
+            int col3X = col2X + colWidth + spacing;
+            USINlbl.Location = new Point(col3X, labelY);
+            USINlbl.AutoSize = true;
+            USIN.Location = new Point(col3X, controlY);
+            USIN.Size = new Size(colWidth, textHeight);
+
+            // Column 4 - Ref USIN
+            int col4X = col3X + colWidth + spacing;
+            refUSINlbl.Location = new Point(col4X, labelY);
+            refUSINlbl.AutoSize = true;
+            refUSIN.Location = new Point(col4X, controlY);
+            refUSIN.Size = new Size(colWidth, textHeight);
+        }
+
+        private void PnlBasicInfo_Resize(object sender, EventArgs e)
+        {
+            if (pnlBasicInfo.Width == 0 || pnlBasicInfo.Height == 0) return;
+
+            int padding = 18;
+            int spacing = 8;
+            int row1LabelY = 14;
+            int row1ControlY = 36;
+            int row2LabelY = 85;
+            int row2ControlY = 107;
+            int controlHeight = 24;
+
+            // Calculate widths for Row 1 (6 columns with special handling for discount)
+            int availableWidth = pnlBasicInfo.Width - (padding * 2) - (spacing * 5);
+
+            // Widths: 4 equal columns + discount% (smaller) + discount Rs (smaller)
+            int standardColWidth = (int)(availableWidth * 0.20); // 20% each for first 4
+            int discountPercentWidth = (int)(availableWidth * 0.10); // 10% for discount %
+            int discountAmountWidth = (int)(availableWidth * 0.10); // 10% for discount Rs
+
+            // Row 1 Column positions
+            int col1X = padding;
+            int col2X = col1X + standardColWidth + spacing;
+            int col3X = col2X + standardColWidth + spacing;
+            int col4X = col3X + standardColWidth + spacing;
+            int col5X = col4X + standardColWidth + spacing;
+            int col6X = col5X + discountPercentWidth + spacing;
+
+            // ROW 1 - Item Code
+            ItemCodelbl.Location = new Point(col1X, row1LabelY);
+            ItemCodelbl.AutoSize = true;
+            ItemCode.Location = new Point(col1X, row1ControlY);
+            ItemCode.Size = new Size(standardColWidth, controlHeight);
+
+            // ROW 1 - PCT Code
+            lblCustomerRegType.Location = new Point(col2X, row1LabelY);
+            lblCustomerRegType.AutoSize = true;
+            pctCode.Location = new Point(col2X, row1ControlY);
+            pctCode.Size = new Size(standardColWidth, controlHeight);
+
+            // ROW 1 - Total Amount
+            totalamountlbl.Location = new Point(col3X, row1LabelY);
+            totalamountlbl.AutoSize = true;
+            totalamount.Location = new Point(col3X, row1ControlY);
+            totalamount.Size = new Size(standardColWidth, controlHeight);
+
+            // ROW 1 - Tax Rate
+            TaxRatelbl.Location = new Point(col4X, row1LabelY);
+            TaxRatelbl.AutoSize = true;
+            TaxRatebox.Location = new Point(col4X, row1ControlY);
+            TaxRatebox.Size = new Size(standardColWidth, controlHeight);
+
+            // ROW 1 - Discount %
+            itemDiscountlbl.Location = new Point(col5X, row1LabelY);
+            itemDiscountlbl.AutoSize = true;
+            itemDiscountPercent.Location = new Point(col5X, row1ControlY);
+            itemDiscountPercent.Size = new Size(discountPercentWidth, controlHeight);
+
+            // ROW 1 - Discount Rs.
+            label4.Location = new Point(col6X, row1LabelY);
+            label4.AutoSize = true;
+            itemDiscountAmount.Location = new Point(col6X, row1ControlY);
+            itemDiscountAmount.Size = new Size(discountAmountWidth, controlHeight);
+
+            // Calculate widths for Row 2 (5 columns - last one spans 2)
+            int row2Col1Width = (int)(availableWidth * 0.20);
+            int row2Col2Width = (int)(availableWidth * 0.20);
+            int row2Col3Width = (int)(availableWidth * 0.20);
+            int row2Col4Width = (int)(availableWidth * 0.20);
+            int row2Col5Width = (int)(availableWidth * 0.20); // Tax Charged spans remaining
+
+            int row2Col1X = padding;
+            int row2Col2X = row2Col1X + row2Col1Width + spacing;
+            int row2Col3X = row2Col2X + row2Col2Width + spacing;
+            int row2Col4X = row2Col3X + row2Col3Width + spacing;
+            int row2Col5X = row2Col4X + row2Col4Width + spacing;
+
+            // ROW 2 - Item Name
+            ItemNamelbl.Location = new Point(row2Col1X, row2LabelY);
+            ItemNamelbl.AutoSize = true;
+            ItemName.Location = new Point(row2Col1X, row2ControlY);
+            ItemName.Size = new Size(row2Col1Width, controlHeight);
+
+            // ROW 2 - Quantity
+            lblSellerAddress.Location = new Point(row2Col2X, row2LabelY);
+            lblSellerAddress.AutoSize = true;
+            qty.Location = new Point(row2Col2X, row2ControlY);
+            qty.Size = new Size(row2Col2Width, controlHeight);
+
+            // ROW 2 - Sale Value
+            salevaluelbl.Location = new Point(row2Col3X, row2LabelY);
+            salevaluelbl.AutoSize = true;
+            salevalue.Location = new Point(row2Col3X, row2ControlY);
+            salevalue.Size = new Size(row2Col3Width, controlHeight);
+
+            // ROW 2 - Further Tax
+            FurtureTaxlbl.Location = new Point(row2Col4X, row2LabelY);
+            FurtureTaxlbl.AutoSize = true;
+            FurtureTax.Location = new Point(row2Col4X, row2ControlY);
+            FurtureTax.Size = new Size(row2Col4Width, controlHeight);
+
+            // ROW 2 - Tax Charged (spans remaining width)
+            TaxChargedlbl.Location = new Point(row2Col5X, row2LabelY);
+            TaxChargedlbl.AutoSize = true;
+            TaxCharged.Location = new Point(row2Col5X, row2ControlY);
+            int remainingWidth = pnlBasicInfo.Width - row2Col5X - padding;
+            TaxCharged.Size = new Size(remainingWidth, controlHeight);
+        }
+
+        private void Panel1_Resize(object sender, EventArgs e)
+        {
+            if (panel1.Width == 0 || panel1.Height == 0) return;
+
+            // 7 equal columns with padding
+            int padding = 20;
+            int spacing = 8;
+            int availableWidth = panel1.Width - (padding * 2) - (spacing * 6);
+            int colWidth = availableWidth / 7;
+
+            int labelY = 12;
+            int controlY = 36;
+            int controlHeight = 24;
+
+            // Column positions
+            int col1X = padding;
+            int col2X = col1X + colWidth + spacing;
+            int col3X = col2X + colWidth + spacing;
+            int col4X = col3X + colWidth + spacing;
+            int col5X = col4X + colWidth + spacing;
+            int col6X = col5X + colWidth + spacing;
+            int col7X = col6X + colWidth + spacing;
+
+            // POS ID
+            label15.Location = new Point(col1X, labelY);
+            label15.AutoSize = true;
+            posid.Location = new Point(col1X, controlY);
+            posid.Size = new Size(colWidth, controlHeight);
+
+            // Total Quantity
+            TotalQuantitylbl.Location = new Point(col2X, labelY);
+            TotalQuantitylbl.AutoSize = true;
+            TotalQuantity.Location = new Point(col2X, controlY);
+            TotalQuantity.Size = new Size(colWidth, controlHeight);
+
+            // Total Sale Value
+            TotalSaleValuelbl.Location = new Point(col3X, labelY);
+            TotalSaleValuelbl.AutoSize = true;
+            TotalSaleValue.Location = new Point(col3X, controlY);
+            TotalSaleValue.Size = new Size(colWidth, controlHeight);
+
+            // Total Tax Charged
+            TotalTaxChargedlbl.Location = new Point(col4X, labelY);
+            TotalTaxChargedlbl.AutoSize = true;
+            TotalTaxCharged.Location = new Point(col4X, controlY);
+            TotalTaxCharged.Size = new Size(colWidth, controlHeight);
+
+            // Discount
+            Discountlbl.Location = new Point(col5X, labelY);
+            Discountlbl.AutoSize = true;
+            Discount.Location = new Point(col5X, controlY);
+            Discount.Size = new Size(colWidth, controlHeight);
+
+            // Further Tax
+            totalFurtherTaxlbl.Location = new Point(col6X, labelY);
+            totalFurtherTaxlbl.AutoSize = true;
+            TotalFurtherTax.Location = new Point(col6X, controlY);
+            TotalFurtherTax.Size = new Size(colWidth, controlHeight);
+
+            // Total Bill Amount
+            TotalBillAmountlbl.Location = new Point(col7X, labelY);
+            TotalBillAmountlbl.AutoSize = true;
+            TotalBillAmount.Location = new Point(col7X, controlY);
+            TotalBillAmount.Size = new Size(colWidth, controlHeight);
+        }
+
+        #endregion
+
         private void BtnSave_MouseEnter(object? sender, EventArgs e)
         {
             throw new NotImplementedException();
@@ -1528,67 +1854,81 @@ namespace POSPRA_WinFormsUI
 
         private void Item_entry_Resize(object sender, EventArgs e)
         {
+            if (this.WindowState != FormWindowState.Maximized)
+            {
+                return; // Let WinForms handle normal state
+            }
+
             if (!_originalLayoutCaptured)
             {
                 CaptureOriginalLayout();
                 if (!_originalLayoutCaptured) return;
             }
 
+            // ✅ FIX: Only apply scaling when maximized
             if (IsFormMaximized())
             {
-                double formScaleX = _originalClientSize.Width > 0 ? this.ClientSize.Width / (double)_originalClientSize.Width : 1.0;
-                double formScaleY = _originalClientSize.Height > 0 ? this.ClientSize.Height / (double)_originalClientSize.Height : 1.0;
-                double globalScale = Math.Min(formScaleX, formScaleY);
+                double formScaleX = _originalClientSize.Width > 0
+                    ? this.ClientSize.Width / (double)_originalClientSize.Width
+                    : 1.0;
+                double formScaleY = _originalClientSize.Height > 0
+                    ? this.ClientSize.Height / (double)_originalClientSize.Height
+                    : 1.0;
 
+                // ✅ Use separate X and Y scaling instead of minimum
                 foreach (var kv in _originalBounds)
                 {
                     var ctrl = kv.Key;
                     var orig = kv.Value;
                     var parent = ctrl.Parent;
+
                     if (parent == null) continue;
-                    if (!_originalParentSizes.TryGetValue(parent, out Size parentOrigSize) || parentOrigSize.Width == 0 || parentOrigSize.Height == 0)
+
+                    // ✅ Skip controls with Dock or Anchor.All (let WinForms handle them)
+                    if (ctrl.Dock != DockStyle.None || ctrl.Anchor == (AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right))
+                    {
+                        continue;
+                    }
+
+                    if (!_originalParentSizes.TryGetValue(parent, out Size parentOrigSize)
+                        || parentOrigSize.Width == 0 || parentOrigSize.Height == 0)
                         continue;
 
                     var parentCurrentSize = parent.ClientSize;
                     double scaleX = parentCurrentSize.Width / (double)parentOrigSize.Width;
                     double scaleY = parentCurrentSize.Height / (double)parentOrigSize.Height;
+
                     int newX = (int)Math.Round(orig.X * scaleX);
                     int newY = (int)Math.Round(orig.Y * scaleY);
-                    int newW = Math.Max(1, (int)Math.Round(orig.Width * scaleX));
-                    int newH = Math.Max(1, (int)Math.Round(orig.Height * scaleY));
+                    int newW = Math.Max(orig.Width, (int)Math.Round(orig.Width * scaleX)); // ✅ Don't shrink below original
+                    int newH = Math.Max(orig.Height, (int)Math.Round(orig.Height * scaleY));
 
-                    try { ctrl.Bounds = new Rectangle(newX, newY, newW, newH); } catch { }
+                    try
+                    {
+                        ctrl.SetBounds(newX, newY, newW, newH, BoundsSpecified.All);
+                    }
+                    catch { }
 
+                    // ✅ FIX: Use more conservative font scaling
                     try
                     {
                         if (_originalFonts.TryGetValue(ctrl, out Font origFont) && origFont != null)
                         {
-                            float newFontSize = (float)(origFont.Size * globalScale);
-                            if (newFontSize < 6f) newFontSize = 6f;
-                            if (newFontSize > 72f) newFontSize = 72f;
-                            ctrl.Font = new Font(origFont.FontFamily, newFontSize, origFont.Style);
+                            // Use X scale only for fonts, and limit the range
+                            float scaleFactor = (float)Math.Min(formScaleX, 1.5); // Cap at 150%
+                            float newFontSize = Math.Max(8f, Math.Min(24f, origFont.Size * scaleFactor));
+
+                            if (Math.Abs(ctrl.Font.Size - newFontSize) > 0.5f) // Only update if changed significantly
+                            {
+                                ctrl.Font = new Font(origFont.FontFamily, newFontSize, origFont.Style);
+                            }
                         }
                     }
                     catch { }
                 }
             }
-            else
-            {
-                foreach (var kv in _originalBounds)
-                {
-                    var ctrl = kv.Key;
-                    try { ctrl.Bounds = kv.Value; } catch { }
-                }
-
-                foreach (var kv in _originalFonts)
-                {
-                    var ctrl = kv.Key;
-                    var font = kv.Value;
-                    try { if (font != null) ctrl.Font = font; } catch { }
-                }
-            }
+            // ✅ When not maximized, don't restore - let WinForms Anchor/Dock handle it
         }
-
         #endregion
 
         #region datagrid style

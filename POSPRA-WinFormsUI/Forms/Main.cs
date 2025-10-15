@@ -380,7 +380,7 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.Location = new Point(0, 0);
             childForm.Size = this.ClientSize;
             childForm.Show();
-            childForm.Refresh();
+            //childForm.Refresh ();
         }
 
     }
