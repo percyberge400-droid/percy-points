@@ -439,14 +439,26 @@ namespace POSPRA.SetupUI
 
             if (result == DialogResult.Yes)
             {
-                // ✅ release topmost before exiting
-                this.TopMost = false;
-                SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
-                             SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                try
+                {
+                    // release topmost before exit
+                    this.TopMost = false;
+                    SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
+                                 SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
-                // MSI cancel error code
-                Environment.Exit(1602);
+                    // gracefully close WinForms UI
+                    Application.ExitThread();  // close the UI thread
+                    Application.Exit();        // exit application loop
+
+                    // notify MSI with cancel exit code
+                    Environment.Exit(1602);
+                }
+                catch
+                {
+                    Environment.Exit(1602);
+                }
             }
         }
+
     }
 }
