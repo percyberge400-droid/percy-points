@@ -83,8 +83,23 @@ namespace POSPRA.Repositories.BaseRepository.Repository
             _dbSet.Remove(entity);
 
         /// <inheritdoc/>
-        public void RemoveRange(IEnumerable<T> entities) =>
+        public void RemoveRange(IEnumerable<T> entities)
+        {
+            if (entities == null || !entities.Any())
+                return;
+
+            foreach (var entity in entities)
+            {
+                var entry = _context.Entry(entity);
+                if (entry.State == EntityState.Detached)
+                {
+                    // Attach first to ensure EF tracks it properly
+                    _dbSet.Attach(entity);
+                }
+            }
+
             _dbSet.RemoveRange(entities);
+        }
 
         /// <inheritdoc/>
         public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null) =>

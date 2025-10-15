@@ -21,7 +21,7 @@ namespace POSPRA.Application.Services.LogService
 
         Task CreateLogAsync(Logs model);
 
-        Task<ApiResponse<List<Logs>>> CreateCloudLog(List<SyncLogDto> dto);
+        Task<ApiResponse<List<SyncLogDto>>> CreateCloudLog(List<SyncLogDto> dto);
 
         Logs BuildLog(
                 string message,
