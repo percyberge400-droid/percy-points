@@ -1,29 +1,26 @@
 ﻿using Microsoft.Reporting.WinForms;
-using Microsoft.SqlServer.TransactSql.ScriptDom;
 using POSPRA.DTOs.InvoiceDtos;
 using QRCoder;
 using System;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
-using System.Security;
-using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace POSPRA_WinFormsUI.Forms
 {
     public partial class InvoiceReport : Form
     {
-        private readonly InvoiceDto _invoiceDto;  // for Save button use
-        private readonly string _invoiceNumber;   // for Dashboard button use
-        private readonly bool _isFromDashboard;   // flag to handle two data sources
+        private readonly InvoiceDto _invoiceDto;
+        private readonly string _invoiceNumber;
+        private readonly bool _isFromDashboard;
         private ReportViewer _reportViewer;
 
-        
-        // Primary constructor (called from BtnSave_Click)
+        // Constructor for Save button
         public InvoiceReport(InvoiceDto invoiceDto)
         {
             InitializeComponent();
@@ -32,7 +29,7 @@ namespace POSPRA_WinFormsUI.Forms
             InitializeReportViewer();
         }
 
-        // Constructor #2 → called when printing from Dashboard (only invoice number is available)
+        // Constructor for Dashboard print
         public InvoiceReport(string invoiceNumber)
         {
             InitializeComponent();
@@ -40,7 +37,9 @@ namespace POSPRA_WinFormsUI.Forms
             _isFromDashboard = true;
             InitializeReportViewer();
         }
+
         #region Initialization
+
         private void InitializeReportViewer()
         {
             _reportViewer = new ReportViewer
@@ -53,385 +52,169 @@ namespace POSPRA_WinFormsUI.Forms
 
             Controls.Add(_reportViewer);
 
-            // ✅ Load the report and data first
             LoadReport();
 
-            // ✅ Only after loading & refreshing the report — apply layout settings
+            // ✅ Thermal printer display mode
             _reportViewer.SetDisplayMode(DisplayMode.PrintLayout);
             _reportViewer.ZoomMode = ZoomMode.PageWidth;
+
+            // ✅ Apply thermal printer paper size (5.8cm × 15cm)
+            ApplyThermalPaperSize();
         }
 
+        private void ApplyThermalPaperSize()
+        {
+            try
+            {
+                // Convert cm to hundredths of inch: 1 inch = 2.54 cm → 100 * cm / 2.54
+                int width = (int)(5.8 / 2.54 * 100);  // ≈ 228
+                int height = (int)(15 / 2.54 * 100); // ≈ 591
 
+                var pageSettings = new PageSettings
+                {
+                    PaperSize = new PaperSize("Thermal58x150", width, height),
+                    Margins = new Margins(0, 0, 0, 0)
+                };
+
+                _reportViewer.SetPageSettings(pageSettings);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to apply thermal page settings: {ex.Message}",
+                    "Page Setup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         #endregion
 
-
-
         #region Data Preparation
 
-        // Build two datasets for RDLC: HeaderDataSet + BodyDataSet
-        // Builds two DataTables: HeaderDataSet + BodyDataSet for RDLC binding
         private (DataTable Header, DataTable Body) BuildInvoiceDataSets(InvoiceDto dto)
         {
-            if (dto == null)
-                throw new ArgumentNullException(nameof(dto), "Invoice data is missing.");
-
-            // === HEADER TABLE ===
             var headerTable = new DataTable("HeaderDataSet");
-            headerTable.Columns.Add("BusinessName", typeof(string));
-            headerTable.Columns.Add("DateCreated", typeof(DateTime));
-            headerTable.Columns.Add("ModeOfPayment", typeof(string));
-            headerTable.Columns.Add("LogoImage", typeof(byte[]));
-            headerTable.Columns.Add("QRCodeImage", typeof(byte[]));
-            headerTable.Columns.Add("PRALogo", typeof(byte[]));
-            headerTable.Columns.Add("NTN", typeof(string));
-            headerTable.Columns.Add("Address", typeof(string));
-            headerTable.Columns.Add("STRN", typeof(string));
+            headerTable.Columns.AddRange(new[]
+            {
+                new DataColumn("BusinessName", typeof(string)),
+                new DataColumn("DateCreated", typeof(DateTime)),
+                new DataColumn("ModeOfPayment", typeof(string)),
+                new DataColumn("LogoImage", typeof(byte[])),
+                new DataColumn("QRCodeImage", typeof(byte[])),
+                new DataColumn("PRALogo", typeof(byte[])),
+                new DataColumn("NTN", typeof(string)),
+                new DataColumn("Address", typeof(string)),
+                new DataColumn("STRN", typeof(string))
+            });
 
-            // === BODY TABLE ===
             var bodyTable = new DataTable("BodyDataSet");
-            bodyTable.Columns.Add("InvoiceNo", typeof(string));
-            bodyTable.Columns.Add("SerialNo", typeof(int));
-            bodyTable.Columns.Add("itemName", typeof(string));
-            bodyTable.Columns.Add("TaxRate", typeof(decimal));
-            bodyTable.Columns.Add("Qty", typeof(decimal));
-            bodyTable.Columns.Add("Price", typeof(decimal));
-            bodyTable.Columns.Add("POSID", typeof(string));
-            bodyTable.Columns.Add("Discount", typeof(decimal));
-            bodyTable.Columns.Add("Total", typeof(decimal));
-            bodyTable.Columns.Add("Tax", typeof(decimal));
+            bodyTable.Columns.AddRange(new[]
+            {
+                new DataColumn("InvoiceNo", typeof(string)),
+                new DataColumn("SerialNo", typeof(int)),
+                new DataColumn("ItemName", typeof(string)),
+                new DataColumn("TaxRate", typeof(decimal)),
+                new DataColumn("Qty", typeof(decimal)),
+                new DataColumn("Price", typeof(decimal)),
+                new DataColumn("POSID", typeof(string)),
+                new DataColumn("Discount", typeof(decimal)),
+                new DataColumn("Total", typeof(decimal)),
+                new DataColumn("Tax", typeof(decimal))
+            });
 
-            // === LOGO + QR ===
-            byte[] logoImage = LoadCompanyLogo();
-            byte[] qrImage = GenerateQRCode(dto.USIN.ToString());
-            byte[] PRALogo = LoadPraLogo();
+            byte[] logo = LoadImageFromConfig();
+            byte[] praLogo = LoadImageFromConfig();
+            byte[] qr = GenerateQRCode(dto.USIN);
 
-            // === HEADER ROW ===
             var headerRow = headerTable.NewRow();
-            headerRow["BusinessName"] = "Your Business Name"; // TODO: replace with actual
+            headerRow["BusinessName"] = "Your Business Name";
             headerRow["DateCreated"] = dto.DateTime;
             headerRow["ModeOfPayment"] = dto.PaymentMode.ToString() ?? "N/A";
-            headerRow["LogoImage"] = logoImage;
-            headerRow["QRCodeImage"] = qrImage;
-            headerRow["PRALogo"] = PRALogo;
+            headerRow["LogoImage"] = logo;
+            headerRow["QRCodeImage"] = qr;
+            headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
             headerRow["Address"] = "Your Business Address, City, Pakistan";
-            headerRow["STRN"] = dto.USIN ?? string.Empty;
             headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerTable.Rows.Add(headerRow);
 
-            // === BODY ROWS ===
-            if (dto.InvoiceItemDto != null && dto.InvoiceItemDto.Any())
+            int serial = 1;
+            foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
-                int serial = 1;
-                foreach (var item in dto.InvoiceItemDto)
-                {
-                    var row = bodyTable.NewRow();
-                    row["InvoiceNo"] = dto.USIN ?? string.Empty;
-                    row["SerialNo"] = serial++;
-                    row["itemName"] = item.ItemName ?? string.Empty;
-                    row["TaxRate"] = item.TaxCharged;
-                    row["Qty"] = item.Quantity;
-                    row["Price"] = item.SaleValue;
-                    row["POSID"] = dto.POSID.ToString() ?? string.Empty;
-                    row["Discount"] = item.Discount;
-                    row["Total"] = item.TotalAmount;
-                    row["Tax"] = item.TaxCharged;
-                    bodyTable.Rows.Add(row);
-                }
+                var row = bodyTable.NewRow();
+                row["InvoiceNo"] = dto.USIN ?? string.Empty;
+                row["SerialNo"] = serial++;
+                row["ItemName"] = item.ItemName ?? string.Empty;
+                row["TaxRate"] = item.TaxCharged;
+                row["Qty"] = item.Quantity;
+                row["Price"] = item.SaleValue;
+                row["POSID"] = dto.POSID.ToString();
+                row["Discount"] = item.Discount;
+                row["Total"] = item.TotalAmount;
+                row["Tax"] = item.TaxCharged;
+                bodyTable.Rows.Add(row);
             }
 
             return (headerTable, bodyTable);
         }
 
-
-        // === Helper: Load your logo from resources or disk ===
-        private byte[] LoadCompanyLogo()
+        private byte[] LoadImageFromConfig()
         {
-            string logoKey = ConfigurationManager.AppSettings["LOGO"];
-            if (!string.IsNullOrEmpty(logoKey))
-            {
-                var res = Resources.ResourceManager.GetObject(logoKey);
-                if (res is Image img)
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        img.Save(ms, ImageFormat.Png);
-                        return ms.ToArray();
-                    }
-                }
-            }
-            return SafeReadImage(logoKey);
-        }
+            string logoPath = ConfigurationManager.AppSettings["LOGO"];
+            if (File.Exists(logoPath))
+                return File.ReadAllBytes(logoPath);
 
-        private byte[] LoadPraLogo()
-        {
-            
-            string logoKey = ConfigurationManager.AppSettings["LOGO"];
-            if (!string.IsNullOrEmpty(logoKey))
-            {
-                var res = Resources.ResourceManager.GetObject(logoKey);
-                if (res is Image img)
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        img.Save(ms, ImageFormat.Png); 
-                        return ms.ToArray();
-                    }
-                }
-            }
-            return SafeReadImage(logoKey);
-        }
-
-        private byte[] SafeReadImage(string path)
-        {
-            try
-            {
-                if (File.Exists(path))
-                    return File.ReadAllBytes(path);
-                else
-                    MessageBox.Show($"⚠️ Image not found:\n{path}", "Missing Resource",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading image:\n{ex.Message}", "Image Load Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
             return Array.Empty<byte>();
         }
 
-
-        
-
-
-
         private byte[] GenerateQRCode(string text)
         {
-            if (string.IsNullOrEmpty(text)) return null;
+            if (string.IsNullOrWhiteSpace(text)) return null;
 
             using var qrGen = new QRCodeGenerator();
             using var qrData = qrGen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new QRCode(qrData);
-            using var bmp = qrCode.GetGraphic(20);
+            using var bmp = qrCode.GetGraphic(10);
             using var ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            bmp.Save(ms, ImageFormat.Png);
             return ms.ToArray();
         }
+
         #endregion
-        
+
         #region Report Loading
+
         private void LoadReport()
         {
             try
             {
-                // 1️⃣ Find the RDLC file path
                 string reportPath = GetReportPath();
                 if (string.IsNullOrEmpty(reportPath))
-                {
-                    MessageBox.Show("⚠️ Report file not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
-                }
 
-                // 2️⃣ Build both datasets from the InvoiceDto
                 var (header, body) = BuildInvoiceDataSets(_invoiceDto);
 
-                if (header.Rows.Count == 0 || body.Rows.Count == 0)
-                {
-                    MessageBox.Show("⚠️ No invoice data available.", "No Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // 3️⃣ Configure and bind the ReportViewer
                 _reportViewer.LocalReport.ReportPath = reportPath;
                 _reportViewer.LocalReport.DataSources.Clear();
-
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("HeaderDataSet", header));
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("BodyDataSet", body));
 
-                // 4️⃣ Refresh to display the data
                 _reportViewer.RefreshReport();
-                //MessageBox.Show($"Header rows: {header.Rows.Count}, Body rows: {body.Rows.Count},Invoice Number {_invoiceNumber}");
-
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"⚠️ Failed to load report:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading report: {ex.Message}", "Report Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private string GetReportPath(string reportFileName = "InvoiceReport.rdlc")
         {
-            try
-            {
-                //  App base path (build or published folder)
-                string basePath = AppDomain.CurrentDomain.BaseDirectory;
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string reportPath = Path.Combine(baseDir, "Forms", reportFileName);
 
-                // Look in "Reports" folder if exists (recommended folder structure)
-                string reportDir = Path.Combine(basePath, "Forms");
-                string reportPath = Path.Combine(reportDir, reportFileName);
+            if (File.Exists(reportPath))
+                return reportPath;
 
-                // Try direct path inside base directory
-                if (!File.Exists(reportPath))
-                    reportPath = Path.Combine(basePath, reportFileName);
-
-                // Fallback to known dev location
-                string fallbackPath = @"D:\pra-pos\POSPRA-WinFormsUI\Forms\" + reportFileName;
-
-                if (File.Exists(reportPath))
-                    return reportPath;
-                else if (File.Exists(fallbackPath))
-                    return fallbackPath;
-
-                // File not found case
-                MessageBox.Show(
-                    $"❌ Report file not found.\n\nSearched paths:\n{reportPath}\n{fallbackPath}",
-                    "Missing Report",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-
-                return string.Empty;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error resolving report path:\n{ex.Message}",
-                    "Path Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return string.Empty;
-            }
-        }
-
-        #endregion
-
-        #region Rendering & Printing
-        private void OnRenderingComplete(object sender, RenderingCompleteEventArgs e)
-        {
-            try
-            {
-                _reportViewer.RenderingComplete -= OnRenderingComplete;
-                //PrintReport();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"⚠️ Rendering failed: {ex.Message}", "Render Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        
-        // Methods for Thermal printer
-        private byte[] RenderReportToImage()
-        {
-            const string deviceInfo = @"
-        <DeviceInfo>
-            <OutputFormat>PNG</OutputFormat>
-            <DpiX>200</DpiX>
-            <DpiY>200</DpiY>
-            <PageWidth>5.8cm</PageWidth>
-            <PageHeight>10cm</PageHeight>
-            <MarginTop>0.2cm</MarginTop>
-            <MarginLeft>0.2cm</MarginLeft>
-            <MarginRight>0.2cm</MarginRight>
-            <MarginBottom>0.2cm</MarginBottom>
-        </DeviceInfo>";
-
-            Warning[] warnings;
-            string[] streamIds;
-            string mimeType, encoding, extension;
-
-            // Render report to PNG image format
-            var renderedBytes = _reportViewer.LocalReport.Render(
-                "Image",
-                deviceInfo,
-                out mimeType,
-                out encoding,
-                out extension,
-                out streamIds,
-                out warnings
-            );
-
-            if (renderedBytes == null || renderedBytes.Length == 0)
-                throw new InvalidOperationException("Rendered report is empty.");
-
-            return renderedBytes;
-        }
-
-        private string SaveReportImage(byte[] imageBytes)
-        {
-            try
-            {
-                string fileName = $"Invoice_{_invoiceDto?.USIN ?? DateTime.Now.Ticks.ToString()}.png";
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "POS_Invoices");
-
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-
-                string imagePath = Path.Combine(folder, fileName);
-                File.WriteAllBytes(imagePath, imageBytes);
-
-                return imagePath;
-            }
-            catch
-            {
-                return "N/A"; // skip saving failure silently
-            }
-        }
-
-        private PrintDocument CreatePrintDocument(Image image)
-        {
-            var document = new PrintDocument();
-
-            // Use default system printer (or change here if needed)
-            document.PrinterSettings = new PrinterSettings
-            {
-                PrinterName = new PrinterSettings().PrinterName
-            };
-
-            // Configure for 58mm thermal printer
-            int widthHundredths = (int)Math.Round(58.0 / 25.4 * 100.0); // 58mm → hundredths of inch
-            var paperSize = new PaperSize("Thermal58", widthHundredths, 20000); // arbitrary long height
-            document.DefaultPageSettings.PaperSize = paperSize;
-            document.DefaultPageSettings.Landscape = false;
-
-            document.PrintPage += (s, e) =>
-            {
-                // Calculate scaling to maintain aspect ratio
-                float scale = (float)e.PageBounds.Width / image.Width;
-                int scaledHeight = (int)(image.Height * scale);
-
-                e.Graphics.DrawImage(image, 0, 0, e.PageBounds.Width, scaledHeight);
-            };
-
-            return document;
-        }
-
-        private void ShowPrintPreview(PrintDocument document)
-        {
-            using var preview = new PrintPreviewDialog
-            {
-                Document = document,
-                Width = 900,
-                Height = 700,
-                StartPosition = FormStartPosition.CenterScreen
-            };
-
-            preview.ShowIcon = false;
-            preview.Text = "Invoice Print Preview";
-
-            preview.ShowDialog();
-
-            if (MessageBox.Show("🖨️ Print now?", "Confirm Print",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-            {
-                try
-                {
-                    document.Print();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Printer Error: {ex.Message}", "Print Failed",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
+            MessageBox.Show($"Report not found: {reportPath}", "Missing RDLC", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return string.Empty;
         }
 
         #endregion

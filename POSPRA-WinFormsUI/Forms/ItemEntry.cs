@@ -17,6 +17,7 @@ namespace POSPRA_WinFormsUI
     public partial class ItemEntry : Form
     {
         #region Fields
+        private readonly IServiceProvider _serviceProvider;
 
         private readonly Dictionary<Control, Rectangle> _originalBounds = new();
         private readonly Dictionary<Control, Size> _originalParentSizes = new();
@@ -43,9 +44,11 @@ namespace POSPRA_WinFormsUI
             IHttpClientFactory httpClientFactory,
             ILogService logService,
             IProductCatalogueService productCatalogueService,
-            IInvoiceService invoiceService)
+            IInvoiceService invoiceService, IServiceProvider serviceProvider)
         {
             InitializeComponent();
+            _serviceProvider = serviceProvider;
+
             this.Load += item_entry_Load;
 
             this.Shown += (s, e) =>
@@ -729,6 +732,121 @@ namespace POSPRA_WinFormsUI
             }
         }
 
+        //private async void BtnSave_Click(object sender, EventArgs e)
+        //{
+        //    if (_isSaving)
+        //    {
+        //        AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
+        //        return;
+        //    }
+
+        //    try
+        //    {
+        //        _isSaving = true;
+        //        btnSave.Enabled = false;
+        //        btnSave.Text = "Saving...";
+
+        //        if (addedItems == null || !addedItems.Any())
+        //        {
+        //            AlertManager.ShowError("Please add at least one item before saving the invoice.");
+        //            _ = CreateLog("Validation Error: Items are not added", AlertType.Error);
+        //            return;
+        //        }
+
+        //        if (!AreInvoiceFieldsValid())
+        //        {
+        //            AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
+        //            _ = CreateLog("Invoice header is incomplete", AlertType.Error);
+        //            return;
+        //        }
+
+        //        var confirm = MessageBox.Show(
+        //            "Are you sure you want to save this invoice?",
+        //            "Confirm Save",
+        //            MessageBoxButtons.YesNo,
+        //            MessageBoxIcon.Question);
+
+        //        if (confirm != DialogResult.Yes) return;
+
+        //        CurrentInvoice = CollectInvoiceData();
+
+        //        var itemDtos = addedItems.Select(item => new InvoiceItemDto
+        //        {
+        //            ItemCode = item.ItemCode,
+        //            ItemName = item.ItemName,
+        //            PCTCode = item.PCTCode,
+        //            Quantity = item.Quantity ?? 0m,
+        //            SaleValue = item.SaleValue ?? 0m,
+        //            TotalAmount = item.TotalAmount ?? 0m,
+        //            TaxCharged = item.TaxCharged ?? 0m,
+        //            TaxRate = item.TaxRate,
+        //            Discount = item.Discount ?? 0m,
+        //            FurtherTax = item.FurtherTax ?? 0m,
+        //            InvoiceType = (byte)GetSelectedInvoiceType(),
+        //            RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
+        //        }).ToList();
+
+        //        var invoiceDto = new InvoiceDto
+        //        {
+        //            POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
+
+
+        //            USIN = USIN.Text.Trim(),
+        //            RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
+        //            InvoiceType = (byte)GetSelectedInvoiceType(),
+        //            BuyerNTN = buyerntn.Text.Trim(),
+        //            BuyerCNIC = buyercnic.Text.Trim(),
+        //            BuyerName = BuyerBname.Text.Trim(),
+        //            BuyerPhoneNumber = buyerphone.Text.Trim(),
+        //            PaymentMode = GetSelectedPaymentMode(),
+        //            TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
+        //            TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
+        //            TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
+        //            TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
+        //            Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
+        //            FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : itemDtos.Sum(x => x.FurtherTax),
+        //            DateTime = DateTime.Now,
+        //            InvoiceItemDto = itemDtos
+        //        };
+
+        //        AlertManager.ShowInfo("Saving invoice...");
+        //        _ = CreateLog("Saving invoice", AlertType.Info);
+        //        InvoiceReport printForm = new InvoiceReport(invoiceDto);
+        //        printForm.ShowDialog();
+        //        addedItems.Clear();
+        //        CurrentInvoice = null;
+        //        _sessionItems.Clear();
+        //        dataGridView1.Rows.Clear();
+        //        ClearInvoiceFields();
+        //        UpdateInvoiceTotals();
+        //        _isSaving = false;
+        //        btnSave.Enabled = true;
+        //        btnSave.Text = "🖨️ Save and Print";
+
+        //        var output = await _invoiceService.CreateAsync(invoiceDto);
+
+        //        // call invoice print generator
+        //        // output.Data.FBRInvoiceNumber
+        //        if (output.StatusCode == ApiStatusCode.Success)
+        //        {
+        //            WindowsLocalAppNotification.Show("Success", output.Message);
+        //            AlertManager.ShowSuccess(output.Message);
+        //            _ = CreateLog(output.Message, AlertType.Info);
+        //        }
+        //        else
+        //        {
+        //            WindowsLocalAppNotification.Show("Error", output.Message);
+        //            AlertManager.ShowError(output.Message);
+        //            _ = CreateLog(output.Message, AlertType.Error);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        WindowsLocalAppNotification.Show("Error", $"Error saving invoice: {ex.Message}");
+        //        AlertManager.ShowError($"Error saving invoice: {ex.Message}");
+        //        _ = CreateLog("Error saving invoice", AlertType.Error);
+        //    }
+        //}
         private async void BtnSave_Click(object sender, EventArgs e)
         {
             if (_isSaving)
@@ -737,81 +855,129 @@ namespace POSPRA_WinFormsUI
                 return;
             }
 
+            _isSaving = true;
+            btnSave.Enabled = false;
+            btnSave.Text = "Saving...";
+
             try
             {
-                _isSaving = true;
-                btnSave.Enabled = false;
-                btnSave.Text = "Saving...";
-
+                // ✅ Validation checks
                 if (addedItems == null || !addedItems.Any())
                 {
-                    AlertManager.ShowError("Please add at least one item before saving the invoice.");
-                    _ = CreateLog("Validation Error: Items are not added", AlertType.Error);
+                    await LogAndAlertError("Please add at least one item before saving the invoice.", "Validation Error: Items are not added");
                     return;
                 }
 
                 if (!AreInvoiceFieldsValid())
                 {
-                    AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
-                    _ = CreateLog("Invoice header is incomplete", AlertType.Error);
+                    await LogAndAlertError("Invoice header is incomplete. Please fill in the invoice header before saving.", "Invoice header is incomplete");
                     return;
                 }
 
-                var confirm = MessageBox.Show(
-                    "Are you sure you want to save this invoice?",
-                    "Confirm Save",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                // ✅ Confirm before saving
+                if (MessageBox.Show("Are you sure you want to save this invoice?", "Confirm Save",
+                                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                    return;
 
-                if (confirm != DialogResult.Yes) return;
-
+                // ✅ Prepare invoice data
                 CurrentInvoice = CollectInvoiceData();
-
-                var itemDtos = addedItems.Select(item => new InvoiceItemDto
-                {
-                    ItemCode = item.ItemCode,
-                    ItemName = item.ItemName,
-                    PCTCode = item.PCTCode,
-                    Quantity = item.Quantity ?? 0m,
-                    SaleValue = item.SaleValue ?? 0m,
-                    TotalAmount = item.TotalAmount ?? 0m,
-                    TaxCharged = item.TaxCharged ?? 0m,
-                    TaxRate = item.TaxRate,
-                    Discount = item.Discount ?? 0m,
-                    FurtherTax = item.FurtherTax ?? 0m,
-                    InvoiceType = (byte)GetSelectedInvoiceType(),
-                    RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
-                }).ToList();
-
-                var invoiceDto = new InvoiceDto
-                {
-                    POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
-
-
-                    USIN = USIN.Text.Trim(),
-                    RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
-                    InvoiceType = (byte)GetSelectedInvoiceType(),
-                    BuyerNTN = buyerntn.Text.Trim(),
-                    BuyerCNIC = buyercnic.Text.Trim(),
-                    BuyerName = BuyerBname.Text.Trim(),
-                    BuyerPhoneNumber = buyerphone.Text.Trim(),
-                    PaymentMode = GetSelectedPaymentMode(),
-                    TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
-                    TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
-                    TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
-                    TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
-                    Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
-                    FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : itemDtos.Sum(x => x.FurtherTax),
-                    DateTime = DateTime.Now,
-                    InvoiceItemDto = itemDtos
-                };
+                var itemDtos = BuildItemDtoList();
+                var invoiceDto = BuildInvoiceDto(itemDtos);
 
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
 
+                // ✅ Show report before actual save
+                using (var printForm = new InvoiceReport(invoiceDto))
+                    printForm.ShowDialog();
+
+                // ✅ Reset UI and data
+                ResetInvoiceUI();
+
+                // ✅ Save invoice to server
+                var output = await _invoiceService.CreateAsync(invoiceDto);
+
+                if (output.StatusCode == ApiStatusCode.Success)
+                {
+                    WindowsLocalAppNotification.Show("Success", output.Message);
+                    AlertManager.ShowSuccess(output.Message);
+                    _ = CreateLog(output.Message, AlertType.Info);
+                }
+                else
+                {
+                    WindowsLocalAppNotification.Show("Error", output.Message);
+                    AlertManager.ShowError(output.Message);
+                    _ = CreateLog(output.Message, AlertType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                await LogAndAlertError($"Error saving invoice: {ex.Message}", "Error saving invoice");
+            }
+            finally
+            {
+                // ✅ Always reset saving state
+                _isSaving = false;
+                btnSave.Enabled = true;
+                btnSave.Text = "🖨️ Save and Print";
+            }
+        }
+        private async Task LogAndAlertError(string userMessage, string logMessage)
+        {
+            AlertManager.ShowError(userMessage);
+            await CreateLog(logMessage, AlertType.Error);
+        }
+
+        private List<InvoiceItemDto> BuildItemDtoList()
+        {
+            return addedItems.Select(item => new InvoiceItemDto
+            {
+                ItemCode = item.ItemCode,
+                ItemName = item.ItemName,
+                PCTCode = item.PCTCode,
+                Quantity = item.Quantity ?? 0m,
+                SaleValue = item.SaleValue ?? 0m,
+                TotalAmount = item.TotalAmount ?? 0m,
+                TaxCharged = item.TaxCharged ?? 0m,
+                TaxRate = item.TaxRate,
+                Discount = item.Discount ?? 0m,
+                FurtherTax = item.FurtherTax ?? 0m,
+                InvoiceType = (byte)GetSelectedInvoiceType(),
+                RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
+            }).ToList();
+        }
+
+        private InvoiceDto BuildInvoiceDto(List<InvoiceItemDto> items)
+        {
+            decimal SumOrParse(string input, Func<InvoiceItemDto, decimal> selector) =>
+                decimal.TryParse(input, out var value) ? value : items.Sum(selector);
+
+            return new InvoiceDto
+            {
+                POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
+                USIN = USIN.Text.Trim(),
+                RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
+                InvoiceType = (byte)GetSelectedInvoiceType(),
+                BuyerNTN = buyerntn.Text.Trim(),
+                BuyerCNIC = buyercnic.Text.Trim(),
+                BuyerName = BuyerBname.Text.Trim(),
+                BuyerPhoneNumber = buyerphone.Text.Trim(),
+                PaymentMode = GetSelectedPaymentMode(),
+                TotalBillAmount = SumOrParse(TotalBillAmount.Text, x => x.TotalAmount),
+                TotalQuantity = SumOrParse(TotalQuantity.Text, x => x.Quantity),
+                TotalSaleValue = SumOrParse(TotalSaleValue.Text, x => x.SaleValue * x.Quantity),
+                TotalTaxCharged = SumOrParse(TotalTaxCharged.Text, x => x.TaxCharged),
+                Discount = SumOrParse(Discount.Text, x => x.Discount),
+                FurtherTax = SumOrParse(TotalFurtherTax.Text, x => x.FurtherTax),
+                DateTime = DateTime.Now,
+                InvoiceItemDto = items
+            };
+        }
+
+                AlertManager.ShowInfo("Saving invoice...");
+                _ = CreateLog("Saving invoice", AlertType.Info);
                 InvoiceReport printForm = new InvoiceReport(invoiceDto);
                 printForm.ShowDialog();
-
                 addedItems.Clear();
                 CurrentInvoice = null;
                 _sessionItems.Clear();

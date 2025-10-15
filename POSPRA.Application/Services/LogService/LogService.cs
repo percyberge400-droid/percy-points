@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Identity.Client;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.LogDtos;
 using POSPRA.DTOs.LogDTOs;
-using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.UnitOfWork;
 using System.Data;
@@ -95,7 +93,7 @@ namespace POSPRA.Application.Services.LogService
                     string.Empty);
 
             _logSQLiteRepository.UpdateRange(dtos);
-           await _sqliteUnitOfWork.SaveChangesAsync();
+            await _sqliteUnitOfWork.SaveChangesAsync();
 
             return new ApiResponse<bool>(
             ApiStatusCode.Success,
@@ -184,33 +182,35 @@ namespace POSPRA.Application.Services.LogService
             }
         }
 
-        public async Task<ApiResponse<List<Logs>>> CreateCloudLog(List<SyncLogDto> dto)
+        public async Task<ApiResponse<List<SyncLogDto>>> CreateCloudLog(List<SyncLogDto> dto)
         {
             if (dto is null || !dto.Any())
-                return new ApiResponse<List<Logs>>(ApiStatusCode.Error, ResponseMessages.InvalidInput, null!, string.Empty);
+                return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Error, ResponseMessages.InvalidInput, null!, string.Empty);
 
             var logs = _mapper.Map<List<Logs>>(dto);
-            
+
+            logs.ToList().ForEach(l => l.Id = 0);
+
             await _logSQLServerRepository.AddRangeAsync(logs);
             await _sqlServerUnitOfWork.SaveChangesAsync();
 
             // Simulate response evaluation (you can replace this with your actual logic)
-            List<Logs> syncedRecords = new List<Logs>();
+            List<SyncLogDto> syncLogDtos = new();
             bool anySaved = true;
 
-            foreach (var item in logs)
+            foreach (var item in dto)
             {
                 item.IsSynced = true;
-                syncedRecords.Add(item);
+                syncLogDtos.Add(item);
             }
 
             if (anySaved)
             {
-                return new ApiResponse<List<Logs>>(ApiStatusCode.Success, ResponseMessages.RecordSaved, syncedRecords, string.Empty);
+                return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Success, ResponseMessages.RecordSaved, syncLogDtos, string.Empty);
             }
             else
             {
-                return new ApiResponse<List<Logs>>(ApiStatusCode.Error, "No records were synced.", null!, string.Empty);
+                return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Error, "No records were synced.", null!, string.Empty);
             }
         }
 
