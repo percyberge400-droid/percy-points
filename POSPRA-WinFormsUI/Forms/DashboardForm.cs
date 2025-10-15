@@ -206,109 +206,6 @@ namespace POSPRA_WinFormsUI.Forms
                 // Store current scroll positions
                 int invoiceScroll = InvoicesDataGridView.FirstDisplayedScrollingRowIndex;
                 int logScroll = LogsDataGridView.FirstDisplayedScrollingRowIndex;
-            InitializeAutoRefreshTimer();
-            _invoiceService = invoiceService;
-            _fileRecordService = fileRecordService;
-
-        }
-
-        #region AutoRefresh
-        private void InitializeAutoRefreshTimer()
-        {
-            _autoRefreshTimer = new System.Windows.Forms.Timer();
-            _autoRefreshTimer.Interval = 30000; // 30 seconds
-            _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
-
-            // Start auto-refresh by default
-            _autoRefreshEnabled = true;
-            _autoRefreshTimer.Start();
-        }
-
-        private async void AutoRefreshTimer_Tick(object sender, EventArgs e)
-        {
-            // Skip if already loading
-            if (_isLoadingFlag == 1) return;
-
-            // Skip if user is interacting with the grid
-            if (IsUserInteracting()) return;
-
-            try
-            {
-                // Check if data has changed
-                bool hasChanges = await QuickCheckForChangesAsync();
-
-                if (hasChanges)
-                {
-                    // Perform background refresh
-                    await BackgroundRefreshAsync();
-                    _lastRefreshTime = DateTime.Now;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Silent fail for auto-refresh
-                Console.WriteLine($"Auto-refresh error: {ex.Message}");
-            }
-        }
-
-        private bool IsUserInteracting()
-        {
-            // Don't refresh if user is selecting, scrolling, or has a cell selected
-            if (InvoicesDataGridView.SelectedCells.Count > 0) return true;
-            if (LogsDataGridView.SelectedCells.Count > 0) return true;
-            if (InvoicesDataGridView.IsCurrentCellInEditMode) return true;
-            if (LogsDataGridView.IsCurrentCellInEditMode) return true;
-
-            return false;
-        }
-
-        private async Task<bool> QuickCheckForChangesAsync()
-        {
-            try
-            {
-                // Get counts only - lightweight operation
-                var invoiceResponse = await _fileRecordService.GetAllAsync();
-                var logResponse = await _logService.GetAllAsync();
-
-                if (invoiceResponse?.Data == null || logResponse?.Data == null)
-                    return false;
-
-                // Apply same filters as main load
-                var filteredInvoices = invoiceResponse.Data
-                    .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
-
-                var filteredLogs = logResponse.Data
-                    .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
-
-                int currentInvoiceCount = filteredInvoices.Count();
-                int currentLogCount = filteredLogs.Count();
-
-                // Check if counts changed
-                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
-                                 (currentLogCount != _lastLogCount);
-
-                if (hasChanges)
-                {
-                    _lastInvoiceCount = currentInvoiceCount;
-                    _lastLogCount = currentLogCount;
-                }
-
-                return hasChanges;
-            }
-            catch
-            {
-                return false; // Don't refresh on error
-            }
-        }
-
-        private async Task BackgroundRefreshAsync()
-        {
-            // Use existing RunSingleLoad to prevent conflicts
-            await RunSingleLoad(async () =>
-            {
-                // Store current scroll positions
-                int invoiceScroll = InvoicesDataGridView.FirstDisplayedScrollingRowIndex;
-                int logScroll = LogsDataGridView.FirstDisplayedScrollingRowIndex;
 
                 // Refresh data
                 await LoadAndShowInvoicesAsync();
@@ -551,6 +448,9 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
+                // ✅ Temporarily disable auto-refresh during initial load
+                _autoRefreshTimer.Stop();
+
                 _startDate = DateTime.Today.AddDays(-7);
                 _endDate = DateTime.Today;
                 dtpStartDate.Value = _startDate;
@@ -564,9 +464,20 @@ namespace POSPRA_WinFormsUI.Forms
                     await LoadAndShowLogsAsync();
                 });
 
+                // ✅ Initialize counts after initial load
+                _lastInvoiceCount = InvoicesDataGridView.Rows.Count;
+                _lastLogCount = LogsDataGridView.Rows.Count;
+                _lastRefreshTime = DateTime.Now;
+
                 InvoicesDataGridView.DataError += dataGridView_DataError;
                 LogsDataGridView.DataError += dataGridView_DataError;
                 _isInitialLoad = false;
+
+                // ✅ Re-enable auto-refresh after successful initial load
+                if (_autoRefreshEnabled)
+                {
+                    _autoRefreshTimer.Start();
+                }
             }
             catch (Exception ex)
             {
@@ -574,7 +485,6 @@ namespace POSPRA_WinFormsUI.Forms
                 AlertManager.ShowError($"Error loading dashboard: {ex.Message}");
             }
         }
-
         private async Task RunSingleLoad(Func<Task> work)
         {
             if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
@@ -1020,65 +930,6 @@ namespace POSPRA_WinFormsUI.Forms
 
 
         // ----------------------------------------
-        // Sync Logs Button
-        // ----------------------------------------
-        private async void btnSyncLogs_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // ✅ Get cloud logs
-                var cloudResponse = await _logService.GetAllCloudAsync();
-                LogsDataGridView.Rows.Clear();
-
-                if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
-                {
-                    WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
-                    AlertManager.ShowWarning("No synced logs available to display");
-                    return;
-                }
-
-                // ✅ Get local logs
-                var localResponse = await _logService.GetAllAsync();
-
-                // ✅ Merge and remove duplicates
-                var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
-
-                // ✅ Pass merged logs to loader
-                await LoadAndShowLogsAsync(mergedLogs);
-            }
-            catch (Exception ex)
-            {
-                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
-                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
-            }
-        }
-        private List<LogDto> MergeLogs(IEnumerable<LogDto>? localLogs, IEnumerable<LogDto>? cloudLogs)
-        {
-            var merged = new List<LogDto>();
-
-            if (localLogs != null)
-                merged.AddRange(localLogs);
-
-            if (cloudLogs != null)
-                merged.AddRange(cloudLogs);
-
-            // ✅ Deduplicate based on Message, Type, and Timestamp
-            var deduped = merged
-                .GroupBy(l => new
-                {
-                    Message = l.Message?.Trim() ?? "",
-                    Type = l.Type?.Trim() ?? "",
-                    Timestamp = l.CreatedAtPk.ToString("yyyy-MM-dd HH:mm:ss")
-                })
-                .Select(g => g.First())
-                .OrderByDescending(l => l.CreatedAtPk)
-                .ToList();
-
-            return deduped;
-        }
-
-
-        // ----------------------------------------
         // Export Logs Button
         // ----------------------------------------
         private async void btnExportLogs_Click(object sender, EventArgs e)
@@ -1343,9 +1194,6 @@ namespace POSPRA_WinFormsUI.Forms
                     _autoRefreshTimer.Start();
             }
         }
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            base.OnFormClosing(e);
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -1636,13 +1484,6 @@ namespace POSPRA_WinFormsUI.Forms
                 InvoicesDataGridView.InvalidateCell(cell);
             }
         }
-        private void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
-            {
-                // Get the actual mouse position
-                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
-                var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
 
         private void InvoicesDataGridView_CellMouseMove(object sender, DataGridViewCellMouseEventArgs e)
         {
@@ -1658,29 +1499,6 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else
                 {
-                // Check if click is within the text bounds
-                if (_printLinkBounds.Contains(mousePos))
-                {
-
-                    var invoiceNumber = InvoicesDataGridView.Rows[e.RowIndex].Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
-
-                    // call invoice print generator
-                    // invoiceNumber
-                    var response = _invoiceService.GetInvoiceWithItems(invoiceNumber).Result;
-                    if (response == null)
-                    {
-                        MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
-                    // Opens preview; user can print from the report viewer toolbar 
-                    InvoiceReport printForm = new InvoiceReport(response.Data);
-                    printForm.ShowDialog();             
-                   
-                }
-            }
-        }
-
                     InvoicesDataGridView.Cursor = Cursors.Default;
                 }
             }
@@ -1707,16 +1525,19 @@ namespace POSPRA_WinFormsUI.Forms
                     // call invoice print generator
                     // invoiceNumber
                     var response = _invoiceService.GetInvoiceWithItems(invoiceNumber).Result;
-                    MessageBox.Show(
-                        $"Print button clicked for Invoice: {invoiceNumber}",
-                        "Print Invoice",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
+                    if (response == null)
+                    {
+                        MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    // Opens preview; user can print from the report viewer toolbar 
+                    InvoiceReport printForm = new InvoiceReport(response.Data);
+                    printForm.ShowDialog();
+
                 }
             }
         }
-
         private void StyleLogsDataGridView()
         {
             // Clear existing columns first

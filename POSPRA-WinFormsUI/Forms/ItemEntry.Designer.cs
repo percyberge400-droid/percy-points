@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
             label4 = new Label();
             itemDiscountAmount = new TextBox();
@@ -438,22 +438,22 @@
             dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = Color.White;
-            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle3.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle3.SelectionBackColor = Color.White;
-            dataGridViewCellStyle3.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.White;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle1.SelectionBackColor = Color.White;
+            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = Color.White;
-            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle4.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.White;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 419);
@@ -536,7 +536,6 @@
             // 
             // btnsearch
             // 
-            btnsearch.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             btnsearch.BackColor = Color.Teal;
             btnsearch.FlatAppearance.BorderSize = 0;
             btnsearch.FlatStyle = FlatStyle.Flat;

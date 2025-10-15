@@ -82,7 +82,6 @@ namespace POSPRA_WinFormsUI
 
             qty.TextChanged += RecalculateTotals;
             salevalue.TextChanged += RecalculateTotals;
-            itemDiscount.TextChanged += RecalculateTotals;
             TaxRatebox.TextChanged += RecalculateTotals;
             FurtureTax.TextChanged += RecalculateTotals;
 
@@ -96,7 +95,6 @@ namespace POSPRA_WinFormsUI
             pctCode.KeyPress += NumericOnlyWithLength_KeyPress;
             totalamount.KeyPress += NumericOnlyWithLength_KeyPress;
             TaxRatebox.KeyPress += NumericOnlyWithLength_KeyPress;
-            itemDiscount.KeyPress += NumericOnlyWithLength_KeyPress;
             qty.KeyPress += NumericOnlyWithLength_KeyPress;
             salevalue.KeyPress += NumericOnlyWithLength_KeyPress;
             FurtureTax.KeyPress += NumericOnlyWithLength_KeyPress;
@@ -439,7 +437,6 @@ namespace POSPRA_WinFormsUI
             throw new NotImplementedException();
         }
 
-        #endregion
 
         #region NumericOnly_KeyPress
         private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
@@ -664,7 +661,6 @@ namespace POSPRA_WinFormsUI
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
         }
-
         #endregion
 
         #region Buttons: Proceed (Add/Update), Save, Edit, Remove
@@ -815,6 +811,7 @@ namespace POSPRA_WinFormsUI
 
                 InvoiceReport printForm = new InvoiceReport(invoiceDto);
                 printForm.ShowDialog();
+
                 addedItems.Clear();
                 CurrentInvoice = null;
                 _sessionItems.Clear();
@@ -1930,22 +1927,12 @@ namespace POSPRA_WinFormsUI
                                 ctrl.Font = new Font(origFont.FontFamily, newFontSize, origFont.Style);
                             }
                         }
-                    catch { }
-                }
-            }
-            else
-            {
-                foreach (var kv in _originalBounds)
-                {
-                    var ctrl = kv.Key;
-                    try { ctrl.Bounds = kv.Value; } catch { }
                     }
                     catch { }
                 }
             }
             // ✅ When not maximized, don't restore - let WinForms Anchor/Dock handle it
         }
-
         #endregion
 
         #region datagrid style
