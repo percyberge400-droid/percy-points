@@ -83,8 +83,45 @@ namespace POSPRA.Repositories.BaseRepository.Repository
             _dbSet.Remove(entity);
 
         /// <inheritdoc/>
-        public void RemoveRange(IEnumerable<T> entities) =>
-            _dbSet.RemoveRange(entities);
+        public void RemoveRange(IEnumerable<T> entities)
+        {
+            if (entities == null || !entities.Any())
+                return;
+
+            foreach (var entity in entities)
+            {
+                var entry = _context.Entry(entity);
+                if (entry.State == EntityState.Detached)
+                {
+                    // Try to find the already tracked entity with the same key
+                    var key = _context.Model.FindEntityType(typeof(T))?.FindPrimaryKey();
+                    if (key != null)
+                    {
+                        var keyValues = key.Properties
+                            .Select(p => typeof(T).GetProperty(p.Name)?.GetValue(entity))
+                            .ToArray();
+
+                        var trackedEntity = _context.ChangeTracker.Entries<T>()
+                            .FirstOrDefault(e => key.Properties
+                                .Select(p => e.Property(p.Name).CurrentValue)
+                                .SequenceEqual(keyValues));
+
+                        if (trackedEntity != null)
+                        {
+                            // If an instance is already tracked, remove that one instead
+                            _dbSet.Remove(trackedEntity.Entity);
+                            continue;
+                        }
+                    }
+
+                    // If no tracked instance found, attach and remove
+                    _dbSet.Attach(entity);
+                }
+
+                _dbSet.Remove(entity);
+            }
+        }
+
 
         /// <inheritdoc/>
         public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null) =>

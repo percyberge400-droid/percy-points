@@ -10,7 +10,6 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
-using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.Repositories.FileRecordRepository;
 using System.Text;
@@ -140,7 +139,7 @@ namespace POSPRA.Application.Services.InvoiceService
                         if (record.StatusCode == ApiStatusCode.Success)
                         {
                             record.Data.IsSynced = (int)InvoiceStatus.Synced;
-                            
+
                             await _fileRecordService.UpdateFileRecordAsync(record.Data);
                         }
                     }

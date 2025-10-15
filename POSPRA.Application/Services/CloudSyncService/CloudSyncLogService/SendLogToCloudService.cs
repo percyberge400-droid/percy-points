@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.HttpClientService;
@@ -21,19 +22,22 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
         private readonly IWorkerLogService _workerLogService;
         private readonly ILogService _logService;
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
+        private readonly IMapper _mapper;
 
         public SendLogToCloudService(IServiceScopeFactory scopeFactory,
             HttpService http,
             IOptions<AppSettings> options
 ,
             IWorkerLogService workerLogService,
-            ILogService logService)
+            ILogService logService,
+            IMapper mapper)
         {
             _scopeFactory = scopeFactory;
             _http = http;
             _baseUrl = options.Value.BaseUrl;
             _workerLogService = workerLogService;
             _logService = logService;
+            _mapper = mapper;
         }
 
         public async Task SyncLogAsync()
@@ -56,10 +60,11 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
                         return;
 
                     var postJson = await resp.Content.ReadAsStringAsync();
-                    var apiResp = JsonSerializer.Deserialize<ApiResponse<List<Logs>>>(postJson, JsonOpts);
-                    var logs = apiResp?.Data ?? new();
-                    if (logs.Count > 0)
+                    var apiResp = JsonSerializer.Deserialize<ApiResponse<List<SyncLogDto>>>(postJson, JsonOpts);
+                    var logDtos = apiResp?.Data ?? new();
+                    if (logDtos.Count > 0)
                     {
+                        var logs = _mapper.Map<List<Logs>>(logDtos);
                         using var updateScope = _scopeFactory.CreateScope();
                         var log = updateScope.ServiceProvider.GetRequiredService<ILogService>();
                         await log.UpdateLog(logs);

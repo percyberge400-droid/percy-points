@@ -17,12 +17,16 @@ namespace POSPRA.Application.Services.ProductCatalogService
         private readonly IProductCatalogueSQLiteRepository _productCatalogueSQLiteRepository;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
 
-        public ProductCatalogueService(IProductCatalogueSQLServerRepository productCatalogueRepository, IMapper mapper,
-            SqlServerRepository<ProductCatalogue> sqlServerRepository, IProductCatalogueSQLiteRepository productCatalogueSQLiteRepository)
+        public ProductCatalogueService(IProductCatalogueSQLServerRepository productCatalogueRepository,
+            IMapper mapper,
+            SqlServerRepository<ProductCatalogue> sqlServerRepository,
+            IProductCatalogueSQLiteRepository productCatalogueSQLiteRepository,
+            ISqliteUnitOfWork sqliteUnitOfWork)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _productCatalogueRepository = sqlServerRepository;
             _productCatalogueSQLiteRepository = productCatalogueSQLiteRepository;
+            _sqliteUnitOfWork = sqliteUnitOfWork;
         }
 
         public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(ProductCatalogueQueryDto dto)
