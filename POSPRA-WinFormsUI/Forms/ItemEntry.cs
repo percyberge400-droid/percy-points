@@ -1,4 +1,5 @@
-﻿using POSPRA.Application.Services.InvoiceService;
+﻿using Azure;
+using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Utility;
@@ -790,7 +791,7 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
 
-                InvoiceReport printForm = new InvoiceReport(output.Data);
+                InvoiceReport printForm = new InvoiceReport(invoiceDto);
                 printForm.ShowDialog();
 
                 addedItems.Clear();
