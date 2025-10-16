@@ -129,9 +129,9 @@ namespace POSPRA_WinFormsUI.Forms
             if (!string.IsNullOrEmpty(businessname))
                 businessname = businessname;
             headerRow["BusinessName"] = businessname;
-            //string branchname = ConfigurationManager.AppSettings["branchName"];
-            //if (!string.IsNullOrEmpty(branchname))
-            //    branchname = branchname;
+            string branchname = ConfigurationManager.AppSettings["branchName"];
+            if (!string.IsNullOrEmpty(branchname))
+                branchname = branchname;
             headerRow["DateCreated"] = dto.DateTime;
             string paymentModeText = dto.PaymentMode switch
             {
@@ -145,7 +145,8 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
-            string address = ConfigurationManager.AppSettings["branchAddress"];
+            string branchName = ConfigurationManager.AppSettings["branchName"];
+            string address = branchName +" -- "+ ConfigurationManager.AppSettings["branchAddress"];
             headerRow["Address"] = address; //dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerTable.Rows.Add(headerRow);
@@ -157,8 +158,10 @@ namespace POSPRA_WinFormsUI.Forms
                 row["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
                 row["SerialNo"] = serial++;
                 row["ItemName"] = item.ItemName ?? string.Empty;
+                //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
                 row["TaxRate"] = Math.Round(item.TaxRate, 2);
-                row["Qty"] = item.Quantity;
+                int quantity = Convert.ToInt32(item.Quantity);
+                row["Qty"] = quantity;
                 row["Price"] = Math.Round(item.SaleValue,2);
                 row["POSID"] = dto.POSID.ToString();
                 row["Discount"] = Math.Round(item.Discount, 2);

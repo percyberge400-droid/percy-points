@@ -7,8 +7,8 @@
         <Value>=First(Fields!QRCodeImage.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>Fit</Sizing>
-        <Top>86.96272mm</Top>
-        <Left>8.05175mm</Left>
+        <Top>81.31808mm</Top>
+        <Left>32.92767mm</Left>
         <Height>1.72121cm</Height>
         <Width>1.76413cm</Width>
         <Style>
@@ -34,8 +34,8 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>4.21526in</Top>
-        <Left>0.16336cm</Left>
+        <Top>3.9347in</Top>
+        <Left>0.19336cm</Left>
         <Height>0.14167in</Height>
         <Width>5.2cm</Width>
         <ZIndex>1</ZIndex>
@@ -58,8 +58,8 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>4.36526in</Top>
-        <Left>0.16336cm</Left>
+        <Top>4.0847in</Top>
+        <Left>0.19336cm</Left>
         <Height>0.15833in</Height>
         <Width>5.2cm</Width>
         <ZIndex>2</ZIndex>
@@ -90,14 +90,16 @@
           </Paragraph>
         </Paragraphs>
         <Top>2.3689in</Top>
-        <Left>4.28997cm</Left>
+        <Left>4.27987cm</Left>
         <Height>0.19166in</Height>
-        <Width>1.11454cm</Width>
+        <Width>1.20967cm</Width>
         <ZIndex>3</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
           <Direction>LTR</Direction>
         </Style>
       </Textbox>
@@ -126,14 +128,15 @@
           </Paragraph>
         </Paragraphs>
         <Top>2.16335in</Top>
-        <Left>4.28997cm</Left>
+        <Left>4.27987cm</Left>
         <Height>0.19166in</Height>
-        <Width>1.08982cm</Width>
+        <Width>1.18495cm</Width>
         <ZIndex>4</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
+          <PaddingTop>2pt</PaddingTop>
           <PaddingBottom>1pt</PaddingBottom>
           <Direction>LTR</Direction>
         </Style>
@@ -142,30 +145,27 @@
         <TablixBody>
           <TablixColumns>
             <TablixColumn>
-              <Width>0.35877cm</Width>
+              <Width>0.38806cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>0.99196cm</Width>
+              <Width>1.48008cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>0.77217cm</Width>
+              <Width>0.79907cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>0.99837cm</Width>
+              <Width>1.02766cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>0.4382cm</Width>
+              <Width>0.6157cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>0.5888cm</Width>
-            </TablixColumn>
-            <TablixColumn>
-              <Width>0.96235cm</Width>
+              <Width>0.99164cm</Width>
             </TablixColumn>
           </TablixColumns>
           <TablixRows>
             <TablixRow>
-              <Height>0.20138in</Height>
+              <Height>0.23194in</Height>
               <TablixCells>
                 <TablixCell>
                   <CellContents>
@@ -176,9 +176,10 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>Sr#</Value>
+                              <Value>Qty</Value>
                               <Style>
-                                <FontSize>6pt</FontSize>
+                                <FontFamily />
+                                <FontSize>6.5pt</FontSize>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
@@ -189,7 +190,16 @@
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox2</rd:DefaultName>
-                      <Style />
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.3pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Solid</Style>
+                        </BottomBorder>
+                        <PaddingTop>1.8pt</PaddingTop>
+                      </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
@@ -205,7 +215,8 @@
                             <TextRun>
                               <Value>Item</Value>
                               <Style>
-                                <FontSize>6pt</FontSize>
+                                <FontFamily />
+                                <FontSize>6.5pt</FontSize>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
@@ -216,7 +227,16 @@
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox1</rd:DefaultName>
-                      <Style />
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.3pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Solid</Style>
+                        </BottomBorder>
+                        <PaddingTop>1.8pt</PaddingTop>
+                      </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
@@ -232,7 +252,8 @@
                             <TextRun>
                               <Value>Price</Value>
                               <Style>
-                                <FontSize>6pt</FontSize>
+                                <FontFamily />
+                                <FontSize>6.5pt</FontSize>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
@@ -242,7 +263,16 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
-                      <Style />
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.3pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Solid</Style>
+                        </BottomBorder>
+                        <PaddingTop>1.8pt</PaddingTop>
+                      </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
@@ -258,7 +288,8 @@
                             <TextRun>
                               <Value>Tax Rate</Value>
                               <Style>
-                                <FontSize>6pt</FontSize>
+                                <FontFamily />
+                                <FontSize>6.5pt</FontSize>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
@@ -268,33 +299,16 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
-                      <Style />
-                    </Textbox>
-                  </CellContents>
-                </TablixCell>
-                <TablixCell>
-                  <CellContents>
-                    <Textbox Name="hdrQty">
-                      <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
-                      <KeepTogether>true</KeepTogether>
-                      <Paragraphs>
-                        <Paragraph>
-                          <TextRuns>
-                            <TextRun>
-                              <Value>Qty</Value>
-                              <Style>
-                                <FontSize>6pt</FontSize>
-                                <FontWeight>Bold</FontWeight>
-                              </Style>
-                            </TextRun>
-                          </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
-                        </Paragraph>
-                      </Paragraphs>
-                      <Style />
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.3pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Solid</Style>
+                        </BottomBorder>
+                        <PaddingTop>1.8pt</PaddingTop>
+                      </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
@@ -310,7 +324,8 @@
                             <TextRun>
                               <Value>GST</Value>
                               <Style>
-                                <FontSize>6pt</FontSize>
+                                <FontFamily />
+                                <FontSize>6.5pt</FontSize>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
@@ -320,7 +335,16 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
-                      <Style />
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.3pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Solid</Style>
+                        </BottomBorder>
+                        <PaddingTop>1.8pt</PaddingTop>
+                      </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
@@ -334,9 +358,10 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>=Fields!Total.Value</Value>
+                              <Value>Total</Value>
                               <Style>
-                                <FontSize>6pt</FontSize>
+                                <FontFamily />
+                                <FontSize>6.5pt</FontSize>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
@@ -346,26 +371,35 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
-                      <Style />
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.3pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Solid</Style>
+                        </BottomBorder>
+                        <PaddingTop>1.8pt</PaddingTop>
+                      </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
               </TablixCells>
             </TablixRow>
             <TablixRow>
-              <Height>0.17029in</Height>
+              <Height>0.20085in</Height>
               <TablixCells>
                 <TablixCell>
                   <CellContents>
-                    <Textbox Name="SerialNo">
+                    <Textbox Name="Qty">
                       <CanGrow>true</CanGrow>
                       <Paragraphs>
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>=Fields!SerialNo.Value</Value>
+                              <Value>=Fields!Qty.Value</Value>
                               <Style>
-                                <FontSize>5pt</FontSize>
+                                <FontSize>6pt</FontSize>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -374,11 +408,16 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
-                      <rd:DefaultName>SerialNo</rd:DefaultName>
+                      <rd:DefaultName>Qty</rd:DefaultName>
                       <Style>
                         <Border>
                           <Style>None</Style>
+                          <Width>0.3pt</Width>
                         </Border>
+                        <BottomBorder>
+                          <Style>Dashed</Style>
+                        </BottomBorder>
+                        <PaddingTop>2.5pt</PaddingTop>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -394,7 +433,7 @@
                             <TextRun>
                               <Value>=Fields!itemName.Value</Value>
                               <Style>
-                                <FontSize>5pt</FontSize>
+                                <FontSize>6pt</FontSize>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -406,7 +445,12 @@
                       <Style>
                         <Border>
                           <Style>None</Style>
+                          <Width>0.3pt</Width>
                         </Border>
+                        <BottomBorder>
+                          <Style>Dashed</Style>
+                        </BottomBorder>
+                        <PaddingTop>2.5pt</PaddingTop>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -422,7 +466,7 @@
                             <TextRun>
                               <Value>=Fields!Price.Value</Value>
                               <Style>
-                                <FontSize>5pt</FontSize>
+                                <FontSize>6pt</FontSize>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -434,7 +478,12 @@
                       <Style>
                         <Border>
                           <Style>None</Style>
+                          <Width>0.3pt</Width>
                         </Border>
+                        <BottomBorder>
+                          <Style>Dashed</Style>
+                        </BottomBorder>
+                        <PaddingTop>2.5pt</PaddingTop>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -450,7 +499,7 @@
                             <TextRun>
                               <Value>=Fields!TaxRate.Value</Value>
                               <Style>
-                                <FontSize>5pt</FontSize>
+                                <FontSize>6pt</FontSize>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -462,35 +511,12 @@
                       <Style>
                         <Border>
                           <Style>None</Style>
+                          <Width>0.3pt</Width>
                         </Border>
-                      </Style>
-                    </Textbox>
-                  </CellContents>
-                </TablixCell>
-                <TablixCell>
-                  <CellContents>
-                    <Textbox Name="txtQty">
-                      <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
-                      <Paragraphs>
-                        <Paragraph>
-                          <TextRuns>
-                            <TextRun>
-                              <Value>=Fields!Qty.Value</Value>
-                              <Style>
-                                <FontSize>5pt</FontSize>
-                              </Style>
-                            </TextRun>
-                          </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
-                        </Paragraph>
-                      </Paragraphs>
-                      <Style>
-                        <Border>
-                          <Style>None</Style>
-                        </Border>
+                        <BottomBorder>
+                          <Style>Dashed</Style>
+                        </BottomBorder>
+                        <PaddingTop>2.5pt</PaddingTop>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -506,7 +532,7 @@
                             <TextRun>
                               <Value>=Fields!Tax.Value</Value>
                               <Style>
-                                <FontSize>5pt</FontSize>
+                                <FontSize>6pt</FontSize>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -518,7 +544,12 @@
                       <Style>
                         <Border>
                           <Style>None</Style>
+                          <Width>0.3pt</Width>
                         </Border>
+                        <BottomBorder>
+                          <Style>Dashed</Style>
+                        </BottomBorder>
+                        <PaddingTop>2.5pt</PaddingTop>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -534,7 +565,7 @@
                             <TextRun>
                               <Value>=Fields!Total.Value</Value>
                               <Style>
-                                <FontSize>5pt</FontSize>
+                                <FontSize>6pt</FontSize>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -546,7 +577,12 @@
                       <Style>
                         <Border>
                           <Style>None</Style>
+                          <Width>0.3pt</Width>
                         </Border>
+                        <BottomBorder>
+                          <Style>Dashed</Style>
+                        </BottomBorder>
+                        <PaddingTop>2.5pt</PaddingTop>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -557,7 +593,6 @@
         </TablixBody>
         <TablixColumnHierarchy>
           <TablixMembers>
-            <TablixMember />
             <TablixMember />
             <TablixMember />
             <TablixMember />
@@ -578,20 +613,20 @@
           </TablixMembers>
         </TablixRowHierarchy>
         <DataSetName>BodyDataSet</DataSetName>
-        <Top>1.72224in</Top>
-        <Left>0.18507cm</Left>
-        <Height>0.37167in</Height>
-        <Width>5.11062cm</Width>
+        <Top>1.66112in</Top>
+        <Left>0.20949cm</Left>
+        <Height>0.43279in</Height>
+        <Width>5.30222cm</Width>
         <ZIndex>5</ZIndex>
         <Style>
           <Border>
             <Style>Solid</Style>
             <Width>0.3pt</Width>
           </Border>
-          <FontSize>7pt</FontSize>
+          <FontSize>9pt</FontSize>
           <FontWeight>Normal</FontWeight>
           <TextAlign>Center</TextAlign>
-          <PaddingTop>1pt</PaddingTop>
+          <PaddingTop>1.8pt</PaddingTop>
         </Style>
       </Tablix>
       <Textbox Name="TotalAmount">
@@ -619,43 +654,17 @@
           </Paragraph>
         </Paragraphs>
         <Top>2.56056in</Top>
-        <Left>4.28997cm</Left>
+        <Left>4.27987cm</Left>
         <Height>0.20833in</Height>
-        <Width>1.08982cm</Width>
+        <Width>1.18495cm</Width>
         <ZIndex>6</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
           <Direction>LTR</Direction>
-        </Style>
-      </Textbox>
-      <Textbox Name="PosFee">
-        <CanGrow>true</CanGrow>
-        <Paragraphs>
-          <Paragraph>
-            <TextRuns>
-              <TextRun>
-                <Value>PoS Service Fee: </Value>
-                <Style>
-                  <FontSize>8pt</FontSize>
-                </Style>
-              </TextRun>
-            </TextRuns>
-            <Style>
-              <TextAlign>Center</TextAlign>
-            </Style>
-          </Paragraph>
-        </Paragraphs>
-        <Top>2.86612in</Top>
-        <Left>0.20391cm</Left>
-        <Height>0.16667in</Height>
-        <Width>5.15945cm</Width>
-        <ZIndex>7</ZIndex>
-        <Style>
-          <Border>
-            <Style>None</Style>
-          </Border>
         </Style>
       </Textbox>
       <Image Name="PRALogo">
@@ -663,11 +672,11 @@
         <Value>=First(Fields!PRALogo.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>FitProportional</Sizing>
-        <Top>8.73155cm</Top>
-        <Left>2.74569cm</Left>
-        <Height>1.16056cm</Height>
-        <Width>2.25133cm</Width>
-        <ZIndex>8</ZIndex>
+        <Top>8.43175cm</Top>
+        <Left>0.63303cm</Left>
+        <Height>1.1461cm</Height>
+        <Width>2.48334cm</Width>
+        <ZIndex>7</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -676,11 +685,11 @@
         </Style>
       </Image>
       <Line Name="Line2">
-        <Top>8.55516cm</Top>
+        <Top>7.95542cm</Top>
         <Left>0.14888cm</Left>
         <Height>0cm</Height>
-        <Width>5.12945cm</Width>
-        <ZIndex>9</ZIndex>
+        <Width>5.21448cm</Width>
+        <ZIndex>8</ZIndex>
         <Style>
           <Border>
             <Style>Dashed</Style>
@@ -709,17 +718,20 @@
           </Paragraph>
         </Paragraphs>
         <Top>0.40279in</Top>
-        <Left>0.20949cm</Left>
+        <Left>0.25207cm</Left>
         <Height>0.18333in</Height>
-        <Width>5.12945cm</Width>
-        <ZIndex>10</ZIndex>
+        <Width>5.19277cm</Width>
+        <ZIndex>9</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
           <TextAlign>Center</TextAlign>
           <VerticalAlign>Top</VerticalAlign>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
           <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="ModeOfPaymentLabel">
@@ -748,14 +760,17 @@
         <Top>1.39168in</Top>
         <Left>2.74569cm</Left>
         <Height>0.2in</Height>
-        <Width>2.57154cm</Width>
-        <ZIndex>11</ZIndex>
+        <Width>2.76602cm</Width>
+        <ZIndex>10</ZIndex>
         <Style>
           <Border>
             <Style>Solid</Style>
             <Width>0.3pt</Width>
           </Border>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
           <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="POSIDLabel">
@@ -782,16 +797,19 @@
           </Paragraph>
         </Paragraphs>
         <Top>1.39168in</Top>
-        <Left>0.16336cm</Left>
+        <Left>0.20594cm</Left>
         <Height>0.2in</Height>
         <Width>2.44888cm</Width>
-        <ZIndex>12</ZIndex>
+        <ZIndex>11</ZIndex>
         <Style>
           <Border>
             <Style>Solid</Style>
             <Width>0.3pt</Width>
           </Border>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
           <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="AddressLabel">
@@ -802,13 +820,13 @@
               <TextRun>
                 <Value xml:space="preserve"> </Value>
                 <Style>
-                  <FontSize>8pt</FontSize>
+                  <FontSize>9pt</FontSize>
                 </Style>
               </TextRun>
               <TextRun>
                 <Value>=First(Fields!Address.Value, "HeaderDataSet")</Value>
                 <Style>
-                  <FontSize>8pt</FontSize>
+                  <FontSize>9pt</FontSize>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -818,16 +836,19 @@
           </Paragraph>
         </Paragraphs>
         <Top>0.6389in</Top>
-        <Left>0.16336cm</Left>
+        <Left>0.20594cm</Left>
         <Height>0.2in</Height>
-        <Width>5.2cm</Width>
-        <ZIndex>13</ZIndex>
+        <Width>5.34835cm</Width>
+        <ZIndex>12</ZIndex>
         <Style>
           <Border>
-            <Style>Solid</Style>
+            <Style>None</Style>
             <Width>0.3pt</Width>
           </Border>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
           <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="NTNLabel">
@@ -836,7 +857,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>User Registration: </Value>
+                <Value>Registration no.: </Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                 </Style>
@@ -854,16 +875,19 @@
           </Paragraph>
         </Paragraphs>
         <Top>1.12223in</Top>
-        <Left>0.16336cm</Left>
+        <Left>0.20594cm</Left>
         <Height>0.2in</Height>
-        <Width>5.15387cm</Width>
-        <ZIndex>14</ZIndex>
+        <Width>5.36478cm</Width>
+        <ZIndex>13</ZIndex>
         <Style>
           <Border>
             <Style>Solid</Style>
             <Width>0.3pt</Width>
           </Border>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
           <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="DateCreated">
@@ -890,16 +914,19 @@
           </Paragraph>
         </Paragraphs>
         <Top>0.88057in</Top>
-        <Left>0.16336cm</Left>
+        <Left>0.20594cm</Left>
         <Height>0.2in</Height>
-        <Width>5.2cm</Width>
-        <ZIndex>15</ZIndex>
+        <Width>5.34835cm</Width>
+        <ZIndex>14</ZIndex>
         <Style>
           <Border>
             <Style>Solid</Style>
             <Width>0.3pt</Width>
           </Border>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
           <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="Textbox3">
@@ -911,28 +938,29 @@
               <TextRun>
                 <Value>Tax</Value>
                 <Style>
-                  <FontSize>8pt</FontSize>
+                  <FontSize>9pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
                 </Style>
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Right</TextAlign>
+              <TextAlign>Left</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
         <Top>5.49491cm</Top>
-        <Left>0.20949cm</Left>
+        <Left>2.74569cm</Left>
         <Height>0.48682cm</Height>
-        <Width>3.93937cm</Width>
-        <ZIndex>16</ZIndex>
+        <Width>1.4989cm</Width>
+        <ZIndex>15</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
           <PaddingLeft>1pt</PaddingLeft>
           <PaddingRight>1pt</PaddingRight>
-          <PaddingTop>1pt</PaddingTop>
+          <PaddingTop>2pt</PaddingTop>
           <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
@@ -950,23 +978,23 @@
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Right</TextAlign>
+              <TextAlign>Left</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
         <Top>6.01701cm</Top>
-        <Left>0.20391cm</Left>
+        <Left>2.74569cm</Left>
         <Height>0.48682cm</Height>
-        <Width>3.93937cm</Width>
-        <ZIndex>17</ZIndex>
+        <Width>1.4989cm</Width>
+        <ZIndex>16</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
           <PaddingLeft>1pt</PaddingLeft>
           <PaddingRight>1pt</PaddingRight>
-          <PaddingTop>1pt</PaddingTop>
+          <PaddingTop>2pt</PaddingTop>
           <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
@@ -984,23 +1012,23 @@
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Right</TextAlign>
+              <TextAlign>Left</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
         <Top>6.50383cm</Top>
-        <Left>0.20949cm</Left>
+        <Left>2.74569cm</Left>
         <Height>0.52915cm</Height>
-        <Width>3.95821cm</Width>
-        <ZIndex>18</ZIndex>
+        <Width>1.4989cm</Width>
+        <ZIndex>17</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
           <PaddingLeft>1pt</PaddingLeft>
           <PaddingRight>1pt</PaddingRight>
-          <PaddingTop>1pt</PaddingTop>
+          <PaddingTop>2pt</PaddingTop>
           <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
@@ -1012,7 +1040,7 @@
         <Left>1.57906cm</Left>
         <Height>0.37501in</Height>
         <Width>2.48391cm</Width>
-        <ZIndex>19</ZIndex>
+        <ZIndex>18</ZIndex>
         <Visibility>
           <Hidden>=IsNothing(First(Fields!LogoImage.Value, "HeaderDataSet"))</Hidden>
         </Visibility>
@@ -1034,6 +1062,7 @@
                 <Value>Invoice no:</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
                 </Style>
               </TextRun>
               <TextRun>
@@ -1056,11 +1085,11 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>3.10223in</Top>
+        <Top>2.86611in</Top>
         <Left>0.16336cm</Left>
         <Height>0.1965in</Height>
-        <Width>5.15387cm</Width>
-        <ZIndex>20</ZIndex>
+        <Width>5.2389cm</Width>
+        <ZIndex>19</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -1071,8 +1100,8 @@
         <Top>7.17409cm</Top>
         <Left>0.14888cm</Left>
         <Height>0cm</Height>
-        <Width>5.15945cm</Width>
-        <ZIndex>21</ZIndex>
+        <Width>5.24448cm</Width>
+        <ZIndex>20</ZIndex>
         <Style>
           <Border>
             <Style>Dashed</Style>
@@ -1081,7 +1110,7 @@
         </Style>
       </Line>
     </ReportItems>
-    <Height>11.48992cm</Height>
+    <Height>10.83375cm</Height>
     <Style>
       <Border>
         <Style>None</Style>
@@ -1089,7 +1118,7 @@
       </Border>
     </Style>
   </Body>
-  <Width>5.4572cm</Width>
+  <Width>5.57193cm</Width>
   <Page>
     <PageHeight>15cm</PageHeight>
     <PageWidth>5.8cm</PageWidth>
