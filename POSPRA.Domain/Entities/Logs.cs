@@ -17,15 +17,15 @@ namespace POSPRA.Domain.Entities
         public string? Message { get; set; }
 
         /// <summary>Severity/category: 1=Info, 2=Warning, 3=Error, 4=Audit, etc.</summary>
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         /// <summary>True if this log was synced to the central server.</summary>
         public bool IsSynced { get; set; }
 
         // ---------- Date/Time ----------
-        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+        public DateTime? CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
-        public DateTime CreatedAtPk { get; set; } = DateTime.Now;
+        public DateTime? CreatedAtPk { get; set; } = DateTime.Now;
 
         // ---------- User / Security ----------
         public string? UserId { get; set; }

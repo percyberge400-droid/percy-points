@@ -120,8 +120,8 @@ namespace POSPRA_WinFormsUI.Forms
                 new DataColumn("Tax", typeof(decimal))
             });
 
-            byte[] logo = LoadImageFromConfig();
-            byte[] praLogo = LoadImageFromConfig();
+            byte[] logo = LoadCompanyLogo();
+            byte[] praLogo = LoadPraLogo();
             byte[] qr = GenerateQRCode(dto.USIN);
 
             var headerRow = headerTable.NewRow();
@@ -156,12 +156,61 @@ namespace POSPRA_WinFormsUI.Forms
             return (headerTable, bodyTable);
         }
 
-        private byte[] LoadImageFromConfig()
+        private byte[] LoadCompanyLogo()
         {
-            string logoPath = ConfigurationManager.AppSettings["LOGO"];
-            if (File.Exists(logoPath))
-                return File.ReadAllBytes(logoPath);
+            string logoKey = ConfigurationManager.AppSettings["LOGO"];
+            if (!string.IsNullOrEmpty(logoKey))
+            {
+                var res = Resources.ResourceManager.GetObject(logoKey);
+                if (res is Image img)
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        img.Save(ms, ImageFormat.Png);
+                        return ms.ToArray();
+                    }
+                }
+            }
+            return SafeReadImage(logoKey);
+        }
 
+
+
+
+        private byte[] LoadPraLogo()
+        {
+
+            string logoKey = ConfigurationManager.AppSettings["LOGO"];
+            if (!string.IsNullOrEmpty(logoKey))
+            {
+                var res = Resources.ResourceManager.GetObject(logoKey);
+                if (res is Image img)
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        img.Save(ms, ImageFormat.Png);
+                        return ms.ToArray();
+                    }
+                }
+            }
+            return SafeReadImage(logoKey);
+        }
+
+        private byte[] SafeReadImage(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    return File.ReadAllBytes(path);
+                else
+                    MessageBox.Show($"⚠️ Image not found:\n{path}", "Missing Resource",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading image:\n{ex.Message}", "Image Load Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             return Array.Empty<byte>();
         }
 

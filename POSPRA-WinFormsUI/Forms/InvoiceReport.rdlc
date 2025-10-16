@@ -715,9 +715,9 @@
         <MIMEType>image/png</MIMEType>
         <Sizing>FitProportional</Sizing>
         <Top>9.36276cm</Top>
-        <Left>3.72644cm</Left>
+        <Left>3.3496cm</Left>
         <Height>0.99123cm</Height>
-        <Width>1.0405cm</Width>
+        <Width>1.96492cm</Width>
         <ZIndex>9</ZIndex>
         <Style>
           <Border>
@@ -920,9 +920,9 @@
         <Value>=First(Fields!LogoImage.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>FitProportional</Sizing>
-        <Left>1.57906cm</Left>
-        <Height>0.36667in</Height>
-        <Width>1.81937cm</Width>
+        <Left>1.89656cm</Left>
+        <Height>0.30557in</Height>
+        <Width>1.45304cm</Width>
         <ZIndex>17</ZIndex>
         <Visibility>
           <Hidden>=IsNothing(First(Fields!LogoImage.Value, "HeaderDataSet"))</Hidden>
@@ -931,6 +931,7 @@
           <Border>
             <Style>None</Style>
           </Border>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Image>
       <Textbox Name="DateCreated">
