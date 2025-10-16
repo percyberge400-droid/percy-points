@@ -135,12 +135,11 @@ namespace POSPRA_WinFormsUI.Forms
                 _ => "N/A"
             };
             headerRow["ModeOfPayment"] = paymentModeText;
-            //headerRow["ModeOfPayment"] = dto.PaymentMode.ToString() ?? "N/A";
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
-            headerRow["Address"] = dto.BuyerName;// + ", City, Pakistan";
+            headerRow["Address"] = null; //dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerTable.Rows.Add(headerRow);
 
@@ -166,7 +165,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private byte[] LoadCompanyLogo()
         {
-            string logoKey = ConfigurationManager.AppSettings["LOGO"];
+            string logoKey = ConfigurationManager.AppSettings["BusinessLOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
                 var res = Resources.ResourceManager.GetObject(logoKey);
@@ -181,8 +180,6 @@ namespace POSPRA_WinFormsUI.Forms
             }
             return SafeReadImage(logoKey);
         }
-
-
 
 
         private byte[] LoadPraLogo()

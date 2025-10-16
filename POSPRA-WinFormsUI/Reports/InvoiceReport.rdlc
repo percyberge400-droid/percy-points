@@ -751,6 +751,13 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
+                <Value>Business Name: </Value>
+                <Style>
+                  <FontSize>12pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
+                </Style>
+              </TextRun>
+              <TextRun>
                 <Value>=First(Fields!BusinessName.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>12pt</FontSize>
@@ -849,6 +856,12 @@
         <Paragraphs>
           <Paragraph>
             <TextRuns>
+              <TextRun>
+                <Value>Address: </Value>
+                <Style>
+                  <FontSize>8pt</FontSize>
+                </Style>
+              </TextRun>
               <TextRun>
                 <Value>=First(Fields!Address.Value, "HeaderDataSet")</Value>
                 <Style>
