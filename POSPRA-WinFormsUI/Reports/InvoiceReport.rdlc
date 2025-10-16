@@ -141,6 +141,7 @@
           <Border>
             <Style>None</Style>
           </Border>
+          <Direction>LTR</Direction>
         </Style>
       </Textbox>
       <Textbox Name="Tax">
@@ -177,6 +178,7 @@
             <Style>None</Style>
           </Border>
           <PaddingBottom>1pt</PaddingBottom>
+          <Direction>LTR</Direction>
         </Style>
       </Textbox>
       <Tablix Name="InvoiceTable">
@@ -562,7 +564,6 @@
                         </Border>
                       </Style>
                     </Textbox>
-                    <rd:Selected>true</rd:Selected>
                   </CellContents>
                 </TablixCell>
                 <TablixCell>
@@ -668,6 +669,7 @@
           <Border>
             <Style>None</Style>
           </Border>
+          <Direction>LTR</Direction>
         </Style>
       </Textbox>
       <Textbox Name="PosFee">
@@ -676,7 +678,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>PoS Service Fee: 1</Value>
+                <Value>PoS Service Fee: </Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                 </Style>
@@ -977,7 +979,7 @@
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
         <Top>6.45262cm</Top>
-        <Left>0.25004cm</Left>
+        <Left>0.28532cm</Left>
         <Height>0.48682cm</Height>
         <Width>3.93937cm</Width>
         <ZIndex>19</ZIndex>
@@ -985,10 +987,10 @@
           <Border>
             <Style>None</Style>
           </Border>
-          <PaddingLeft>2pt</PaddingLeft>
-          <PaddingRight>2pt</PaddingRight>
-          <PaddingTop>2pt</PaddingTop>
-          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
+          <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="Textbox4">
@@ -1019,10 +1021,10 @@
           <Border>
             <Style>None</Style>
           </Border>
-          <PaddingLeft>2pt</PaddingLeft>
-          <PaddingRight>2pt</PaddingRight>
-          <PaddingTop>2pt</PaddingTop>
-          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
+          <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
       <Textbox Name="Textbox5">
@@ -1053,10 +1055,10 @@
           <Border>
             <Style>None</Style>
           </Border>
-          <PaddingLeft>2pt</PaddingLeft>
-          <PaddingRight>2pt</PaddingRight>
-          <PaddingTop>2pt</PaddingTop>
-          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
+          <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
     </ReportItems>
@@ -1068,7 +1070,7 @@
       </Border>
     </Style>
   </Body>
-  <Width>5.9017cm</Width>
+  <Width>5.4572cm</Width>
   <Page>
     <PageHeight>15cm</PageHeight>
     <PageWidth>5.8cm</PageWidth>
