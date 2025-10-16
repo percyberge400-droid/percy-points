@@ -1,11 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Windows.Forms;
-using System.Configuration;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using POSPRA.Infrastructure.Context;
+using System.Configuration;
 
 namespace POSPRA.SetupUI
 {
@@ -41,6 +38,7 @@ namespace POSPRA.SetupUI
             string jsonWorkerPath = Path.Combine(baseFolder, "appsettings.worker.json");
             string jsonMainPath = Path.Combine(baseFolder, "appsettings.json");
             string setupConfig = Path.Combine(baseFolder, "POSPRA.SetupUI.dll.config");
+
 
             // 🔹 Step 2: Read DB path from JSON → SetupUI.config → fallback
             string? dbPath = null;

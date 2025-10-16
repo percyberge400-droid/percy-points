@@ -140,8 +140,37 @@ namespace POSPRA.Repositories.BaseRepository.Repository
         /// Marks all entities as Modified so they are persisted on SaveChanges.
         /// </summary>
         /// <param name="entities">Entities to update.</param>
-        public void UpdateRange(IEnumerable<T> entities) =>
-            _dbSet.UpdateRange(entities);
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            if (entities == null || !entities.Any())
+                return;
+
+            var entityType = typeof(T);
+            var key = _context.Model.FindEntityType(entityType)?.FindPrimaryKey();
+            if (key == null)
+                throw new InvalidOperationException($"Entity {entityType.Name} does not have a primary key defined.");
+
+            foreach (var entity in entities)
+            {
+                var keyValues = key.Properties
+                    .Select(p => entityType.GetProperty(p.Name)?.GetValue(entity))
+                    .ToArray();
+
+                // find if this entity key is already tracked
+                var trackedEntity = _context.ChangeTracker.Entries<T>()
+                    .FirstOrDefault(e => key.Properties
+                        .Select(p => e.Property(p.Name).CurrentValue)
+                        .SequenceEqual(keyValues));
+
+                if (trackedEntity != null)
+                {
+                    // detach old tracked version before updating
+                    trackedEntity.State = EntityState.Detached;
+                }
+
+                _context.Entry(entity).State = EntityState.Modified;
+            }
+        }
 
         /// <summary>
         /// Executes a raw SQL command or stored procedure that does not return rows.

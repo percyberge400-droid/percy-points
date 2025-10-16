@@ -43,6 +43,7 @@ namespace POSPRA.SetupUI
         private int _isLoadingFlag = 0;
         private bool _isLoading = false;
 
+
         public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath)
         {
             InitializeComponent();
@@ -241,39 +242,66 @@ namespace POSPRA.SetupUI
                             "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
+                    //MessageBox.Show(responseBody.data)
+
 
                     var json = JObject.Parse(responseBody);
 
-                    bool success =
-                        (json["statusCode"]?.ToString() == "200" && (json["data"]?.ToObject<bool>() ?? false))
-                        || (json["success"]?.ToObject<bool>() ?? false);
-
-                    if (!success)
+                    // If the API wraps JSON inside a string, detect and re-parse it
+                    if (json.Type == JTokenType.String)
                     {
-                        string message = json["message"]?.ToString() ?? "Invalid credentials or MAC address.";
-                        MessageBox.Show("Authentication failed: " + message,
-                            "Auth Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
+                        json = JObject.Parse(json.ToString());
+                    }
+                    else if (json["response"] != null && json["response"].Type == JTokenType.String)
+                    {
+                        json = JObject.Parse(json["response"].ToString());
+                    }
+                    string branchName = json["data"]?["branchName"]?.ToString() ?? "N/A";
+                    string branchAddress = json["data"]?["branchAddress"]?.ToString() ?? "N/A";
+                    string businessName = json["data"]?["businessName"]?.ToString() ?? "N/A";
+
+                    // ✅ Save credentials + MAC to XML
+                    var doc = new XmlDocument();
+                    doc.Load(_xmlConfigPath);
+                    UpdateOrCreateNode(doc, "Username", AesEncryptionHelper.Encrypt(username));
+                    UpdateOrCreateNode(doc, "Password", AesEncryptionHelper.Encrypt(password));
+                    UpdateOrCreateNode(doc, "MacAddress", mac);
+                    doc.Save(_xmlConfigPath);
+
+                    // ✅ Update DB path in other configs
+                    SaveDbPathToJson(_jsonWorkerPath, dbPath, username);
+                    SaveDbPathToJson(_jsonMainPath, dbPath, username);
+                    SaveDbPathToWinFormsConfig(dbPath, branchName, branchAddress, businessName);
+
+                    try
+                    {
+                        string? statusCode = json["statusCode"]?.ToString();
+                        string? message = json["message"]?.ToString()?.ToLower();
+
+                        bool success = statusCode == "200" &&
+                                       (message?.Contains("record found") == true || message?.Contains("success") == true);
+
+                        if (!success)
+                        {
+                            string error = json["message"]?.ToString() ?? "Invalid credentials or MAC address.";
+                            MessageBox.Show("Authentication failed: " + error,
+                                "Auth Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
+                        MessageBox.Show("✅ Authentication successful! Proceeding with configuration...",
+                            "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error while parsing authentication response: {ex.Message}",
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
-                    // ✅ Add this to confirm successful authentication
-                    MessageBox.Show("✅ Authentication successful! Proceeding with configuration...",
-                        "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
 
-                // ✅ Save credentials + MAC to XML
-                var doc = new XmlDocument();
-                doc.Load(_xmlConfigPath);
-                UpdateOrCreateNode(doc, "Username", AesEncryptionHelper.Encrypt(username));
-                UpdateOrCreateNode(doc, "Password", AesEncryptionHelper.Encrypt(password));
-                UpdateOrCreateNode(doc, "MacAddress", mac);
-                doc.Save(_xmlConfigPath);
 
-                // ✅ Update DB path in other configs
-                SaveDbPathToJson(_jsonWorkerPath, dbPath, username);
-                SaveDbPathToJson(_jsonMainPath, dbPath, username);
-                SaveDbPathToWinFormsConfig(dbPath);
 
                 try
                 {
@@ -377,14 +405,15 @@ namespace POSPRA.SetupUI
 
 
 
-        // --- Save DB path to WinForms config ---
-        private void SaveDbPathToWinFormsConfig(string dbPath)
+        // --- Save DB path and branch information to WinForms config ---
+        private void SaveDbPathToWinFormsConfig(string dbPath, string branchName = "N/A", string branchAddress = "N/A", string businessName = "N/A")
         {
             try
             {
                 var doc = new XmlDocument();
                 doc.Load(_winformsConfigPath);
 
+                // Update or create DefaultDBFilePath
                 var node = doc.SelectSingleNode("//appSettings/add[@key='DefaultDBFilePath']");
                 if (node == null)
                 {
@@ -402,6 +431,15 @@ namespace POSPRA.SetupUI
                     node.Attributes["value"].Value = dbPath;
                 }
 
+                // Update or create branchName
+                UpdateOrCreateNode(doc, "branchName", branchName);
+
+                // Update or create branchAddress
+                UpdateOrCreateNode(doc, "branchAddress", branchAddress);
+
+                // Update or create businessName
+                UpdateOrCreateNode(doc, "businessName", businessName);
+
                 doc.Save(_winformsConfigPath);
             }
             catch (Exception ex)
@@ -410,6 +448,7 @@ namespace POSPRA.SetupUI
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
 
         // --- Get MAC address ---
         private string GetMacAddress()

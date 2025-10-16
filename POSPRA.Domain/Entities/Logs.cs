@@ -12,6 +12,7 @@ namespace POSPRA.Domain.Entities
         // ---------- Primary ----------
         [Key]
         public long Id { get; set; }
+        public long POSID { get; set; }
 
         /// <summary>Main descriptive message or error text.</summary>
         public string? Message { get; set; }
