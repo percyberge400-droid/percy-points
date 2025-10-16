@@ -795,92 +795,150 @@ namespace POSPRA_WinFormsUI
             btnSave.Enabled = false;
             btnSave.Text = "Saving...";
             progressBar.Visible = true;
-            progressBar.Style = ProgressBarStyle.Marquee;
+            progressBar.Style = ProgressBarStyle.Continuous;
+            progressBar.Value = 0;
+
+            var progressTaskCts = new CancellationTokenSource();
 
             try
             {
-                // ✅ Validate first
+                // 🔹 Start smooth continuous progress animation
+                var progressTask = Task.Run(async () =>
+                {
+                    while (!progressTaskCts.Token.IsCancellationRequested)
+                    {
+                        await Task.Delay(80);
+                        this.Invoke(new Action(() =>
+                        {
+                            progressBar.Value = (progressBar.Value + 1) % 100;
+                        }));
+                    }
+                }, progressTaskCts.Token);
+
+                // 🔹 Validate inputs
                 if (addedItems == null || !addedItems.Any())
                 {
                     AlertManager.ShowError("Please add at least one item before saving the invoice.");
+                    ResetUI(progressTaskCts);
                     return;
                 }
 
                 if (!AreInvoiceFieldsValid())
                 {
                     AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
+                    ResetUI(progressTaskCts);
                     return;
                 }
 
                 var confirm = MessageBox.Show(
-                    "Are you sure you want to save this invoice?",
+                    "Are you sure you want to save and print this invoice?",
                     "Confirm Save",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question);
 
-                if (confirm != DialogResult.Yes) return;
-
-                // ✅ Prepare data quickly
-                var itemDtos = addedItems.Select(i => new InvoiceItemDto
+                if (confirm != DialogResult.Yes)
                 {
-                    ItemCode = i.ItemCode,
-                    ItemName = i.ItemName,
-                    PCTCode = i.PCTCode,
-                    Quantity = i.Quantity ?? 0,
-                    SaleValue = i.SaleValue ?? 0,
-                    TotalAmount = i.TotalAmount ?? 0,
-                    TaxCharged = i.TaxCharged ?? 0,
-                    TaxRate = i.TaxRate,
-                    Discount = i.Discount ?? 0,
-                    FurtherTax = i.FurtherTax ?? 0,
-                    InvoiceType = (byte)GetSelectedInvoiceType()
+                    ResetUI(progressTaskCts);
+                    return;
+                }
+
+                // 🔹 Prepare invoice data
+                var itemDtos = addedItems.Select(item => new InvoiceItemDto
+                {
+                    ItemCode = item.ItemCode,
+                    ItemName = item.ItemName,
+                    PCTCode = item.PCTCode,
+                    Quantity = item.Quantity ?? 0m,
+                    SaleValue = item.SaleValue ?? 0m,
+                    TotalAmount = item.TotalAmount ?? 0m,
+                    TaxCharged = item.TaxCharged ?? 0m,
+                    TaxRate = item.TaxRate,
+                    Discount = item.Discount ?? 0m,
+                    FurtherTax = item.FurtherTax ?? 0m,
+                    InvoiceType = (byte)GetSelectedInvoiceType(),
+                    RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
                 }).ToList();
 
                 var invoiceDto = new InvoiceDto
                 {
-                    POSID = int.TryParse(posid.Text, out var id) ? id : 0,
-                    BuyerName = BuyerBname.Text.Trim(),
+                    POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
+                    USIN = USIN.Text.Trim(),
+                    RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = (byte)GetSelectedInvoiceType(),
-                    InvoiceItemDto = itemDtos,
-                    DateTime = DateTime.Now
+                    BuyerNTN = buyerntn.Text.Trim(),
+                    BuyerCNIC = buyercnic.Text.Trim(),
+                    BuyerName = BuyerBname.Text.Trim(),
+                    BuyerPhoneNumber = buyerphone.Text.Trim(),
+                    PaymentMode = GetSelectedPaymentMode(),
+                    TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
+                    TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
+                    TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
+                    TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
+                    Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
+                    FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : itemDtos.Sum(x => x.FurtherTax),
+                    DateTime = DateTime.Now,
+                    InvoiceItemDto = itemDtos
                 };
 
-                progressBar.Style = ProgressBarStyle.Continuous;
-                progressBar.Value = 30;
-
-                // ✅ Save in background
-                var output = await Task.Run(() => _invoiceService.CreateAsync(invoiceDto));
-
-                progressBar.Value = 70;
-
-                // ✅ Show print dialog (blocking)
-                InvoiceReport printForm = new InvoiceReport(invoiceDto);
-                printForm.ShowDialog();
-
-                progressBar.Value = 100;
-
-                // ✅ Cleanup
+                // 🔹 Clear UI early to make system ready for new invoice
                 addedItems.Clear();
                 dataGridView1.Rows.Clear();
                 ClearInvoiceFields();
 
-                if (output.StatusCode == ApiStatusCode.Success)
-                    AlertManager.ShowSuccess(output.Message);
-                else
-                    AlertManager.ShowError(output.Message);
+                // 🔹 Start background save task (non-blocking)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var result = await _invoiceService.CreateAsync(invoiceDto);
+                        this.Invoke(new Action(() =>
+                        {
+                            if (result.StatusCode == ApiStatusCode.Success)
+                                AlertManager.ShowSuccess(result.Message);
+                            else
+                                AlertManager.ShowError(result.Message);
+                        }));
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Invoke(new Action(() =>
+                            AlertManager.ShowError($"Error saving invoice: {ex.Message}")
+                        ));
+                    }
+                });
+
+                // 🔹 Start print dialog while saving happens in background
+                InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                printForm.ShowDialog();
+
+                // 🔹 After print completes, stop progress and reset UI
+                progressTaskCts.Cancel();
+                this.Invoke(new Action(async () =>
+                {
+                    progressBar.Value = 100;
+                    await Task.Delay(300);
+                    progressBar.Visible = false;
+                    progressBar.Value = 0;
+                    btnSave.Enabled = true;
+                    btnSave.Text = "🖨️ Save and Print";
+                    _isSaving = false;
+                }));
             }
             catch (Exception ex)
             {
                 AlertManager.ShowError($"Error: {ex.Message}");
+                ResetUI(progressTaskCts);
             }
-            finally
-            {
-                progressBar.Visible = false;
-                progressBar.Value = 0;
-                btnSave.Enabled = true;
-                btnSave.Text = "🖨️ Save and Print";
-                _isSaving = false;
-            }
+        }
+
+        private void ResetUI(CancellationTokenSource cts)
+        {
+            cts.Cancel();
+            progressBar.Visible = false;
+            progressBar.Value = 0;
+            btnSave.Enabled = true;
+            btnSave.Text = "🖨️ Save and Print";
+            _isSaving = false;
         }
 
         private void BtnSave_MouseEnter(object? sender, EventArgs e)
