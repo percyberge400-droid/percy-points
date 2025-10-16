@@ -790,8 +790,8 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowInfo("Saving invoice...");
                 _ = CreateLog("Saving invoice", AlertType.Info);
 
-                //InvoiceReport printForm = new InvoiceReport(output.Data);
-                //printForm.ShowDialog();
+                InvoiceReport printForm = new InvoiceReport(output.Data);
+                printForm.ShowDialog();
 
                 addedItems.Clear();
                 CurrentInvoice = null;
@@ -804,8 +804,7 @@ namespace POSPRA_WinFormsUI
                 btnSave.Text = "🖨️ Save and Print";
 
                 var output = await _invoiceService.CreateAsync(invoiceDto);
-                InvoiceReport printForm = new InvoiceReport(output.Data);
-                printForm.ShowDialog();
+                
                 // call invoice print generator
                 //output.Data.FBRInvoiceNumber;
 
