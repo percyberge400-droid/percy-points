@@ -125,7 +125,13 @@ namespace POSPRA_WinFormsUI.Forms
             byte[] qr = GenerateQRCode(dto.FBRInvoiceNumber);
 
             var headerRow = headerTable.NewRow();
-            headerRow["BusinessName"] = "Dumymy";
+            string businessname = ConfigurationManager.AppSettings["businessName"];
+            if (!string.IsNullOrEmpty(businessname))
+                businessname = businessname;
+            headerRow["BusinessName"] = businessname;
+            //string branchname = ConfigurationManager.AppSettings["branchName"];
+            //if (!string.IsNullOrEmpty(branchname))
+            //    branchname = branchname;
             headerRow["DateCreated"] = dto.DateTime;
             string paymentModeText = dto.PaymentMode switch
             {
@@ -139,7 +145,8 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
-            headerRow["Address"] = null; //dto.BuyerName;// + ", City, Pakistan";
+            string address = ConfigurationManager.AppSettings["branchAddress"];
+            headerRow["Address"] = address; //dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerTable.Rows.Add(headerRow);
 
