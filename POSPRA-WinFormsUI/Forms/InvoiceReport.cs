@@ -125,7 +125,7 @@ namespace POSPRA_WinFormsUI.Forms
             byte[] qr = GenerateQRCode(dto.FBRInvoiceNumber);
 
             var headerRow = headerTable.NewRow();
-            headerRow["BusinessName"] = dto.BuyerName;
+            headerRow["BusinessName"] = "Dumymy";
             headerRow["DateCreated"] = dto.DateTime;
             string paymentModeText = dto.PaymentMode switch
             {

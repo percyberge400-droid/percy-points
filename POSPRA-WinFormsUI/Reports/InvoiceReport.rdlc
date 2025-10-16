@@ -17,49 +17,6 @@
           </Border>
         </Style>
       </Image>
-      <Textbox Name="InvoiceNo">
-        <CanGrow>true</CanGrow>
-        <CanShrink>true</CanShrink>
-        <Paragraphs>
-          <Paragraph>
-            <TextRuns>
-              <TextRun>
-                <Value>Invoice no:</Value>
-                <Style>
-                  <FontSize>8pt</FontSize>
-                </Style>
-              </TextRun>
-              <TextRun>
-                <Value xml:space="preserve"> </Value>
-                <Style>
-                  <FontSize>8pt</FontSize>
-                  <FontWeight>Normal</FontWeight>
-                </Style>
-              </TextRun>
-              <TextRun>
-                <Value>=First(Fields!InvoiceNo.Value, "BodyDataSet")</Value>
-                <Style>
-                  <FontSize>8pt</FontSize>
-                  <FontWeight>Normal</FontWeight>
-                </Style>
-              </TextRun>
-            </TextRuns>
-            <Style>
-              <TextAlign>Center</TextAlign>
-            </Style>
-          </Paragraph>
-        </Paragraphs>
-        <Top>1.06668in</Top>
-        <Left>0.20949cm</Left>
-        <Height>0.1965in</Height>
-        <Width>5.15387cm</Width>
-        <ZIndex>1</ZIndex>
-        <Style>
-          <Border>
-            <Style>None</Style>
-          </Border>
-        </Style>
-      </Textbox>
       <Textbox Name="VerificationText">
         <CanGrow>true</CanGrow>
         <Paragraphs>
@@ -81,7 +38,7 @@
         <Left>0.16336cm</Left>
         <Height>0.14167in</Height>
         <Width>5.2cm</Width>
-        <ZIndex>2</ZIndex>
+        <ZIndex>1</ZIndex>
         <Style />
       </Textbox>
       <Textbox Name="PoweredBy">
@@ -105,7 +62,7 @@
         <Left>0.16336cm</Left>
         <Height>0.15833in</Height>
         <Width>5.2cm</Width>
-        <ZIndex>3</ZIndex>
+        <ZIndex>2</ZIndex>
         <Style />
       </Textbox>
       <Textbox Name="Discount">
@@ -132,11 +89,11 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.80151in</Top>
-        <Left>4.2247cm</Left>
+        <Top>2.42445in</Top>
+        <Left>4.26525cm</Left>
         <Height>0.19166in</Height>
-        <Width>1.08982cm</Width>
-        <ZIndex>4</ZIndex>
+        <Width>1.11454cm</Width>
+        <ZIndex>3</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -168,11 +125,11 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.56818in</Top>
-        <Left>4.22469cm</Left>
+        <Top>2.16335in</Top>
+        <Left>4.28997cm</Left>
         <Height>0.19166in</Height>
         <Width>1.08982cm</Width>
-        <ZIndex>5</ZIndex>
+        <ZIndex>4</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -621,11 +578,11 @@
           </TablixMembers>
         </TablixRowHierarchy>
         <DataSetName>BodyDataSet</DataSetName>
-        <Top>1.97429in</Top>
-        <Left>0.22833cm</Left>
+        <Top>1.72224in</Top>
+        <Left>0.18507cm</Left>
         <Height>0.37167in</Height>
         <Width>5.11062cm</Width>
-        <ZIndex>6</ZIndex>
+        <ZIndex>5</ZIndex>
         <Style>
           <Border>
             <Style>Solid</Style>
@@ -634,6 +591,7 @@
           <FontSize>7pt</FontSize>
           <FontWeight>Normal</FontWeight>
           <TextAlign>Center</TextAlign>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Tablix>
       <Textbox Name="TotalAmount">
@@ -660,11 +618,11 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>3.06261in</Top>
-        <Left>4.22469cm</Left>
+        <Top>2.68556in</Top>
+        <Left>4.28997cm</Left>
         <Height>0.20833in</Height>
         <Width>1.08982cm</Width>
-        <ZIndex>7</ZIndex>
+        <ZIndex>6</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -689,11 +647,11 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>3.34039in</Top>
-        <Left>0.25004cm</Left>
+        <Top>2.96334in</Top>
+        <Left>0.20391cm</Left>
         <Height>0.16667in</Height>
-        <Width>5.06448cm</Width>
-        <ZIndex>8</ZIndex>
+        <Width>5.15945cm</Width>
+        <ZIndex>7</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -709,20 +667,20 @@
         <Left>3.3496cm</Left>
         <Height>0.99123cm</Height>
         <Width>1.96492cm</Width>
-        <ZIndex>9</ZIndex>
+        <ZIndex>8</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
-          <PaddingTop>1pt</PaddingTop>
+          <PaddingTop>2pt</PaddingTop>
         </Style>
       </Image>
       <Line Name="Line1">
-        <Top>6.21272cm</Top>
+        <Top>5.38908cm</Top>
         <Left>0.17949cm</Left>
         <Height>0cm</Height>
         <Width>5.15945cm</Width>
-        <ZIndex>10</ZIndex>
+        <ZIndex>9</ZIndex>
         <Style>
           <Border>
             <Style>Dashed</Style>
@@ -735,7 +693,7 @@
         <Left>0.20949cm</Left>
         <Height>0cm</Height>
         <Width>5.12945cm</Width>
-        <ZIndex>11</ZIndex>
+        <ZIndex>10</ZIndex>
         <Style>
           <Border>
             <Style>Dashed</Style>
@@ -774,13 +732,14 @@
         <Left>0.20949cm</Left>
         <Height>0.18333in</Height>
         <Width>5.12945cm</Width>
-        <ZIndex>12</ZIndex>
+        <ZIndex>11</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
           <TextAlign>Center</TextAlign>
           <VerticalAlign>Top</VerticalAlign>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="ModeOfPaymentLabel">
@@ -806,15 +765,17 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>1.70485in</Top>
-        <Left>0.16336cm</Left>
+        <Top>1.39168in</Top>
+        <Left>2.74569cm</Left>
         <Height>0.2in</Height>
-        <Width>5.2cm</Width>
-        <ZIndex>13</ZIndex>
+        <Width>2.57154cm</Width>
+        <ZIndex>12</ZIndex>
         <Style>
           <Border>
-            <Style>None</Style>
+            <Style>Solid</Style>
+            <Width>0.6pt</Width>
           </Border>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="POSIDLabel">
@@ -840,15 +801,17 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>1.49096in</Top>
+        <Top>1.39168in</Top>
         <Left>0.16336cm</Left>
         <Height>0.2in</Height>
-        <Width>5.2cm</Width>
-        <ZIndex>14</ZIndex>
+        <Width>2.44888cm</Width>
+        <ZIndex>13</ZIndex>
         <Style>
           <Border>
-            <Style>None</Style>
+            <Style>Solid</Style>
+            <Width>0.6pt</Width>
           </Border>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="AddressLabel">
@@ -878,11 +841,13 @@
         <Left>0.16336cm</Left>
         <Height>0.2in</Height>
         <Width>5.2cm</Width>
-        <ZIndex>15</ZIndex>
+        <ZIndex>14</ZIndex>
         <Style>
           <Border>
-            <Style>None</Style>
+            <Style>Solid</Style>
+            <Width>0.6pt</Width>
           </Border>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="NTNLabel">
@@ -908,15 +873,17 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>0.85279in</Top>
+        <Top>1.12223in</Top>
         <Left>0.16336cm</Left>
         <Height>0.2in</Height>
-        <Width>5.2cm</Width>
-        <ZIndex>16</ZIndex>
+        <Width>5.15387cm</Width>
+        <ZIndex>15</ZIndex>
         <Style>
           <Border>
-            <Style>None</Style>
+            <Style>Solid</Style>
+            <Width>0.6pt</Width>
           </Border>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="DateCreated">
@@ -942,15 +909,17 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>1.27707in</Top>
+        <Top>0.88057in</Top>
         <Left>0.16336cm</Left>
         <Height>0.2in</Height>
         <Width>5.2cm</Width>
-        <ZIndex>17</ZIndex>
+        <ZIndex>16</ZIndex>
         <Style>
           <Border>
-            <Style>None</Style>
+            <Style>Solid</Style>
+            <Width>0.6pt</Width>
           </Border>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="Textbox3">
@@ -972,11 +941,11 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>6.52317cm</Top>
-        <Left>0.28532cm</Left>
+        <Top>5.49491cm</Top>
+        <Left>0.20949cm</Left>
         <Height>0.48682cm</Height>
         <Width>3.93937cm</Width>
-        <ZIndex>18</ZIndex>
+        <ZIndex>17</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -1006,11 +975,11 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>7.11582cm</Top>
-        <Left>0.22833cm</Left>
+        <Top>6.15812cm</Top>
+        <Left>0.20391cm</Left>
         <Height>0.48682cm</Height>
         <Width>3.93937cm</Width>
-        <ZIndex>19</ZIndex>
+        <ZIndex>18</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -1040,11 +1009,11 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>7.77902cm</Top>
+        <Top>6.82133cm</Top>
         <Left>0.20949cm</Left>
         <Height>0.52915cm</Height>
         <Width>3.95821cm</Width>
-        <ZIndex>20</ZIndex>
+        <ZIndex>19</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -1063,7 +1032,7 @@
         <Left>1.57906cm</Left>
         <Height>0.37501in</Height>
         <Width>2.48391cm</Width>
-        <ZIndex>21</ZIndex>
+        <ZIndex>20</ZIndex>
         <Visibility>
           <Hidden>=IsNothing(First(Fields!LogoImage.Value, "HeaderDataSet"))</Hidden>
         </Visibility>
@@ -1072,9 +1041,65 @@
             <Style>None</Style>
             <Width>0.7pt</Width>
           </Border>
-          <PaddingTop>1pt</PaddingTop>
+          <PaddingTop>2pt</PaddingTop>
         </Style>
       </Image>
+      <Textbox Name="InvoiceNo">
+        <CanGrow>true</CanGrow>
+        <CanShrink>true</CanShrink>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>Invoice no:</Value>
+                <Style>
+                  <FontSize>8pt</FontSize>
+                </Style>
+              </TextRun>
+              <TextRun>
+                <Value xml:space="preserve"> </Value>
+                <Style>
+                  <FontSize>8pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                </Style>
+              </TextRun>
+              <TextRun>
+                <Value>=First(Fields!InvoiceNo.Value, "BodyDataSet")</Value>
+                <Style>
+                  <FontSize>8pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style>
+              <TextAlign>Center</TextAlign>
+            </Style>
+          </Paragraph>
+        </Paragraphs>
+        <Top>3.19945in</Top>
+        <Left>0.16336cm</Left>
+        <Height>0.1965in</Height>
+        <Width>5.15387cm</Width>
+        <ZIndex>21</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+        </Style>
+      </Textbox>
+      <Line Name="Line3">
+        <Top>7.42103cm</Top>
+        <Left>0.14888cm</Left>
+        <Height>0cm</Height>
+        <Width>5.15945cm</Width>
+        <ZIndex>22</ZIndex>
+        <Style>
+          <Border>
+            <Style>Dashed</Style>
+            <Width>0.5pt</Width>
+          </Border>
+        </Style>
+      </Line>
     </ReportItems>
     <Height>11.48992cm</Height>
     <Style>
