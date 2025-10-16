@@ -934,36 +934,20 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void btnSyncLogs_Click(object sender, EventArgs e)
         {
+            btnSyncLogs.Enabled = false;
+            btnSyncLogs.Text = "Syncing...";
             try
             {
-                // ✅ Get cloud logs
-                var cloudResponse = await _logService.GetAllCloudAsync();
-                LogsDataGridView.Rows.Clear();
-
-                if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
-                {
-                    WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
-                    AlertManager.ShowWarning("No synced logs available to display");
-                    return;
-                }
-
-                // ✅ Get local logs
-                var localResponse = await _logService.GetAllAsync();
-
-                // ✅ Merge and remove duplicates
-                var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
-
-                // ✅ Pass merged logs to loader
-                await LoadAndShowLogsAsync(mergedLogs);
+                await _sendLogToCloudService.SyncLogAsync();
             }
             catch (Exception ex)
             {
-                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
-                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+                AlertManager.ShowError($"Error syncing logs: {ex.Message}");
+                WindowsLocalAppNotification.Show("Logs Sync Error", $"Error syncing logs: {ex.Message}");
             }
             finally
             {
-                // Always re-enable button (even if exception occurs)
+                // Re-enable button
                 btnSyncLogs.Enabled = true;
                 btnSyncLogs.Text = "Sync Logs";
             }
