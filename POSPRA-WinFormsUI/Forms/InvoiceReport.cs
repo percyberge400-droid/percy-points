@@ -125,14 +125,22 @@ namespace POSPRA_WinFormsUI.Forms
             byte[] qr = GenerateQRCode(dto.USIN);
 
             var headerRow = headerTable.NewRow();
-            headerRow["BusinessName"] = "Your Business Name";
+            headerRow["BusinessName"] = dto.BuyerName;
             headerRow["DateCreated"] = dto.DateTime;
-            headerRow["ModeOfPayment"] = dto.PaymentMode.ToString() ?? "N/A";
+            string paymentModeText = dto.PaymentMode switch
+            {
+                1 => "Cash",
+                2 => "Credit",
+                3 => "Online",
+                _ => "N/A"
+            };
+            headerRow["ModeOfPayment"] = paymentModeText;
+            //headerRow["ModeOfPayment"] = dto.PaymentMode.ToString() ?? "N/A";
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
-            headerRow["Address"] = "Your Business Address, City, Pakistan";
+            headerRow["Address"] = dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerTable.Rows.Add(headerRow);
 
@@ -140,16 +148,16 @@ namespace POSPRA_WinFormsUI.Forms
             foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
-                row["InvoiceNo"] = dto.USIN ?? string.Empty;
+                row["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
                 row["SerialNo"] = serial++;
                 row["ItemName"] = item.ItemName ?? string.Empty;
-                row["TaxRate"] = item.TaxCharged;
+                row["TaxRate"] = Math.Round(item.TaxRate, 2);
                 row["Qty"] = item.Quantity;
-                row["Price"] = item.SaleValue;
+                row["Price"] = Math.Round(item.SaleValue,2);
                 row["POSID"] = dto.POSID.ToString();
-                row["Discount"] = item.Discount;
-                row["Total"] = item.TotalAmount;
-                row["Tax"] = item.TaxCharged;
+                row["Discount"] = Math.Round(item.Discount, 2);
+                row["Total"] = Math.Round(item.TotalAmount, 2);
+                row["Tax"] = Math.Round(item.TaxCharged, 2);
                 bodyTable.Rows.Add(row);
             }
 
@@ -257,7 +265,7 @@ namespace POSPRA_WinFormsUI.Forms
         private string GetReportPath(string reportFileName = "InvoiceReport.rdlc")
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string reportPath = Path.Combine(baseDir, "Forms", reportFileName);
+            string reportPath = Path.Combine(baseDir, "Reports", reportFileName);
 
             if (File.Exists(reportPath))
                 return reportPath;
