@@ -116,7 +116,7 @@ namespace POSPRA.Application.Services.LiveService
                 // Map & save invoice
                 var invoice = _mapper.Map<Invoice>(dto);
                 invoice.EntryDate = DateTime.Now;
-                invoice.FBRInvoiceNumber = GlobalMethods.InvoiceNumber(dto.POSID);
+                //invoice.FBRInvoiceNumber = GlobalMethods.InvoiceNumber(dto.POSID);
                 await _invoiceRepository.AddAsync(invoice);
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 

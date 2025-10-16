@@ -146,7 +146,7 @@ namespace POSPRA.Application.Services.FileRecordService
                     string.Empty);
             }
 
-            dynamic updatedDtos;
+            List<FileRecordDto> updatedDtos = new();
 
             if (!isSingle)
             {
@@ -158,7 +158,7 @@ namespace POSPRA.Application.Services.FileRecordService
             {
                 var entity = _mapper.Map<FileRecord>(fileRecordDtos.FirstOrDefault());
                 await _fileRecordRepository.UpdateAsync(entity);
-                updatedDtos = _mapper.Map<FileRecordDto>(entity);
+                updatedDtos = new List<FileRecordDto> { _mapper.Map<FileRecordDto>(entity) };
             }
 
             await _sqliteUnitOfWork.SaveChangesAsync();

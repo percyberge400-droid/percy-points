@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using POSPRA.Application.Utility;
+using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.ClientDtos;
 using POSPRA.Repositories.ClientRepository;
@@ -16,7 +17,7 @@ namespace POSPRA.Application.Services.ClientService
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<bool>> GetByMacAsync(ClientValidationDto dto)
+        public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
         {
 
             var entity = await _clientRepository.FirstOrDefaultAsync(m =>
@@ -24,16 +25,16 @@ namespace POSPRA.Application.Services.ClientService
                                 m.MAC_Address == dto.MacAddress &&
                                 m.Token == dto.Token);
             if (entity == null)
-                return new ApiResponse<bool>(
+                return new ApiResponse<PosClients>(
                     ApiStatusCode.NotFound,
                     ResponseMessages.DataNotFound,
-                    false,
+                    null!,
                     string.Empty);
 
-            return new ApiResponse<bool>(
+            return new ApiResponse<PosClients>(
                 ApiStatusCode.Success,
                 ResponseMessages.RecordFound,
-                true,
+                entity,
                 string.Empty);
         }
     }

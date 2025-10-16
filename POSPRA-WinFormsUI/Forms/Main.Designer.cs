@@ -28,6 +28,11 @@
         private void InitializeComponent()
         {
             panel1 = new Panel();
+            panel2 = new Panel();
+            posStatus = new Label();
+            lblWorkerService = new Label();
+            internetStatus = new Label();
+            lblNetworkStatus = new Label();
             pictureBox2 = new PictureBox();
             label2 = new Label();
             panCatalogView = new Panel();
@@ -41,15 +46,10 @@
             panInvoiceSelection = new Panel();
             sqliteCommand1 = new Microsoft.Data.Sqlite.SqliteCommand();
             pictureBox1 = new PictureBox();
-            panel2 = new Panel();
-            internetStatus = new Label();
-            lblNetworkStatus = new Label();
-            posStatus = new Label();
-            lblWorkerService = new Label();
             panel1.SuspendLayout();
+            panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            panel2.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
@@ -73,6 +73,65 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(1445, 60);
             panel1.TabIndex = 4;
+            // 
+            // panel2
+            // 
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            panel2.BackColor = Color.Cornsilk;
+            panel2.Controls.Add(posStatus);
+            panel2.Controls.Add(lblWorkerService);
+            panel2.Controls.Add(internetStatus);
+            panel2.Controls.Add(lblNetworkStatus);
+            panel2.Location = new Point(1030, 0);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(412, 60);
+            panel2.TabIndex = 6;
+            // 
+            // posStatus
+            // 
+            posStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            posStatus.AutoSize = true;
+            posStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+            posStatus.Location = new Point(322, 9);
+            posStatus.Name = "posStatus";
+            posStatus.Size = new Size(86, 23);
+            posStatus.TabIndex = 12;
+            posStatus.Text = "INACTIVE";
+            // 
+            // lblWorkerService
+            // 
+            lblWorkerService.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            lblWorkerService.AutoSize = true;
+            lblWorkerService.Font = new Font("Segoe UI", 12F);
+            lblWorkerService.ForeColor = Color.Black;
+            lblWorkerService.Location = new Point(242, 25);
+            lblWorkerService.Name = "lblWorkerService";
+            lblWorkerService.Size = new Size(116, 28);
+            lblWorkerService.TabIndex = 11;
+            lblWorkerService.Text = "POS Service";
+            // 
+            // internetStatus
+            // 
+            internetStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            internetStatus.AutoSize = true;
+            internetStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+            internetStatus.Location = new Point(108, 6);
+            internetStatus.Name = "internetStatus";
+            internetStatus.Size = new Size(86, 23);
+            internetStatus.TabIndex = 10;
+            internetStatus.Text = "INACTIVE";
+            // 
+            // lblNetworkStatus
+            // 
+            lblNetworkStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            lblNetworkStatus.AutoSize = true;
+            lblNetworkStatus.Font = new Font("Segoe UI", 12F);
+            lblNetworkStatus.ForeColor = Color.Black;
+            lblNetworkStatus.Location = new Point(6, 25);
+            lblNetworkStatus.Name = "lblNetworkStatus";
+            lblNetworkStatus.Size = new Size(138, 28);
+            lblNetworkStatus.TabIndex = 9;
+            lblNetworkStatus.Text = "Internet Status";
             // 
             // pictureBox2
             // 
@@ -232,65 +291,6 @@
             pictureBox1.TabIndex = 5;
             pictureBox1.TabStop = false;
             // 
-            // panel2
-            // 
-            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            panel2.BackColor = SystemColors.GradientActiveCaption;
-            panel2.Controls.Add(posStatus);
-            panel2.Controls.Add(lblWorkerService);
-            panel2.Controls.Add(internetStatus);
-            panel2.Controls.Add(lblNetworkStatus);
-            panel2.Location = new Point(1030, 0);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(412, 60);
-            panel2.TabIndex = 6;
-            // 
-            // internetStatus
-            // 
-            internetStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            internetStatus.AutoSize = true;
-            internetStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            internetStatus.Location = new Point(108, 6);
-            internetStatus.Name = "internetStatus";
-            internetStatus.Size = new Size(86, 23);
-            internetStatus.TabIndex = 10;
-            internetStatus.Text = "INACTIVE";
-            // 
-            // lblNetworkStatus
-            // 
-            lblNetworkStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            lblNetworkStatus.AutoSize = true;
-            lblNetworkStatus.Font = new Font("Segoe UI", 12F);
-            lblNetworkStatus.ForeColor = Color.Black;
-            lblNetworkStatus.Location = new Point(6, 25);
-            lblNetworkStatus.Name = "lblNetworkStatus";
-            lblNetworkStatus.Size = new Size(138, 28);
-            lblNetworkStatus.TabIndex = 9;
-            lblNetworkStatus.Text = "Internet Status";
-            // 
-            // posStatus
-            // 
-            posStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            posStatus.AutoSize = true;
-            posStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            posStatus.Location = new Point(322, 9);
-            posStatus.Name = "posStatus";
-            posStatus.Size = new Size(86, 23);
-            posStatus.TabIndex = 12;
-            posStatus.Text = "INACTIVE";
-            // 
-            // lblWorkerService
-            // 
-            lblWorkerService.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            lblWorkerService.AutoSize = true;
-            lblWorkerService.Font = new Font("Segoe UI", 12F);
-            lblWorkerService.ForeColor = Color.Black;
-            lblWorkerService.Location = new Point(242, 25);
-            lblWorkerService.Name = "lblWorkerService";
-            lblWorkerService.Size = new Size(116, 28);
-            lblWorkerService.TabIndex = 11;
-            lblWorkerService.Text = "POS Service";
-            // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -303,10 +303,10 @@
             Text = "Main";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }
 

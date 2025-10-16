@@ -34,6 +34,8 @@ namespace POSPRA_WinFormsUI
         private readonly IInvoiceService _invoiceService;
         private readonly IProductCatalogueService _productCatalogueService;
 
+        private ProgressBar progressBar;
+        private int _isLoadingFlag = 0;
 
         #endregion
 
@@ -46,6 +48,7 @@ namespace POSPRA_WinFormsUI
             IInvoiceService invoiceService)
         {
             InitializeComponent();
+            InitializeProgressBar();
             this.Load += item_entry_Load;
 
             this.Shown += (s, e) =>
@@ -56,6 +59,8 @@ namespace POSPRA_WinFormsUI
                 }
             };
 
+            this.Load += (s, e) => CenterProgressBar();
+            this.Resize += (s, e) => CenterProgressBar();
             //FixLayoutIssues();
             SetupPanelResizeHandlers();
 
@@ -115,6 +120,64 @@ namespace POSPRA_WinFormsUI
             _logService = logService;
             _productCatalogueService = productCatalogueService;
             _invoiceService = invoiceService;
+        }
+
+        #endregion
+
+        #region Progress Bar Setup
+
+        private void InitializeProgressBar()
+        {
+            progressBar = new ProgressBar
+            {
+                Style = ProgressBarStyle.Continuous,
+                Minimum = 0,
+                Maximum = 100,
+                Value = 0,
+                Size = new Size(300, 30),
+                Visible = false
+            };
+
+            this.Controls.Add(progressBar);
+            progressBar.BringToFront();
+
+            CenterProgressBar();
+        }
+
+        private void CenterProgressBar()
+        {
+            if (progressBar != null && dataGridView1 != null)
+            {
+                var gridBounds = dataGridView1.Bounds;
+                progressBar.Left = gridBounds.Left + (gridBounds.Width - progressBar.Width) / 2;
+                progressBar.Top = gridBounds.Top + (gridBounds.Height - progressBar.Height) / 2;
+                progressBar.BringToFront();
+            }
+        }
+
+        private async Task RunSingleLoad(Func<Task> work)
+        {
+            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
+
+            try
+            {
+                if (progressBar != null)
+                {
+                    progressBar.Visible = true;
+                    progressBar.BringToFront();
+                    progressBar.Value = 0;
+                    progressBar.Update();
+                }
+
+                await work();
+            }
+            finally
+            {
+                if (progressBar != null)
+                    progressBar.Visible = false;
+
+                Interlocked.Exchange(ref _isLoadingFlag, 0);
+            }
         }
 
         #endregion
@@ -506,12 +569,22 @@ namespace POSPRA_WinFormsUI
                 case "discount":
                 case "furthertax":
                 case "taxcharged":
+                    // Allow only digits, one dot, and control keys
                     if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
                     {
                         e.Handled = true;
                         return;
                     }
                     if (e.KeyChar == '.' && tb.Text.Contains('.'))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
+                        e.Handled = true;
+                    break;
+                default:
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
                     {
                         e.Handled = true;
                         return;
@@ -718,36 +791,53 @@ namespace POSPRA_WinFormsUI
                 return;
             }
 
+            _isSaving = true;
+            btnSave.Enabled = false;
+            btnSave.Text = "Saving...";
+            progressBar.Visible = true;
+            progressBar.Style = ProgressBarStyle.Continuous;
+            progressBar.Value = 0;
+
+            var progressTaskCts = new CancellationTokenSource();
+
             try
             {
-                _isSaving = true;
-                btnSave.Enabled = false;
-                btnSave.Text = "Saving...";
+                // 🔹 Smooth progress animation while save + print run
+                var progressTask = Task.Run(async () =>
+                {
+                    while (!progressTaskCts.Token.IsCancellationRequested)
+                    {
+                        await Task.Delay(80);
+                        this.Invoke(new Action(() =>
+                        {
+                            progressBar.Value = (progressBar.Value + 1) % 100;
+                        }));
+                    }
+                }, progressTaskCts.Token);
 
+                // 🔹 Validate
                 if (addedItems == null || !addedItems.Any())
                 {
                     AlertManager.ShowError("Please add at least one item before saving the invoice.");
-                    _ = CreateLog("Validation Error: Items are not added", AlertType.Error);
+                    ResetUI(progressTaskCts);
                     return;
                 }
 
                 if (!AreInvoiceFieldsValid())
                 {
                     AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
-                    _ = CreateLog("Invoice header is incomplete", AlertType.Error);
+                    ResetUI(progressTaskCts);
                     return;
                 }
 
-                var confirm = MessageBox.Show(
-                    "Are you sure you want to save this invoice?",
-                    "Confirm Save",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                if (MessageBox.Show("Are you sure you want to save and print this invoice?",
+                                    "Confirm Save", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                {
+                    ResetUI(progressTaskCts);
+                    return;
+                }
 
-                if (confirm != DialogResult.Yes) return;
-
-                CurrentInvoice = CollectInvoiceData();
-
+                // 🔹 Build DTOs
                 var itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
                     ItemCode = item.ItemCode,
@@ -766,9 +856,7 @@ namespace POSPRA_WinFormsUI
 
                 var invoiceDto = new InvoiceDto
                 {
-                    POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
-
-
+                    POSID = int.TryParse(posid.Text, out var posId) ? posId : 0,
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = (byte)GetSelectedInvoiceType(),
@@ -787,52 +875,72 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
-                AlertManager.ShowInfo("Saving invoice...");
-                _ = CreateLog("Saving invoice", AlertType.Info);
-
-                InvoiceReport printForm = new InvoiceReport(invoiceDto);
-                printForm.ShowDialog();
-
+                // 🔹 Clear UI early
                 addedItems.Clear();
-                CurrentInvoice = null;
-                _sessionItems.Clear();
                 dataGridView1.Rows.Clear();
                 ClearInvoiceFields();
-                UpdateInvoiceTotals();
-                _isSaving = false;
-                btnSave.Enabled = true;
-                btnSave.Text = "🖨️ Save and Print";
 
-                var output = await _invoiceService.CreateAsync(invoiceDto);
+                // 🔹 Save + print coordination
+                try
+                {
+                    var result = await _invoiceService.CreateAsync(invoiceDto);
 
-                // call invoice print generator
-                // output.Data.FBRInvoiceNumber
-                if (output.StatusCode == ApiStatusCode.Success)
-                {
-                    WindowsLocalAppNotification.Show("Success", output.Message);
-                    AlertManager.ShowSuccess(output.Message);
-                    _ = CreateLog(output.Message, AlertType.Info);
+                    if (result.StatusCode == ApiStatusCode.Success)
+                    {
+                        // ✅ Update invoice DTO with FBR invoice number
+                        invoiceDto.FBRInvoiceNumber = invoiceDto.FBRInvoiceNumber;
+
+                        AlertManager.ShowSuccess($"Invoice number {invoiceDto.FBRInvoiceNumber} synced successfully.");
+                        _ = CreateLog($"Invoice number {invoiceDto.FBRInvoiceNumber} synced successfully.", AlertType.Info);
+                    }
+                    else
+                    {
+                        AlertManager.ShowError($"Invoice save failed: {result.Message}");
+                        ResetUI(progressTaskCts);
+                        return;
+                    }
+
+                    // ✅ Now that invoiceDto contains FBRInvoiceNumber, print it
+                    InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                    printForm.ShowDialog();
                 }
-                else
+                catch (Exception ex)
                 {
-                    WindowsLocalAppNotification.Show("Error", output.Message);
-                    AlertManager.ShowError(output.Message);
-                    _ = CreateLog(output.Message, AlertType.Error);
+                    AlertManager.ShowError($"Error saving invoice: {ex.Message}");
                 }
+                finally
+                {
+                    // 🔹 Reset after both save & print complete
+                    progressTaskCts.Cancel();
+                    await Task.Delay(300);
+
+                    progressBar.Visible = false;
+                    progressBar.Value = 0;
+
+                    btnSave.Enabled = true;
+                    btnSave.Text = "🖨️ Save and Print";
+                    _isSaving = false;
+                }
+
             }
             catch (Exception ex)
             {
-                WindowsLocalAppNotification.Show("Error", $"Error saving invoice: {ex.Message}");
-                AlertManager.ShowError($"Error saving invoice: {ex.Message}");
-                _ = CreateLog("Error saving invoice", AlertType.Error);
-            }
-            finally
-            {
-                _isSaving = false;
-                btnSave.Enabled = true;
-                btnSave.Text = "🖨️ Save and Print";
+                AlertManager.ShowError($"Error: {ex.Message}");
+                ResetUI(progressTaskCts);
             }
         }
+
+        private void ResetUI(CancellationTokenSource cts)
+        {
+            cts.Cancel();
+            progressBar.Visible = false;
+            progressBar.Value = 0;
+            btnSave.Enabled = true;
+            btnSave.Text = "🖨️ Save and Print";
+            _isSaving = false;
+        }
+
+
         private void BtnSave_MouseEnter(object? sender, EventArgs e)
         {
             throw new NotImplementedException();
