@@ -3,6 +3,7 @@
     public class SyncLogDto
     {
         public long Id { get; set; }
+        public long POSID { get; set; }
         public string? Message { get; set; }
         public string Type { get; set; }
         public bool IsSynced { get; set; }

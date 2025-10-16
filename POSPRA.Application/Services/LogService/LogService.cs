@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
@@ -24,6 +25,7 @@ namespace POSPRA.Application.Services.LogService
         private readonly AutoMapper.IMapper _mapper;
         private readonly ILogSQLServerRepository _logSQLServerRepository;
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
+        private readonly AppSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogService"/>.
@@ -35,7 +37,8 @@ namespace POSPRA.Application.Services.LogService
             IHttpContextAccessor httpContextAccessor,
             AutoMapper.IMapper mapper,
             ILogSQLServerRepository logSQLServerRepository,
-            ISqlServerUnitOfWork sqlServerUnitOfWork)
+            ISqlServerUnitOfWork sqlServerUnitOfWork,
+            IOptions<AppSettings> options)
         {
             _logSQLiteRepository = logSQLiteRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
@@ -43,6 +46,7 @@ namespace POSPRA.Application.Services.LogService
             _mapper = mapper;
             _logSQLServerRepository = logSQLServerRepository;
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
+            _settings = options.Value;
         }
 
         public async Task<ApiResponse<List<LogDto>>> GetAllCloudAsync()
@@ -144,6 +148,7 @@ namespace POSPRA.Application.Services.LogService
 
             // ensure timestamps always set
             model.CreatedAtPk = DateTime.Now;
+            model.POSID = _settings.POS;
 
             try
             {
