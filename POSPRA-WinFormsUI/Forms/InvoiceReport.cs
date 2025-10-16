@@ -122,7 +122,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             byte[] logo = LoadCompanyLogo();
             byte[] praLogo = LoadPraLogo();
-            byte[] qr = GenerateQRCode(dto.USIN);
+            byte[] qr = GenerateQRCode(dto.BuyerNTN);
 
             var headerRow = headerTable.NewRow();
             headerRow["BusinessName"] = dto.BuyerName;
