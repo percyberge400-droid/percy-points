@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
@@ -18,24 +16,19 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
     {
         private readonly HttpService _http;
         private readonly string _baseUrl;
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IWorkerLogService _workerLogService;
         private readonly ILogService _logService;
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
         private readonly IMapper _mapper;
 
-        public SendLogToCloudService(IServiceScopeFactory scopeFactory,
+        public SendLogToCloudService(
             HttpService http,
             IOptions<AppSettings> options
 ,
-            IWorkerLogService workerLogService,
             ILogService logService,
             IMapper mapper)
         {
-            _scopeFactory = scopeFactory;
             _http = http;
             _baseUrl = options.Value.BaseUrl;
-            _workerLogService = workerLogService;
             _logService = logService;
             _mapper = mapper;
         }
@@ -49,9 +42,7 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
         {
             try
             {
-                using var readScope = _scopeFactory.CreateScope();
-                var logService = readScope.ServiceProvider.GetRequiredService<ILogService>();
-                var response = await logService.GetAllUnsyncLogs();
+                var response = await _logService.GetAllUnsyncLogs();
 
                 if (response.StatusCode == ApiStatusCode.Success)
                 {
@@ -65,9 +56,7 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
                     if (logDtos.Count > 0)
                     {
                         var logs = _mapper.Map<List<Logs>>(logDtos);
-                        using var updateScope = _scopeFactory.CreateScope();
-                        var log = updateScope.ServiceProvider.GetRequiredService<ILogService>();
-                        await log.UpdateLog(logs);
+                        await _logService.UpdateLog(logs);
                     }
                 }
                 else if (response.StatusCode != ApiStatusCode.NotFound)

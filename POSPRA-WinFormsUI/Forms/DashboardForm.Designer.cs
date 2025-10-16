@@ -373,7 +373,7 @@ namespace POSPRA_WinFormsUI.Forms
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(400, 25);
             progressBar.Step = 1;
-            progressBar.Style = ProgressBarStyle.Marquee;
+            progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.TabIndex = 0;
             progressBar.Visible = false;
             // 

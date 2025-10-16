@@ -1,4 +1,5 @@
-﻿using POSPRA.Application.Services.FileRecordService;
+﻿using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
@@ -15,6 +16,7 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly IFileRecordService _fileRecordService;
         private readonly ILogService _logService;
         private readonly IInvoiceService _invoiceService;
+        private readonly ISendLogToCloudService _sendLogToCloudService;
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
 
@@ -42,8 +44,7 @@ namespace POSPRA_WinFormsUI.Forms
         private DateTime _lastRefreshTime = DateTime.Now;
 
         private int _printingRowIndex = -1;
-
-        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService)
+        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService, ISendLogToCloudService sendLogToCloudService)
         {
             InitializeComponent();
 
@@ -52,6 +53,7 @@ namespace POSPRA_WinFormsUI.Forms
             this.Load += DashboardForm_Load;
             _provider = provider;
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+            _sendLogToCloudService = sendLogToCloudService;
 
             FormBorderStyle = FormBorderStyle.None;
             ControlBox = false;
@@ -874,15 +876,67 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         // Sync Logs Button
         // ----------------------------------------
+        //private async void btnSyncLogs_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        // Get cloud logs
+        //        var cloudResponse = await _logService.GetAllCloudAsync();
+        //        LogsDataGridView.Rows.Clear();
+
+        //        if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
+        //        {
+        //            WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
+        //            AlertManager.ShowWarning("No synced logs available to display");
+        //            return;
+        //        }
+
+        //        // Get local logs
+        //        var localResponse = await _logService.GetAllAsync();
+
+        //        // Merge and remove duplicates
+        //        var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
+
+        //        // Pass merged logs to loader
+        //        await LoadAndShowLogsAsync(mergedLogs);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
+        //        AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+        //    }
+        //}
+
+        //private List<LogDto> MergeLogs(IEnumerable<LogDto>? localLogs, IEnumerable<LogDto>? cloudLogs)
+        //{
+        //    var merged = new List<LogDto>();
+
+        //    if (localLogs != null)
+        //        merged.AddRange(localLogs);
+
+        //    if (cloudLogs != null)
+        //        merged.AddRange(cloudLogs);
+
+        //    // Deduplicate based on Message, Type, and Timestamp
+        //    var deduped = merged
+        //        .GroupBy(l => new
+        //        {
+        //            Message = l.Message?.Trim() ?? "",
+        //            Type = l.Type?.Trim() ?? "",
+        //            Timestamp = l.CreatedAtPk.ToString("yyyy-MM-dd HH:mm:ss")
+        //        })
+        //        .Select(g => g.First())
+        //        .OrderByDescending(l => l.CreatedAtPk)
+        //        .ToList();
+
+        //    return deduped;
+        //}
+
         private async void btnSyncLogs_Click(object sender, EventArgs e)
         {
-            // Disable button immediately to prevent multiple clicks
-            btnSyncLogs.Enabled = false;
-            btnSyncLogs.Text = "Syncing...";
-
             try
             {
-                // Get cloud logs
+                // ✅ Get cloud logs
                 var cloudResponse = await _logService.GetAllCloudAsync();
                 LogsDataGridView.Rows.Clear();
 
@@ -893,21 +947,19 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                // Get local logs
+                // ✅ Get local logs
                 var localResponse = await _logService.GetAllAsync();
 
-                // Merge and remove duplicates
+                // ✅ Merge and remove duplicates
                 var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
 
-                // Pass merged logs to loader
+                // ✅ Pass merged logs to loader
                 await LoadAndShowLogsAsync(mergedLogs);
-
-                AlertManager.ShowSuccess("Logs synced successfully");
             }
             catch (Exception ex)
             {
-                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading synced logs: {ex.Message}");
-                AlertManager.ShowError($"Error loading synced logs: {ex.Message}");
+                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
+                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
             }
             finally
             {
@@ -927,7 +979,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (cloudLogs != null)
                 merged.AddRange(cloudLogs);
 
-            // Deduplicate based on Message, Type, and Timestamp
+            // ✅ Deduplicate based on Message, Type, and Timestamp
             var deduped = merged
                 .GroupBy(l => new
                 {
@@ -1523,124 +1575,105 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
+            if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index) return;
+
+            var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+            var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
+            if (!_printLinkBounds.Contains(mousePos)) return;
+
+            var row = InvoicesDataGridView.Rows[e.RowIndex];
+            var invoiceNumber = row.Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
+
+            // Save original visuals
+            var origBack = row.DefaultCellStyle.BackColor;
+            var origSelectionBack = row.DefaultCellStyle.SelectionBackColor;
+            var origPrintText = row.Cells["colPrint"].Value?.ToString() ?? "Print";
+
+            // Show progress UI
+            try
             {
-                // Get the actual mouse position
-                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
-                var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
+                row.DefaultCellStyle.BackColor = Color.LightGray;
+                row.DefaultCellStyle.SelectionBackColor = Color.Gray;
+                row.Cells["colPrint"].Value = "Printing...";
+                InvoicesDataGridView.Refresh();
 
-                // Check if click is within the text bounds
-                if (_printLinkBounds.Contains(mousePos))
+                if (progressBar != null)
                 {
-                    var invoiceNumber = InvoicesDataGridView.Rows[e.RowIndex].Cells["colInvoiceNumber"].Value?.ToString() ?? "N/A";
+                    CenterProgressBar();
+                    progressBar.Style = ProgressBarStyle.Marquee;
+                    progressBar.MarqueeAnimationSpeed = 30;
+                    progressBar.Visible = true;
+                    progressBar.BringToFront();
+                    progressBar.Refresh();
+                }
 
+                InvoicesDataGridView.Enabled = false;
+                this.Cursor = Cursors.WaitCursor;
+
+                // Fetch invoice data on background thread
+                var response = await Task.Run(() => _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
+
+                if (response?.Data == null)
+                {
+                    MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Create the form instance on the new STA thread and run it with its own message loop
+                var tcs = new TaskCompletionSource<object?>();
+
+                Thread printThread = new Thread(() =>
+                {
                     try
                     {
-                        // Set printing state
-                        _printingRowIndex = e.RowIndex;
-
-                        // Change row appearance to grey and update text
-                        var row = InvoicesDataGridView.Rows[e.RowIndex];
-                        row.DefaultCellStyle.BackColor = Color.LightGray;
-                        row.DefaultCellStyle.SelectionBackColor = Color.Gray;
-
-                        // Force refresh of the Print cell
-                        InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
-                        Application.DoEvents(); // Force UI update
-
-                        // Show and center loader
-                        if (progressBar != null)
+                        // Create form on this thread
+                        using (var printForm = new InvoiceReport(response.Data))
                         {
-                            CenterProgressBar(); // Ensure proper positioning
-                            progressBar.Style = ProgressBarStyle.Marquee;
-                            progressBar.MarqueeAnimationSpeed = 30;
-                            progressBar.Visible = true;
-                            progressBar.BringToFront();
-                            progressBar.Refresh(); // Force immediate display
-                            Application.DoEvents(); // Process UI events
+                            // When the form closes, complete the TCS
+                            printForm.FormClosed += (s, args) => tcs.TrySetResult(null);
+
+                            // Start a message loop for this thread
+                            Application.Run(printForm);
                         }
-
-                        // Disable the grid to prevent multiple clicks
-                        InvoicesDataGridView.Enabled = false;
-                        this.Cursor = Cursors.WaitCursor; // Show wait cursor
-
-                        // Small delay to ensure UI updates are visible
-                        await Task.Delay(100);
-
-                        // Call invoice print generator
-                        var response = await _invoiceService.GetInvoiceWithItems(invoiceNumber);
-
-                        if (response == null)
-                        {
-                            // Hide loader before showing error dialog
-                            if (progressBar != null)
-                            {
-                                progressBar.Visible = false;
-                                progressBar.Style = ProgressBarStyle.Continuous;
-                            }
-
-                            InvoicesDataGridView.Enabled = true;
-                            this.Cursor = Cursors.Default;
-
-                            MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
-                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            return;
-                        }
-
-                        // Keep loader visible while creating the print form
-                        InvoiceReport printForm = null;
-                        await Task.Run(() =>
-                        {
-                            // Create the form on UI thread
-                            this.Invoke(new Action(() =>
-                            {
-                                printForm = new InvoiceReport(response.Data);
-                            }));
-                        });
-
-                        // Hide loader AFTER form is created but BEFORE showing it
-                        if (progressBar != null)
-                        {
-                            progressBar.Visible = false;
-                            progressBar.Style = ProgressBarStyle.Continuous;
-                        }
-
-                        // Re-enable grid and restore cursor
-                        InvoicesDataGridView.Enabled = true;
-                        this.Cursor = Cursors.Default;
-
-                        // Now show the print dialog
-                        printForm?.ShowDialog();
-
-                        // Print successful - reset row appearance
-                        row.DefaultCellStyle.BackColor = Color.White;
-                        row.DefaultCellStyle.SelectionBackColor = Color.FromArgb(59, 130, 246);
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Error printing invoice: {ex.Message}", "Print Error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        tcs.TrySetException(ex);
                     }
-                    finally
-                    {
-                        // Always hide loader and reset state
-                        if (progressBar != null)
-                        {
-                            progressBar.Visible = false;
-                            progressBar.Style = ProgressBarStyle.Continuous;
-                        }
+                });
 
-                        // Re-enable grid if not already enabled
-                        InvoicesDataGridView.Enabled = true;
-                        this.Cursor = Cursors.Default; // Restore cursor
+                printThread.SetApartmentState(ApartmentState.STA);
+                printThread.IsBackground = true; // won't prevent process exit
+                printThread.Start();
 
-                        // Reset printing state
-                        _printingRowIndex = -1;
-                        InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
-                    }
+                // await the form closing
+                await tcs.Task;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error printing invoice: {ex.Message}", "Print Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Restore visuals and UI state
+                row.DefaultCellStyle.BackColor = origBack;
+                row.DefaultCellStyle.SelectionBackColor = origSelectionBack;
+                row.Cells["colPrint"].Value = origPrintText;
+                InvoicesDataGridView.Enabled = true;
+                this.Cursor = Cursors.Default;
+
+                if (progressBar != null)
+                {
+                    progressBar.Visible = false;
+                    progressBar.Style = ProgressBarStyle.Continuous;
                 }
+
+                InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
             }
         }
+
 
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
@@ -1854,6 +1887,7 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     e.PaintBackground(e.CellBounds, true);
 
+                    // ✅ Fixed badge width, dynamic badge height
                     int badgeWidth = 120;
                     int padding = 8;
                     int badgeHeight = e.CellBounds.Height - padding;
@@ -1881,36 +1915,6 @@ namespace POSPRA_WinFormsUI.Forms
 
                     e.Handled = true;
                 }
-            }
-
-            // NEW: Make Message column (colMessage - index 1) bold
-            if (e.ColumnIndex == 1 && e.RowIndex >= 0)
-            {
-                e.PaintBackground(e.CellBounds, true);
-
-                string value = e.Value?.ToString() ?? "";
-
-                using (var font = new Font("Segoe UI", 10F, FontStyle.Bold))
-                using (var brush = new SolidBrush(e.CellStyle.ForeColor))
-                {
-                    var stringFormat = new StringFormat
-                    {
-                        Alignment = StringAlignment.Near,
-                        LineAlignment = StringAlignment.Center,
-                        Trimming = StringTrimming.EllipsisCharacter
-                    };
-
-                    var textRect = new RectangleF(
-                        e.CellBounds.X + 8,
-                        e.CellBounds.Y,
-                        e.CellBounds.Width - 16,
-                        e.CellBounds.Height
-                    );
-
-                    e.Graphics.DrawString(value, font, brush, textRect, stringFormat);
-                }
-
-                e.Handled = true;
             }
         }
         private System.Drawing.Drawing2D.GraphicsPath GetRoundedRect(Rectangle bounds, int radius)
