@@ -802,7 +802,7 @@ namespace POSPRA_WinFormsUI
 
             try
             {
-                // 🔹 Start smooth continuous progress animation
+                // 🔹 Smooth progress animation while save + print run
                 var progressTask = Task.Run(async () =>
                 {
                     while (!progressTaskCts.Token.IsCancellationRequested)
@@ -815,7 +815,7 @@ namespace POSPRA_WinFormsUI
                     }
                 }, progressTaskCts.Token);
 
-                // 🔹 Validate inputs
+                // 🔹 Validate
                 if (addedItems == null || !addedItems.Any())
                 {
                     AlertManager.ShowError("Please add at least one item before saving the invoice.");
@@ -830,19 +830,14 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                var confirm = MessageBox.Show(
-                    "Are you sure you want to save and print this invoice?",
-                    "Confirm Save",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (confirm != DialogResult.Yes)
+                if (MessageBox.Show("Are you sure you want to save and print this invoice?",
+                                    "Confirm Save", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 {
                     ResetUI(progressTaskCts);
                     return;
                 }
 
-                // 🔹 Prepare invoice data
+                // 🔹 Build DTOs
                 var itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
                     ItemCode = item.ItemCode,
@@ -861,7 +856,7 @@ namespace POSPRA_WinFormsUI
 
                 var invoiceDto = new InvoiceDto
                 {
-                    POSID = int.TryParse(posid.Text, out var bposId) ? bposId : 0,
+                    POSID = int.TryParse(posid.Text, out var posId) ? posId : 0,
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = (byte)GetSelectedInvoiceType(),
@@ -880,49 +875,53 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
-                // 🔹 Clear UI early to make system ready for new invoice
+                // 🔹 Clear UI early
                 addedItems.Clear();
                 dataGridView1.Rows.Clear();
                 ClearInvoiceFields();
 
-                // 🔹 Start background save task (non-blocking)
-                _ = Task.Run(async () =>
+                // 🔹 Save + print coordination
+                try
                 {
-                    try
-                    {
-                        var result = await _invoiceService.CreateAsync(invoiceDto);
-                        this.Invoke(new Action(() =>
-                        {
-                            if (result.StatusCode == ApiStatusCode.Success)
-                                AlertManager.ShowSuccess(result.Message);
-                            else
-                                AlertManager.ShowError(result.Message);
-                        }));
-                    }
-                    catch (Exception ex)
-                    {
-                        this.Invoke(new Action(() =>
-                            AlertManager.ShowError($"Error saving invoice: {ex.Message}")
-                        ));
-                    }
-                });
+                    var result = await _invoiceService.CreateAsync(invoiceDto);
 
-                // 🔹 Start print dialog while saving happens in background
-                InvoiceReport printForm = new InvoiceReport(invoiceDto);
-                printForm.ShowDialog();
+                    if (result.StatusCode == ApiStatusCode.Success)
+                    {
+                        // ✅ Update invoice DTO with FBR invoice number
+                        invoiceDto.FBRInvoiceNumber = invoiceDto.FBRInvoiceNumber;
 
-                // 🔹 After print completes, stop progress and reset UI
-                progressTaskCts.Cancel();
-                this.Invoke(new Action(async () =>
+                        AlertManager.ShowSuccess($"Invoice number {invoiceDto.FBRInvoiceNumber} synced successfully.");
+                        _ = CreateLog($"Invoice number {invoiceDto.FBRInvoiceNumber} synced successfully.", AlertType.Info);
+                    }
+                    else
+                    {
+                        AlertManager.ShowError($"Invoice save failed: {result.Message}");
+                        ResetUI(progressTaskCts);
+                        return;
+                    }
+
+                    // ✅ Now that invoiceDto contains FBRInvoiceNumber, print it
+                    InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                    printForm.ShowDialog();
+                }
+                catch (Exception ex)
                 {
-                    progressBar.Value = 100;
+                    AlertManager.ShowError($"Error saving invoice: {ex.Message}");
+                }
+                finally
+                {
+                    // 🔹 Reset after both save & print complete
+                    progressTaskCts.Cancel();
                     await Task.Delay(300);
+
                     progressBar.Visible = false;
                     progressBar.Value = 0;
+
                     btnSave.Enabled = true;
                     btnSave.Text = "🖨️ Save and Print";
                     _isSaving = false;
-                }));
+                }
+
             }
             catch (Exception ex)
             {
@@ -940,6 +939,7 @@ namespace POSPRA_WinFormsUI
             btnSave.Text = "🖨️ Save and Print";
             _isSaving = false;
         }
+
 
         private void BtnSave_MouseEnter(object? sender, EventArgs e)
         {
