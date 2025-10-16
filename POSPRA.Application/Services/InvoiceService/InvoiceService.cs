@@ -11,6 +11,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.FileRecordRepository;
 using System.Text;
 using System.Text.Json;
@@ -28,6 +29,7 @@ namespace POSPRA.Application.Services.InvoiceService
         private readonly ILiveService _liveService;
         private readonly IFileRecordService _fileRecordService;
         private readonly ILogService _logService;
+        private readonly SqlServerRepository<Invoice> _invoiceRepository;
 
         public InvoiceService(IMapper mapper,
             IOptions<AppSettings> options,
@@ -36,7 +38,8 @@ namespace POSPRA.Application.Services.InvoiceService
             ILiveService liveService,
             IFileRecordService fileRecordService,
             ILogService logService,
-            IFileRecordRepository fileRecordRepository)
+            IFileRecordRepository fileRecordRepository,
+            SqlServerRepository<Invoice> invoiceRepository)
         {
             _mapper = mapper;
             _settings = options.Value;
@@ -46,6 +49,7 @@ namespace POSPRA.Application.Services.InvoiceService
             _fileRecordService = fileRecordService;
             _logService = logService;
             _fileRecordRepository = fileRecordRepository;
+            _invoiceRepository = invoiceRepository;
         }
 
         public async Task<ApiResponse<InvoiceDto>> GetInvoiceWithItems(string invoiceNumber)
@@ -132,15 +136,23 @@ namespace POSPRA.Application.Services.InvoiceService
                 // ✅ 3. Try to sync with live if internet is available
                 if (await _networkService.IsInternetAvailableAsync())
                 {
-                    var liveResponse = await _liveService.CreateInvoiceWithItemsAsync(dto);
-                    if (liveResponse.StatusCode == ApiStatusCode.Success)
+                    dto.FBRInvoiceNumber = invoiceEntity.FBRInvoiceNumber;
+                    if (dto.FBRInvoiceNumber != null)
                     {
-                        var record = await _fileRecordService.GetByInvoiceIdAsync(fiscalResponse.Data.InvoiceId);
-                        if (record.StatusCode == ApiStatusCode.Success)
+                        var isInvoiceExist = await isCloudInvoiceExists(invoiceEntity.FBRInvoiceNumber);
+                        if (!isInvoiceExist)
                         {
-                            record.Data.IsSynced = (int)InvoiceStatus.Synced;
+                            var liveResponse = await _liveService.CreateInvoiceWithItemsAsync(dto);
+                            if (liveResponse.StatusCode == ApiStatusCode.Success)
+                            {
+                                var record = await _fileRecordService.GetByInvoiceIdAsync(fiscalResponse.Data.InvoiceId);
+                                if (record.StatusCode == ApiStatusCode.Success)
+                                {
+                                    record.Data.IsSynced = (int)InvoiceStatus.Synced;
 
-                            await _fileRecordService.UpdateFileRecordAsync(record.Data);
+                                    await _fileRecordService.UpdateFileRecordAsync(record.Data);
+                                }
+                            }
                         }
                     }
                 }
@@ -150,7 +162,7 @@ namespace POSPRA.Application.Services.InvoiceService
                     isValid ? ApiStatusCode.Success : ApiStatusCode.Error,
                     isValid ? ResponseMessages.RecordSaved : "Invoice saved but failed validation",
                     null,
-                    isValid ? string.Empty : string.Join(" | ", validation.ErrorMessages)
+                    isValid ? string.Empty : string.Join(" | ", string.Empty)
                 );
             }
             catch (Exception ex)
@@ -166,7 +178,10 @@ namespace POSPRA.Application.Services.InvoiceService
             ApiResponse<InvoiceDto> ErrorResponse(string msg, string err = "") =>
                 new(ApiStatusCode.Error, msg, null, err);
         }
-
+        private async Task<bool> isCloudInvoiceExists(string invoiceNumber)
+        {
+            return await _invoiceRepository.ExistsAsync(x => x.FBRInvoiceNumber == invoiceNumber);
+        }
         /// <summary>
         /// Generates a fiscal invoice by serializing, signing, and encrypting
         /// the invoice data. It then inserts the encrypted invoice into the database.
@@ -182,8 +197,8 @@ namespace POSPRA.Application.Services.InvoiceService
             {
                 //var posId = _requestHeaderService.GetPosId();
                 // 1️ Generate invoice number
-                string invoiceNumber = GlobalMethods.InvoiceNumber(123111);
-                //invoice.InvoiceNumber = invoiceNumber;
+                string invoiceNumber = GlobalMethods.InvoiceNumber(_settings.POS);
+                invoice.FBRInvoiceNumber = invoiceNumber;
 
                 // 2️ Serialize invoice
                 string invoiceData = JsonConvert.SerializeObject(invoice);
