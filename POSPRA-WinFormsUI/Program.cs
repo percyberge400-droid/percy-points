@@ -2,9 +2,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.ConfigurationService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
@@ -105,11 +107,16 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
             services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+            services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
+
+
             services.AddScoped<IConfigurationService, ConfigurationService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddSingleton<IConfiguration>(configuration);
+            services.AddHttpClient<HttpService>();
+
             services.AddHttpContextAccessor();
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
             services.AddHttpClient();

@@ -1,4 +1,5 @@
-﻿using POSPRA.Application.Services.FileRecordService;
+﻿using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs.LogDtos;
@@ -15,6 +16,7 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly IFileRecordService _fileRecordService;
         private readonly ILogService _logService;
         private readonly IInvoiceService _invoiceService;
+        private readonly ISendLogToCloudService _sendLogToCloudService;
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
 
@@ -41,7 +43,7 @@ namespace POSPRA_WinFormsUI.Forms
         private int _lastLogCount = 0;
         private DateTime _lastRefreshTime = DateTime.Now;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService)
+        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService, ISendLogToCloudService sendLogToCloudService)
         {
             InitializeComponent();
 
@@ -50,6 +52,7 @@ namespace POSPRA_WinFormsUI.Forms
             this.Load += DashboardForm_Load;
             _provider = provider;
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+            _sendLogToCloudService = sendLogToCloudService;
 
             FormBorderStyle = FormBorderStyle.None;
             ControlBox = false;
@@ -872,61 +875,83 @@ namespace POSPRA_WinFormsUI.Forms
         // ----------------------------------------
         // Sync Logs Button
         // ----------------------------------------
+        //private async void btnSyncLogs_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        // Get cloud logs
+        //        var cloudResponse = await _logService.GetAllCloudAsync();
+        //        LogsDataGridView.Rows.Clear();
+
+        //        if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
+        //        {
+        //            WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
+        //            AlertManager.ShowWarning("No synced logs available to display");
+        //            return;
+        //        }
+
+        //        // Get local logs
+        //        var localResponse = await _logService.GetAllAsync();
+
+        //        // Merge and remove duplicates
+        //        var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
+
+        //        // Pass merged logs to loader
+        //        await LoadAndShowLogsAsync(mergedLogs);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
+        //        AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+        //    }
+        //}
+
+        //private List<LogDto> MergeLogs(IEnumerable<LogDto>? localLogs, IEnumerable<LogDto>? cloudLogs)
+        //{
+        //    var merged = new List<LogDto>();
+
+        //    if (localLogs != null)
+        //        merged.AddRange(localLogs);
+
+        //    if (cloudLogs != null)
+        //        merged.AddRange(cloudLogs);
+
+        //    // Deduplicate based on Message, Type, and Timestamp
+        //    var deduped = merged
+        //        .GroupBy(l => new
+        //        {
+        //            Message = l.Message?.Trim() ?? "",
+        //            Type = l.Type?.Trim() ?? "",
+        //            Timestamp = l.CreatedAtPk.ToString("yyyy-MM-dd HH:mm:ss")
+        //        })
+        //        .Select(g => g.First())
+        //        .OrderByDescending(l => l.CreatedAtPk)
+        //        .ToList();
+
+        //    return deduped;
+        //}
+
         private async void btnSyncLogs_Click(object sender, EventArgs e)
         {
+            btnSyncLogs.Enabled = false;
+            btnSyncLogs.Text = "Syncing...";
             try
             {
-                // Get cloud logs
-                var cloudResponse = await _logService.GetAllCloudAsync();
-                LogsDataGridView.Rows.Clear();
-
-                if (cloudResponse?.Data == null || !cloudResponse.Data.Any())
-                {
-                    WindowsLocalAppNotification.Show("Logs", "No synced logs available to display");
-                    AlertManager.ShowWarning("No synced logs available to display");
-                    return;
-                }
-
-                // Get local logs
-                var localResponse = await _logService.GetAllAsync();
-
-                // Merge and remove duplicates
-                var mergedLogs = MergeLogs(localResponse?.Data, cloudResponse.Data);
-
-                // Pass merged logs to loader
-                await LoadAndShowLogsAsync(mergedLogs);
+                await _sendLogToCloudService.SyncLogAsync();
             }
             catch (Exception ex)
             {
-                WindowsLocalAppNotification.Show("Synced Logs Error", $"Error loading Synced logs: {ex.Message}");
-                AlertManager.ShowError($"Error loading Synced logs: {ex.Message}");
+                AlertManager.ShowError($"Error syncing logs: {ex.Message}");
+                WindowsLocalAppNotification.Show("Logs Sync Error", $"Error syncing logs: {ex.Message}");
+            }
+            finally
+            {
+                // Re-enable button
+                btnSyncLogs.Enabled = true;
+                btnSyncLogs.Text = "Sync Logs";
             }
         }
 
-        private List<LogDto> MergeLogs(IEnumerable<LogDto>? localLogs, IEnumerable<LogDto>? cloudLogs)
-        {
-            var merged = new List<LogDto>();
-
-            if (localLogs != null)
-                merged.AddRange(localLogs);
-
-            if (cloudLogs != null)
-                merged.AddRange(cloudLogs);
-
-            // Deduplicate based on Message, Type, and Timestamp
-            var deduped = merged
-                .GroupBy(l => new
-                {
-                    Message = l.Message?.Trim() ?? "",
-                    Type = l.Type?.Trim() ?? "",
-                    Timestamp = l.CreatedAtPk.ToString("yyyy-MM-dd HH:mm:ss")
-                })
-                .Select(g => g.First())
-                .OrderByDescending(l => l.CreatedAtPk)
-                .ToList();
-
-            return deduped;
-        }
 
 
         // ----------------------------------------
