@@ -55,7 +55,7 @@ namespace POSPRA.API.Middlewares
             var dto = new ClientValidationDto { Token = token, PosId = posId, MacAddress = mac };
             var validationResult = await clientService.GetByMacAsync(dto);
 
-            if (!validationResult.Data)
+            if (validationResult.Data is null)
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 await context.Response.WriteAsJsonAsync(validationResult);
