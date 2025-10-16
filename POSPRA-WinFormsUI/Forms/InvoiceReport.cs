@@ -122,10 +122,16 @@ namespace POSPRA_WinFormsUI.Forms
 
             byte[] logo = LoadCompanyLogo();
             byte[] praLogo = LoadPraLogo();
-            byte[] qr = GenerateQRCode(dto.USIN);
+            byte[] qr = GenerateQRCode(dto.FBRInvoiceNumber);
 
             var headerRow = headerTable.NewRow();
-            headerRow["BusinessName"] = dto.BuyerName;
+            string businessname = ConfigurationManager.AppSettings["businessName"];
+            if (!string.IsNullOrEmpty(businessname))
+                businessname = businessname;
+            headerRow["BusinessName"] = businessname;
+            //string branchname = ConfigurationManager.AppSettings["branchName"];
+            //if (!string.IsNullOrEmpty(branchname))
+            //    branchname = branchname;
             headerRow["DateCreated"] = dto.DateTime;
             string paymentModeText = dto.PaymentMode switch
             {
@@ -135,12 +141,12 @@ namespace POSPRA_WinFormsUI.Forms
                 _ => "N/A"
             };
             headerRow["ModeOfPayment"] = paymentModeText;
-            //headerRow["ModeOfPayment"] = dto.PaymentMode.ToString() ?? "N/A";
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
-            headerRow["Address"] = dto.BuyerName;// + ", City, Pakistan";
+            string address = ConfigurationManager.AppSettings["branchAddress"];
+            headerRow["Address"] = address; //dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerTable.Rows.Add(headerRow);
 
@@ -166,7 +172,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private byte[] LoadCompanyLogo()
         {
-            string logoKey = ConfigurationManager.AppSettings["LOGO"];
+            string logoKey = ConfigurationManager.AppSettings["BusinessLOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
                 var res = Resources.ResourceManager.GetObject(logoKey);
@@ -181,8 +187,6 @@ namespace POSPRA_WinFormsUI.Forms
             }
             return SafeReadImage(logoKey);
         }
-
-
 
 
         private byte[] LoadPraLogo()

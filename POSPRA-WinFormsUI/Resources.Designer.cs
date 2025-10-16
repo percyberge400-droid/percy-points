@@ -311,5 +311,13 @@ namespace POSPRA_WinFormsUI {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        internal static System.Drawing.Bitmap pra_Comp_logo
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("pra_Comp_logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
