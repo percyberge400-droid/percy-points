@@ -753,7 +753,7 @@
         <Style>
           <Border>
             <Style>Solid</Style>
-            <Width>0.5pt</Width>
+            <Width>0.3pt</Width>
           </Border>
           <PaddingTop>1pt</PaddingTop>
         </Style>
@@ -789,7 +789,7 @@
         <Style>
           <Border>
             <Style>Solid</Style>
-            <Width>0.5pt</Width>
+            <Width>0.3pt</Width>
           </Border>
           <PaddingTop>1pt</PaddingTop>
         </Style>
@@ -825,7 +825,7 @@
         <Style>
           <Border>
             <Style>Solid</Style>
-            <Width>0.5pt</Width>
+            <Width>0.3pt</Width>
           </Border>
           <PaddingTop>1pt</PaddingTop>
         </Style>
@@ -861,7 +861,7 @@
         <Style>
           <Border>
             <Style>Solid</Style>
-            <Width>0.5pt</Width>
+            <Width>0.3pt</Width>
           </Border>
           <PaddingTop>1pt</PaddingTop>
         </Style>
@@ -897,7 +897,7 @@
         <Style>
           <Border>
             <Style>Solid</Style>
-            <Width>0.5pt</Width>
+            <Width>0.3pt</Width>
           </Border>
           <PaddingTop>1pt</PaddingTop>
         </Style>
