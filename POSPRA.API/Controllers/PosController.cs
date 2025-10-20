@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.PosService;
 
 namespace POSPRA.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PosController(IPosService posService) : ControllerBase
+    public class PosController(IPosService posService, IRequestHeaderService requestHeaderService) : ControllerBase
     {
         private readonly IPosService _posService = posService;
-
+        private readonly IRequestHeaderService _requestHeaderService = requestHeaderService;
         /// <summary>
         ///Get the heartbeat of POS System
         /// </summary>
@@ -18,7 +19,8 @@ namespace POSPRA.API.Controllers
         [HttpPost("HeartBeat")]
         public async Task<IActionResult> HeartBeat()
         {
-            var response = await _posService.UpdateHeartBeatAsync();
+            var posId = _requestHeaderService.GetPosId();
+            var response = await _posService.UpdateHeartBeatAsync(posId);
             return Ok(response);
         }
 

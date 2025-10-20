@@ -1,5 +1,6 @@
 ﻿using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
+using POSPRA.DTOs.ClientDtos;
 using POSPRA.DTOs.PosDtos;
 
 namespace POSPRA.Application.Services.PosService
@@ -9,7 +10,7 @@ namespace POSPRA.Application.Services.PosService
     /// </summary>
     public interface IPosService
     {
-        Task<ApiResponse<string>> UpdateHeartBeatAsync();
+        Task<ApiResponse<HeartBeatDto>> UpdateHeartBeatAsync(int posId);
         Task<ApiResponse<List<PosConfigurationDto>>> GetConfigurationsAsync();
         Task<ApiResponse<List<PosStatus>>> InsertPosStatusAsync();
     }

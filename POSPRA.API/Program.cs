@@ -60,7 +60,7 @@ namespace POSPRA.API
             // IIS hosting will ignore this and use web.config instead,
             // self-hosting will respect it.
             //----------------------------------------------------
-            builder.WebHost.UseUrls("http://localhost:5003");
+            builder.WebHost.UseUrls("http://localhost:5010");
 
             //----------------------------------------------------
             // 🔧 Controllers

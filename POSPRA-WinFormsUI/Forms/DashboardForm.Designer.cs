@@ -94,6 +94,8 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView = new DataGridView();
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();
+            lblLastSync = new Label();
+            lblHeartbeat = new Label();
             btnSyncLogs = new Button();
             btnExportLogs = new Button();
             LogsDataGridView = new DataGridView();
@@ -498,6 +500,8 @@ namespace POSPRA_WinFormsUI.Forms
             // panelLogs
             // 
             panelLogs.BackColor = Color.White;
+            panelLogs.Controls.Add(lblLastSync);
+            panelLogs.Controls.Add(lblHeartbeat);
             panelLogs.Controls.Add(btnSyncLogs);
             panelLogs.Controls.Add(btnExportLogs);
             panelLogs.Controls.Add(LogsDataGridView);
@@ -509,6 +513,24 @@ namespace POSPRA_WinFormsUI.Forms
             panelLogs.Padding = new Padding(8);
             panelLogs.Size = new Size(1135, 303);
             panelLogs.TabIndex = 1;
+            // 
+            // lblLastSync
+            // 
+            lblLastSync.AutoSize = true;
+            lblLastSync.Location = new Point(499, 27);
+            lblLastSync.Name = "lblLastSync";
+            lblLastSync.Size = new Size(279, 20);
+            lblLastSync.TabIndex = 12;
+            lblLastSync.Text = "Last Synced Invoice: 14-25-45 12:12:!2am";
+            // 
+            // lblHeartbeat
+            // 
+            lblHeartbeat.AutoSize = true;
+            lblHeartbeat.Location = new Point(499, 7);
+            lblHeartbeat.Name = "lblHeartbeat";
+            lblHeartbeat.Size = new Size(248, 20);
+            lblHeartbeat.TabIndex = 11;
+            lblHeartbeat.Text = "Last Heartbeat: 14-25-45 12:12:!2am";
             // 
             // btnSyncLogs
             // 
@@ -834,6 +856,7 @@ namespace POSPRA_WinFormsUI.Forms
         private Label label2;
         private Label label3;
         private Label label1;
-
+        private Label lblLastSync;
+        private Label lblHeartbeat;
     }
 }

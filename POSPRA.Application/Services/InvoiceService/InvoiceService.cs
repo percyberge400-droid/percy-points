@@ -134,9 +134,9 @@ namespace POSPRA.Application.Services.InvoiceService
                 }
 
                 // ✅ 3. Try to sync with live if internet is available
+                dto.FBRInvoiceNumber = invoiceEntity.FBRInvoiceNumber;
                 if (await _networkService.IsInternetAvailableAsync())
                 {
-                    dto.FBRInvoiceNumber = invoiceEntity.FBRInvoiceNumber;
                     if (dto.FBRInvoiceNumber != null)
                     {
                         var isInvoiceExist = await isCloudInvoiceExists(invoiceEntity.FBRInvoiceNumber);

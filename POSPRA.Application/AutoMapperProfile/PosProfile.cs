@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using POSPRA.Domain.Entities;
+using POSPRA.DTOs.ClientDtos;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.DTOs.LogDtos;
@@ -20,6 +21,9 @@ namespace POSPRA.Application.AutoMapperProfile
 
             CreateMap<WorkerLogDto, Logs>();
             CreateMap<Logs, WorkerLogDto>();
+
+            CreateMap<HeartBeatDto, PosClients>();
+            CreateMap<PosClients, HeartBeatDto>();
 
             CreateMap<ProductCatalogueDto, ProductCatalogue>();
             CreateMap<ProductCatalogue, ProductCatalogueDto>();

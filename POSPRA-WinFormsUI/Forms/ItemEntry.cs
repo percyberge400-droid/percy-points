@@ -59,6 +59,7 @@ namespace POSPRA_WinFormsUI
                 }
             };
 
+
             this.Load += (s, e) => CenterProgressBar();
             this.Resize += (s, e) => CenterProgressBar();
             //FixLayoutIssues();
@@ -875,11 +876,6 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
-                // 🔹 Clear UI early
-                addedItems.Clear();
-                dataGridView1.Rows.Clear();
-                ClearInvoiceFields();
-
                 // 🔹 Save + print coordination
                 try
                 {
@@ -916,7 +912,10 @@ namespace POSPRA_WinFormsUI
 
                     progressBar.Visible = false;
                     progressBar.Value = 0;
-
+                    // 🔹 Clear UI early
+                    addedItems.Clear();
+                    dataGridView1.Rows.Clear();
+                    ClearInvoiceFields();
                     btnSave.Enabled = true;
                     btnSave.Text = "🖨️ Save and Print";
                     _isSaving = false;

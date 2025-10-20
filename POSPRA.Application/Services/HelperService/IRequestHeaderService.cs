@@ -9,7 +9,7 @@
         /// Retrieves the POS (Point of Sale) ID from the request context or header.
         /// </summary>
         /// <returns>The POS ID as a long.</returns>
-        long GetPosId();
+        int GetPosId();
 
         /// <summary>
         /// Retrieves the MAC address of the current machine or request context.

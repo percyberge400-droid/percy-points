@@ -21,8 +21,6 @@
             loginBox = new Panel();
             btnClose = new Button();
             pictureBox2 = new PictureBox();
-            label4 = new Label();
-            label5 = new Label();
             label3 = new Label();
             label2 = new Label();
             label1 = new Label();
@@ -65,8 +63,6 @@
             loginBox.BackColor = Color.Transparent;
             loginBox.Controls.Add(btnClose);
             loginBox.Controls.Add(pictureBox2);
-            loginBox.Controls.Add(label4);
-            loginBox.Controls.Add(label5);
             loginBox.Controls.Add(label3);
             loginBox.Controls.Add(label2);
             loginBox.Controls.Add(label1);
@@ -86,7 +82,7 @@
             btnClose.FlatStyle = FlatStyle.Flat;
             btnClose.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnClose.ForeColor = Color.FromArgb(48, 59, 78);
-            btnClose.Location = new Point(323, 33);
+            btnClose.Location = new Point(339, 12);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(30, 30);
             btnClose.TabIndex = 11;
@@ -96,37 +92,12 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox2.Image = Resources.posComponentWhite;
-            pictureBox2.Location = new Point(82, 97);
+            pictureBox2.Location = new Point(62, 102);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(53, 59);
-            pictureBox2.SizeMode = PictureBoxSizeMode.AutoSize;
+            pictureBox2.Size = new Size(260, 60);
+            pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox2.TabIndex = 9;
             pictureBox2.TabStop = false;
-            // 
-            // label4
-            // 
-            label4.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            label4.Font = new Font("Microsoft Sans Serif", 12F);
-            label4.ForeColor = Color.White;
-            label4.Location = new Point(146, 126);
-            label4.Name = "label4";
-            label4.Size = new Size(149, 30);
-            label4.TabIndex = 10;
-            label4.Text = "COMPONENT";
-            label4.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // label5
-            // 
-            label5.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            label5.Font = new Font("Microsoft Sans Serif", 12F);
-            label5.ForeColor = Color.White;
-            label5.Location = new Point(146, 103);
-            label5.Name = "label5";
-            label5.Size = new Size(64, 23);
-            label5.TabIndex = 8;
-            label5.Text = "POS";
-            label5.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label3
             // 
@@ -368,8 +339,6 @@
         private Panel leftPanel;
         private Label label3;
         private PictureBox pictureBox2;
-        private Label label4;
-        private Label label5;
         private PictureBox pictureBox1;
         private Label label8;
         private Label label7;

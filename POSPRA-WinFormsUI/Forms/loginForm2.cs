@@ -47,6 +47,17 @@ namespace POSPRA_WinFormsUI.Forms
                     //picLogo.SizeMode = PictureBoxSizeMode.Zoom;
                 }
             }
+            string posCOMP = ConfigurationManager.AppSettings["posCOMP"];
+            if (!string.IsNullOrEmpty(posCOMP))
+            {
+                var res = Resources.ResourceManager.GetObject(posCOMP);
+                if (res is Image img)
+                {
+                    pictureBox2.Image = img;
+                    //picLogo.SizeMode = PictureBoxSizeMode.Zoom;
+                }
+            }
+
             // ✅ Make labels dynamic from App.config
             string inquiryNo = ConfigurationManager.AppSettings["generalinquiryNo"];
             string servicesNo = ConfigurationManager.AppSettings["eServicesNo"];

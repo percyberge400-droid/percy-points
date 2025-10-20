@@ -6,6 +6,7 @@ using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.ConfigurationService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
+using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
@@ -19,6 +20,7 @@ using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
+using POSPRA.Repositories.ClientRepository;
 using POSPRA.Repositories.ConfigurationRepository;
 using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
@@ -108,6 +110,9 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
             services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
             services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
+            services.AddScoped<IPosService, PosService>();
+            services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+            services.AddScoped<IClientRepository, ClientRepository>();
 
 
             services.AddScoped<IConfigurationService, ConfigurationService>();

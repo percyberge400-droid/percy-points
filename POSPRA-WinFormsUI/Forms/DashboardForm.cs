@@ -1,10 +1,14 @@
-﻿using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
+﻿using Microsoft.Extensions.DependencyInjection;
+using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Services.PosService;
 using POSPRA.DTOs.LogDtos;
+using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Text;
 namespace POSPRA_WinFormsUI.Forms
@@ -17,6 +21,10 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly ILogService _logService;
         private readonly IInvoiceService _invoiceService;
         private readonly ISendLogToCloudService _sendLogToCloudService;
+        private readonly IPosService _posService;
+        private System.Timers.Timer _heartbeatTimer;
+
+
         private bool _isInitialLoad = true;
         private bool _filterSyncedOnly = false;
 
@@ -44,7 +52,12 @@ namespace POSPRA_WinFormsUI.Forms
         private DateTime _lastRefreshTime = DateTime.Now;
 
         private int _printingRowIndex = -1;
-        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService, IFileRecordService fileRecordService, ISendLogToCloudService sendLogToCloudService)
+        private string _posId;
+
+        private readonly SemaphoreSlim _checkSemaphore = new SemaphoreSlim(1, 1);
+
+        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService,
+            IFileRecordService fileRecordService, ISendLogToCloudService sendLogToCloudService, IPosService posService)
         {
             InitializeComponent();
 
@@ -59,6 +72,7 @@ namespace POSPRA_WinFormsUI.Forms
             ControlBox = false;
             ShowIcon = false;
             Text = string.Empty;
+
 
             StyleDateRangeLabel();
 
@@ -110,7 +124,139 @@ namespace POSPRA_WinFormsUI.Forms
             InitializeAutoRefreshTimer();
             _invoiceService = invoiceService;
             _fileRecordService = fileRecordService;
+            _posService = posService;
+        }
 
+        private void StartHeartbeatTimer(string decryptedPosId)
+        {
+            if (string.IsNullOrEmpty(decryptedPosId))
+            {
+                UpdateHeartbeatLabel(isError: true);
+                return;
+            }
+
+            // Create timer if not already running
+            if (_heartbeatTimer == null)
+            {
+                _heartbeatTimer = new System.Timers.Timer(10000); // every 10 seconds
+                _heartbeatTimer.Elapsed += async (s, e) => await UpdateHeartbeatAsync(decryptedPosId);
+                _heartbeatTimer.AutoReset = true;
+                _heartbeatTimer.Enabled = true;
+
+                // Trigger immediately once on load
+                Task.Run(() => UpdateHeartbeatAsync(decryptedPosId));
+            }
+        }
+
+        private async Task UpdateHeartbeatAsync(string decryptedPosId)
+        {
+            try
+            {
+                if (!int.TryParse(decryptedPosId, out int posId))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Invalid POSID: {decryptedPosId}");
+                    UpdateHeartbeatLabel(isError: true);
+                    return;
+                }
+
+                var heartbeatResponse = await _posService.UpdateHeartBeatAsync(posId);
+
+                if (heartbeatResponse?.StatusCode == "200" && heartbeatResponse.Data != null)
+                {
+                    var serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
+                    UpdateHeartbeatLabel(serverTime, isError: false);
+                }
+                else
+                {
+                    UpdateHeartbeatLabel(isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating heartbeat: {ex.Message}");
+                UpdateHeartbeatLabel(isError: true);
+            }
+        }
+
+
+        private void UpdateHeartbeatLabel(DateTime? heartbeatTime = null, bool isError = false)
+        {
+            if (lblHeartbeat.InvokeRequired)
+            {
+                lblHeartbeat.Invoke(new Action(() => UpdateHeartbeatLabel(heartbeatTime, isError)));
+                return;
+            }
+
+            if (isError)
+            {
+                lblHeartbeat.Text = "Last Heartbeat: Not Received";
+                lblHeartbeat.ForeColor = Color.FromArgb(220, 38, 38); // Red
+            }
+            else
+            {
+                lblHeartbeat.Text = $"Last Heartbeat: {heartbeatTime:dd-MM-yyyy HH:mm:ss}";
+                lblHeartbeat.ForeColor = Color.FromArgb(34, 197, 94); // Green
+            }
+        }
+
+        private async Task<T> ExecuteWithNewScope<T>(Func<Task<T>> serviceCall)
+        {
+            using var scope = _provider.CreateScope();
+
+            // Get fresh instances from the new scope
+            var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+            var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
+
+            return await serviceCall();
+        }
+
+        private async Task<bool> QuickCheckForChangesAsync()
+        {
+            if (!await _checkSemaphore.WaitAsync(0))
+                return false;
+
+            try
+            {
+                // Create a new scope for this check
+                using var scope = _provider.CreateScope();
+                var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+                var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
+
+                var invoiceResponse = await fileService.GetAllAsync();
+                var logResponse = await logService.GetAllAsync();
+
+                if (invoiceResponse?.Data == null || logResponse?.Data == null)
+                    return false;
+
+                var filteredInvoices = invoiceResponse.Data
+                    .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
+
+                var filteredLogs = logResponse.Data
+                    .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+
+                int currentInvoiceCount = filteredInvoices.Count();
+                int currentLogCount = filteredLogs.Count();
+
+                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
+                                 (currentLogCount != _lastLogCount);
+
+                if (hasChanges)
+                {
+                    _lastInvoiceCount = currentInvoiceCount;
+                    _lastLogCount = currentLogCount;
+                }
+
+                return hasChanges;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"QuickCheck error: {ex.Message}");
+                return false;
+            }
+            finally
+            {
+                _checkSemaphore.Release();
+            }
         }
 
         #region AutoRefresh
@@ -163,44 +309,44 @@ namespace POSPRA_WinFormsUI.Forms
             return false;
         }
 
-        private async Task<bool> QuickCheckForChangesAsync()
-        {
-            try
-            {
-                // Get counts only - lightweight operation
-                var invoiceResponse = await _fileRecordService.GetAllAsync();
-                var logResponse = await _logService.GetAllAsync();
+        //private async Task<bool> QuickCheckForChangesAsync()
+        //{
+        //    try
+        //    {
+        //        // Get counts only - lightweight operation
+        //        var invoiceResponse = await _fileRecordService.GetAllAsync();
+        //        var logResponse = await _logService.GetAllAsync();
 
-                if (invoiceResponse?.Data == null || logResponse?.Data == null)
-                    return false;
+        //        if (invoiceResponse?.Data == null || logResponse?.Data == null)
+        //            return false;
 
-                // Apply same filters as main load
-                var filteredInvoices = invoiceResponse.Data
-                    .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
+        //        // Apply same filters as main load
+        //        var filteredInvoices = invoiceResponse.Data
+        //            .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
 
-                var filteredLogs = logResponse.Data
-                    .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+        //        var filteredLogs = logResponse.Data
+        //            .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
 
-                int currentInvoiceCount = filteredInvoices.Count();
-                int currentLogCount = filteredLogs.Count();
+        //        int currentInvoiceCount = filteredInvoices.Count();
+        //        int currentLogCount = filteredLogs.Count();
 
-                // Check if counts changed
-                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
-                                 (currentLogCount != _lastLogCount);
+        //        // Check if counts changed
+        //        bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
+        //                         (currentLogCount != _lastLogCount);
 
-                if (hasChanges)
-                {
-                    _lastInvoiceCount = currentInvoiceCount;
-                    _lastLogCount = currentLogCount;
-                }
+        //        if (hasChanges)
+        //        {
+        //            _lastInvoiceCount = currentInvoiceCount;
+        //            _lastLogCount = currentLogCount;
+        //        }
 
-                return hasChanges;
-            }
-            catch
-            {
-                return false; // Don't refresh on error
-            }
-        }
+        //        return hasChanges;
+        //    }
+        //    catch
+        //    {
+        //        return false; // Don't refresh on error
+        //    }
+        //}
 
         private async Task BackgroundRefreshAsync()
         {
@@ -210,6 +356,8 @@ namespace POSPRA_WinFormsUI.Forms
                 // Store current scroll positions
                 int invoiceScroll = InvoicesDataGridView.FirstDisplayedScrollingRowIndex;
                 int logScroll = LogsDataGridView.FirstDisplayedScrollingRowIndex;
+
+
 
                 // Refresh data
                 await LoadAndShowInvoicesAsync();
@@ -452,6 +600,10 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
+                // Load POSID from app.config (stored encrypted)
+                var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+                var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+                StartHeartbeatTimer(decryptedPosId);
                 // Temporarily disable auto-refresh during initial load
                 _autoRefreshTimer.Stop();
 
@@ -522,12 +674,17 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var response = await _fileRecordService.GetAllAsync();
+                // Create a new scope for this operation
+                using var scope = _provider.CreateScope();
+                var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+
+                var response = await fileService.GetAllAsync();
                 InvoicesDataGridView.Rows.Clear();
 
                 if (response?.Data == null || !response.Data.Any())
                 {
                     AlertManager.ShowWarning("No invoices found.");
+                    lblLastSync.Text = "Last Sync: N/A";
                     return;
                 }
 
@@ -575,7 +732,7 @@ namespace POSPRA_WinFormsUI.Forms
                     SetCellValue(row, "colPosId", inv.POSID);
                     SetCellValue(row, "colInvoiceNumber", inv.InvoiceNumber ?? "N/A");
                     SetCellValue(row, "colIsSynced", inv.IsSynced == 1 ? "Yes" : "No");
-                    SetCellValue(row, "colPrint", "Print"); // Set Print text
+                    SetCellValue(row, "colPrint", "Print");
                     SetCellValue(row, "colDateCreated", inv.DateCreated.ToString("dd-MM-yyyy HH:mm:ss"));
 
                     row.Tag = new { inv.IsSynced, inv.AttemptCount };
@@ -606,6 +763,7 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     progressBar.Visible = false;
                 }
+
                 InvoicesDataGridView.ClearSelection();
                 if (InvoicesDataGridView.Rows.Count > 0)
                 {
@@ -615,6 +773,7 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                     }
+
                     if (InvoicesDataGridView.Columns.Contains("colId"))
                         InvoicesDataGridView.Columns["colId"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
 
@@ -633,16 +792,89 @@ namespace POSPRA_WinFormsUI.Forms
                     if (InvoicesDataGridView.Columns.Contains("colDateCreated"))
                         InvoicesDataGridView.Columns["colDateCreated"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
                 }
+
+                // ✅ UPDATE lblLastSync with the latest synced invoice time
+                var lastSyncedInvoice = invoicesList
+                    .Where(i => i.IsSynced == 1)
+                    .OrderByDescending(i => i.DateCreated)
+                    .FirstOrDefault();
+
+                if (lastSyncedInvoice != null)
+                {
+                    lblLastSync.Text = "Last Synced Invoice: " + lastSyncedInvoice.DateCreated.ToString("dd-MM-yyyy HH:mm:ss");
+                    lblLastSync.ForeColor = Color.FromArgb(34, 197, 94); // Green
+                }
+                else
+                {
+                    lblLastSync.Text = "Last Synced Invoice: N/A";
+                    lblLastSync.ForeColor = Color.FromArgb(220, 38, 38); // Red
+                }
             }
             catch (Exception ex)
             {
                 InvoicesDataGridView.ResumeLayout(true);
                 if (progressBar != null) progressBar.Visible = false;
 
+                System.Diagnostics.Debug.WriteLine($"Error loading invoices: {ex}");
                 WindowsLocalAppNotification.Show("Invoices Error", $"Error loading invoices: {ex.Message}");
                 AlertManager.ShowError($"Error loading invoices: {ex.Message}");
+                lblLastSync.Text = "Last Sync: Error";
+                lblLastSync.ForeColor = Color.FromArgb(220, 38, 38); // Red
             }
         }
+
+
+        //// ✅ NEW: Update heartbeat label
+        //private async Task UpdateHeartbeatFromInvoicesAsync(List<dynamic> invoicesList)
+        //{
+        //    try
+        //    {
+        //        if (invoicesList == null || invoicesList.Count == 0)
+        //        {
+        //            UpdateHeartbeatLabel(isError: true);
+        //            return;
+        //        }
+
+        //        // Get POSID from first invoice
+        //        var posId = invoicesList.First().POSID;
+
+        //        // Call heartbeat with the POSID
+        //        var heartbeatResponse = await _posService.UpdateHeartBeatAsync(posId);
+
+        //        if (heartbeatResponse.StatusCode == "200")
+        //        {
+        //            UpdateHeartbeatLabel(DateTime.Now, isError: false);
+        //        }
+        //        else
+        //        {
+        //            UpdateHeartbeatLabel(isError: true);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        System.Diagnostics.Debug.WriteLine($"Error updating heartbeat: {ex.Message}");
+        //        UpdateHeartbeatLabel(isError: true);
+        //    }
+        //}
+
+        //// ✅ NEW: Helper method to update heartbeat label
+        //private void UpdateHeartbeatLabel(DateTime? heartbeatTime = null, bool isError = false)
+        //{
+        //    if (lblHeartbeat != null)
+        //    {
+        //        if (isError)
+        //        {
+        //            lblHeartbeat.Text = "Last Heartbeat: Not Recieved";
+        //            lblHeartbeat.ForeColor = Color.FromArgb(220, 38, 38); // Red
+        //        }
+        //        else
+        //        {
+        //            var displayTime = heartbeatTime ?? DateTime.Now;
+        //            lblHeartbeat.Text = $"Last Heartbeat: {displayTime:dd-MM-yyyy HH:mm:ss}";
+        //            lblHeartbeat.ForeColor = Color.FromArgb(34, 197, 94); // Green
+        //        }
+        //    }
+        //}
 
         private void SetCellValue(DataGridViewRow row, string columnName, object value)
         {
@@ -1253,6 +1485,9 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 _autoRefreshTimer.Stop();
                 _autoRefreshTimer.Dispose();
+                _heartbeatTimer?.Stop();
+                _heartbeatTimer?.Dispose();
+                base.OnFormClosing(e);
             }
         }
 
@@ -2044,6 +2279,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             base.OnResize(e);
             UpdateLogStatisticsLayout();
+
         }
 
         private void panelinvoicechart_Paint(object sender, PaintEventArgs e)

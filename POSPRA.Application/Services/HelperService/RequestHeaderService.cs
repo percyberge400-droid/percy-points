@@ -20,13 +20,13 @@ namespace POSPRA.Application.Services.HelperService
         }
 
         /// <inheritdoc/>
-        public long GetPosId()
+        public int GetPosId()
         {
             var context = _httpContextAccessor.HttpContext;
 
             if (context != null && context.Request.Headers.TryGetValue("POS-ID", out var posIdValue))
             {
-                if (long.TryParse(posIdValue, out var posId))
+                if (int.TryParse(posIdValue, out var posId))
                     return posId;
             }
 

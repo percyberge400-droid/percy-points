@@ -524,14 +524,15 @@
             // 
             // btnsearch
             // 
+            btnsearch.AutoSize = true;
             btnsearch.BackColor = Color.Teal;
             btnsearch.FlatAppearance.BorderSize = 0;
             btnsearch.FlatStyle = FlatStyle.Flat;
             btnsearch.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnsearch.ForeColor = Color.Transparent;
-            btnsearch.Location = new Point(238, 172);
+            btnsearch.Location = new Point(228, 172);
             btnsearch.Name = "btnsearch";
-            btnsearch.Size = new Size(50, 34);
+            btnsearch.Size = new Size(43, 32);
             btnsearch.TabIndex = 18;
             btnsearch.Text = "🔍";
             btnsearch.UseVisualStyleBackColor = false;

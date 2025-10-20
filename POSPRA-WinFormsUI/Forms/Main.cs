@@ -2,6 +2,7 @@
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 using AlertType = POSPRA.Application.Utility.AlertType;
@@ -48,6 +49,16 @@ namespace POSPRA_WinFormsUI.Forms
 
             internetStatus.Font = new Font(internetStatus.Font, FontStyle.Italic);
             internetStatus.ForeColor = Color.Gray;
+            string posCOMP = ConfigurationManager.AppSettings["posCOMP"];
+            if (!string.IsNullOrEmpty(posCOMP))
+            {
+                var res = Resources.ResourceManager.GetObject(posCOMP);
+                if (res is Image img)
+                {
+                    pictureBox2.Image = img;
+                    //picLogo.SizeMode = PictureBoxSizeMode.Zoom;
+                }
+            }
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

@@ -4,6 +4,7 @@ using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
+using POSPRA.DTOs.ClientDtos;
 using POSPRA.DTOs.PosDtos;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.ClientRepository;
@@ -40,17 +41,16 @@ namespace POSPRA.Application.Services.POSService
             _clientRepository = clientRepository;
         }
 
-        public async Task<ApiResponse<string>> UpdateHeartBeatAsync()
+        public async Task<ApiResponse<HeartBeatDto>> UpdateHeartBeatAsync(int posId)
         {
             try
             {
-                var posId = _requestHeaderService.GetPosId();
                 var client = await _clientRepository.FirstOrDefaultAsync(p => p.POSRegistrationNumber == posId);
                 if (client == null)
-                    return new ApiResponse<string>(
+                    return new ApiResponse<HeartBeatDto>(
                         statusCode: ApiStatusCode.NotFound,
                         message: ResponseMessages.DataNotFound,
-                        data: string.Empty
+                        data: null
                     );
 
                 client.IsConnected = true;
@@ -59,18 +59,20 @@ namespace POSPRA.Application.Services.POSService
 
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 
-                return new ApiResponse<string>(
+                var dto = _mapper.Map<HeartBeatDto>(client);
+
+                return new ApiResponse<HeartBeatDto>(
                     statusCode: ApiStatusCode.Success,
                     message: ResponseMessages.HeartbeatUpdated,
-                    data: string.Empty
+                    data: dto
                 );
             }
             catch (Exception ex)
             {
-                return new ApiResponse<string>(
+                return new ApiResponse<HeartBeatDto>(
                     statusCode: ApiStatusCode.Error,
                     message: $"{ResponseMessages.ErrorUpdatingHeartbeat}: {ex.Message}",
-                    data: string.Empty
+                    data: null
                 );
             }
 

@@ -211,6 +211,8 @@ namespace POSPRA.SetupUI
 
                 string mac = GetMacAddress();
 
+                string deviceMac = GetDeviceMacAddress();
+
                 var payload = new
                 {
                     posId = username,
@@ -459,6 +461,33 @@ namespace POSPRA.SetupUI
                     .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up &&
                                          n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
                 return nic?.GetPhysicalAddress().ToString() ?? "UNKNOWN";
+            }
+            catch
+            {
+                return "UNKNOWN";
+            }
+        }
+
+        private string GetDeviceMacAddress()
+        {
+            try
+            {
+                var nics = NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(n =>
+                        n.OperationalStatus == OperationalStatus.Up &&
+                        (n.NetworkInterfaceType == NetworkInterfaceType.Ethernet ||
+                         n.NetworkInterfaceType == NetworkInterfaceType.Wireless80211) &&
+                        !n.Description.ToLower().Contains("virtual") &&
+                        !n.Description.ToLower().Contains("vpn"));
+
+                var nic = nics.FirstOrDefault();
+
+                if (nic != null)
+                {
+                    return nic.GetPhysicalAddress().ToString(); // returns like 001A2B3C4D5E
+                }
+
+                return "UNKNOWN";
             }
             catch
             {
