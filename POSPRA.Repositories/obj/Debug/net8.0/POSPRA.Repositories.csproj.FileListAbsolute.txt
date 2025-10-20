@@ -1,0 +1,11 @@
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\bin\Debug\net8.0\POSPRA.Repositories.deps.json
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\bin\Debug\net8.0\POSPRA.Repositories.dll
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\bin\Debug\net8.0\POSPRA.Repositories.pdb
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\POSPRA.Repositories.GeneratedMSBuildEditorConfig.editorconfig
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\POSPRA.Repositories.AssemblyInfoInputs.cache
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\POSPRA.Repositories.AssemblyInfo.cs
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\POSPRA.Repositories.csproj.CoreCompileInputs.cache
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\POSPRA.Repositories.dll
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\refint\POSPRA.Repositories.dll
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\POSPRA.Repositories.pdb
+D:\workspace\pos-pra\POS-PRA\POSPRA.Repositories\obj\Debug\net8.0\ref\POSPRA.Repositories.dll

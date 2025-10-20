@@ -1,0 +1,145 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\workspace\\pos-pra\\POS-PRA\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra-winformsui\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}|POSPRA-WinFormsUI\\POSPRA-WinFormsUI.csproj|solutionrelative:pospra-winformsui\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|solutionrelative:pospra.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D9F25FA2-00A0-4598-95C4-6D758C976018}|POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.infrastructure\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D9F25FA2-00A0-4598-95C4-6D758C976018}|POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj|solutionrelative:pospra.infrastructure\\data\\dbinitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.repositories\\userrepository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\userrepository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.repositories\\baserepository\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}|POSPRA.Repositories\\POSPRA.Repositories.csproj|solutionrelative:pospra.repositories\\baserepository\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.application\\automapperprofile\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B5E27EBD-3AF3-4CEF-8FC8-BCA7C86449A4}|POSPRA.Application\\POSPRA.Application.csproj|solutionrelative:pospra.application\\automapperprofile\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|d:\\workspace\\pos-pra\\pos-pra\\pospra.api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C7F569B-A2F5-49A8-BD1A-0461EB61DC51}|POSPRA.API\\POSPRA.API.csproj|solutionrelative:pospra.api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Program.cs",
+              "RelativeDocumentMoniker": "POSPRA-WinFormsUI\\Program.cs",
+              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA-WinFormsUI\\Program.cs",
+              "RelativeToolTip": "POSPRA-WinFormsUI\\Program.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-08T05:34:22.819Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Repository.cs",
+              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\BaseRepository\\Repository.cs",
+              "RelativeDocumentMoniker": "POSPRA.Repositories\\BaseRepository\\Repository.cs",
+              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\BaseRepository\\Repository.cs",
+              "RelativeToolTip": "POSPRA.Repositories\\BaseRepository\\Repository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-08T05:34:22.01Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DbInitializer.cs",
+              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\Data\\DbInitializer.cs",
+              "RelativeDocumentMoniker": "POSPRA.Infrastructure\\Data\\DbInitializer.cs",
+              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Infrastructure\\Data\\DbInitializer.cs",
+              "RelativeToolTip": "POSPRA.Infrastructure\\Data\\DbInitializer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-08T05:33:32.664Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "UserRepository.cs",
+              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "RelativeDocumentMoniker": "POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "RelativeToolTip": "POSPRA.Repositories\\UserRepository\\UserRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-08T05:01:38.137Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "UserProfile.cs",
+              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
+              "RelativeDocumentMoniker": "POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
+              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
+              "RelativeToolTip": "POSPRA.Application\\AutoMapperProfile\\UserProfile.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-05T11:07:45.52Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Program.cs",
+              "RelativeDocumentMoniker": "POSPRA.API\\Program.cs",
+              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Program.cs",
+              "RelativeToolTip": "POSPRA.API\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-05T10:51:00.981Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "POSPRA.API\\Controllers\\UsersController.cs",
+              "ToolTip": "D:\\workspace\\pos-pra\\POS-PRA\\POSPRA.API\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "POSPRA.API\\Controllers\\UsersController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-05T10:50:33.385Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
