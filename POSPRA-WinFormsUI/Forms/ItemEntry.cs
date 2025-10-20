@@ -886,8 +886,19 @@ namespace POSPRA_WinFormsUI
                         // ✅ Update invoice DTO with FBR invoice number
                         invoiceDto.FBRInvoiceNumber = invoiceDto.FBRInvoiceNumber;
 
-                        AlertManager.ShowSuccess($"Invoice number {invoiceDto.FBRInvoiceNumber} synced successfully.");
-                        _ = CreateLog($"Invoice number {invoiceDto.FBRInvoiceNumber} synced successfully.", AlertType.Info);
+                        // 🔹 Reset after both save & print complete
+                        progressTaskCts.Cancel();
+                        await Task.Delay(300);
+
+                        progressBar.Visible = false;
+                        progressBar.Value = 0;
+                        // 🔹 Clear UI early
+                        addedItems.Clear();
+                        dataGridView1.Rows.Clear();
+                        ClearInvoiceFields();
+                        btnSave.Enabled = true;
+                        btnSave.Text = "🖨️ Save and Print";
+                        _isSaving = false;
                     }
                     else
                     {
@@ -904,23 +915,6 @@ namespace POSPRA_WinFormsUI
                 {
                     AlertManager.ShowError($"Error saving invoice: {ex.Message}");
                 }
-                finally
-                {
-                    // 🔹 Reset after both save & print complete
-                    progressTaskCts.Cancel();
-                    await Task.Delay(300);
-
-                    progressBar.Visible = false;
-                    progressBar.Value = 0;
-                    // 🔹 Clear UI early
-                    addedItems.Clear();
-                    dataGridView1.Rows.Clear();
-                    ClearInvoiceFields();
-                    btnSave.Enabled = true;
-                    btnSave.Text = "🖨️ Save and Print";
-                    _isSaving = false;
-                }
-
             }
             catch (Exception ex)
             {
