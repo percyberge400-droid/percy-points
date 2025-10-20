@@ -49,6 +49,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             internetStatus.Font = new Font(internetStatus.Font, FontStyle.Italic);
             internetStatus.ForeColor = Color.Gray;
+
             string posCOMP = ConfigurationManager.AppSettings["posCOMP"];
             if (!string.IsNullOrEmpty(posCOMP))
             {
