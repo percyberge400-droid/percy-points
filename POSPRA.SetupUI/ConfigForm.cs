@@ -186,11 +186,10 @@ namespace POSPRA.SetupUI
         {
             try
             {
+                // ======== 1️⃣ VALIDATION ========
                 string username = txtUsername.Text.Trim();
                 string password = txtPassword.Text.Trim();
                 string dbPath = txtFilePath.Text.Trim();
-                //MessageBox.Show(_jsonWorkerPath);
-                //MessageBox.Show(_jsonMainPath);
 
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
@@ -206,105 +205,246 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                // ✅ Auto-create DB folder if missing
                 Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
 
-                string mac = GetMacAddress();
+                // ======== 2️⃣ MAC ADDRESSES ========
+                string mac = string.Empty;
+                string deviceMac = string.Empty;
 
-                string deviceMac = GetDeviceMacAddress();
-
-                var payload = new
+                try
                 {
-                    posId = username,
-                    macAddress = mac,
-                    token = password
-                };
-
-                string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
-                if (string.IsNullOrWhiteSpace(apiUrl))
-                {
-                    MessageBox.Show("API URL is missing in App.config.", "Configuration Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    mac = GetMacAddress();
+                    deviceMac = GetDeviceMacAddress();
                 }
-                //Call Api
-                using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
+                catch (Exception ex)
                 {
-                    client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+                    MessageBox.Show($"Failed to read MAC address: {ex.Message}",
+                        "Network Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
 
-                    var jsonContent = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-                    var response = await client.PostAsync(apiUrl, jsonContent);
-
-                    var responseBody = await response.Content.ReadAsStringAsync();
-
-                    if (!response.IsSuccessStatusCode)
+                // ======== 3️⃣ API CALL ========
+                JObject json = null;
+                try
+                {
+                    var payload = new
                     {
-                        MessageBox.Show($"Authentication failed. Server returned {(int)response.StatusCode}: {response.ReasonPhrase}",
-                            "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        posId = username,
+                        macAddress = mac,
+                        token = password
+                    };
+
+                    string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
+                    if (string.IsNullOrWhiteSpace(apiUrl))
+                    {
+                        MessageBox.Show("API URL is missing in App.config.", "Configuration Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
-                    //MessageBox.Show(responseBody.data)
 
-
-                    var json = JObject.Parse(responseBody);
-
-                    // If the API wraps JSON inside a string, detect and re-parse it
-                    if (json.Type == JTokenType.String)
+                    using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
                     {
-                        json = JObject.Parse(json.ToString());
-                    }
-                    else if (json["response"] != null && json["response"].Type == JTokenType.String)
-                    {
-                        json = JObject.Parse(json["response"].ToString());
-                    }
-                    string branchName = json["data"]?["branchName"]?.ToString() ?? "N/A";
-                    string branchAddress = json["data"]?["branchAddress"]?.ToString() ?? "N/A";
-                    string businessName = json["data"]?["businessName"]?.ToString() ?? "N/A";
+                        client.DefaultRequestHeaders.Clear();
+                        client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                    // ✅ Save credentials + MAC to XML
-                    var doc = new XmlDocument();
-                    doc.Load(_xmlConfigPath);
-                    UpdateOrCreateNode(doc, "Username", AesEncryptionHelper.Encrypt(username));
-                    UpdateOrCreateNode(doc, "Password", AesEncryptionHelper.Encrypt(password));
-                    UpdateOrCreateNode(doc, "MacAddress", mac);
-                    doc.Save(_xmlConfigPath);
+                        var jsonContent = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+                        var response = await client.PostAsync(apiUrl, jsonContent);
+                        string responseBody = await response.Content.ReadAsStringAsync();
 
-                    // ✅ Update DB path in other configs
-                    SaveDbPathToJson(_jsonWorkerPath, dbPath, username);
-                    SaveDbPathToJson(_jsonMainPath, dbPath, username);
-                    SaveDbPathToWinFormsConfig(dbPath, branchName, branchAddress, businessName);
-
-                    try
-                    {
-                        string? statusCode = json["statusCode"]?.ToString();
-                        string? message = json["message"]?.ToString()?.ToLower();
-
-                        bool success = statusCode == "200" &&
-                                       (message?.Contains("record found") == true || message?.Contains("success") == true);
-
-                        if (!success)
+                        if (!response.IsSuccessStatusCode)
                         {
-                            string error = json["message"]?.ToString() ?? "Invalid credentials or MAC address.";
-                            MessageBox.Show("Authentication failed: " + error,
-                                "Auth Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            MessageBox.Show($"Authentication failed. Server returned {(int)response.StatusCode}: {response.ReasonPhrase}",
+                                "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return;
                         }
 
-                        MessageBox.Show("✅ Authentication successful! Proceeding with configuration...",
-                            "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        try
+                        {
+                            json = JObject.Parse(responseBody);
+
+                            // If the API wraps JSON inside a string
+                            if (json.Type == JTokenType.String)
+                                json = JObject.Parse(json.ToString());
+                            else if (json["response"] != null && json["response"].Type == JTokenType.String)
+                                json = JObject.Parse(json["response"].ToString());
+                        }
+                        catch (Exception jex)
+                        {
+                            MessageBox.Show($"Error parsing API response: {jex.Message}",
+                                "JSON Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
                     }
-                    catch (Exception ex)
+                }
+                catch (HttpRequestException ex)
+                {
+                    MessageBox.Show($"Network error while connecting to API:\n{ex.Message}",
+                        "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                catch (TaskCanceledException)
+                {
+                    MessageBox.Show("The API request timed out. Please check your internet or server availability.",
+                        "Timeout", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Unexpected API error: {ex.Message}",
+                        "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // ======== 4️⃣ SAFE JSON FIELD EXTRACTION ========
+                string branchName = "N/A";
+                string branchAddress = "N/A";
+                string businessName = "N/A";
+
+                try
+                {
+                    var data = json["data"];
+                    if (data != null && data.Type == JTokenType.Object)
                     {
-                        MessageBox.Show($"Error while parsing authentication response: {ex.Message}",
-                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        branchName = data["branchName"]?.ToString() ?? "N/A";
+                        branchAddress = data["branchAddress"]?.ToString() ?? "N/A";
+                        businessName = data["businessName"]?.ToString() ?? "N/A";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error extracting branch details: {ex.Message}",
+                        "Data Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+                // ======== 5️⃣ SAVE CONFIG FILES ========
+                try
+                {
+                    var xmlDoc = new XmlDocument();
+                    xmlDoc.Load(_xmlConfigPath);
+                    UpdateOrCreateNode(xmlDoc, "Username", AesEncryptionHelper.Encrypt(username));
+                    UpdateOrCreateNode(xmlDoc, "Password", AesEncryptionHelper.Encrypt(password));
+                    UpdateOrCreateNode(xmlDoc, "MacAddress", mac);
+                    xmlDoc.Save(_xmlConfigPath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to update XML config: {ex.Message}",
+                        "Config Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+                try
+                {
+                    SaveDbPathToJson(_jsonWorkerPath, dbPath, username);
+                    SaveDbPathToJson(_jsonMainPath, dbPath, username);
+                    SaveDbPathToWinFormsConfig(dbPath, branchName, branchAddress, businessName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to update DB path configs: {ex.Message}",
+                        "Config Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+                // ======== 6️⃣ VERIFY AUTH RESPONSE ========
+                try
+                {
+                    if (json == null)
+                    {
+                        MessageBox.Show("No response received from the server.",
+                            "Response Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
                     }
 
+                    string statusCode = json["statusCode"]?.ToString();
+                    string message = json["message"]?.ToString()?.ToLower();
+                    string serverMsg = json["message"]?.ToString() ?? "";
+
+                    // Handle missing fields explicitly
+                    if (statusCode == null)
+                    {
+                        MessageBox.Show("Response did not contain a status code. The API may have returned an unexpected format.",
+                            "Response Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Handle known status codes precisely
+                    switch (statusCode)
+                    {
+                        case "200":
+                            bool success = message?.Contains("record found") == true || message?.Contains("success") == true;
+                            if (!success)
+                            {
+                                MessageBox.Show($"Authentication failed: {serverMsg}",
+                                    "Authentication Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                return;
+                            }
+
+                            MessageBox.Show("✅ Authentication successful! Proceeding with configuration...",
+                                "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            break;
+
+                        case "401":
+                            MessageBox.Show("Invalid POS ID or access code. Please check your credentials.",
+                                "Invalid Credentials", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+
+                        case "403":
+                            MessageBox.Show("Access denied. This device is not authorized to use the system.",
+                                "Unauthorized Access", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+
+                        case "404":
+                            // ✅ Based on your API behavior, 404 = MAC not found / not registered
+                            MessageBox.Show("MAC address verification failed. This device is not registered or recognized.",
+                                "MAC Address Mismatch", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+
+                        case "500":
+                            MessageBox.Show("The server encountered an internal error. Please try again later.",
+                                "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+
+                        default:
+                            MessageBox.Show($"Unexpected response from server (Status Code: {statusCode}).\nMessage: {serverMsg}",
+                                "Unexpected Response", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                    }
+                }
+                catch (JsonReaderException jex)
+                {
+                    MessageBox.Show($"Invalid JSON format received from API: {jex.Message}",
+                        "Response Parsing Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                catch (NullReferenceException nex)
+                {
+                    MessageBox.Show($"Expected response fields are missing (statusCode/message). Details: {nex.Message}",
+                        "Missing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                catch (HttpRequestException hex)
+                {
+                    MessageBox.Show($"Network or connectivity issue while verifying authentication.\nDetails: {hex.Message}",
+                        "Network Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Unexpected error while verifying authentication: {ex.Message}",
+                        "Response Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
 
+                // ======== 7️⃣ UPDATE ENVIRONMENT ========
+                try
+                {
+                    if (rdoProduction.Checked)
+                        SaveEnvironmentToApiConfig("Production");
+                    else if (rdoSandbox.Checked)
+                        SaveEnvironmentToApiConfig("Sandbox");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to save environment settings: {ex.Message}",
+                        "Environment Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
 
-
+                // ======== 8️⃣ UPDATE SETUP CONFIG ========
                 try
                 {
                     var docSetup = new XmlDocument();
@@ -318,16 +458,26 @@ namespace POSPRA.SetupUI
                         "Config Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
-                // ✅ Initialize SQLite DB
-                var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
-                    .UseSqlite($"Data Source={dbPath}")
-                    .Options;
-
-                using (var context = new SqliteDbContext(sqliteOptions))
+                // ======== 9️⃣ INITIALIZE DATABASE ========
+                try
                 {
-                    context.Database.EnsureCreated();
+                    var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
+                        .UseSqlite($"Data Source={dbPath}")
+                        .Options;
+
+                    using (var context = new SqliteDbContext(sqliteOptions))
+                    {
+                        context.Database.EnsureCreated();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to initialize database: {ex.Message}",
+                        "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
 
+                // ======== 🔟 SUCCESS EXIT ========
                 MessageBox.Show("Configuration saved and authentication successful.", "Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -335,8 +485,8 @@ namespace POSPRA.SetupUI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Unexpected error: " + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Unexpected fatal error: {ex.Message}",
+                    "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -405,7 +555,53 @@ namespace POSPRA.SetupUI
             }
         }
 
+        private void SaveEnvironmentToApiConfig(string environment)
+        {
+            try
+            {
+                // 🔹 jsonMainPath should be a class-level or passed variable from Program.cs
+                if (string.IsNullOrWhiteSpace(_jsonMainPath))
+                {
+                    MessageBox.Show("API config path not found (_jsonMainPath is empty).", "Warning",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
+                if (!File.Exists(_jsonMainPath))
+                {
+                    MessageBox.Show($"API config file not found at:\n{_jsonMainPath}", "Config Missing",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                string json = File.ReadAllText(_jsonMainPath);
+                dynamic config = JsonConvert.DeserializeObject(json) ?? new JObject();
+
+                if (config["AppSettings"] == null)
+                    config["AppSettings"] = new JObject();
+
+                // ✅ Update environment key
+                config["AppSettings"]["Environment"] = environment;
+
+                // ✅ Update API base URL (optional)
+                string apiUrl = environment.Equals("Production", StringComparison.OrdinalIgnoreCase)
+                    ? "https://api.yourdomain.com"
+                    : "https://sandbox.api.yourdomain.com";
+                config["AppSettings"]["ApiBaseUrl"] = apiUrl;
+
+                // ✅ Update isProduction flag
+                bool isProd = environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
+                config["AppSettings"]["isProduction"] = isProd;
+
+                // ✅ Save back to file (indented, human-readable)
+                File.WriteAllText(_jsonMainPath, JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to update API config: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         // --- Save DB path and branch information to WinForms config ---
         private void SaveDbPathToWinFormsConfig(string dbPath, string branchName = "N/A", string branchAddress = "N/A", string businessName = "N/A")
