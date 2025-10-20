@@ -34,10 +34,11 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(841, 585);
+            ClientSize = new Size(692, 783);
             Name = "InvoiceReport";
             Text = "InvoiceReport";
-            //Load += InvoiceReport_Load;
+            TopMost = true;
+            WindowState = FormWindowState.Maximized;
             ResumeLayout(false);
         }
 

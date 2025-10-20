@@ -56,7 +56,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             // ✅ Thermal printer display mode
             _reportViewer.SetDisplayMode(DisplayMode.PrintLayout);
-            _reportViewer.ZoomMode = ZoomMode.PageWidth;
+            //_reportViewer.ZoomMode = ZoomMode.PageWidth;
 
             // ✅ Apply thermal printer paper size (5.8cm × 15cm)
             ApplyThermalPaperSize();
@@ -67,12 +67,12 @@ namespace POSPRA_WinFormsUI.Forms
             try
             {
                 // Convert cm to hundredths of inch: 1 inch = 2.54 cm → 100 * cm / 2.54
-                int width = (int)(5.8 / 2.54 * 100);  // ≈ 228
+                int width = (int)(8.0 / 2.54 * 100);  // ≈ 228
                 int height = (int)(15 / 2.54 * 100); // ≈ 591
 
                 var pageSettings = new PageSettings
                 {
-                    PaperSize = new PaperSize("Thermal58x150", width, height),
+                    PaperSize = new PaperSize("Thermal80x150", width, height),
                     Margins = new Margins(0, 0, 0, 0)
                 };
 
@@ -146,7 +146,7 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
             string branchName = ConfigurationManager.AppSettings["branchName"];
-            string address = branchName +" -- "+ ConfigurationManager.AppSettings["branchAddress"];
+            string address = branchName +",  "+ ConfigurationManager.AppSettings["branchAddress"];
             headerRow["Address"] = address; //dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerTable.Rows.Add(headerRow);
@@ -159,14 +159,14 @@ namespace POSPRA_WinFormsUI.Forms
                 row["SerialNo"] = serial++;
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
-                row["TaxRate"] = Math.Round(item.TaxRate, 2);
+                row["TaxRate"] = Math.Round(item.TaxRate, 1);
                 int quantity = Convert.ToInt32(item.Quantity);
                 row["Qty"] = quantity;
-                row["Price"] = Math.Round(item.SaleValue,2);
+                row["Price"] = Math.Round(item.SaleValue,1);
                 row["POSID"] = dto.POSID.ToString();
-                row["Discount"] = Math.Round(item.Discount, 2);
-                row["Total"] = Math.Round(item.TotalAmount, 2);
-                row["Tax"] = Math.Round(item.TaxCharged, 2);
+                row["Discount"] = Math.Round(item.Discount, 1);
+                row["Total"] = Math.Round(item.TotalAmount, 1);
+                row["Tax"] = Math.Round(item.TaxCharged, 1);
                 bodyTable.Rows.Add(row);
             }
 
