@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("POSPRA-WinFormsUI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b33e9f016eb6c2b5a12a97838a2b83276b1bd32")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+00e20502c4512fb65cd61210c62d3d010ad4ef00")]
 [assembly: System.Reflection.AssemblyProductAttribute("POSPRA-WinFormsUI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("POSPRA-WinFormsUI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

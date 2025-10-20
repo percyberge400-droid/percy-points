@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "gr7Wmzz3Llw=",
+  "dgSpecHash": "5RfOsXWMDzM=",
   "success": true,
   "projectFilePath": "D:\\PralWorking\\POS_2.0\\POS_2.0\\POSPRA.Infrastructure\\POSPRA.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -25,10 +25,7 @@
     "C:\\Users\\waqas.mehmood\\.nuget\\packages\\sqlitepclraw.core\\2.1.10\\sqlitepclraw.core.2.1.10.nupkg.sha512",
     "C:\\Users\\waqas.mehmood\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.10\\sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\waqas.mehmood\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.10\\sqlitepclraw.provider.e_sqlite3.2.1.10.nupkg.sha512",
-    "C:\\Users\\waqas.mehmood\\.nuget\\packages\\system.configuration.configurationmanager\\9.0.8\\system.configuration.configurationmanager.9.0.8.nupkg.sha512",
-    "C:\\Users\\waqas.mehmood\\.nuget\\packages\\system.diagnostics.eventlog\\9.0.8\\system.diagnostics.eventlog.9.0.8.nupkg.sha512",
     "C:\\Users\\waqas.mehmood\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512",
-    "C:\\Users\\waqas.mehmood\\.nuget\\packages\\system.security.cryptography.protecteddata\\9.0.8\\system.security.cryptography.protecteddata.9.0.8.nupkg.sha512",
     "C:\\Users\\waqas.mehmood\\.nuget\\packages\\system.text.json\\9.0.8\\system.text.json.9.0.8.nupkg.sha512"
   ],
   "logs": []

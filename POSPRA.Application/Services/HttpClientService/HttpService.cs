@@ -16,43 +16,19 @@ namespace POSPRA.Application.Services.HttpClientService
             _client.DefaultRequestHeaders.Add("Accept", "application/json");
         }
 
-        public async Task<string> GetAsync(string url, Dictionary<string, string>? headers = null)
+        public async Task<string> GetAsync(string url)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            // Add custom headers if provided
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                {
-                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                }
-            }
-
-            var response = await _client.SendAsync(request);
+            var response = await _client.GetAsync(url);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
-        public async Task<string> PostAsync(string url, object data, Dictionary<string, string>? headers = null)
+
+        public async Task<string> PostAsync(string url, object data)
         {
             var json = JsonSerializer.Serialize(data);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = content
-            };
-
-            // Add custom headers if provided
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                {
-                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                }
-            }
-
-            var response = await _client.SendAsync(request);
+            var response = await _client.PostAsync(url, content);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }

@@ -11,10 +11,7 @@ namespace POSPRA.API.Controllers
     {
         private readonly IUserService _userService;
 
-        public UsersController(IUserService userService)
-        {
-            _userService = userService;
-        }
+        public UsersController(UserService userService) => _userService = userService;
 
         [HttpPost]
         public async Task<ActionResult<UserDTO>> CreateUser([FromBody] UserDTO dto)

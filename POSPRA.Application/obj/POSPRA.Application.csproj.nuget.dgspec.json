@@ -64,22 +64,6 @@
             "AutoMapper": {
               "target": "Package",
               "version": "[15.0.1, )"
-            },
-            "Newtonsoft.Json": {
-              "target": "Package",
-              "version": "[13.0.3, )"
-            },
-            "Portable.BouncyCastle": {
-              "target": "Package",
-              "version": "[1.9.0, )"
-            },
-            "System.Configuration.ConfigurationManager": {
-              "target": "Package",
-              "version": "[9.0.8, )"
-            },
-            "System.ServiceProcess.ServiceController": {
-              "target": "Package",
-              "version": "[9.0.8, )"
             }
           },
           "imports": [
@@ -148,12 +132,6 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "dependencies": {
-            "System.Configuration.ConfigurationManager": {
-              "target": "Package",
-              "version": "[9.0.8, )"
-            }
-          },
           "imports": [
             "net461",
             "net462",
