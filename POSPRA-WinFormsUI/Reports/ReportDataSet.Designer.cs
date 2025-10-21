@@ -663,6 +663,8 @@ namespace POSPRA_WinFormsUI.Reports {
             
             private global::System.Data.DataColumn columnTotalQty;
             
+            private global::System.Data.DataColumn columnTotalTax;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public HeaderDataTableDataTable() {
@@ -812,6 +814,14 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn TotalTaxColumn {
+                get {
+                    return this.columnTotalTax;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -847,7 +857,7 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public HeaderDataTableRow AddHeaderDataTableRow(string BusinessName, string DateCreated, string ModeOfPayment, byte LogoImage, byte QRCodeImage, string NTN, string Address, string STRN, string PRALogo, string Total, string Discount, string POSID, string InvoiceNo, string TotalQty) {
+            public HeaderDataTableRow AddHeaderDataTableRow(string BusinessName, string DateCreated, string ModeOfPayment, byte LogoImage, byte QRCodeImage, string NTN, string Address, string STRN, string PRALogo, string Total, string Discount, string POSID, string InvoiceNo, string TotalQty, string TotalTax) {
                 HeaderDataTableRow rowHeaderDataTableRow = ((HeaderDataTableRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         BusinessName,
@@ -863,7 +873,8 @@ namespace POSPRA_WinFormsUI.Reports {
                         Discount,
                         POSID,
                         InvoiceNo,
-                        TotalQty};
+                        TotalQty,
+                        TotalTax};
                 rowHeaderDataTableRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowHeaderDataTableRow);
                 return rowHeaderDataTableRow;
@@ -900,6 +911,7 @@ namespace POSPRA_WinFormsUI.Reports {
                 this.columnPOSID = base.Columns["POSID"];
                 this.columnInvoiceNo = base.Columns["InvoiceNo"];
                 this.columnTotalQty = base.Columns["TotalQty"];
+                this.columnTotalTax = base.Columns["TotalTax"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -933,6 +945,8 @@ namespace POSPRA_WinFormsUI.Reports {
                 base.Columns.Add(this.columnInvoiceNo);
                 this.columnTotalQty = new global::System.Data.DataColumn("TotalQty", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnTotalQty);
+                this.columnTotalTax = new global::System.Data.DataColumn("TotalTax", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnTotalTax);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1482,6 +1496,22 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string TotalTax {
+                get {
+                    try {
+                        return ((string)(this[this.tableHeaderDataTable.TotalTaxColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'TotalTax\' in table \'HeaderDataTable\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableHeaderDataTable.TotalTaxColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public bool IsBusinessNameNull() {
                 return this.IsNull(this.tableHeaderDataTable.BusinessNameColumn);
             }
@@ -1646,6 +1676,18 @@ namespace POSPRA_WinFormsUI.Reports {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public void SetTotalQtyNull() {
                 this[this.tableHeaderDataTable.TotalQtyColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsTotalTaxNull() {
+                return this.IsNull(this.tableHeaderDataTable.TotalTaxColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetTotalTaxNull() {
+                this[this.tableHeaderDataTable.TotalTaxColumn] = global::System.Convert.DBNull;
             }
         }
         

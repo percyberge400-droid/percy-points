@@ -23,7 +23,7 @@ namespace POSPRA_WinFormsUI.Forms
         private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];
         private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"];
         private static readonly Dictionary<string, byte[]> _qrCache = new();
-
+        private static LocalReport _cachedReportTemplate;
 
         // Constructor for Save button
         public InvoiceReport(InvoiceDto invoiceDto)
@@ -65,9 +65,7 @@ namespace POSPRA_WinFormsUI.Forms
             _reportViewer.SetDisplayMode(DisplayMode.PrintLayout);
             //_reportViewer.ZoomMode = ZoomMode.PageWidth;
 
-            
         }
-
         private void ApplyThermalPaperSize()
         {
             try
@@ -112,24 +110,21 @@ namespace POSPRA_WinFormsUI.Forms
                 new DataColumn("InvoiceNo", typeof(string)),
                 new DataColumn("POSID", typeof(string)),
                 new DataColumn("Discount", typeof(decimal)),
+                new DataColumn("TotalTax", typeof(decimal)),
+                new DataColumn("TotalQty", typeof(int)),
                 new DataColumn("Total", typeof(decimal))
             });
 
             var bodyTable = new DataTable("BodyDataSet");
             bodyTable.Columns.AddRange(new[]
             {
-                //new DataColumn("InvoiceNo", typeof(string)),//1
                 new DataColumn("Amount", typeof(int)),
                 new DataColumn("ItemName", typeof(string)),
                 new DataColumn("TaxRate", typeof(decimal)),
                 new DataColumn("Qty", typeof(decimal)),
                 new DataColumn("Price", typeof(decimal)),
-                //new DataColumn("POSID", typeof(string)),//1
-                //new DataColumn("Discount", typeof(decimal)),//1
-                //new DataColumn("Total", typeof(decimal)),//1
                 new DataColumn("Tax", typeof(decimal))
             });
-
             byte[] logo = LoadCompanyLogo();
             byte[] praLogo = LoadPraLogo();
             byte[] qr = GenerateQRCode(dto.FBRInvoiceNumber);
@@ -154,11 +149,10 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
             headerRow["Total"] = dto.TotalBillAmount;
             headerRow["POSID"] = dto.POSID.ToString();
-            //headerRow[""]
+            headerRow["TotalTax"] = dto.TotalTaxCharged;
             headerRow["Discount"] = dto.Discount;
+            headerRow["TotalQty"] = dto.TotalQuantity;
             headerTable.Rows.Add(headerRow);
-
-
             //int serial = 1;
             foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
@@ -176,7 +170,6 @@ namespace POSPRA_WinFormsUI.Forms
                 row["Tax"] = item.TaxCharged;
                 bodyTable.Rows.Add(row);
             }
-
             return (headerTable, bodyTable);
         }
 
@@ -201,7 +194,6 @@ namespace POSPRA_WinFormsUI.Forms
 
         private byte[] LoadPraLogo()
         {
-
             string logoKey = ConfigurationManager.AppSettings["LOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
@@ -242,7 +234,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (_qrCache.TryGetValue(text, out var cached)) return cached;
             using var qrGen = new QRCodeGenerator();
             using var qrData = qrGen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-            using var qrCode = new QRCode(qrData);
+            using var qrCode = new QRCode(qrData); // time
             using var bmp = qrCode.GetGraphic(3);
             using var ms = new MemoryStream();
             bmp.Save(ms, ImageFormat.Png);
@@ -261,14 +253,13 @@ namespace POSPRA_WinFormsUI.Forms
                 string reportPath = GetReportPath();
                 if (string.IsNullOrEmpty(reportPath))
                     return;
-
+                
                 var (header, body) = BuildInvoiceDataSets(_invoiceDto);
-
+                 
                 _reportViewer.LocalReport.ReportPath = reportPath;
                 _reportViewer.LocalReport.DataSources.Clear();
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("HeaderDataSet", header));
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("BodyDataSet", body));
-
                 _reportViewer.RefreshReport();
             }
             catch (Exception ex)
