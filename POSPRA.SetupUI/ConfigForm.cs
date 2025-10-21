@@ -7,6 +7,7 @@ using POSPRA.SecurityEncryption;
 using System.Configuration;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.ServiceProcess;
 using System.Text;
 using System.Xml;
 
@@ -48,6 +49,9 @@ namespace POSPRA.SetupUI
         private readonly string _defaultIMSPath;
         private readonly string _defaultPassword;
         private readonly string _backupDir;
+        private readonly string _workerServiceName;
+
+        private bool _isServiceAvailable = false;
 
         #endregion
 
@@ -66,11 +70,13 @@ namespace POSPRA.SetupUI
             _defaultIMSPath = ConfigurationManager.AppSettings["DefaulIMStFilePath"];
             _defaultPassword = ConfigurationManager.AppSettings["DbPassword"];
             _backupDir = ConfigurationManager.AppSettings["backupDir"];
+            _workerServiceName = ConfigurationManager.AppSettings["FiscalServiceName"];
 
             InitializeFormSettings();
             InitializeEventHandlers();
             InitializeMessageTimer();
             LoadLogoImage();
+            CheckServiceAvailability();
             LoadDefaultPaths();
         }
 
@@ -124,6 +130,44 @@ namespace POSPRA.SetupUI
             }
         }
 
+        private void CheckServiceAvailability()
+        {
+            try
+            {
+                _isServiceAvailable = IsWorkerServiceInstalled();
+                //_isServiceAvailable = false;
+                if (_isServiceAvailable)
+                {
+                    ShowMessage("Fiscal service detected. Old database migration enabled.", true, true);
+                }
+                else
+                {
+                    ShowMessage("Fiscal service not found. Old database migration disabled.", false, true);
+                    DisableOldDatabaseControls();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error checking service: {ex.Message}", false, true);
+                DisableOldDatabaseControls();
+            }
+        }
+
+        private void DisableOldDatabaseControls()
+        {
+            if (txtOldDB != null)
+            {
+                txtOldDB.Enabled = false;
+                txtOldDB.ReadOnly = true;
+                txtOldDB.BackColor = Color.FromArgb(240, 240, 240);
+            }
+
+            if (btnBrowseOLD != null)
+            {
+                btnBrowseOLD.Enabled = false;
+            }
+        }
+
         private void LoadDefaultPaths()
         {
             ClearAllFields();
@@ -134,7 +178,58 @@ namespace POSPRA.SetupUI
                 txtFilePath.Text = defaultPath;
             }
 
-            txtOldDB.Text = _defaultIMSPath;
+            if (_isServiceAvailable && !string.IsNullOrWhiteSpace(_defaultIMSPath))
+            {
+                txtOldDB.Text = _defaultIMSPath;
+            }
+        }
+
+        #endregion
+
+        #region Service Check Methods
+
+        private bool IsWorkerServiceInstalled()
+        {
+            try
+            {
+                using (var controller = new ServiceController(_workerServiceName))
+                {
+                    // Access the Status property to check if service exists
+                    var status = controller.Status;
+                    return true;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // Service does not exist
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> IsWorkerServiceRunningAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!_isServiceAvailable)
+                        return false;
+
+                    using (var controller = new ServiceController(_workerServiceName))
+                    {
+                        controller.Refresh();
+                        return controller.Status == ServiceControllerStatus.Running;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            });
         }
 
         #endregion
@@ -182,11 +277,16 @@ namespace POSPRA.SetupUI
                 if (!ValidateInputs(out string username, out string password, out string dbPath, out string oldDbPath))
                     return;
 
-                if (!ValidateOldDatabase(oldDbPath))
-                    return;
+                // Only validate and backup old database if service is available
+                if (_isServiceAvailable)
+                {
+                    if (!ValidateOldDatabase(oldDbPath))
+                        return;
+
+                    CreateOldDatabaseBackup(oldDbPath);
+                }
 
                 CreateDatabaseDirectory(dbPath);
-                CreateOldDatabaseBackup(oldDbPath);
 
                 var mac = TryGetMacAddress();
                 var json = await AuthenticateAsync(username, password, mac);
@@ -205,13 +305,13 @@ namespace POSPRA.SetupUI
                 if (!InitializeDatabase(dbPath))
                     return;
 
-                ShowMessage("✅ Setup completed successfully!", true, false);
+                ShowMessage("Setup completed successfully!", true, false);
                 await Task.Delay(2000);
                 Environment.Exit(0);
             }
             catch (Exception ex)
             {
-                ShowMessage($"❌ Fatal error: {ex.Message}", false, false);
+                ShowMessage($"Fatal error: {ex.Message}", false, false);
             }
         }
 
@@ -224,7 +324,7 @@ namespace POSPRA.SetupUI
             username = txtUsername.Text.Trim();
             password = txtPassword.Text.Trim();
             dbPath = txtFilePath.Text.Trim();
-            oldDbPath = txtOldDB.Text.Trim();
+            oldDbPath = _isServiceAvailable ? txtOldDB.Text.Trim() : string.Empty;
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
@@ -238,7 +338,8 @@ namespace POSPRA.SetupUI
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(oldDbPath))
+            // Only validate old DB path if service is available
+            if (_isServiceAvailable && string.IsNullOrWhiteSpace(oldDbPath))
             {
                 ShowMessage("Please select an old database file path.", false, true);
                 return false;
@@ -249,6 +350,10 @@ namespace POSPRA.SetupUI
 
         private bool ValidateOldDatabase(string oldDbPath)
         {
+            // Skip validation if service is not available
+            if (!_isServiceAvailable)
+                return true;
+
             if (!File.Exists(oldDbPath))
             {
                 ShowMessage($"Old database file not found at: {oldDbPath}", false, true);
@@ -264,7 +369,7 @@ namespace POSPRA.SetupUI
 
                     if (collectionNames.Count == 0)
                     {
-                        ShowMessage("Old database is empty. No Data found.", false, true);
+                        ShowMessage("Old database is empty. No data found.", false, true);
                         return false;
                     }
 
@@ -316,6 +421,10 @@ namespace POSPRA.SetupUI
 
         private void CreateOldDatabaseBackup(string oldDbPath)
         {
+            // Skip backup if service is not available or path is empty
+            if (!_isServiceAvailable || string.IsNullOrWhiteSpace(oldDbPath))
+                return;
+
             try
             {
                 string backupDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
@@ -692,6 +801,12 @@ namespace POSPRA.SetupUI
 
         private void btnBrowseOld_Click(object sender, EventArgs e)
         {
+            if (!_isServiceAvailable)
+            {
+                ShowMessage("Old database migration is disabled. Worker service not found.", false, true);
+                return;
+            }
+
             BrowseAndSelectExistingFile(txtOldDB, "Select IMS Database File", "IMS files (*.ims)|*.ims|All files (*.*)|*.*");
         }
 
