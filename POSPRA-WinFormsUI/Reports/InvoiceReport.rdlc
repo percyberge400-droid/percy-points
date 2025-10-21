@@ -912,18 +912,18 @@
             <Style>None</Style>
           </Border>
           <VerticalAlign>Middle</VerticalAlign>
-          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingTop>2pt</PaddingTop>
           <Direction>LTR</Direction>
         </Style>
       </Textbox>
-      <Textbox Name="Tax">
+      <Textbox Name="TotalTaxCharged">
         <CanGrow>true</CanGrow>
         <CanShrink>true</CanShrink>
         <Paragraphs>
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>=Sum(Fields!Tax.Value, "BodyDataSet")</Value>
+                <Value>=First(Fields!TotalTax.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                   <Format>0.0;(0.0)</Format>
@@ -945,7 +945,7 @@
             <Style>None</Style>
           </Border>
           <VerticalAlign>Middle</VerticalAlign>
-          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingTop>2pt</PaddingTop>
           <Direction>LTR</Direction>
         </Style>
       </Textbox>
@@ -980,7 +980,7 @@
             <Width>0.3pt</Width>
           </Border>
           <VerticalAlign>Middle</VerticalAlign>
-          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingTop>2pt</PaddingTop>
           <Direction>LTR</Direction>
           <rd:FormatSymbolCulture>en-PK</rd:FormatSymbolCulture>
         </Style>
@@ -1212,14 +1212,14 @@
           <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
-      <Textbox Name="Textbox7">
+      <Textbox Name="TotalQty">
         <CanGrow>true</CanGrow>
         <KeepTogether>true</KeepTogether>
         <Paragraphs>
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>=Sum(Fields!Qty.Value, "BodyDataSet")</Value>
+                <Value>=First(Fields!TotalQty.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                   <Format>0;(0)</Format>
@@ -1231,7 +1231,6 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <rd:DefaultName>Textbox6</rd:DefaultName>
         <Top>5.28326cm</Top>
         <Left>5.54969cm</Left>
         <Height>0.52915cm</Height>
@@ -1242,7 +1241,7 @@
             <Style>None</Style>
           </Border>
           <VerticalAlign>Middle</VerticalAlign>
-          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="NTNLabel2">
@@ -1389,6 +1388,10 @@
         </Field>
         <Field Name="TotalQty">
           <DataField>TotalQty</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="TotalTax">
+          <DataField>TotalTax</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
       </Fields>
