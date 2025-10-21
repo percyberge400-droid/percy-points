@@ -18,7 +18,7 @@ namespace POSPRA.Application.Services.NetworkService
             {
                 using var ping = new Ping();
                 var reply = await ping.SendPingAsync("8.8.8.8", 5000); // Google DNS
-                await Task.Delay(5000);
+                //await Task.Delay(5000);
                 return reply.Status == IPStatus.Success;
             }
             catch
