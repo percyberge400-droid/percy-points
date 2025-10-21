@@ -316,9 +316,7 @@ namespace POSPRA_WinFormsUI.Reports {
         [global::System.Xml.Serialization.XmlSchemaProviderAttribute("GetTypedTableSchema")]
         public partial class BodyDataTableDataTable : global::System.Data.TypedTableBase<BodyDataTableRow> {
             
-            private global::System.Data.DataColumn columnInvoiceNo;
-            
-            private global::System.Data.DataColumn columnSerialNo;
+            private global::System.Data.DataColumn columnAmount;
             
             private global::System.Data.DataColumn columnitemName;
             
@@ -327,12 +325,6 @@ namespace POSPRA_WinFormsUI.Reports {
             private global::System.Data.DataColumn columnQty;
             
             private global::System.Data.DataColumn columnPrice;
-            
-            private global::System.Data.DataColumn columnPOSID;
-            
-            private global::System.Data.DataColumn columnDiscount;
-            
-            private global::System.Data.DataColumn columnTotal;
             
             private global::System.Data.DataColumn columnTax;
             
@@ -373,17 +365,9 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public global::System.Data.DataColumn InvoiceNoColumn {
+            public global::System.Data.DataColumn AmountColumn {
                 get {
-                    return this.columnInvoiceNo;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public global::System.Data.DataColumn SerialNoColumn {
-                get {
-                    return this.columnSerialNo;
+                    return this.columnAmount;
                 }
             }
             
@@ -416,30 +400,6 @@ namespace POSPRA_WinFormsUI.Reports {
             public global::System.Data.DataColumn PriceColumn {
                 get {
                     return this.columnPrice;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public global::System.Data.DataColumn POSIDColumn {
-                get {
-                    return this.columnPOSID;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public global::System.Data.DataColumn DiscountColumn {
-                get {
-                    return this.columnDiscount;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public global::System.Data.DataColumn TotalColumn {
-                get {
-                    return this.columnTotal;
                 }
             }
             
@@ -488,18 +448,14 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public BodyDataTableRow AddBodyDataTableRow(string InvoiceNo, string SerialNo, string itemName, string TaxRate, string Qty, string Price, string POSID, string Discount, string Total, string Tax) {
+            public BodyDataTableRow AddBodyDataTableRow(string Amount, string itemName, string TaxRate, string Qty, string Price, string Tax) {
                 BodyDataTableRow rowBodyDataTableRow = ((BodyDataTableRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
-                        InvoiceNo,
-                        SerialNo,
+                        Amount,
                         itemName,
                         TaxRate,
                         Qty,
                         Price,
-                        POSID,
-                        Discount,
-                        Total,
                         Tax};
                 rowBodyDataTableRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowBodyDataTableRow);
@@ -523,25 +479,19 @@ namespace POSPRA_WinFormsUI.Reports {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             internal void InitVars() {
-                this.columnInvoiceNo = base.Columns["InvoiceNo"];
-                this.columnSerialNo = base.Columns["SerialNo"];
+                this.columnAmount = base.Columns["Amount"];
                 this.columnitemName = base.Columns["itemName"];
                 this.columnTaxRate = base.Columns["TaxRate"];
                 this.columnQty = base.Columns["Qty"];
                 this.columnPrice = base.Columns["Price"];
-                this.columnPOSID = base.Columns["POSID"];
-                this.columnDiscount = base.Columns["Discount"];
-                this.columnTotal = base.Columns["Total"];
                 this.columnTax = base.Columns["Tax"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             private void InitClass() {
-                this.columnInvoiceNo = new global::System.Data.DataColumn("InvoiceNo", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnInvoiceNo);
-                this.columnSerialNo = new global::System.Data.DataColumn("SerialNo", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnSerialNo);
+                this.columnAmount = new global::System.Data.DataColumn("Amount", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnAmount);
                 this.columnitemName = new global::System.Data.DataColumn("itemName", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnitemName);
                 this.columnTaxRate = new global::System.Data.DataColumn("TaxRate", typeof(string), null, global::System.Data.MappingType.Element);
@@ -550,12 +500,6 @@ namespace POSPRA_WinFormsUI.Reports {
                 base.Columns.Add(this.columnQty);
                 this.columnPrice = new global::System.Data.DataColumn("Price", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnPrice);
-                this.columnPOSID = new global::System.Data.DataColumn("POSID", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnPOSID);
-                this.columnDiscount = new global::System.Data.DataColumn("Discount", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnDiscount);
-                this.columnTotal = new global::System.Data.DataColumn("Total", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnTotal);
                 this.columnTax = new global::System.Data.DataColumn("Tax", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnTax);
             }
@@ -709,6 +653,16 @@ namespace POSPRA_WinFormsUI.Reports {
             
             private global::System.Data.DataColumn columnPRALogo;
             
+            private global::System.Data.DataColumn columnTotal;
+            
+            private global::System.Data.DataColumn columnDiscount;
+            
+            private global::System.Data.DataColumn columnPOSID;
+            
+            private global::System.Data.DataColumn columnInvoiceNo;
+            
+            private global::System.Data.DataColumn columnTotalQty;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public HeaderDataTableDataTable() {
@@ -818,6 +772,46 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn TotalColumn {
+                get {
+                    return this.columnTotal;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn DiscountColumn {
+                get {
+                    return this.columnDiscount;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn POSIDColumn {
+                get {
+                    return this.columnPOSID;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn InvoiceNoColumn {
+                get {
+                    return this.columnInvoiceNo;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn TotalQtyColumn {
+                get {
+                    return this.columnTotalQty;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -853,7 +847,7 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public HeaderDataTableRow AddHeaderDataTableRow(string BusinessName, string DateCreated, string ModeOfPayment, byte LogoImage, byte QRCodeImage, string NTN, string Address, string STRN, string PRALogo) {
+            public HeaderDataTableRow AddHeaderDataTableRow(string BusinessName, string DateCreated, string ModeOfPayment, byte LogoImage, byte QRCodeImage, string NTN, string Address, string STRN, string PRALogo, string Total, string Discount, string POSID, string InvoiceNo, string TotalQty) {
                 HeaderDataTableRow rowHeaderDataTableRow = ((HeaderDataTableRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         BusinessName,
@@ -864,7 +858,12 @@ namespace POSPRA_WinFormsUI.Reports {
                         NTN,
                         Address,
                         STRN,
-                        PRALogo};
+                        PRALogo,
+                        Total,
+                        Discount,
+                        POSID,
+                        InvoiceNo,
+                        TotalQty};
                 rowHeaderDataTableRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowHeaderDataTableRow);
                 return rowHeaderDataTableRow;
@@ -896,6 +895,11 @@ namespace POSPRA_WinFormsUI.Reports {
                 this.columnAddress = base.Columns["Address"];
                 this.columnSTRN = base.Columns["STRN"];
                 this.columnPRALogo = base.Columns["PRALogo"];
+                this.columnTotal = base.Columns["Total"];
+                this.columnDiscount = base.Columns["Discount"];
+                this.columnPOSID = base.Columns["POSID"];
+                this.columnInvoiceNo = base.Columns["InvoiceNo"];
+                this.columnTotalQty = base.Columns["TotalQty"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -919,6 +923,16 @@ namespace POSPRA_WinFormsUI.Reports {
                 base.Columns.Add(this.columnSTRN);
                 this.columnPRALogo = new global::System.Data.DataColumn("PRALogo", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnPRALogo);
+                this.columnTotal = new global::System.Data.DataColumn("Total", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnTotal);
+                this.columnDiscount = new global::System.Data.DataColumn("Discount", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnDiscount);
+                this.columnPOSID = new global::System.Data.DataColumn("POSID", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnPOSID);
+                this.columnInvoiceNo = new global::System.Data.DataColumn("InvoiceNo", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnInvoiceNo);
+                this.columnTotalQty = new global::System.Data.DataColumn("TotalQty", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnTotalQty);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1061,33 +1075,17 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public string InvoiceNo {
+            public string Amount {
                 get {
                     try {
-                        return ((string)(this[this.tableBodyDataTable.InvoiceNoColumn]));
+                        return ((string)(this[this.tableBodyDataTable.AmountColumn]));
                     }
                     catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'InvoiceNo\' in table \'BodyDataTable\' is DBNull.", e);
+                        throw new global::System.Data.StrongTypingException("The value for column \'Amount\' in table \'BodyDataTable\' is DBNull.", e);
                     }
                 }
                 set {
-                    this[this.tableBodyDataTable.InvoiceNoColumn] = value;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public string SerialNo {
-                get {
-                    try {
-                        return ((string)(this[this.tableBodyDataTable.SerialNoColumn]));
-                    }
-                    catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'SerialNo\' in table \'BodyDataTable\' is DBNull.", e);
-                    }
-                }
-                set {
-                    this[this.tableBodyDataTable.SerialNoColumn] = value;
+                    this[this.tableBodyDataTable.AmountColumn] = value;
                 }
             }
             
@@ -1157,54 +1155,6 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public string POSID {
-                get {
-                    try {
-                        return ((string)(this[this.tableBodyDataTable.POSIDColumn]));
-                    }
-                    catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'POSID\' in table \'BodyDataTable\' is DBNull.", e);
-                    }
-                }
-                set {
-                    this[this.tableBodyDataTable.POSIDColumn] = value;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public string Discount {
-                get {
-                    try {
-                        return ((string)(this[this.tableBodyDataTable.DiscountColumn]));
-                    }
-                    catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'Discount\' in table \'BodyDataTable\' is DBNull.", e);
-                    }
-                }
-                set {
-                    this[this.tableBodyDataTable.DiscountColumn] = value;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public string Total {
-                get {
-                    try {
-                        return ((string)(this[this.tableBodyDataTable.TotalColumn]));
-                    }
-                    catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'Total\' in table \'BodyDataTable\' is DBNull.", e);
-                    }
-                }
-                set {
-                    this[this.tableBodyDataTable.TotalColumn] = value;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public string Tax {
                 get {
                     try {
@@ -1221,26 +1171,14 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public bool IsInvoiceNoNull() {
-                return this.IsNull(this.tableBodyDataTable.InvoiceNoColumn);
+            public bool IsAmountNull() {
+                return this.IsNull(this.tableBodyDataTable.AmountColumn);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public void SetInvoiceNoNull() {
-                this[this.tableBodyDataTable.InvoiceNoColumn] = global::System.Convert.DBNull;
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public bool IsSerialNoNull() {
-                return this.IsNull(this.tableBodyDataTable.SerialNoColumn);
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public void SetSerialNoNull() {
-                this[this.tableBodyDataTable.SerialNoColumn] = global::System.Convert.DBNull;
+            public void SetAmountNull() {
+                this[this.tableBodyDataTable.AmountColumn] = global::System.Convert.DBNull;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1289,42 +1227,6 @@ namespace POSPRA_WinFormsUI.Reports {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public void SetPriceNull() {
                 this[this.tableBodyDataTable.PriceColumn] = global::System.Convert.DBNull;
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public bool IsPOSIDNull() {
-                return this.IsNull(this.tableBodyDataTable.POSIDColumn);
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public void SetPOSIDNull() {
-                this[this.tableBodyDataTable.POSIDColumn] = global::System.Convert.DBNull;
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public bool IsDiscountNull() {
-                return this.IsNull(this.tableBodyDataTable.DiscountColumn);
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public void SetDiscountNull() {
-                this[this.tableBodyDataTable.DiscountColumn] = global::System.Convert.DBNull;
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public bool IsTotalNull() {
-                return this.IsNull(this.tableBodyDataTable.TotalColumn);
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public void SetTotalNull() {
-                this[this.tableBodyDataTable.TotalColumn] = global::System.Convert.DBNull;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1500,6 +1402,86 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string Total {
+                get {
+                    try {
+                        return ((string)(this[this.tableHeaderDataTable.TotalColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'Total\' in table \'HeaderDataTable\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableHeaderDataTable.TotalColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string Discount {
+                get {
+                    try {
+                        return ((string)(this[this.tableHeaderDataTable.DiscountColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'Discount\' in table \'HeaderDataTable\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableHeaderDataTable.DiscountColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string POSID {
+                get {
+                    try {
+                        return ((string)(this[this.tableHeaderDataTable.POSIDColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'POSID\' in table \'HeaderDataTable\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableHeaderDataTable.POSIDColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string InvoiceNo {
+                get {
+                    try {
+                        return ((string)(this[this.tableHeaderDataTable.InvoiceNoColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'InvoiceNo\' in table \'HeaderDataTable\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableHeaderDataTable.InvoiceNoColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string TotalQty {
+                get {
+                    try {
+                        return ((string)(this[this.tableHeaderDataTable.TotalQtyColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'TotalQty\' in table \'HeaderDataTable\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableHeaderDataTable.TotalQtyColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public bool IsBusinessNameNull() {
                 return this.IsNull(this.tableHeaderDataTable.BusinessNameColumn);
             }
@@ -1604,6 +1586,66 @@ namespace POSPRA_WinFormsUI.Reports {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public void SetPRALogoNull() {
                 this[this.tableHeaderDataTable.PRALogoColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsTotalNull() {
+                return this.IsNull(this.tableHeaderDataTable.TotalColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetTotalNull() {
+                this[this.tableHeaderDataTable.TotalColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsDiscountNull() {
+                return this.IsNull(this.tableHeaderDataTable.DiscountColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetDiscountNull() {
+                this[this.tableHeaderDataTable.DiscountColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsPOSIDNull() {
+                return this.IsNull(this.tableHeaderDataTable.POSIDColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetPOSIDNull() {
+                this[this.tableHeaderDataTable.POSIDColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsInvoiceNoNull() {
+                return this.IsNull(this.tableHeaderDataTable.InvoiceNoColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetInvoiceNoNull() {
+                this[this.tableHeaderDataTable.InvoiceNoColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsTotalQtyNull() {
+                return this.IsNull(this.tableHeaderDataTable.TotalQtyColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetTotalQtyNull() {
+                this[this.tableHeaderDataTable.TotalQtyColumn] = global::System.Convert.DBNull;
             }
         }
         

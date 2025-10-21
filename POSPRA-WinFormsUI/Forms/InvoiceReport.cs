@@ -19,6 +19,11 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly string _invoiceNumber;
         private readonly bool _isFromDashboard;
         private ReportViewer _reportViewer;
+        private static readonly string businessname = ConfigurationManager.AppSettings["businessName"];
+        private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];
+        private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"];
+        private static readonly Dictionary<string, byte[]> _qrCache = new();
+
 
         // Constructor for Save button
         public InvoiceReport(InvoiceDto invoiceDto)
@@ -52,14 +57,15 @@ namespace POSPRA_WinFormsUI.Forms
 
             Controls.Add(_reportViewer);
 
+            // ✅ Apply thermal printer paper size (5.8cm × 15cm)
+            ApplyThermalPaperSize();
             LoadReport();
 
             // ✅ Thermal printer display mode
             _reportViewer.SetDisplayMode(DisplayMode.PrintLayout);
             //_reportViewer.ZoomMode = ZoomMode.PageWidth;
 
-            // ✅ Apply thermal printer paper size (5.8cm × 15cm)
-            ApplyThermalPaperSize();
+            
         }
 
         private void ApplyThermalPaperSize()
@@ -102,21 +108,25 @@ namespace POSPRA_WinFormsUI.Forms
                 new DataColumn("PRALogo", typeof(byte[])),
                 new DataColumn("NTN", typeof(string)),
                 new DataColumn("Address", typeof(string)),
-                new DataColumn("STRN", typeof(string))
+                new DataColumn("STRN", typeof(string)),
+                new DataColumn("InvoiceNo", typeof(string)),
+                new DataColumn("POSID", typeof(string)),
+                new DataColumn("Discount", typeof(decimal)),
+                new DataColumn("Total", typeof(decimal))
             });
 
             var bodyTable = new DataTable("BodyDataSet");
             bodyTable.Columns.AddRange(new[]
             {
-                new DataColumn("InvoiceNo", typeof(string)),
-                new DataColumn("SerialNo", typeof(int)),
+                //new DataColumn("InvoiceNo", typeof(string)),//1
+                new DataColumn("Amount", typeof(int)),
                 new DataColumn("ItemName", typeof(string)),
                 new DataColumn("TaxRate", typeof(decimal)),
                 new DataColumn("Qty", typeof(decimal)),
                 new DataColumn("Price", typeof(decimal)),
-                new DataColumn("POSID", typeof(string)),
-                new DataColumn("Discount", typeof(decimal)),
-                new DataColumn("Total", typeof(decimal)),
+                //new DataColumn("POSID", typeof(string)),//1
+                //new DataColumn("Discount", typeof(decimal)),//1
+                //new DataColumn("Total", typeof(decimal)),//1
                 new DataColumn("Tax", typeof(decimal))
             });
 
@@ -125,13 +135,7 @@ namespace POSPRA_WinFormsUI.Forms
             byte[] qr = GenerateQRCode(dto.FBRInvoiceNumber);
 
             var headerRow = headerTable.NewRow();
-            string businessname = ConfigurationManager.AppSettings["businessName"];
-            if (!string.IsNullOrEmpty(businessname))
-                businessname = businessname;
             headerRow["BusinessName"] = businessname;
-            string branchname = ConfigurationManager.AppSettings["branchName"];
-            if (!string.IsNullOrEmpty(branchname))
-                branchname = branchname;
             headerRow["DateCreated"] = dto.DateTime;
             string paymentModeText = dto.PaymentMode switch
             {
@@ -145,28 +149,31 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
-            string branchName = ConfigurationManager.AppSettings["branchName"];
-            string address = branchName +",  "+ ConfigurationManager.AppSettings["branchAddress"];
-            headerRow["Address"] = address; //dto.BuyerName;// + ", City, Pakistan";
-            headerRow["STRN"] = dto.FBRInvoiceNumber ?? string.Empty;
+            headerRow["Address"] = branchName + ",  " + branchAddress; //dto.BuyerName;// + ", City, Pakistan";
+            headerRow["STRN"] = dto.USIN ?? string.Empty;
+            headerRow["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
+            headerRow["Total"] = dto.TotalBillAmount;
+            headerRow["POSID"] = dto.POSID.ToString();
+            //headerRow[""]
+            headerRow["Discount"] = dto.Discount;
             headerTable.Rows.Add(headerRow);
 
-            int serial = 1;
+
+            //int serial = 1;
             foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
-                row["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
-                row["SerialNo"] = serial++;
+                //row["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
+                row["Amount"] = item.TotalAmount;
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
-                row["TaxRate"] = Math.Round(item.TaxRate, 1);
-                int quantity = Convert.ToInt32(item.Quantity);
-                row["Qty"] = quantity;
-                row["Price"] = Math.Round(item.SaleValue,1);
-                row["POSID"] = dto.POSID.ToString();
-                row["Discount"] = Math.Round(item.Discount, 1);
-                row["Total"] = Math.Round(item.TotalAmount, 1);
-                row["Tax"] = Math.Round(item.TaxCharged, 1);
+                row["TaxRate"] = item.TaxRate;
+                row["Qty"] = item.Quantity; 
+                row["Price"] = item.SaleValue;  
+                //row["POSID"] = dto.POSID.ToString();
+                //row["Discount"] = item.Discount;
+                //row["Total"] = dto.TotalBillAmount;
+                row["Tax"] = item.TaxCharged;
                 bodyTable.Rows.Add(row);
             }
 
@@ -232,14 +239,15 @@ namespace POSPRA_WinFormsUI.Forms
         private byte[] GenerateQRCode(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
-
+            if (_qrCache.TryGetValue(text, out var cached)) return cached;
             using var qrGen = new QRCodeGenerator();
             using var qrData = qrGen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new QRCode(qrData);
-            using var bmp = qrCode.GetGraphic(10);
+            using var bmp = qrCode.GetGraphic(3);
             using var ms = new MemoryStream();
             bmp.Save(ms, ImageFormat.Png);
-            return ms.ToArray();
+            _qrCache[text] = ms.ToArray();
+            return _qrCache[text];
         }
 
         #endregion

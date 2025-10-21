@@ -267,6 +267,7 @@
                               <Value>=Fields!Qty.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
+                                <Format>0;(0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -338,6 +339,7 @@
                               <Value>=Fields!Price.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
+                                <Format>0.0;(0.0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -373,6 +375,7 @@
                               <Value>=Fields!TaxRate.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
+                                <Format>0.0;(0.0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -408,6 +411,7 @@
                               <Value>=Fields!Tax.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
+                                <Format>0.0;(0.0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -440,9 +444,10 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>=Fields!Total.Value</Value>
+                              <Value>=Fields!Amount.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
+                                <Format>0.0;(0.0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -492,10 +497,10 @@
           </TablixMembers>
         </TablixRowHierarchy>
         <DataSetName>BodyDataSet</DataSetName>
-        <Top>1.71391in</Top>
+        <Top>1.59724in</Top>
         <Left>0.51646cm</Left>
         <Height>0.48278in</Height>
-        <Width>6.47236cm</Width>
+        <Width>6.47239cm</Width>
         <Style>
           <Border>
             <Style>None</Style>
@@ -589,7 +594,7 @@
         </Paragraphs>
         <Top>1.38335in</Top>
         <Left>3.99787cm</Left>
-        <Height>0.26667in</Height>
+        <Height>0.2in</Height>
         <Width>2.97088cm</Width>
         <ZIndex>2</ZIndex>
         <Style>
@@ -623,9 +628,9 @@
                 </Style>
               </TextRun>
               <TextRun>
-                <Value>=First(Fields!POSID.Value, "BodyDataSet")</Value>
+                <Value>=First(Fields!POSID.Value, "HeaderDataSet")</Value>
                 <Style>
-                  <FontSize>7pt</FontSize>
+                  <FontSize>8pt</FontSize>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -636,7 +641,7 @@
         </Paragraphs>
         <Top>1.38335in</Top>
         <Left>0.51646cm</Left>
-        <Height>0.26667in</Height>
+        <Height>0.19445in</Height>
         <Width>3.32507cm</Width>
         <ZIndex>3</ZIndex>
         <Style>
@@ -703,9 +708,17 @@
                 </Style>
               </TextRun>
               <TextRun>
+                <Value xml:space="preserve"> </Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <Format>0;(0)</Format>
+                </Style>
+              </TextRun>
+              <TextRun>
                 <Value>=First(Fields!NTN.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>7pt</FontSize>
+                  <Format>0;(0)</Format>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -717,7 +730,7 @@
         <Top>1.17779in</Top>
         <Left>0.51649cm</Left>
         <Height>0.19167in</Height>
-        <Width>3.305cm</Width>
+        <Width>3.32504cm</Width>
         <ZIndex>5</ZIndex>
         <Style>
           <Border>
@@ -771,7 +784,7 @@
         </Paragraphs>
         <Top>0.98056in</Top>
         <Left>0.51649cm</Left>
-        <Height>0.21112in</Height>
+        <Height>0.18334in</Height>
         <Width>6.45232cm</Width>
         <ZIndex>6</ZIndex>
         <Style>
@@ -811,7 +824,7 @@
         <Value>=First(Fields!QRCodeImage.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>Fit</Sizing>
-        <Top>85.83335mm</Top>
+        <Top>82.65835mm</Top>
         <Left>42.6528mm</Left>
         <Height>2.28566cm</Height>
         <Width>2.70347cm</Width>
@@ -828,7 +841,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>We look forward to sering you again!</Value>
+                <Value>Thank You For Your Visiting!</Value>
                 <Style>
                   <FontSize>7pt</FontSize>
                 </Style>
@@ -839,7 +852,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>4.30691in</Top>
+        <Top>4.18191in</Top>
         <Left>0.79408cm</Left>
         <Height>0.14167in</Height>
         <Width>5.82579cm</Width>
@@ -863,7 +876,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>4.45691in</Top>
+        <Top>4.33191in</Top>
         <Left>0.79408cm</Left>
         <Height>0.15833in</Height>
         <Width>5.82579cm</Width>
@@ -877,9 +890,10 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>=Sum(CDbl(Fields!Discount.Value), "BodyDataSet")</Value>
+                <Value>=Sum(Fields!Discount.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
+                  <Format>0.0;(0.0)</Format>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -888,8 +902,8 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.6272in</Top>
-        <Left>5.54978cm</Left>
+        <Top>2.49664in</Top>
+        <Left>5.5496cm</Left>
         <Height>0.23333in</Height>
         <Width>1.41897cm</Width>
         <ZIndex>11</ZIndex>
@@ -909,9 +923,10 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>=Sum(CDbl(Fields!Tax.Value), "BodyDataSet")</Value>
+                <Value>=Sum(Fields!Tax.Value, "BodyDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
+                  <Format>0.0;(0.0)</Format>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -920,8 +935,8 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.41891in</Top>
-        <Left>5.54987cm</Left>
+        <Top>2.28835in</Top>
+        <Left>5.54969cm</Left>
         <Height>0.20833in</Height>
         <Width>1.41897cm</Width>
         <ZIndex>12</ZIndex>
@@ -941,9 +956,11 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>=Sum(CDbl(Fields!Price.Value) * CDbl(Fields!Qty.Value) + CDbl(Fields!Tax.Value) - CDbl(Fields!Discount.Value), "BodyDataSet")</Value>
+                <Value>=First(Fields!Total.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
+                  <Format>0.0 'Rs';(0.0 'Rs')</Format>
+                  <rd:FormatSymbolCulture>en-PK</rd:FormatSymbolCulture>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -952,8 +969,8 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.91053in</Top>
-        <Left>5.54978cm</Left>
+        <Top>2.72995in</Top>
+        <Left>5.5496cm</Left>
         <Height>0.20557in</Height>
         <Width>1.41897cm</Width>
         <ZIndex>13</ZIndex>
@@ -962,13 +979,10 @@
             <Style>None</Style>
             <Width>0.3pt</Width>
           </Border>
-          <TopBorder>
-            <Style>None</Style>
-            <Width>0.3pt</Width>
-          </TopBorder>
           <VerticalAlign>Middle</VerticalAlign>
           <PaddingBottom>2pt</PaddingBottom>
           <Direction>LTR</Direction>
+          <rd:FormatSymbolCulture>en-PK</rd:FormatSymbolCulture>
         </Style>
       </Textbox>
       <Image Name="PRALogo">
@@ -976,7 +990,7 @@
         <Value>=First(Fields!PRALogo.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>FitProportional</Sizing>
-        <Top>8.94677cm</Top>
+        <Top>8.62927cm</Top>
         <Left>0.79408cm</Left>
         <Height>1.61177cm</Height>
         <Width>3.2313cm</Width>
@@ -989,8 +1003,8 @@
         </Style>
       </Image>
       <Line Name="Line2">
-        <Top>8.58333cm</Top>
-        <Left>0.5365cm</Left>
+        <Top>8.05413cm</Top>
+        <Left>0.51625cm</Left>
         <Height>0cm</Height>
         <Width>6.45232cm</Width>
         <ZIndex>15</ZIndex>
@@ -1021,8 +1035,8 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>6.14404cm</Top>
-        <Left>0.51658cm</Left>
+        <Top>5.81241cm</Top>
+        <Left>0.5164cm</Left>
         <Height>0.52915cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>16</ZIndex>
@@ -1053,8 +1067,8 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>6.67311cm</Top>
-        <Left>0.51649cm</Left>
+        <Top>6.34148cm</Top>
+        <Left>0.51631cm</Left>
         <Height>0.59265cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>17</ZIndex>
@@ -1085,8 +1099,8 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>7.39279cm</Top>
-        <Left>0.51646cm</Left>
+        <Top>6.93411cm</Top>
+        <Left>0.51628cm</Left>
         <Height>0.52213cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>18</ZIndex>
@@ -1123,7 +1137,14 @@
                 </Style>
               </TextRun>
               <TextRun>
-                <Value>=First(Fields!InvoiceNo.Value, "BodyDataSet")</Value>
+                <Value xml:space="preserve"> </Value>
+                <Style>
+                  <FontSize>8pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
+                </Style>
+              </TextRun>
+              <TextRun>
+                <Value>=First(Fields!InvoiceNo.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                   <FontWeight>Normal</FontWeight>
@@ -1135,7 +1156,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>3.14388in</Top>
+        <Top>2.94942in</Top>
         <Left>0.51646cm</Left>
         <Height>0.2215in</Height>
         <Width>6.45229cm</Width>
@@ -1148,8 +1169,8 @@
         </Style>
       </Textbox>
       <Line Name="Line3">
-        <Top>7.95017cm</Top>
-        <Left>0.51646cm</Left>
+        <Top>7.49149cm</Top>
+        <Left>0.51628cm</Left>
         <Height>0cm</Height>
         <Width>6.43234cm</Width>
         <ZIndex>20</ZIndex>
@@ -1178,8 +1199,8 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox6</rd:DefaultName>
-        <Top>5.61487cm</Top>
-        <Left>0.51649cm</Left>
+        <Top>5.28326cm</Top>
+        <Left>0.5164cm</Left>
         <Height>0.52915cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>21</ZIndex>
@@ -1201,6 +1222,7 @@
                 <Value>=Sum(Fields!Qty.Value, "BodyDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
+                  <Format>0;(0)</Format>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -1210,8 +1232,8 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox6</rd:DefaultName>
-        <Top>5.61487cm</Top>
-        <Left>5.54978cm</Left>
+        <Top>5.28326cm</Top>
+        <Left>5.54969cm</Left>
         <Height>0.52915cm</Height>
         <Width>1.41906cm</Width>
         <ZIndex>22</ZIndex>
@@ -1266,7 +1288,7 @@
         </Style>
       </Textbox>
       <Line Name="Line4">
-        <Top>7.35751cm</Top>
+        <Top>6.93411cm</Top>
         <Left>0.53653cm</Left>
         <Height>0cm</Height>
         <Width>6.45232cm</Width>
@@ -1279,7 +1301,7 @@
         </Style>
       </Line>
     </ReportItems>
-    <Height>11.82292cm</Height>
+    <Height>11.46309cm</Height>
     <Style>
       <Border>
         <Style>None</Style>
@@ -1289,8 +1311,8 @@
   </Body>
   <Width>7.44204cm</Width>
   <Page>
-    <PageHeight>15cm</PageHeight>
-    <PageWidth>7.4cm</PageWidth>
+    <PageHeight>100cm</PageHeight>
+    <PageWidth>8cm</PageWidth>
     <LeftMargin>0cm</LeftMargin>
     <RightMargin>0cm</RightMargin>
     <TopMargin>0cm</TopMargin>
@@ -1349,10 +1371,30 @@
           <DataField>PRALogo</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
+        <Field Name="Total">
+          <DataField>Total</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="Discount">
+          <DataField>Discount</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="POSID">
+          <DataField>POSID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="InvoiceNo">
+          <DataField>InvoiceNo</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="TotalQty">
+          <DataField>TotalQty</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
       </Fields>
       <rd:DataSetInfo>
         <rd:DataSetName>ReportDataSet</rd:DataSetName>
-        <rd:SchemaPath>D:\pra-pos\POSPRA-WinFormsUI\Forms\ReportDataSet.xsd</rd:SchemaPath>
+        <rd:SchemaPath>D:\pra-pos\POSPRA-WinFormsUI\Reports\ReportDataSet.xsd</rd:SchemaPath>
         <rd:TableName>HeaderDataTable</rd:TableName>
         <rd:TableAdapterFillMethod />
         <rd:TableAdapterGetDataMethod />
@@ -1365,12 +1407,8 @@
         <CommandText>/* Local Query */</CommandText>
       </Query>
       <Fields>
-        <Field Name="InvoiceNo">
-          <DataField>InvoiceNo</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="SerialNo">
-          <DataField>SerialNo</DataField>
+        <Field Name="Amount">
+          <DataField>Amount</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
         <Field Name="itemName">
@@ -1389,18 +1427,6 @@
           <DataField>Price</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
-        <Field Name="POSID">
-          <DataField>POSID</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="Discount">
-          <DataField>Discount</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="Total">
-          <DataField>Total</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
         <Field Name="Tax">
           <DataField>Tax</DataField>
           <rd:TypeName>System.String</rd:TypeName>
@@ -1408,7 +1434,7 @@
       </Fields>
       <rd:DataSetInfo>
         <rd:DataSetName>ReportDataSet</rd:DataSetName>
-        <rd:SchemaPath>D:\pra-pos\POSPRA-WinFormsUI\Forms\ReportDataSet.xsd</rd:SchemaPath>
+        <rd:SchemaPath>D:\pra-pos\POSPRA-WinFormsUI\Reports\ReportDataSet.xsd</rd:SchemaPath>
         <rd:TableName>BodyDataTable</rd:TableName>
         <rd:TableAdapterFillMethod />
         <rd:TableAdapterGetDataMethod />
