@@ -88,9 +88,9 @@
             lblMessage.BackColor = Color.White;
             lblMessage.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             lblMessage.ForeColor = Color.FromArgb(76, 175, 80);
-            lblMessage.Location = new Point(115, 520);
+            lblMessage.Location = new Point(132, 520);
             lblMessage.Name = "lblMessage";
-            lblMessage.Size = new Size(480, 45);
+            lblMessage.Size = new Size(455, 45);
             lblMessage.TabIndex = 20;
             lblMessage.TextAlign = ContentAlignment.MiddleCenter;
             lblMessage.Visible = false;
@@ -265,7 +265,6 @@
             btnBrowse.TabIndex = 3;
             btnBrowse.Text = "...";
             btnBrowse.UseVisualStyleBackColor = false;
-            btnBrowse.Click += btnBrowse_Click;
             // 
             // txtFilePath
             // 
