@@ -347,11 +347,11 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(727, 628);
-            ControlBox = false;
+            ControlBox = true;
             Controls.Add(mainPanel);
             FormBorderStyle = FormBorderStyle.None;
             MaximizeBox = false;
-            MinimizeBox = false;
+            MinimizeBox = true;
             Name = "ConfigForm";
             ShowIcon = false;
             StartPosition = FormStartPosition.CenterScreen;
