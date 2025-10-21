@@ -1,5 +1,4 @@
 ﻿using POSPRA.DTOs.FiscalDtos;
-using POSPRA.DTOs.LogDtos;
 
 namespace POSPRA.DTOs.LogDTOs
 {
