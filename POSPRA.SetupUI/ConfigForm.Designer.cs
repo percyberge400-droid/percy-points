@@ -94,6 +94,10 @@
             lblMessage.TabIndex = 20;
             lblMessage.TextAlign = ContentAlignment.MiddleCenter;
             lblMessage.Visible = false;
+            lblMessage.AutoEllipsis = true;
+            lblMessage.MaximumSize = new Size(600, 0);
+            lblMessage.AutoSize = true;
+
             // 
             // btnBrowseOLD
             // 
