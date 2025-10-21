@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\POSPRA.Application\POSPRA.Application.csproj" />
     <ProjectReference Include="..\POSPRA.Infrastructure\POSPRA.Infrastructure.csproj" />
     <ProjectReference Include="..\POSPRA.SecurityEncryption\POSPRA.SecurityEncryption.csproj" />
   </ItemGroup>

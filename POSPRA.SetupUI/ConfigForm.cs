@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using POSPRA.Application.Services.ScriptService;
 using POSPRA.DTOs.FiscalDtos;
-using POSPRA.DTOs.LogDtos;
 using POSPRA.DTOs.LogDTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.SecurityEncryption;
@@ -56,11 +56,13 @@ namespace POSPRA.SetupUI
 
         private bool _isServiceAvailable = false;
 
+        private readonly IScriptService _scriptservice;
+
         #endregion
 
         #region Constructor
 
-        public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath)
+        public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath, IScriptService scriptservice)
         {
             InitializeComponent();
 
@@ -74,6 +76,8 @@ namespace POSPRA.SetupUI
             _defaultPassword = ConfigurationManager.AppSettings["DbPassword"];
             _backupDir = ConfigurationManager.AppSettings["backupDir"];
             _workerServiceName = ConfigurationManager.AppSettings["FiscalServiceName"];
+
+            _scriptservice = scriptservice;
 
             InitializeFormSettings();
             InitializeEventHandlers();
@@ -685,15 +689,23 @@ LogDto List: {totalLogs} records";
         {
             try
             {
-                // This method is ready for your API implementation
-                // Currently just prepares the data and shows readiness
+                if ((fileRecords == null || fileRecords.Count == 0) &&
+                    (logs == null || logs.Count == 0))
+                {
+                    ShowMessage("No data to send.", false, true);
+                    return;
+                }
 
-                ShowMessage("Data prepared for API transmission", true, false);
+                var payload = new ScriptDTO
+                {
+                    FileRecord = fileRecords,
+                    Log = logs
+                };
 
-                // TODO: Uncomment and implement when ready to call API
-                /*
-                bool apiSuccess = await SendDataToApiAsync(fileRecords, logs, username, password);
-                if (apiSuccess)
+                ShowMessage($"Preparing {fileRecords.Count} file records and {logs.Count} logs for API...", true, false);
+
+                bool success = await SendDataToApiAsync(payload);
+                if (success)
                 {
                     ShowMessage("Data successfully sent to API!", true, false);
                 }
@@ -701,11 +713,6 @@ LogDto List: {totalLogs} records";
                 {
                     ShowMessage("Failed to send data to API", false, true);
                 }
-                */
-
-                // For now, just show what would be sent
-                await Task.Delay(1000); // Simulate processing
-                ShowMessage($"Ready to send: {fileRecords.Count} FileRecordDto and {logs.Count} LogDto to API", true, false);
             }
             catch (Exception ex)
             {
@@ -716,72 +723,26 @@ LogDto List: {totalLogs} records";
         /// <summary>
         /// Ready-to-use method for sending data to API (commented out for now)
         /// </summary>
-        private async Task<bool> SendDataToApiAsync(List<FileRecordDto> fileRecords, List<LogDto> logs, string username, string password)
+        private async Task<bool> SendDataToApiAsync(ScriptDTO payload)
         {
-            /*
             try
             {
-                string apiUrl = ConfigurationManager.AppSettings["MigrationApiUrl"];
-                if (string.IsNullOrWhiteSpace(apiUrl))
+                var response = await _scriptservice.CreateScript(payload);
+
+                if (response.StatusCode == "200")
                 {
-                    ShowMessage("Migration API URL is not configured.", false, true);
-                    return false;
-                }
-
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-                // Add authentication headers
-                var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authToken);
-
-                // Create payload with both DTO lists
-                var payload = new
-                {
-                    FileRecords = fileRecords,
-                    Logs = logs,
-                    MigrationTimestamp = DateTime.UtcNow,
-                    TotalFileRecords = fileRecords.Count,
-                    TotalLogs = logs.Count,
-                    TotalRecords = fileRecords.Count + logs.Count
-                };
-
-                var jsonContent = new StringContent(
-                    JsonConvert.SerializeObject(payload, new JsonSerializerSettings 
-                    { 
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DateFormatHandling = DateFormatHandling.IsoDateFormat
-                    }),
-                    Encoding.UTF8,
-                    "application/json"
-                );
-
-                ShowMessage($"Sending {payload.TotalRecords} records to API...", true, false);
-
-                var response = await client.PostAsync(apiUrl, jsonContent);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    ShowMessage($"Successfully sent {payload.TotalRecords} records to API.", true, false);
                     return true;
                 }
                 else
                 {
-                    ShowMessage($"API returned error: {(int)response.StatusCode} - {response.ReasonPhrase}", false, true);
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                ShowMessage($"Failed to send data to API: {ex.Message}", false, true);
+                ShowMessage($"Error sending data to API: {ex.Message}", false, true);
                 return false;
             }
-            */
-
-            // Return true for now since API call is not implemented
-            await Task.Delay(500);
-            return true;
         }
 
         /// <summary>
@@ -1528,8 +1489,8 @@ LogDto List: {totalLogs} records";
             {
                 this.TopMost = false;
                 SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-                Application.ExitThread();
-                Application.Exit();
+                //Application.ExitThread();
+                //Application.Exit();
                 Environment.Exit(exitCode);
             }
             catch
