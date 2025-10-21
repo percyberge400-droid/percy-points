@@ -1,10 +1,10 @@
-﻿using POSPRA.DTOs.UserDTOs;
+﻿using POSPRA.DTOs.UserDtos;
 
 namespace POSPRA.Application.Services.UserService
 {
     public interface IUserService
     {
-        Task<UserDTO> CreateUserAsync(UserDTO dto);
-        Task<List<UserDTO>> GetUsersAsync();
+        Task<UserDto> CreateUserAsync(UserDto dto);
+        Task<List<UserDto>> GetUsersAsync();
     }
 }

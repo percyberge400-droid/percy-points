@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\POSPRA.Domain\POSPRA.Domain.csproj" />
+    <ProjectReference Include="..\POSPRA.DTOs\POSPRA.DTOs.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,44 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using POSPRA.Application.Services.ProductCatalogService;
+using POSPRA.DTOs.ProductCatalogDtos;
+
+namespace POSPRA.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductCatalogueController(IProductCatalogueService productCatalogueService) : ControllerBase
+    {
+        private readonly IProductCatalogueService _productCatalogueService = productCatalogueService;
+
+        [HttpPost("GetAll")]
+        public async Task<IActionResult> GetAll(ProductCatalogueQueryDto dto) =>
+            Ok(await _productCatalogueService.GetAllAsync(dto));
+
+        /// <summary>
+        /// This method is used to create product catalogue in SQLite.
+        /// </summary>
+        /// <param name="productCatalogueDto"></param>
+        /// <returns></returns>
+        [HttpPost("postproductcatalogue")]
+        public async Task<IActionResult> Create([FromBody] ProductCatalogueDto productCatalogueDto) =>
+            Ok(await _productCatalogueService.PostProductCatalog(productCatalogueDto));
+
+        /// <summary>
+        /// This API is used to get product catalog.
+        /// </summary>
+        /// <param name="productCatalogueDto"></param>
+        /// <returns></returns>
+        [HttpGet("getproductcatalogue")]
+        public async Task<IActionResult> GetProductCatalogue() =>
+            Ok(await _productCatalogueService.GetProductCatalogue());
+
+        /// <summary>
+        /// This API is used to delete product catalog.
+        /// </summary>
+        /// <param name="productCatalogueDto"></param>
+        /// <returns></returns>
+        [HttpGet("deleteproductcatalogue")]
+        public async Task<IActionResult> DeleteProductCatalogue() =>
+            Ok(await _productCatalogueService.DeleteProductCatalogue());
+    }
+}

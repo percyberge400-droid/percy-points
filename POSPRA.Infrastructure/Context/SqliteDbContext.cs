@@ -3,43 +3,59 @@ using POSPRA.Domain.Entities;
 
 namespace POSPRA.Infrastructure.Context
 {
+    /// <summary>
+    /// EF Core DbContext for the SQLite database used by POSPRA.
+    /// Provides DbSet properties for all main entities like Users, FileRecords, Logs, and Invoices.
+    /// The database file will be created in the same folder as the application executable.
+    /// </summary>
     public class SqliteDbContext : DbContext
     {
+        /// <summary>Users table.</summary>
         public DbSet<User> Users { get; set; } = null!;
 
-        private readonly string _dbPath;
+        /// <summary>FileRecords table.</summary>
+        public DbSet<FileRecord> FileRecords { get; set; } = null!;
 
-        // Constructor for Dependency Injection (API)
-        public SqliteDbContext(DbContextOptions<SqliteDbContext> options) : base(options)
+        /// <summary>Product Catalog Table.</summary>
+        public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
+
+        /// <summary>Logs table.</summary>
+        public DbSet<Logs> Logs { get; set; } = null!;
+
+        // 🔹 Path to SQLite DB file
+        private static readonly string DbPath;
+
+        // 🔹 Static constructor sets DB path next to EXE
+        static SqliteDbContext()
         {
+            var folder = AppContext.BaseDirectory; // publish / exe folder
+            DbPath = Path.Combine(folder, "pospra.db");
         }
 
-        // Constructor for manual usage (WinForms)
-        public SqliteDbContext()
-        {
-            var folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "POSPRA");
+        public SqliteDbContext(DbContextOptions<SqliteDbContext> options)
+            : base(options) { }
 
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-
-            _dbPath = Path.Combine(folder, "pospra.db");
-        }
+        public SqliteDbContext() { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured && !string.IsNullOrEmpty(_dbPath))
+            if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite($"Data Source={_dbPath}");
+                optionsBuilder.UseSqlite($"Data Source={DbPath}");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Seed default admin user
             modelBuilder.Entity<User>().HasData(
                 new User { Id = 1, Username = "admin", Password = "admin123" }
             );
         }
+
+        /// <summary>
+        /// Returns the full path to the SQLite database file.
+        /// </summary>
+        public static string GetDbPath() => DbPath;
     }
 }

@@ -8,11 +8,10 @@ namespace POSPRA.Infrastructure.Data
         {
             using var context = new SqliteDbContext();
 
-            // Ensure database + tables exist
+            //Ensure database +tables exist
             context.Database.EnsureCreated();
-
-            // Optional: Apply migrations if you are using them
-            // context.Database.Migrate();
+            //Optional: Apply migrations if you are using them
+            //context.Database.Migrate();
         }
     }
 }

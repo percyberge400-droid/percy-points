@@ -1,6 +1,6 @@
-﻿namespace POSPRA.DTOs.UserDTOs
+﻿namespace POSPRA.DTOs.UserDtos
 {
-    public class UserDTO
+    public class UserDto
     {
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
