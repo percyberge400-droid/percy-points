@@ -157,16 +157,12 @@ namespace POSPRA_WinFormsUI.Forms
             foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
-                //row["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
                 row["Amount"] = item.TotalAmount;
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
                 row["TaxRate"] = item.TaxRate;
                 row["Qty"] = item.Quantity; 
                 row["Price"] = item.SaleValue;  
-                //row["POSID"] = dto.POSID.ToString();
-                //row["Discount"] = item.Discount;
-                //row["Total"] = dto.TotalBillAmount;
                 row["Tax"] = item.TaxCharged;
                 bodyTable.Rows.Add(row);
             }
@@ -234,7 +230,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (_qrCache.TryGetValue(text, out var cached)) return cached;
             using var qrGen = new QRCodeGenerator();
             using var qrData = qrGen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-            using var qrCode = new QRCode(qrData); // time
+            using var qrCode = new QRCode(qrData); 
             using var bmp = qrCode.GetGraphic(3);
             using var ms = new MemoryStream();
             bmp.Save(ms, ImageFormat.Png);
