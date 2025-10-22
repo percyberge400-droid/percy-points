@@ -23,13 +23,16 @@ namespace POSPRA.Infrastructure.Context
         public DbSet<Logs> Logs { get; set; } = null!;
 
         // 🔹 Path to SQLite DB file
-        private static readonly string DbPath;
+        private static string? _dbPath;
 
-        // 🔹 Static constructor sets DB path next to EXE
-        static SqliteDbContext()
+        public static void SetDatabasePath(string path)
         {
-            var folder = AppContext.BaseDirectory; // publish / exe folder
-            DbPath = Path.Combine(folder, "pospra.db");
+            _dbPath = path;
+        }
+
+        public static string GetDbPath()
+        {
+            return _dbPath ?? Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
         }
 
         public SqliteDbContext(DbContextOptions<SqliteDbContext> options)
@@ -41,7 +44,7 @@ namespace POSPRA.Infrastructure.Context
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite($"Data Source={DbPath}");
+                optionsBuilder.UseSqlite($"Data Source={GetDbPath()}");
             }
         }
 
@@ -56,6 +59,5 @@ namespace POSPRA.Infrastructure.Context
         /// <summary>
         /// Returns the full path to the SQLite database file.
         /// </summary>
-        public static string GetDbPath() => DbPath;
     }
 }
