@@ -58,7 +58,7 @@ namespace POSPRA.Application.Services.ScriptService
                 InvoiceData = dto.InvoiceData,
                 DateCreated = DateTime.Now,
                 DateModified = DateTime.Now,
-                IsSynced = dto.IsSynced == 1 ? (int)InvoiceStatus.Synced : (int)InvoiceStatus.NotSynced,
+                IsSynced = (int)InvoiceStatus.Synced,
                 AttemptCount = 0
             }).ToList();
 
@@ -77,7 +77,7 @@ namespace POSPRA.Application.Services.ScriptService
             {
                 POSID = posId,
                 Message = dto.Message,
-                IsSynced = dto.IsSynced
+                IsSynced = true
             }).ToList();
 
             await _logSQLiteRepository.AddRangeAsync(records);

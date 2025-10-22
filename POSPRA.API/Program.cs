@@ -73,12 +73,32 @@ namespace POSPRA.API
             //----------------------------------------------------
             // 🔧 Database configuration
             //----------------------------------------------------
-            var dbPath = SqliteDbContext.GetDbPath();
+            string? dbPath = builder.Configuration.GetSection("AppSettings:DefaultDBFilePath")?.Value;
+
+            // fallback if not found
+            if (string.IsNullOrWhiteSpace(dbPath))
+            {
+                dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            }
+
+            // ✅ Ensure SqliteDbContext uses this path
+            SqliteDbContext.SetDatabasePath(dbPath);
+
             builder.Services.AddDbContext<SqliteDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
 
+            // Read the isProduction flag from AppSettings
+            var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
+            bool isProduction = appSettings!.IsProduction;
+
+            // Choose the SQL Server connection string based on the flag
+            string sqlConnectionString = builder.Configuration.GetConnectionString(
+                isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
+            ) ?? throw new InvalidOperationException("Missing SQL Server connection string for the selected environment for api.");
+
+            // Register SQL Server DbContext with the selected connection string
             builder.Services.AddDbContext<SqlServerDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")),
+                options.UseSqlServer(sqlConnectionString),
                 ServiceLifetime.Scoped);
 
             //----------------------------------------------------
