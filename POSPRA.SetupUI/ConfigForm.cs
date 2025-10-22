@@ -1125,18 +1125,16 @@ namespace POSPRA.SetupUI
                     ShowMessage("Response missing status code.", false, false);
                     return false;
                 }
-
-                return statusCode switch
+                if (statusCode == "200")
                 {
-                    "200" when message?.Contains("record found") == true || message?.Contains("success") == true
-                        => true,
-                    "401" => ShowError("Invalid POS ID."),
-                    "402" => ShowError("Invalid Token."),
-                    "403" => ShowError("Access denied. Unauthorized device."),
-                    "404" => ShowError("MAC address verification failed."),
-                    "500" => ShowError("Internal server error."),
-                    _ => ShowError($"Unexpected response: {statusCode} - {serverMsg}")
-                };
+                    return true;
+                }
+                else
+                {
+                    ShowMessage(message, false, false);
+                    return false;
+                }
+
             }
             catch (Exception ex)
             {
