@@ -57,16 +57,6 @@ namespace POSPRA.SetupUI
         private bool _isServiceAvailable = false;
 
         private readonly IScriptService _scriptservice;
-        public enum AuthStatusCode
-        {
-            Success = 200,
-            InvalidPosId = 401,
-            InvalidToken = 402,
-            UnauthorizedDevice = 403,
-            MacAddressFailed = 404,
-            InternalServerError = 500,
-            Unknown = 0
-        }
 
         #endregion
 
@@ -260,10 +250,26 @@ namespace POSPRA.SetupUI
             this.BringToFront();
         }
 
-        private void btnOk_Click(object sender, EventArgs e)
+        private async void btnOk_Click(object sender, EventArgs e)
         {
-            _ = ProcessSetupAsync();
+            try
+            {
+                btnOk.Enabled = false;
+                btnOk.Text = "Processing...";
+
+                await ProcessSetupAsync();
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error: {ex.Message}", false, false);
+            }
+            finally
+            {
+                btnOk.Enabled = true;
+                btnOk.Text = "OK";
+            }
         }
+
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
@@ -638,28 +644,27 @@ namespace POSPRA.SetupUI
         /// <summary>
         /// Migrates data from old IMS database to API
         /// </summary>
+        /// <summary>
+        /// Migrates data from old IMS database to API
+        /// </summary>
         private async Task MigrateOldDatabaseAsync(string oldDbPath, string username, string password)
         {
             try
             {
                 ShowMessage("Starting data migration...", true, false);
 
-                //await RunSingleLoad(async () =>
-                //{
-                // Load data from IMS file
-                var fileRecords = LoadFileRecordsFromIms(oldDbPath);
+                await RunSingleLoad(async () =>
+                {
+                    // Load data from IMS file
+                    var fileRecords = LoadFileRecordsFromIms(oldDbPath);
+                    var logs = LoadLogsFromIms(oldDbPath);
 
+                    // Show summary in MessageBox
+                    ShowMigrationSummary(fileRecords, logs);
 
-                var logs = LoadLogsFromIms(oldDbPath);
-
-
-                // Show summary in MessageBox
-                ShowMigrationSummary(fileRecords, logs);
-
-                // Prepare data for API (ready for when you implement the API call)
-                await PrepareDataForApiAsync(fileRecords, logs, username, password);
-
-                //});
+                    // Prepare data for API (ready for when you implement the API call)
+                    await PrepareDataForApiAsync(fileRecords, logs, username, password);
+                });
             }
             catch (Exception ex)
             {
@@ -667,7 +672,6 @@ namespace POSPRA.SetupUI
                 throw;
             }
         }
-
         /// <summary>
         /// Shows migration summary in MessageBox
         /// </summary>
