@@ -57,6 +57,16 @@ namespace POSPRA.SetupUI
         private bool _isServiceAvailable = false;
 
         private readonly IScriptService _scriptservice;
+        public enum AuthStatusCode
+        {
+            Success = 200,
+            InvalidPosId = 401,
+            InvalidToken = 402,
+            UnauthorizedDevice = 403,
+            MacAddressFailed = 404,
+            InternalServerError = 500,
+            Unknown = 0
+        }
 
         #endregion
 
@@ -1116,7 +1126,8 @@ namespace POSPRA.SetupUI
                 {
                     "200" when message?.Contains("record found") == true || message?.Contains("success") == true
                         => true,
-                    "401" => ShowError("Invalid POS ID or token."),
+                    "401" => ShowError("Invalid POS ID."),
+                    "402" => ShowError("Invalid Token."),
                     "403" => ShowError("Access denied. Unauthorized device."),
                     "404" => ShowError("MAC address verification failed."),
                     "500" => ShowError("Internal server error."),
