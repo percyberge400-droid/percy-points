@@ -17,12 +17,13 @@ namespace POSPRA.Application.Services.LogService
         Task<ApiResponse<List<LogDto>>> GetAllAsync();
 
         Task<ApiResponse<bool>> UpdateLog(List<Logs> dtos);
+
         Task<ApiResponse<List<LogDto>>> UpdateLogAsync(List<LogDto> logDtos);
 
         Task CreateLogAsync(Logs model);
 
         Task<ApiResponse<List<SyncLogDto>>> CreateCloudLog(List<SyncLogDto> dto);
-
+        
         Logs BuildLog(
                 string message,
                 string type,

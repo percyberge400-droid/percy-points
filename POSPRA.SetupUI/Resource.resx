@@ -121,4 +121,7 @@
   <data name="loginPRAlogo" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\POSPRA-WinFormsUI\Resources\loginPRAlogo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="POSPRA" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\POSPRA.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

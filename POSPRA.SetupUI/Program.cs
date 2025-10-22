@@ -1,7 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
+using POSPRA.Application.Services.ScriptService;
 using POSPRA.Infrastructure.Context;
+using POSPRA.Repositories.FileRecordRepository;
+using POSPRA.Repositories.LogRepository;
+using POSPRA.Repositories.UnitOfWork;
 using System.Configuration;
 
 namespace POSPRA.SetupUI
@@ -39,7 +43,6 @@ namespace POSPRA.SetupUI
             string jsonMainPath = Path.Combine(baseFolder, "appsettings.json");
             string setupConfig = Path.Combine(baseFolder, "POSPRA.SetupUI.dll.config");
 
-
             // 🔹 Step 2: Read DB path from JSON → SetupUI.config → fallback
             string? dbPath = null;
 
@@ -74,7 +77,7 @@ namespace POSPRA.SetupUI
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                //Directory.CreateDirectory(dbDirectory);
+                Directory.CreateDirectory(dbDirectory);
             }
 
             // 🔹 Step 4: Initialize SQLite database
@@ -84,17 +87,38 @@ namespace POSPRA.SetupUI
 
             using (var context = new SqliteDbContext(sqliteOptions))
             {
-                //context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
             }
 
-            // 🔹 Step 5: Build DI container (if needed later)
+            // 🔹 Step 5: Build DI container
             var services = new ServiceCollection();
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
+            services.AddScoped<IScriptService, ScriptService>();
+            services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
+            services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
+            services.AddScoped<IFileRecordRepository, FileRecordRepository>();
 
-            // 🔹 Step 6: Launch ConfigForm (so it can update BOTH JSON + XML configs)
-            ApplicationConfiguration.Initialize();
-            Application.Run(new ConfigForm(configPath, jsonWorkerPath, jsonMainPath, setupConfig, configPath));
 
+            // ✅ Build the provider to resolve services
+            using (var serviceProvider = services.BuildServiceProvider())
+            {
+                // ✅ Get an actual instance of IScriptService from DI
+                var scriptService = serviceProvider.GetRequiredService<IScriptService>();
+
+
+                // 🔹 Step 6: Configure and launch the application
+                ApplicationConfiguration.Initialize();
+
+                // Use Application.Run() instead of app.Run()
+                System.Windows.Forms.Application.Run(new ConfigForm(
+                    configPath,
+                    jsonWorkerPath,
+                    jsonMainPath,
+                    setupConfig,
+                    configPath,
+                    scriptService
+                ));
+            }
         }
     }
 }

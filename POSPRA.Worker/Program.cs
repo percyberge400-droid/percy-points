@@ -12,6 +12,7 @@ using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
+using POSPRA.Application.Services.ScriptService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -43,7 +44,8 @@ var builder = Host.CreateDefaultBuilder(args)
         // 🔧 Read SQLite DB file path from AppSettings
         //----------------------------------------------------
         var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
-        var dbPath = appSettings.DefaultDBFilePath;
+        var dbPath = appSettings!.DefaultDBFilePath;
+        bool isProduction = appSettings.IsProduction;
 
         //if (string.IsNullOrWhiteSpace(dbPath))
         //    throw new Exception("❌ DefaultDBFilePath is missing in appsettings.worker.json");
@@ -54,14 +56,20 @@ var builder = Host.CreateDefaultBuilder(args)
         //----------------------------------------------------
         // 🔧 Database configuration
         //----------------------------------------------------
+
+        // Choose the SQL Server connection string based on the flag
+        string sqlConnectionString = context.Configuration.GetConnectionString(
+            isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
+        ) ?? throw new InvalidOperationException("Missing SQL Server connection string for the selected environment for worker.");
+
         // SQLite (use existing DB)
         services.AddDbContext<SqliteDbContext>(options =>
             options.UseSqlite($"Data Source={dbPath}"));
 
         // SQL Server
-        services.AddDbContext<SqlServerDbContext>(options =>
-            options.UseSqlServer(context.Configuration.GetConnectionString("SqlServerConnection")),
-            ServiceLifetime.Scoped);
+        // ✅ Register SQL Server dynamically
+        services.AddDbContext<SqlServerDbContext>(opt =>
+            opt.UseSqlServer(sqlConnectionString));
 
         //----------------------------------------------------
         // 🔧 AppSettings / API settings
@@ -98,6 +106,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<IWorkerLogService, WorkerLogService>();
         services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
         services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
+        services.AddScoped<IScriptService, ScriptService>();
         services.AddHttpContextAccessor();
 
         //----------------------------------------------------

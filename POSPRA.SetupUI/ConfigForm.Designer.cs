@@ -30,6 +30,10 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigForm));
             mainPanel = new Panel();
+            lblMessage = new Label();
+            btnBrowseOLD = new Button();
+            txtOldDB = new TextBox();
+            label4 = new Label();
             rdoProduction = new RadioButton();
             rdoSandbox = new RadioButton();
             label1 = new Label();
@@ -56,6 +60,10 @@
             // mainPanel
             // 
             mainPanel.BackColor = Color.White;
+            mainPanel.Controls.Add(lblMessage);
+            mainPanel.Controls.Add(btnBrowseOLD);
+            mainPanel.Controls.Add(txtOldDB);
+            mainPanel.Controls.Add(label4);
             mainPanel.Controls.Add(rdoProduction);
             mainPanel.Controls.Add(rdoSandbox);
             mainPanel.Controls.Add(label1);
@@ -72,15 +80,68 @@
             mainPanel.Dock = DockStyle.Fill;
             mainPanel.Location = new Point(0, 0);
             mainPanel.Name = "mainPanel";
-            mainPanel.Size = new Size(727, 528);
+            mainPanel.Size = new Size(727, 628);
             mainPanel.TabIndex = 0;
+            // 
+            // lblMessage
+            // 
+            lblMessage.BackColor = Color.White;
+            lblMessage.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblMessage.ForeColor = Color.FromArgb(76, 175, 80);
+            lblMessage.Location = new Point(132, 520);
+            lblMessage.Name = "lblMessage";
+            lblMessage.Size = new Size(455, 45);
+            lblMessage.TabIndex = 20;
+            lblMessage.TextAlign = ContentAlignment.MiddleCenter;
+            lblMessage.Visible = false;
+            lblMessage.AutoEllipsis = true;
+            lblMessage.MaximumSize = new Size(600, 0);
+            lblMessage.AutoSize = true;
+
+            // 
+            // btnBrowseOLD
+            // 
+            btnBrowseOLD.BackColor = Color.FromArgb(52, 168, 164);
+            btnBrowseOLD.Cursor = Cursors.Hand;
+            btnBrowseOLD.FlatAppearance.BorderSize = 0;
+            btnBrowseOLD.FlatStyle = FlatStyle.Flat;
+            btnBrowseOLD.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+            btnBrowseOLD.ForeColor = Color.White;
+            btnBrowseOLD.Location = new Point(460, 425);
+            btnBrowseOLD.Name = "btnBrowseOLD";
+            btnBrowseOLD.Size = new Size(50, 32);
+            btnBrowseOLD.TabIndex = 17;
+            btnBrowseOLD.Text = "...";
+            btnBrowseOLD.UseVisualStyleBackColor = false;
+            // 
+            // txtOldDB
+            // 
+            txtOldDB.BackColor = Color.White;
+            txtOldDB.BorderStyle = BorderStyle.FixedSingle;
+            txtOldDB.Font = new Font("Segoe UI", 11F);
+            txtOldDB.Location = new Point(220, 425);
+            txtOldDB.Name = "txtOldDB";
+            txtOldDB.Size = new Size(230, 32);
+            txtOldDB.TabIndex = 19;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            label4.ForeColor = Color.FromArgb(64, 64, 64);
+            label4.Location = new Point(220, 395);
+            label4.Name = "label4";
+            label4.Size = new Size(135, 23);
+            label4.TabIndex = 18;
+            label4.Text = "Old DB File Path";
             // 
             // rdoProduction
             // 
             rdoProduction.AutoSize = true;
-            rdoProduction.Location = new Point(364, 358);
+            rdoProduction.Font = new Font("Segoe UI", 10.2F);
+            rdoProduction.Location = new Point(408, 115);
             rdoProduction.Name = "rdoProduction";
-            rdoProduction.Size = new Size(102, 24);
+            rdoProduction.Size = new Size(115, 27);
             rdoProduction.TabIndex = 16;
             rdoProduction.Text = "Production";
             rdoProduction.UseVisualStyleBackColor = true;
@@ -89,9 +150,10 @@
             // 
             rdoSandbox.AutoSize = true;
             rdoSandbox.Checked = true;
-            rdoSandbox.Location = new Point(270, 358);
+            rdoSandbox.Font = new Font("Segoe UI", 10.2F);
+            rdoSandbox.Location = new Point(220, 115);
             rdoSandbox.Name = "rdoSandbox";
-            rdoSandbox.Size = new Size(88, 24);
+            rdoSandbox.Size = new Size(97, 27);
             rdoSandbox.TabIndex = 15;
             rdoSandbox.TabStop = true;
             rdoSandbox.Text = "SandBox";
@@ -102,7 +164,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label1.ForeColor = Color.FromArgb(64, 64, 64);
-            label1.Location = new Point(220, 120);
+            label1.Location = new Point(220, 153);
             label1.Name = "label1";
             label1.Size = new Size(64, 23);
             label1.TabIndex = 12;
@@ -117,7 +179,7 @@
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(400, 399);
+            btnCancel.Location = new Point(400, 472);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(110, 45);
             btnCancel.TabIndex = 11;
@@ -127,7 +189,7 @@
             // 
             // progressBar
             // 
-            progressBar.Location = new Point(220, 462);
+            progressBar.Location = new Point(220, 567);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(290, 32);
             progressBar.TabIndex = 9;
@@ -201,20 +263,19 @@
             btnBrowse.FlatStyle = FlatStyle.Flat;
             btnBrowse.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
             btnBrowse.ForeColor = Color.White;
-            btnBrowse.Location = new Point(460, 311);
+            btnBrowse.Location = new Point(460, 344);
             btnBrowse.Name = "btnBrowse";
             btnBrowse.Size = new Size(50, 32);
             btnBrowse.TabIndex = 3;
             btnBrowse.Text = "...";
             btnBrowse.UseVisualStyleBackColor = false;
-            btnBrowse.Click += btnBrowse_Click;
             // 
             // txtFilePath
             // 
             txtFilePath.BackColor = Color.White;
             txtFilePath.BorderStyle = BorderStyle.FixedSingle;
             txtFilePath.Font = new Font("Segoe UI", 11F);
-            txtFilePath.Location = new Point(220, 311);
+            txtFilePath.Location = new Point(220, 344);
             txtFilePath.Name = "txtFilePath";
             txtFilePath.Size = new Size(230, 32);
             txtFilePath.TabIndex = 8;
@@ -224,7 +285,7 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label3.ForeColor = Color.FromArgb(64, 64, 64);
-            label3.Location = new Point(220, 281);
+            label3.Location = new Point(220, 314);
             label3.Name = "label3";
             label3.Size = new Size(147, 23);
             label3.TabIndex = 7;
@@ -235,7 +296,7 @@
             txtPassword.BackColor = Color.White;
             txtPassword.BorderStyle = BorderStyle.FixedSingle;
             txtPassword.Font = new Font("Segoe UI", 11F);
-            txtPassword.Location = new Point(220, 231);
+            txtPassword.Location = new Point(220, 264);
             txtPassword.MaxLength = 120;
             txtPassword.Name = "txtPassword";
             txtPassword.PasswordChar = '•';
@@ -247,7 +308,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label2.ForeColor = Color.FromArgb(64, 64, 64);
-            label2.Location = new Point(220, 201);
+            label2.Location = new Point(220, 234);
             label2.Name = "label2";
             label2.Size = new Size(55, 23);
             label2.TabIndex = 5;
@@ -258,7 +319,7 @@
             txtUsername.BackColor = Color.White;
             txtUsername.BorderStyle = BorderStyle.FixedSingle;
             txtUsername.Font = new Font("Segoe UI", 11F);
-            txtUsername.Location = new Point(220, 151);
+            txtUsername.Location = new Point(220, 184);
             txtUsername.MaxLength = 120;
             txtUsername.Name = "txtUsername";
             txtUsername.Size = new Size(290, 32);
@@ -272,7 +333,7 @@
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnOk.ForeColor = Color.White;
-            btnOk.Location = new Point(220, 399);
+            btnOk.Location = new Point(220, 472);
             btnOk.Name = "btnOk";
             btnOk.Size = new Size(110, 45);
             btnOk.TabIndex = 4;
@@ -285,12 +346,12 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
-            ClientSize = new Size(727, 528);
-            ControlBox = false;
+            ClientSize = new Size(727, 628);
+            ControlBox = true;
             Controls.Add(mainPanel);
             FormBorderStyle = FormBorderStyle.None;
             MaximizeBox = false;
-            MinimizeBox = false;
+            MinimizeBox = true;
             Name = "ConfigForm";
             ShowIcon = false;
             StartPosition = FormStartPosition.CenterScreen;
@@ -320,6 +381,15 @@
         private TextBox txtFilePath;
         private Button btnBrowse;
         private Button btnOk;
+        private ProgressBar progressBar;
+        private Button btnCancel;
+        private Label label1;
+        private RadioButton rdoProduction;
+        private RadioButton rdoSandbox;
+        private Label lblMessage;
+        private Button btnBrowseOLD;
+        private TextBox txtOldDB;
+        private Label label4;
 
         private void headerPanel_Paint(object sender, PaintEventArgs e)
         {
@@ -334,10 +404,5 @@
                 e.Graphics.FillRectangle(brush, headerPanel.ClientRectangle);
             }
         }
-        private ProgressBar progressBar;
-        private Button btnCancel;
-        private Label label1;
-        private RadioButton rdoProduction;
-        private RadioButton rdoSandbox;
     }
 }

@@ -1,11 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using LiteDB;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using POSPRA.Application.Services.ScriptService;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.SecurityEncryption;
 using System.Configuration;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.ServiceProcess;
 using System.Text;
 using System.Xml;
 
@@ -13,7 +18,8 @@ namespace POSPRA.SetupUI
 {
     public partial class ConfigForm : Form
     {
-        // --- Win32 API to force window on top ---
+        #region Win32 API Imports
+
         [DllImport("user32.dll")]
         private static extern bool SetWindowPos(
             IntPtr hWnd,
@@ -24,62 +30,100 @@ namespace POSPRA.SetupUI
             int cy,
             uint uFlags);
 
-        // HWND constants
         private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
-
-        // Flags for SetWindowPos
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
 
-        // Paths for different config files
+        #endregion
+
+        #region Fields
+
         private readonly string _xmlConfigPath;
         private readonly string _jsonWorkerPath;
         private readonly string _jsonMainPath;
         private readonly string _winformsConfigPath;
-        private string _setupConfigPath;
+        private readonly string _setupConfigPath;
 
         private int _isLoadingFlag = 0;
-        private bool _isLoading = false;
+        private System.Windows.Forms.Timer _messageHideTimer;
 
+        private readonly string _defaultIMSPath;
+        private readonly string _defaultPassword;
+        private readonly string _backupDir;
+        private readonly string _workerServiceName;
 
-        public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath)
+        private bool _isServiceAvailable = false;
+
+        private readonly IScriptService _scriptservice;
+
+        #endregion
+
+        #region Constructor
+
+        public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath, IScriptService scriptservice)
         {
             InitializeComponent();
-            // Always stay above all other windows
-            this.TopMost = true;
 
-            // Make sure it stays focused
-            this.BringToFront();
-            this.Activate();
-
-            //this.StartPosition = FormStartPosition.CenterScreen;
-
-            //this.Load += ConfigForm_Load;
-
-            // Optional: Prevent user from sending it to back
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
             _xmlConfigPath = xmlConfigPath;
             _jsonWorkerPath = jsonWorkerPath;
             _jsonMainPath = jsonMainPath;
             _setupConfigPath = setupConfigPath;
             _winformsConfigPath = winformsConfigPath;
 
-            // Hook validation events
+            _defaultIMSPath = ConfigurationManager.AppSettings["DefaulIMStFilePath"];
+            _defaultPassword = ConfigurationManager.AppSettings["DbPassword"];
+            _backupDir = ConfigurationManager.AppSettings["backupDir"];
+            _workerServiceName = ConfigurationManager.AppSettings["FiscalServiceName"];
+
+            _scriptservice = scriptservice;
+
+            InitializeFormSettings();
+            InitializeEventHandlers();
+            InitializeMessageTimer();
+            LoadLogoImage();
+            CheckServiceAvailability();
+            LoadDefaultPaths();
+        }
+
+        #endregion
+
+        #region Initialization Methods
+
+        private void InitializeFormSettings()
+        {
+            this.TopMost = true;
+            this.BringToFront();
+            this.Activate();
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.AcceptButton = btnOk;
+
+            if (progressBar != null)
+                progressBar.Visible = false;
+        }
+
+        private void InitializeEventHandlers()
+        {
             txtUsername.KeyPress += txtUsername_KeyPress;
             txtPassword.KeyPress += txtPassword_KeyPress;
             txtUsername.TextChanged += ValidateForm;
             txtPassword.TextChanged += ValidateForm;
+            btnBrowse.Click += btnBrowseMain_Click;
+            btnBrowseOLD.Click += btnBrowseOld_Click;
+        }
 
-            this.AcceptButton = btnOk;
+        private void InitializeMessageTimer()
+        {
+            _messageHideTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 5000
+            };
+            _messageHideTimer.Tick += (s, e) => HideMessage();
+        }
 
-            // Hide progress bar initially
-            if (progressBar != null) progressBar.Visible = false;
-
-
-
-            // Load logo from App.config if available
+        private void LoadLogoImage()
+        {
             string logoKey = ConfigurationManager.AppSettings["LOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
@@ -91,22 +135,1303 @@ namespace POSPRA.SetupUI
                     LOGO_img.AutoSize = true;
                 }
             }
-            string value = ConfigurationManager.AppSettings["DefaultDBFilePath"];
+        }
+
+        private void CheckServiceAvailability()
+        {
+            try
+            {
+                _isServiceAvailable = IsWorkerServiceInstalled();
+                if (_isServiceAvailable)
+                {
+                    ShowMessage("Fiscal service detected. Old database migration enabled.", true, true);
+                }
+                else
+                {
+                    ShowMessage("Fiscal service not found. Old database migration disabled.", false, true);
+                    DisableOldDatabaseControls();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error checking service: {ex.Message}", false, true);
+                DisableOldDatabaseControls();
+            }
+        }
+
+        private void DisableOldDatabaseControls()
+        {
+            if (txtOldDB != null)
+            {
+                txtOldDB.Enabled = false;
+                txtOldDB.ReadOnly = true;
+                txtOldDB.BackColor = Color.FromArgb(240, 240, 240);
+            }
+
+            if (btnBrowseOLD != null)
+            {
+                btnBrowseOLD.Enabled = false;
+            }
+        }
+
+        private void LoadDefaultPaths()
+        {
             ClearAllFields();
 
-            // Load default DB path from App.config
             string defaultPath = ConfigurationManager.AppSettings["DefaultDBFilePath"];
             if (!string.IsNullOrWhiteSpace(defaultPath))
             {
                 txtFilePath.Text = defaultPath;
             }
 
+            if (_isServiceAvailable && !string.IsNullOrWhiteSpace(_defaultIMSPath))
+            {
+                txtOldDB.Text = _defaultIMSPath;
+            }
         }
 
+        #endregion
+
+        #region Service Check Methods
+
+        private bool IsWorkerServiceInstalled()
+        {
+            try
+            {
+                using (var controller = new ServiceController(_workerServiceName))
+                {
+                    var status = controller.Status;
+                    return true;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> IsWorkerServiceRunningAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!_isServiceAvailable)
+                        return false;
+
+                    using (var controller = new ServiceController(_workerServiceName))
+                    {
+                        controller.Refresh();
+                        return controller.Status == ServiceControllerStatus.Running;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+        }
+
+        #endregion
+
+        #region Form Event Handlers
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            this.CenterToScreen();
+            this.TopMost = true;
+            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            this.Activate();
+            this.BringToFront();
+        }
+
+        private void btnOk_Click(object sender, EventArgs e)
+        {
+            _ = ProcessSetupAsync();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Are you sure you want to cancel?",
+                "Cancel Setup",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                ExitApplication(1602);
+            }
+        }
+
+        #endregion
+
+        #region Main Setup Process
+
+        private async Task ProcessSetupAsync()
+        {
+            try
+            {
+                if (!ValidateInputs(out string username, out string password, out string dbPath, out string oldDbPath))
+                    return;
+
+                // Only validate and backup old database if service is available
+                if (_isServiceAvailable)
+                {
+                    if (!ValidateOldDatabase(oldDbPath))
+                        return;
+
+                    CreateSafeBackup(oldDbPath);
+                }
+
+                CreateDatabaseDirectory(dbPath);
+
+                var mac = TryGetMacAddress();
+                var json = await AuthenticateAsync(username, password, mac);
+                if (json == null)
+                    return;
+
+                var (branchName, branchAddress, businessName) = ExtractBranchDetails(json);
+
+                if (!VerifyAuthentication(json))
+                    return;
+
+                SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName);
+                SaveEnvironmentSettings();
+                UpdateSetupConfig(dbPath);
+
+                if (!InitializeDatabase(dbPath))
+                    return;
+
+                // Migrate old data if service is available and old DB path is provided
+                if (_isServiceAvailable && !string.IsNullOrWhiteSpace(oldDbPath))
+                {
+                    await MigrateOldDatabaseAsync(oldDbPath, username, password);
+                }
+
+                ShowMessage("Setup completed successfully!", true, false);
+                await Task.Delay(2000);
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Fatal error: {ex.Message}", false, false);
+            }
+        }
+
+        #endregion
+
+        #region Validation Methods
+
+        private bool ValidateDatabasePath(string dbPath)
+        {
+            if (string.IsNullOrWhiteSpace(dbPath))
+            {
+                ShowMessage("Database path cannot be empty.", false, true);
+                return false;
+            }
+
+            try
+            {
+                var directory = Path.GetDirectoryName(dbPath);
+                if (string.IsNullOrWhiteSpace(directory))
+                {
+                    ShowMessage("Invalid database file path.", false, true);
+                    return false;
+                }
+
+                // Check if directory exists or can be created
+                if (!Directory.Exists(directory))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowMessage($"Cannot create directory: {ex.Message}", false, true);
+                        return false;
+                    }
+                }
+
+                // Check file extension
+                var extension = Path.GetExtension(dbPath);
+                if (string.IsNullOrEmpty(extension) || !extension.Equals(".db", StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowMessage("Database file must have .db extension.", false, true);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Invalid database path: {ex.Message}", false, true);
+                return false;
+            }
+        }
+
+        private bool ValidateInputs(out string username, out string password, out string dbPath, out string oldDbPath)
+        {
+            username = txtUsername.Text.Trim();
+            password = txtPassword.Text.Trim();
+            dbPath = txtFilePath.Text.Trim();
+            oldDbPath = _isServiceAvailable ? txtOldDB.Text.Trim() : string.Empty;
+
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                ShowMessage("Please enter POS ID.", false, true);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ShowMessage("Please enter Token.", false, true);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(dbPath))
+            {
+                ShowMessage("Please select a database file path.", false, true);
+                return false;
+            }
+
+            // Only require old DB path if service is available
+            if (_isServiceAvailable && string.IsNullOrWhiteSpace(oldDbPath))
+            {
+                ShowMessage("Please select an old database file path.", false, true);
+                return false;
+            }
+
+            if (!ValidateDatabasePath(dbPath))
+                return false;
+
+            return true;
+        }
+
+        private bool ValidateOldDatabase(string oldDbPath)
+        {
+            if (!_isServiceAvailable)
+                return true;
+
+            if (!File.Exists(oldDbPath))
+            {
+                ShowMessage($"Old database file not found at: {oldDbPath}", false, true);
+                txtOldDB.Text = string.Empty;
+                return false;
+            }
+
+            try
+            {
+                var validationResult = ValidateImsFile(oldDbPath, _defaultPassword);
+
+                if (!validationResult.IsValid)
+                {
+                    if (validationResult.IsCorrupted)
+                    {
+                        ShowMessage($"Database is corrupted: {validationResult.ErrorMessage}", false, true);
+                    }
+                    else if (validationResult.IsEmpty)
+                    {
+                        ShowMessage($"Database is empty: {validationResult.ErrorMessage}", false, true);
+                    }
+                    else
+                    {
+                        ShowMessage($"Validation failed: {validationResult.ErrorMessage}", false, true);
+                    }
+                    return false;
+                }
+
+                if (validationResult.IsEmpty)
+                {
+                    ShowMessage("Old database has no data. Please select a database with existing records.", false, true);
+                    return false;
+                }
+
+                // Only sum counts that are greater than or equal to 0 (exclude corrupted collections with -1)
+                int totalRecords = validationResult.CollectionCounts.Values.Where(count => count >= 0).Sum();
+                int corruptedCollections = validationResult.CollectionCounts.Values.Count(count => count < 0);
+
+                string message = $"Database validated: {validationResult.CollectionNames.Count} collections, {totalRecords} total records";
+                if (corruptedCollections > 0)
+                {
+                    message += $" ({corruptedCollections} corrupted collection(s) will be skipped)";
+                }
+
+                ShowMessage(message, true, false);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to validate old database: {ex.Message}", false, true);
+                return false;
+            }
+        }
+
+        private void ValidateForm(object sender, EventArgs e)
+        {
+            btnOk.Enabled = !string.IsNullOrWhiteSpace(txtUsername.Text);
+        }
+
+        #endregion
+
+        #region IMS File Validation Methods
+
+        /// <summary>
+        /// Validates IMS file for corruption and accessibility
+        /// </summary>
+        private ImsValidationResult ValidateImsFile(string imsFilePath, string password)
+        {
+            var result = new ImsValidationResult();
+
+            try
+            {
+                if (!File.Exists(imsFilePath))
+                {
+                    result.IsValid = false;
+                    result.ErrorMessage = "IMS file does not exist.";
+                    return result;
+                }
+
+                var fileInfo = new FileInfo(imsFilePath);
+                if (fileInfo.Length == 0)
+                {
+                    result.IsValid = false;
+                    result.IsEmpty = true;
+                    result.ErrorMessage = "IMS file is empty (0 bytes).";
+                    return result;
+                }
+
+                if (!IsValidLiteDbFile(imsFilePath))
+                {
+                    result.IsValid = false;
+                    result.IsCorrupted = true;
+                    result.ErrorMessage = "File does not appear to be a valid LiteDB database.";
+                    return result;
+                }
+
+                using (var db = new LiteDatabase($"Filename={imsFilePath};Password={password}"))
+                {
+                    try
+                    {
+                        result.CollectionNames = db.GetCollectionNames().ToList();
+
+                        if (result.CollectionNames.Count == 0)
+                        {
+                            result.IsValid = true;
+                            result.IsEmpty = true;
+                            result.ErrorMessage = "Database is empty (no collections).";
+                            return result;
+                        }
+
+                        bool hasAnyData = false;
+                        foreach (var collectionName in result.CollectionNames)
+                        {
+                            try
+                            {
+                                var collection = db.GetCollection(collectionName);
+                                int count = collection.Count();
+                                result.CollectionCounts[collectionName] = count;
+
+                                if (count > 0)
+                                    hasAnyData = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                result.CollectionCounts[collectionName] = -1;
+                                result.ErrorMessage += $" Warning: Collection '{collectionName}' is corrupted: {ex.Message}";
+                            }
+                        }
+
+                        if (!hasAnyData)
+                        {
+                            result.IsValid = true;
+                            result.IsEmpty = true;
+                            result.ErrorMessage = "Database has no data in any collection.";
+                            return result;
+                        }
+
+                        result.IsValid = true;
+                        return result;
+                    }
+                    catch (LiteException ex)
+                    {
+                        result.IsValid = false;
+                        result.IsCorrupted = true;
+                        result.ErrorMessage = $"Database corruption detected: {ex.Message}";
+                        return result;
+                    }
+                }
+            }
+            catch (LiteException ex) when (ex.ErrorCode == 123)
+            {
+                result.IsValid = false;
+                result.ErrorMessage = "Invalid password or encrypted database.";
+                return result;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                result.IsValid = false;
+                result.ErrorMessage = "Access denied. File is locked or insufficient permissions.";
+                return result;
+            }
+            catch (IOException ex)
+            {
+                result.IsValid = false;
+                result.ErrorMessage = $"IO Error: {ex.Message}";
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.IsValid = false;
+                result.IsCorrupted = true;
+                result.ErrorMessage = $"Unexpected error: {ex.Message}";
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Checks if file has valid LiteDB header
+        /// </summary>
+        private bool IsValidLiteDbFile(string filePath)
+        {
+            try
+            {
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    if (fs.Length < 8192)
+                        return false;
+
+                    byte[] header = new byte[7];
+                    fs.Read(header, 0, 7);
+
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region IMS Data Migration Methods
+
+        /// <summary>
+        /// Migrates data from old IMS database to API
+        /// </summary>
+        private async Task MigrateOldDatabaseAsync(string oldDbPath, string username, string password)
+        {
+            try
+            {
+                ShowMessage("Starting data migration...", true, false);
+
+                //await RunSingleLoad(async () =>
+                //{
+                // Load data from IMS file
+                var fileRecords = LoadFileRecordsFromIms(oldDbPath);
+
+
+                var logs = LoadLogsFromIms(oldDbPath);
+
+
+                // Show summary in MessageBox
+                ShowMigrationSummary(fileRecords, logs);
+
+                // Prepare data for API (ready for when you implement the API call)
+                await PrepareDataForApiAsync(fileRecords, logs, username, password);
+
+                //});
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Migration failed: {ex.Message}", false, true);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Shows migration summary in MessageBox
+        /// </summary>
+        private void ShowMigrationSummary(List<FileRecordDto> fileRecords, List<SyncLogDto> logs)
+        {
+            int totalFileRecords = fileRecords.Count;
+            int totalLogs = logs.Count;
+            int totalRecords = totalFileRecords + totalLogs;
+
+            // Also show in the form message
+            ShowMessage($"Migration ready: {totalFileRecords} file records, {totalLogs} logs - Total: {totalRecords} records", true, false);
+        }
+
+        /// <summary>
+        /// Prepares data for API transmission (ready for API implementation)
+        /// </summary>
+        private async Task PrepareDataForApiAsync(List<FileRecordDto> fileRecords, List<SyncLogDto> logs, string username, string password)
+        {
+            try
+            {
+                if ((fileRecords == null || fileRecords.Count == 0) &&
+                    (logs == null || logs.Count == 0))
+                {
+                    ShowMessage("No data to send.", false, true);
+                    return;
+                }
+
+                var payload = new ScriptDTO
+                {
+                    FileRecord = fileRecords,
+                    Log = logs
+                };
+
+                ShowMessage($"Preparing {fileRecords.Count} file records and {logs.Count} logs for API...", true, false);
+
+                bool success = await SendDataToApiAsync(payload);
+                if (success)
+                {
+                    ShowMessage("Data successfully sent to API!", true, false);
+                }
+                else
+                {
+                    ShowMessage("Failed to send data to API", false, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error preparing API data: {ex.Message}", false, true);
+            }
+        }
+
+        /// <summary>
+        /// Ready-to-use method for sending data to API (commented out for now)
+        /// </summary>
+        private async Task<bool> SendDataToApiAsync(ScriptDTO payload)
+        {
+            try
+            {
+                var response = await _scriptservice.CreateScript(payload);
+
+                if (response.StatusCode == "200")
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error sending data to API: {ex.Message}", false, true);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Loads FileRecords from IMS database for API transmission
+        /// </summary>
+        private List<FileRecordDto> LoadFileRecordsFromIms(string imsFilePath)
+        {
+            var fileRecords = new List<FileRecordDto>();
+
+            try
+            {
+                using (var db = new LiteDatabase($"Filename={imsFilePath};Password={_defaultPassword}"))
+                {
+                    var collection = db.GetCollection("filerecords");
+                    var documents = collection.FindAll().ToList();
+
+                    foreach (var doc in documents)
+                    {
+                        try
+                        {
+                            var fileRecord = new FileRecordDto
+                            {
+                                ID = GetIntValue(doc, "_id", "ID", "Id"),
+                                POSID = GetIntValue(doc, "POSID", "PosId"),
+                                InvoiceData = GetStringValue(doc, "InvoiceData"),
+                                InvoiceNumber = GetStringValue(doc, "InvoiceNumber"),
+                                IsSynced = GetIntValue(doc, "IsSynced"),
+                                AttemptCount = GetIntValue(doc, "AttemptCount"),
+                                DateCreated = GetDateTimeValue(doc, "DateCreated"),
+                                DateModified = GetDateTimeValue(doc, "DateModified")
+                            };
+
+                            fileRecords.Add(fileRecord);
+                        }
+                        catch (Exception ex)
+                        {
+                            ShowMessage($"Error parsing FileRecord: {ex.Message}", false, false);
+                        }
+                    }
+                }
+
+                return fileRecords;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to load FileRecords: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Loads Logs from IMS database for API transmission
+        /// </summary>
+        private List<SyncLogDto> LoadLogsFromIms(string imsFilePath)
+        {
+            var logs = new List<SyncLogDto>();
+
+            using (var db = new LiteDatabase($"Filename={imsFilePath};Password={_defaultPassword};Mode=ReadOnly"))
+            {
+                var collection = db.GetCollection("logs");
+
+                // Stream instead of .ToList() to reduce memory & improve speed
+                foreach (var doc in collection.FindAll())
+                {
+                    try
+                    {
+                        var log = new SyncLogDto
+                        {
+                            Id = doc.TryGetValue("_id", out var idVal) ? idVal.AsInt64 : 0,
+                            Message = doc.TryGetValue("Message", out var msgVal) ? msgVal.AsString : string.Empty,
+                            Type = doc.TryGetValue("TypeId", out var typeVal) ? typeVal.ToString() : string.Empty,
+                            IsSynced = doc.TryGetValue("IsSynced", out var syncVal) && syncVal.AsBoolean,
+                        };
+
+                        logs.Add(log);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error parsing log record: {ex.Message}");
+                    }
+                }
+            }
+
+            return logs;
+        }
+
+        #endregion
+
+        #region BsonDocument Helper Methods
+
+        /// <summary>
+        /// Gets integer value from BsonDocument with fallback keys
+        /// </summary>
+        private int GetIntValue(BsonDocument doc, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (doc.ContainsKey(key))
+                {
+                    try
+                    {
+                        return doc[key].AsInt32;
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            return (int)doc[key].AsInt64;
+                        }
+                        catch
+                        {
+                            // Continue to next key
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets string value from BsonDocument with fallback keys
+        /// </summary>
+        private string GetStringValue(BsonDocument doc, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (doc.ContainsKey(key))
+                {
+                    try
+                    {
+                        return doc[key].AsString;
+                    }
+                    catch
+                    {
+                        // Continue to next key
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets DateTime value from BsonDocument with fallback keys
+        /// </summary>
+        private DateTime GetDateTimeValue(BsonDocument doc, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (doc.ContainsKey(key))
+                {
+                    try
+                    {
+                        return doc[key].AsDateTime;
+                    }
+                    catch
+                    {
+                        // Continue to next key
+                    }
+                }
+            }
+            return DateTime.MinValue;
+        }
+
+        #endregion
+
+        #region Database Operations
+
+        private void CreateDatabaseDirectory(string dbPath)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
+        }
+
+        private void CreateSafeBackup(string dbPath)
+        {
+            try
+            {
+                // Read from config first
+                string backupDir = ConfigurationManager.AppSettings["backupDir"];
+
+                // Fallback to default if not set
+                if (string.IsNullOrWhiteSpace(backupDir))
+                {
+                    backupDir = Path.Combine(Path.GetDirectoryName(dbPath), "Backups");
+                }
+
+                // Ensure directory exists
+                Directory.CreateDirectory(backupDir);
+
+                // Build the backup filename
+                string backupFile = Path.Combine(
+                    backupDir,
+                    $"{Path.GetFileNameWithoutExtension(dbPath)}_backup_{DateTime.Now:yyyyMMdd_HHmmss}.ims"
+                );
+
+                // Create backup safely — read-while-in-use supported
+                using (var source = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var destination = new FileStream(backupFile, FileMode.Create, FileAccess.Write))
+                {
+                    source.CopyTo(destination);
+                }
+
+                ShowMessage($"Backup created successfully at: {backupFile}", true, true);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Backup failed: {ex.Message}", false, true);
+            }
+        }
+
+
+        private bool InitializeDatabase(string dbPath)
+        {
+            try
+            {
+                var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
+                    .UseSqlite($"Data Source={dbPath}")
+                    .Options;
+
+                using var context = new SqliteDbContext(sqliteOptions);
+                context.Database.EnsureCreated();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to initialize database: {ex.Message}", false, false);
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Authentication
+
+        private string TryGetMacAddress()
+        {
+            try
+            {
+                var mac = GetMacAddress();
+                if (mac == "UNKNOWN" || string.IsNullOrWhiteSpace(mac))
+                {
+                    // Generate a persistent machine identifier as fallback
+                    mac = GenerateMachineId();
+                    ShowMessage("Using generated machine identifier.", true, false);
+                }
+                return mac;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to read MAC address: {ex.Message}. Using fallback identifier.", false, true);
+                return GenerateMachineId();
+            }
+        }
+
+        private string GenerateMachineId()
+        {
+            // Create a persistent machine identifier based on machine name and other factors
+            var machineName = Environment.MachineName;
+            var userName = Environment.UserName;
+            var combined = $"{machineName}_{userName}_{Environment.OSVersion.Version}";
+
+            using (var md5 = System.Security.Cryptography.MD5.Create())
+            {
+                var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(combined));
+                return BitConverter.ToString(hash).Replace("-", "").Substring(0, 12);
+            }
+        }
+
+        private string GetMacAddress()
+        {
+            try
+            {
+                var nic = NetworkInterface.GetAllNetworkInterfaces()
+                    .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up &&
+                                         n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+                return nic?.GetPhysicalAddress().ToString() ?? "UNKNOWN";
+            }
+            catch
+            {
+                return "UNKNOWN";
+            }
+        }
+
+        private async Task<JObject> AuthenticateAsync(string username, string password, string mac)
+        {
+            try
+            {
+                var payload = new
+                {
+                    posId = username,
+                    macAddress = mac,
+                    token = password
+                };
+
+                string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
+                if (string.IsNullOrWhiteSpace(apiUrl))
+                {
+                    ShowMessage("API URL is missing in configuration.", false, false);
+                    return null;
+                }
+
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                var jsonContent = new StringContent(
+                    JsonConvert.SerializeObject(payload),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                var response = await client.PostAsync(apiUrl, jsonContent);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ShowMessage(
+                        $"Authentication failed: {(int)response.StatusCode} - {response.ReasonPhrase}",
+                        false,
+                        false
+                    );
+                    return null;
+                }
+
+                return ParseAuthResponse(responseBody);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"API error: {ex.Message}", false, false);
+                return null;
+            }
+        }
+
+        private JObject ParseAuthResponse(string responseBody)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(responseBody))
+                {
+                    throw new ArgumentException("Empty response body");
+                }
+
+                var json = JToken.Parse(responseBody);
+
+                // Handle string responses that contain JSON
+                if (json.Type == JTokenType.String)
+                {
+                    return JObject.Parse(json.ToString());
+                }
+
+                // Handle nested response property
+                if (json is JObject jobj && jobj["response"] != null)
+                {
+                    if (jobj["response"].Type == JTokenType.String)
+                    {
+                        return JObject.Parse(jobj["response"].ToString());
+                    }
+                    return jobj["response"] as JObject;
+                }
+
+                return json as JObject;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to parse authentication response: {ex.Message}", false, false);
+                return null;
+            }
+        }
+
+        private bool VerifyAuthentication(JObject json)
+        {
+            try
+            {
+                string statusCode = json["statusCode"]?.ToString();
+                string message = json["message"]?.ToString()?.ToLower();
+                string serverMsg = json["message"]?.ToString() ?? "";
+
+                if (string.IsNullOrWhiteSpace(statusCode))
+                {
+                    ShowMessage("Response missing status code.", false, false);
+                    return false;
+                }
+
+                return statusCode switch
+                {
+                    "200" when message?.Contains("record found") == true || message?.Contains("success") == true
+                        => true,
+                    "401" => ShowError("Invalid POS ID or token."),
+                    "403" => ShowError("Access denied. Unauthorized device."),
+                    "404" => ShowError("MAC address verification failed."),
+                    "500" => ShowError("Internal server error."),
+                    _ => ShowError($"Unexpected response: {statusCode} - {serverMsg}")
+                };
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Authentication verification failed: {ex.Message}", false, false);
+                return false;
+            }
+        }
+
+        private bool ShowError(string msg)
+        {
+            ShowMessage(msg, false, false);
+            return false;
+        }
+
+        #endregion
+
+        #region Configuration Save Methods
+
+        private (string branchName, string branchAddress, string businessName) ExtractBranchDetails(JObject json)
+        {
+            try
+            {
+                var data = json["data"];
+                if (data != null && data.Type == JTokenType.Object)
+                {
+                    return (
+                        data["branchName"]?.ToString() ?? "N/A",
+                        data["branchAddress"]?.ToString() ?? "N/A",
+                        data["businessName"]?.ToString() ?? "N/A"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error extracting branch details: {ex.Message}", false, true);
+            }
+            return ("N/A", "N/A", "N/A");
+        }
+
+        private void SaveAllConfigs(string username, string password, string mac, string dbPath,
+            string branchName, string branchAddress, string businessName)
+        {
+            SaveXmlConfig(username, password, mac);
+            SaveJsonConfigs(dbPath, username);
+            SaveWinFormsConfig(dbPath, branchName, branchAddress, businessName);
+        }
+
+        private void SaveXmlConfig(string username, string password, string mac)
+        {
+            try
+            {
+                var xmlDoc = new XmlDocument();
+                xmlDoc.Load(_xmlConfigPath);
+                UpdateOrCreateNode(xmlDoc, "Username", AesEncryptionHelper.Encrypt(username));
+                UpdateOrCreateNode(xmlDoc, "Password", AesEncryptionHelper.Encrypt(password));
+                UpdateOrCreateNode(xmlDoc, "MacAddress", mac);
+                xmlDoc.Save(_xmlConfigPath);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to update XML config: {ex.Message}", false, true);
+            }
+        }
+
+        private void SaveJsonConfigs(string dbPath, string username)
+        {
+            try
+            {
+                SaveDbPathToJson(_jsonWorkerPath, dbPath, username);
+                SaveDbPathToJson(_jsonMainPath, dbPath, username);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to update JSON configs: {ex.Message}", false, true);
+            }
+        }
+
+        private void SaveWinFormsConfig(string dbPath, string branchName, string branchAddress, string businessName)
+        {
+            try
+            {
+                var doc = new XmlDocument();
+                doc.Load(_winformsConfigPath);
+
+                UpdateOrCreateNode(doc, "DefaultDBFilePath", dbPath);
+                UpdateOrCreateNode(doc, "branchName", branchName);
+                UpdateOrCreateNode(doc, "branchAddress", branchAddress);
+                UpdateOrCreateNode(doc, "businessName", businessName);
+
+                doc.Save(_winformsConfigPath);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to update WinForms config: {ex.Message}", false, true);
+            }
+        }
+
+        private void UpdateOrCreateNode(XmlDocument doc, string key, string value)
+        {
+            var node = doc.SelectSingleNode($"//appSettings/add[@key='{key}']");
+            if (node == null)
+            {
+                var appSettings = doc.SelectSingleNode("//appSettings") ?? doc.CreateElement("appSettings");
+                if (appSettings.ParentNode == null)
+                    doc.DocumentElement.AppendChild(appSettings);
+
+                XmlElement newNode = doc.CreateElement("add");
+                newNode.SetAttribute("key", key);
+                newNode.SetAttribute("value", value);
+                appSettings.AppendChild(newNode);
+            }
+            else
+            {
+                node.Attributes["value"].Value = value;
+            }
+        }
+
+        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId)
+        {
+            try
+            {
+                JObject root;
+
+                if (File.Exists(jsonFilePath))
+                {
+                    string text = File.ReadAllText(jsonFilePath);
+                    root = string.IsNullOrWhiteSpace(text) ? new JObject() : JObject.Parse(text);
+                }
+                else
+                {
+                    root = new JObject();
+                }
+
+                if (root["AppSettings"] == null || root["AppSettings"].Type != JTokenType.Object)
+                    root["AppSettings"] = new JObject();
+
+                root["AppSettings"]["DefaultDBFilePath"] = dbPath;
+                root["AppSettings"]["POS"] = posId;
+
+                File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to update {Path.GetFileName(jsonFilePath)}: {ex.Message}", false, true);
+            }
+        }
+
+        private void SaveEnvironmentSettings()
+        {
+            try
+            {
+                if (rdoProduction.Checked)
+                    SaveEnvironmentToApiConfig("Production");
+                else if (rdoSandbox.Checked)
+                    SaveEnvironmentToApiConfig("Sandbox");
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to save environment settings: {ex.Message}", false, true);
+            }
+        }
+
+        private void SaveEnvironmentToApiConfig(string environment)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_jsonMainPath) || !File.Exists(_jsonMainPath))
+                {
+                    ShowMessage("API config file not found.", false, true);
+                    return;
+                }
+
+                string json = File.ReadAllText(_jsonMainPath);
+                dynamic config = JsonConvert.DeserializeObject(json) ?? new JObject();
+
+                if (config["AppSettings"] == null)
+                    config["AppSettings"] = new JObject();
+
+                config["AppSettings"]["Environment"] = environment;
+                string apiUrl = environment.Equals("Production", StringComparison.OrdinalIgnoreCase)
+                    ? "https://api.yourdomain.com"
+                    : "https://sandbox.api.yourdomain.com";
+                config["AppSettings"]["ApiBaseUrl"] = apiUrl;
+
+                bool isProd = environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
+                config["AppSettings"]["isProduction"] = isProd;
+
+                File.WriteAllText(_jsonMainPath, JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to update API config: {ex.Message}", false, false);
+            }
+        }
+
+        private void UpdateSetupConfig(string dbPath)
+        {
+            try
+            {
+                var docSetup = new XmlDocument();
+                docSetup.Load(_setupConfigPath);
+                UpdateOrCreateNode(docSetup, "DefaultDBFilePath", dbPath);
+                docSetup.Save(_setupConfigPath);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to update SetupUI config: {ex.Message}", false, true);
+            }
+        }
+
+        #endregion
+
+        #region File Browser Methods
+
+        private void btnBrowseMain_Click(object sender, EventArgs e)
+        {
+            BrowseAndSelectNewDatabaseFile(txtFilePath);
+        }
+
+        private void btnBrowseOld_Click(object sender, EventArgs e)
+        {
+            if (!_isServiceAvailable)
+            {
+                ShowMessage("Old database migration is disabled. Worker service not found.", false, true);
+                return;
+            }
+
+            BrowseAndSelectExistingFile(txtOldDB, "Select IMS Database File", "IMS files (*.ims)|*.ims|All files (*.*)|*.*");
+        }
+
+        private void BrowseAndSelectNewDatabaseFile(TextBox targetTextBox)
+        {
+            using (var dialog = new SaveFileDialog())
+            {
+                dialog.Title = "Select or create SQLite DB file";
+                dialog.Filter = "SQLite DB (*.db)|*.db|All files (*.*)|*.*";
+                dialog.FileName = "POSPRA.db";
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    targetTextBox.Text = dialog.FileName;
+                }
+            }
+        }
+
+        private void BrowseAndSelectExistingFile(TextBox targetTextBox, string title, string filter)
+        {
+            using (var dialog = new OpenFileDialog())
+            {
+                dialog.Title = title;
+                dialog.Filter = filter;
+                dialog.CheckFileExists = true;
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    targetTextBox.Text = dialog.FileName;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Message Display
+
+        private void ShowMessage(string message, bool isSuccess, bool autoHide = true)
+        {
+            lblMessage.Text = message;
+            lblMessage.Visible = true;
+            lblMessage.BringToFront();
+
+            if (isSuccess)
+            {
+                lblMessage.ForeColor = Color.FromArgb(76, 175, 80);
+                lblMessage.BackColor = Color.FromArgb(232, 245, 233);
+            }
+            else
+            {
+                lblMessage.ForeColor = Color.FromArgb(211, 47, 47);
+                lblMessage.BackColor = Color.FromArgb(255, 235, 238);
+            }
+
+            lblMessage.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            lblMessage.Padding = new Padding(10, 8, 10, 8);
+            lblMessage.TextAlign = ContentAlignment.MiddleCenter;
+            lblMessage.AutoSize = false;
+            lblMessage.Height = 35;
+            lblMessage.Width = 450;
+
+            if (autoHide)
+            {
+                _messageHideTimer.Stop();
+                _messageHideTimer.Start();
+            }
+        }
+
+        private void HideMessage()
+        {
+            _messageHideTimer.Stop();
+            lblMessage.Visible = false;
+            lblMessage.Text = "";
+        }
+
+        #endregion
+
         #region Progress Bar Helper
+
         private async Task RunSingleLoad(Func<Task> work)
         {
-            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
+            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1)
+                return;
 
             try
             {
@@ -132,39 +1457,10 @@ namespace POSPRA.SetupUI
                 Interlocked.Exchange(ref _isLoadingFlag, 0);
             }
         }
+
         #endregion
 
-        // --- Ensure form opens on top of everything ---
-        protected override void OnLoad(EventArgs e)
-        {
-            base.OnLoad(e);
-
-            this.CenterToScreen();  // center form
-            this.TopMost = true;    // mark as topmost
-
-            // Force Win32 TopMost in case another app steals focus
-            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
-                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
-            this.Activate();        // bring focus
-            this.BringToFront();    // make sure visible
-        }
-
-        // --- Browse button for selecting DB file path ---
-        private void btnBrowse_Click(object sender, EventArgs e)
-        {
-            using (var dialog = new SaveFileDialog())
-            {
-                dialog.Title = "Select or create SQLite DB file";
-                dialog.Filter = "SQLite DB (*.db)|*.db|All files (*.*)|*.*";
-                dialog.FileName = "POSPRA.db";
-
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    txtFilePath.Text = dialog.FileName;
-                }
-            }
-        }
+        #region Helper Methods
 
         private void ClearAllFields()
         {
@@ -172,557 +1468,43 @@ namespace POSPRA.SetupUI
             txtPassword.Clear();
         }
 
-
         private void txtUsername_KeyPress(object sender, KeyPressEventArgs e) { }
+
         private void txtPassword_KeyPress(object sender, KeyPressEventArgs e) { }
 
-        private void ValidateForm(object sender, EventArgs e)
-        {
-            btnOk.Enabled = !string.IsNullOrWhiteSpace(txtUsername.Text);
-        }
-
-        // --- OK button click handler ---
-        private async void btnOk_Click(object sender, EventArgs e)
+        private void ExitApplication(int exitCode)
         {
             try
             {
-                // ======== 1️⃣ VALIDATION ========
-                string username = txtUsername.Text.Trim();
-                string password = txtPassword.Text.Trim();
-                string dbPath = txtFilePath.Text.Trim();
-
-                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-                {
-                    MessageBox.Show("Please enter both POS ID and Access Code.", "Validation Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(dbPath))
-                {
-                    MessageBox.Show("Please select a database file path.", "Validation Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
-
-                // ======== 2️⃣ MAC ADDRESSES ========
-                string mac = string.Empty;
-                string deviceMac = string.Empty;
-
-                try
-                {
-                    mac = GetMacAddress();
-                    deviceMac = GetDeviceMacAddress();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to read MAC address: {ex.Message}",
-                        "Network Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                // ======== 3️⃣ API CALL ========
-                JObject json = null;
-                try
-                {
-                    var payload = new
-                    {
-                        posId = username,
-                        macAddress = mac,
-                        token = password
-                    };
-
-                    string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
-                    if (string.IsNullOrWhiteSpace(apiUrl))
-                    {
-                        MessageBox.Show("API URL is missing in App.config.", "Configuration Error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-
-                    using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
-                    {
-                        client.DefaultRequestHeaders.Clear();
-                        client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-                        var jsonContent = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-                        var response = await client.PostAsync(apiUrl, jsonContent);
-                        string responseBody = await response.Content.ReadAsStringAsync();
-
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            MessageBox.Show($"Authentication failed. Server returned {(int)response.StatusCode}: {response.ReasonPhrase}",
-                                "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-
-                        try
-                        {
-                            json = JObject.Parse(responseBody);
-
-                            // If the API wraps JSON inside a string
-                            if (json.Type == JTokenType.String)
-                                json = JObject.Parse(json.ToString());
-                            else if (json["response"] != null && json["response"].Type == JTokenType.String)
-                                json = JObject.Parse(json["response"].ToString());
-                        }
-                        catch (Exception jex)
-                        {
-                            MessageBox.Show($"Error parsing API response: {jex.Message}",
-                                "JSON Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-                    }
-                }
-                catch (HttpRequestException ex)
-                {
-                    MessageBox.Show($"Network error while connecting to API:\n{ex.Message}",
-                        "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                catch (TaskCanceledException)
-                {
-                    MessageBox.Show("The API request timed out. Please check your internet or server availability.",
-                        "Timeout", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Unexpected API error: {ex.Message}",
-                        "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                // ======== 4️⃣ SAFE JSON FIELD EXTRACTION ========
-                string branchName = "N/A";
-                string branchAddress = "N/A";
-                string businessName = "N/A";
-
-                try
-                {
-                    var data = json["data"];
-                    if (data != null && data.Type == JTokenType.Object)
-                    {
-                        branchName = data["branchName"]?.ToString() ?? "N/A";
-                        branchAddress = data["branchAddress"]?.ToString() ?? "N/A";
-                        businessName = data["businessName"]?.ToString() ?? "N/A";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error extracting branch details: {ex.Message}",
-                        "Data Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                // ======== 5️⃣ SAVE CONFIG FILES ========
-                try
-                {
-                    var xmlDoc = new XmlDocument();
-                    xmlDoc.Load(_xmlConfigPath);
-                    UpdateOrCreateNode(xmlDoc, "Username", AesEncryptionHelper.Encrypt(username));
-                    UpdateOrCreateNode(xmlDoc, "Password", AesEncryptionHelper.Encrypt(password));
-                    UpdateOrCreateNode(xmlDoc, "MacAddress", mac);
-                    xmlDoc.Save(_xmlConfigPath);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to update XML config: {ex.Message}",
-                        "Config Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                try
-                {
-                    SaveDbPathToJson(_jsonWorkerPath, dbPath, username);
-                    SaveDbPathToJson(_jsonMainPath, dbPath, username);
-                    SaveDbPathToWinFormsConfig(dbPath, branchName, branchAddress, businessName);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to update DB path configs: {ex.Message}",
-                        "Config Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                // ======== 6️⃣ VERIFY AUTH RESPONSE ========
-                try
-                {
-                    if (json == null)
-                    {
-                        MessageBox.Show("No response received from the server.",
-                            "Response Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-
-                    string statusCode = json["statusCode"]?.ToString();
-                    string message = json["message"]?.ToString()?.ToLower();
-                    string serverMsg = json["message"]?.ToString() ?? "";
-
-                    // Handle missing fields explicitly
-                    if (statusCode == null)
-                    {
-                        MessageBox.Show("Response did not contain a status code. The API may have returned an unexpected format.",
-                            "Response Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-
-                    // Handle known status codes precisely
-                    switch (statusCode)
-                    {
-                        case "200":
-                            bool success = message?.Contains("record found") == true || message?.Contains("success") == true;
-                            if (!success)
-                            {
-                                MessageBox.Show($"Authentication failed: {serverMsg}",
-                                    "Authentication Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                return;
-                            }
-
-                            MessageBox.Show("✅ Authentication successful! Proceeding with configuration...",
-                                "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            break;
-
-                        case "401":
-                            MessageBox.Show("Invalid POS ID or access code. Please check your credentials.",
-                                "Invalid Credentials", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            return;
-
-                        case "403":
-                            MessageBox.Show("Access denied. This device is not authorized to use the system.",
-                                "Unauthorized Access", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            return;
-
-                        case "404":
-                            // ✅ Based on your API behavior, 404 = MAC not found / not registered
-                            MessageBox.Show("MAC address verification failed. This device is not registered or recognized.",
-                                "MAC Address Mismatch", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            return;
-
-                        case "500":
-                            MessageBox.Show("The server encountered an internal error. Please try again later.",
-                                "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-
-                        default:
-                            MessageBox.Show($"Unexpected response from server (Status Code: {statusCode}).\nMessage: {serverMsg}",
-                                "Unexpected Response", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            return;
-                    }
-                }
-                catch (JsonReaderException jex)
-                {
-                    MessageBox.Show($"Invalid JSON format received from API: {jex.Message}",
-                        "Response Parsing Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (NullReferenceException nex)
-                {
-                    MessageBox.Show($"Expected response fields are missing (statusCode/message). Details: {nex.Message}",
-                        "Missing Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (HttpRequestException hex)
-                {
-                    MessageBox.Show($"Network or connectivity issue while verifying authentication.\nDetails: {hex.Message}",
-                        "Network Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Unexpected error while verifying authentication: {ex.Message}",
-                        "Response Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-
-                // ======== 7️⃣ UPDATE ENVIRONMENT ========
-                try
-                {
-                    if (rdoProduction.Checked)
-                        SaveEnvironmentToApiConfig("Production");
-                    else if (rdoSandbox.Checked)
-                        SaveEnvironmentToApiConfig("Sandbox");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to save environment settings: {ex.Message}",
-                        "Environment Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                // ======== 8️⃣ UPDATE SETUP CONFIG ========
-                try
-                {
-                    var docSetup = new XmlDocument();
-                    docSetup.Load(_setupConfigPath);
-                    UpdateOrCreateNode(docSetup, "DefaultDBFilePath", dbPath);
-                    docSetup.Save(_setupConfigPath);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Warning: failed to update SetupUI config.\n{ex.Message}",
-                        "Config Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                // ======== 9️⃣ INITIALIZE DATABASE ========
-                try
-                {
-                    var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
-                        .UseSqlite($"Data Source={dbPath}")
-                        .Options;
-
-                    using (var context = new SqliteDbContext(sqliteOptions))
-                    {
-                        context.Database.EnsureCreated();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to initialize database: {ex.Message}",
-                        "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                // ======== 🔟 SUCCESS EXIT ========
-                MessageBox.Show("Configuration saved and authentication successful.", "Success",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                Environment.Exit(0);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Unexpected fatal error: {ex.Message}",
-                    "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        // --- Update or create XML node ---
-        private void UpdateOrCreateNode(XmlDocument doc, string key, string value)
-        {
-            var node = doc.SelectSingleNode($"//appSettings/add[@key='{key}']");
-            if (node == null)
-            {
-                var appSettings = doc.SelectSingleNode("//appSettings") ?? doc.CreateElement("appSettings");
-                if (appSettings.ParentNode == null)
-                    doc.DocumentElement.AppendChild(appSettings);
-
-                XmlElement newNode = doc.CreateElement("add");
-                newNode.SetAttribute("key", key);
-                newNode.SetAttribute("value", value);
-                appSettings.AppendChild(newNode);
-            }
-            else
-            {
-                node.Attributes["value"].Value = value;
-            }
-        }
-
-        // --- Save DB path to JSON ---
-        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId)
-        {
-            try
-            {
-                JObject root;
-
-                // Read existing JSON if available
-                if (File.Exists(jsonFilePath))
-                {
-                    string text = File.ReadAllText(jsonFilePath);
-                    root = string.IsNullOrWhiteSpace(text) ? new JObject() : JObject.Parse(text);
-                }
-                else
-                {
-                    root = new JObject();
-                }
-
-                // Ensure AppSettings object exists
-                if (root["AppSettings"] == null || root["AppSettings"].Type != JTokenType.Object)
-                    root["AppSettings"] = new JObject();
-
-                // ✅ Update DB file path and POS ID
-                root["AppSettings"]["DefaultDBFilePath"] = dbPath;
-                root["AppSettings"]["POS"] = posId;
-
-                // Write updated JSON
-                File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
-
-                // ✅ Show confirmation
-                string savedPath = root["AppSettings"]["DefaultDBFilePath"]?.ToString() ?? "(no path found)";
-                string savedPos = root["AppSettings"]["POS"]?.ToString() ?? "(no POS found)";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Failed to update {Path.GetFileName(jsonFilePath)}: {ex.Message}",
-                    "Warning",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-            }
-        }
-
-        private void SaveEnvironmentToApiConfig(string environment)
-        {
-            try
-            {
-                // 🔹 jsonMainPath should be a class-level or passed variable from Program.cs
-                if (string.IsNullOrWhiteSpace(_jsonMainPath))
-                {
-                    MessageBox.Show("API config path not found (_jsonMainPath is empty).", "Warning",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                if (!File.Exists(_jsonMainPath))
-                {
-                    MessageBox.Show($"API config file not found at:\n{_jsonMainPath}", "Config Missing",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                string json = File.ReadAllText(_jsonMainPath);
-                dynamic config = JsonConvert.DeserializeObject(json) ?? new JObject();
-
-                if (config["AppSettings"] == null)
-                    config["AppSettings"] = new JObject();
-
-                // ✅ Update environment key
-                config["AppSettings"]["Environment"] = environment;
-
-                // ✅ Update API base URL (optional)
-                string apiUrl = environment.Equals("Production", StringComparison.OrdinalIgnoreCase)
-                    ? "https://api.yourdomain.com"
-                    : "https://sandbox.api.yourdomain.com";
-                config["AppSettings"]["ApiBaseUrl"] = apiUrl;
-
-                // ✅ Update isProduction flag
-                bool isProd = environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
-                config["AppSettings"]["isProduction"] = isProd;
-
-                // ✅ Save back to file (indented, human-readable)
-                File.WriteAllText(_jsonMainPath, JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to update API config: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        // --- Save DB path and branch information to WinForms config ---
-        private void SaveDbPathToWinFormsConfig(string dbPath, string branchName = "N/A", string branchAddress = "N/A", string businessName = "N/A")
-        {
-            try
-            {
-                var doc = new XmlDocument();
-                doc.Load(_winformsConfigPath);
-
-                // Update or create DefaultDBFilePath
-                var node = doc.SelectSingleNode("//appSettings/add[@key='DefaultDBFilePath']");
-                if (node == null)
-                {
-                    var appSettings = doc.SelectSingleNode("//appSettings") ?? doc.CreateElement("appSettings");
-                    if (appSettings.ParentNode == null)
-                        doc.DocumentElement.AppendChild(appSettings);
-
-                    XmlElement newNode = doc.CreateElement("add");
-                    newNode.SetAttribute("key", "DefaultDBFilePath");
-                    newNode.SetAttribute("value", dbPath);
-                    appSettings.AppendChild(newNode);
-                }
-                else
-                {
-                    node.Attributes["value"].Value = dbPath;
-                }
-
-                // Update or create branchName
-                UpdateOrCreateNode(doc, "branchName", branchName);
-
-                // Update or create branchAddress
-                UpdateOrCreateNode(doc, "branchAddress", branchAddress);
-
-                // Update or create businessName
-                UpdateOrCreateNode(doc, "businessName", businessName);
-
-                doc.Save(_winformsConfigPath);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to update WinForms config: {ex.Message}", "Warning",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-
-        // --- Get MAC address ---
-        private string GetMacAddress()
-        {
-            try
-            {
-                var nic = NetworkInterface.GetAllNetworkInterfaces()
-                    .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up &&
-                                         n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
-                return nic?.GetPhysicalAddress().ToString() ?? "UNKNOWN";
+                this.TopMost = false;
+                SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                //Application.ExitThread();
+                //Application.Exit();
+                Environment.Exit(exitCode);
             }
             catch
             {
-                return "UNKNOWN";
+                Environment.Exit(exitCode);
             }
         }
 
-        private string GetDeviceMacAddress()
-        {
-            try
-            {
-                var nics = NetworkInterface.GetAllNetworkInterfaces()
-                    .Where(n =>
-                        n.OperationalStatus == OperationalStatus.Up &&
-                        (n.NetworkInterfaceType == NetworkInterfaceType.Ethernet ||
-                         n.NetworkInterfaceType == NetworkInterfaceType.Wireless80211) &&
-                        !n.Description.ToLower().Contains("virtual") &&
-                        !n.Description.ToLower().Contains("vpn"));
-
-                var nic = nics.FirstOrDefault();
-
-                if (nic != null)
-                {
-                    return nic.GetPhysicalAddress().ToString(); // returns like 001A2B3C4D5E
-                }
-
-                return "UNKNOWN";
-            }
-            catch
-            {
-                return "UNKNOWN";
-            }
-        }
-
-        // --- Cancel button ---
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            var result = MessageBox.Show(
-                "Are you sure you want to cancel?",
-                "Cancel Setup",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning
-            );
-
-            if (result == DialogResult.Yes)
-            {
-                try
-                {
-                    // release topmost before exit
-                    this.TopMost = false;
-                    SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
-                                 SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
-                    // gracefully close WinForms UI
-                    Application.ExitThread();  // close the UI thread
-                    Application.Exit();        // exit application loop
-
-                    // notify MSI with cancel exit code
-                    Environment.Exit(1602);
-                }
-                catch
-                {
-                    Environment.Exit(1602);
-                }
-            }
-        }
-
+        #endregion
     }
+
+    #region IMS Validation Result Class
+
+    /// <summary>
+    /// Result of IMS file validation
+    /// </summary>
+    public class ImsValidationResult
+    {
+        public bool IsValid { get; set; }
+        public bool IsCorrupted { get; set; }
+        public bool IsEmpty { get; set; }
+        public string ErrorMessage { get; set; }
+        public List<string> CollectionNames { get; set; } = new List<string>();
+        public Dictionary<string, int> CollectionCounts { get; set; } = new Dictionary<string, int>();
+    }
+
+    #endregion
 }
