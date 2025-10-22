@@ -12,10 +12,16 @@
 
   <ItemGroup>
     <None Remove="Reports\InvoiceReport.rdlc" />
+    <None Remove="Reports\ReportDataSet.xsd" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Reports\InvoiceReport.rdlc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Reports\ReportDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>ReportDataSet.Designer.cs</LastGenOutput>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -56,21 +62,6 @@
       <HintPath>bin\Debug\net9.0-windows10.0.17763.0\Microsoft.CommunityToolkit.WinUI.Notifications.dll</HintPath>
     </Reference>
 	  <ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Reports\ReportDataSet.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ReportDataSet.xsd</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Reports\ReportDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>ReportDataSet.Designer.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
 </Project>
