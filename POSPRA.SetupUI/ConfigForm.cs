@@ -1405,7 +1405,7 @@ namespace POSPRA.SetupUI
 
             lblMessage.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             lblMessage.Padding = new Padding(10, 8, 10, 8);
-            lblMessage.TextAlign = ContentAlignment.MiddleLeft;
+            lblMessage.TextAlign = ContentAlignment.MiddleCenter;
             lblMessage.AutoSize = false;
             lblMessage.Height = 35;
             lblMessage.Width = 450;
