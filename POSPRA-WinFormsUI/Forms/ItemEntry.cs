@@ -774,7 +774,6 @@ namespace POSPRA_WinFormsUI
 
                 ClearFormFields();
                 AlertManager.ShowSuccess($"Item '{inputData.ItemCode}' added/updated successfully.");
-                _ = CreateLog("Item added successfully", AlertType.Success);
                 ItemCode.Focus();
                 UpdateInvoiceTotals();
             }
@@ -910,6 +909,8 @@ namespace POSPRA_WinFormsUI
                     // ✅ Now that invoiceDto contains FBRInvoiceNumber, print it
                     InvoiceReport printForm = new InvoiceReport(invoiceDto);
                     printForm.ShowDialog();
+                    _ = CreateLog("invoice saved successfully", AlertType.Success);
+
                 }
                 catch (Exception ex)
                 {

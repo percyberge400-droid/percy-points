@@ -45,6 +45,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_A5D36F5FDAA348A095854189EEC88EEA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_B197E02983A840AD81E08012CDDD90BA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -240,6 +246,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A5D36F5FDAA348A095854189EEC88EEA"
+            {
+            "SourcePath" = "8:..\\POSPRA.SetupUI\\Resources\\POSPRA.ico"
+            "TargetName" = "8:POSPRA.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CE8F42A3228E4132B383B3450C980B12"
             {
             "SourcePath" = "8:..\\POSPRA.SetupUI\\Resources\\UninstallPOSPRAService.bat"
@@ -354,7 +380,7 @@
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
-        "ARPPRODUCTICON" = "8:_FA3B41E9BC5B41F59E24DC9D28FC5CFD"
+        "ARPPRODUCTICON" = "8:_A5D36F5FDAA348A095854189EEC88EEA"
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
@@ -468,7 +494,7 @@
             "Target" = "8:_6F25B2E1C6BE4DDF94A78A1BDFE8E007"
             "Folder" = "8:_D18129811498406CB2254900844FC780"
             "WorkingFolder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
-            "Icon" = "8:_FA3B41E9BC5B41F59E24DC9D28FC5CFD"
+            "Icon" = "8:_A5D36F5FDAA348A095854189EEC88EEA"
             "Feature" = "8:"
             }
         }
@@ -900,7 +926,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_0D0CAC81CC684C55B22336A8430317F9"
             {
-            "SourcePath" = "8:..\\EncryptTool\\obj\\Release\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\EncryptTool\\obj\\Debug\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -928,7 +954,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_3C450B3E45344B30B48E9C92CB6937DF"
             {
-            "SourcePath" = "8:..\\BATTO_EXE\\obj\\Release\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\BATTO_EXE\\obj\\Debug\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -984,7 +1010,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_47DC25F7F55948F8967E06D7F700EEC6"
             {
-            "SourcePath" = "8:..\\POSPRA.Worker\\obj\\Release\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.Worker\\obj\\Debug\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -1068,7 +1094,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6F25B2E1C6BE4DDF94A78A1BDFE8E007"
             {
-            "SourcePath" = "8:..\\POSPRA-WinFormsUI\\obj\\Release\\net9.0-windows10.0.17763.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA-WinFormsUI\\obj\\Debug\\net9.0-windows10.0.17763.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -1124,7 +1150,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B197E02983A840AD81E08012CDDD90BA"
             {
-            "SourcePath" = "8:..\\POSPRA.Api\\obj\\Release\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.API\\obj\\Debug\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -1152,7 +1178,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_BB24F3ACBB854B98BB3FFB882140C1C8"
             {
-            "SourcePath" = "8:..\\POSPRA.SetupUI\\obj\\Release\\net9.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.SetupUI\\obj\\Debug\\net9.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
