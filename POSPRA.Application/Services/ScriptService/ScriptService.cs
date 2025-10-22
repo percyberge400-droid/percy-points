@@ -56,8 +56,8 @@ namespace POSPRA.Application.Services.ScriptService
                 POSID = dto.POSID,
                 InvoiceNumber = dto.InvoiceNumber,
                 InvoiceData = dto.InvoiceData,
-                DateCreated = DateTime.Now,
-                DateModified = DateTime.Now,
+                DateCreated = dto.DateCreated,
+                DateModified = dto.DateModified,
                 IsSynced = (int)InvoiceStatus.Synced,
                 AttemptCount = 0
             }).ToList();
@@ -73,11 +73,44 @@ namespace POSPRA.Application.Services.ScriptService
             if (dtoList == null || dtoList.Count == 0)
                 return false;
 
-            var records = dtoList.Select(dto => new Logs
+            var records = dtoList.Select(dto =>
             {
-                POSID = posId,
-                Message = dto.Message,
-                IsSynced = true
+                string message = dto.Message!;
+                DateTime createdAtPk = DateTime.Now;
+                DateTime createdAtUtc = createdAtPk.ToUniversalTime();
+
+                if (!string.IsNullOrWhiteSpace(dto.Message) && dto.Message.Contains("==>"))
+                {
+                    var parts = dto.Message.Split("==>", 2, StringSplitOptions.TrimEntries);
+
+                    // ✅ Try parsing exact date format
+                    string[] formats =
+                    {
+                        "M/d/yyyy h:mm:ss tt",
+                        "MM/dd/yyyy hh:mm:ss tt",
+                        "M/d/yyyy hh:mm:ss tt",
+                        "MM/dd/yyyy h:mm:ss tt"
+                    };
+
+                    if (DateTime.TryParseExact(parts[0], formats,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None,
+                        out var parsedDate))
+                    {
+                        createdAtPk = parsedDate;
+                        createdAtUtc = parsedDate.ToUniversalTime();
+                        message = parts[1]; // message without date
+                    }
+                }
+
+                return new Logs
+                {
+                    POSID = posId,
+                    Message = message,
+                    CreatedAtPk = createdAtPk,
+                    CreatedAtUtc = createdAtUtc,
+                    IsSynced = true
+                };
             }).ToList();
 
             await _logSQLiteRepository.AddRangeAsync(records);
