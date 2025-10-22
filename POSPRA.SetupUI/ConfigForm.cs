@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using POSPRA.Application.Services.ScriptService;
+using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.SecurityEncryption;
 using System.Configuration;
@@ -53,11 +56,13 @@ namespace POSPRA.SetupUI
 
         private bool _isServiceAvailable = false;
 
+        private readonly IScriptService _scriptservice;
+
         #endregion
 
         #region Constructor
 
-        public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath)
+        public ConfigForm(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath, IScriptService scriptservice)
         {
             InitializeComponent();
 
@@ -71,6 +76,8 @@ namespace POSPRA.SetupUI
             _defaultPassword = ConfigurationManager.AppSettings["DbPassword"];
             _backupDir = ConfigurationManager.AppSettings["backupDir"];
             _workerServiceName = ConfigurationManager.AppSettings["FiscalServiceName"];
+
+            _scriptservice = scriptservice;
 
             InitializeFormSettings();
             InitializeEventHandlers();
@@ -135,7 +142,6 @@ namespace POSPRA.SetupUI
             try
             {
                 _isServiceAvailable = IsWorkerServiceInstalled();
-                //_isServiceAvailable = false;
                 if (_isServiceAvailable)
                 {
                     ShowMessage("Fiscal service detected. Old database migration enabled.", true, true);
@@ -194,14 +200,12 @@ namespace POSPRA.SetupUI
             {
                 using (var controller = new ServiceController(_workerServiceName))
                 {
-                    // Access the Status property to check if service exists
                     var status = controller.Status;
                     return true;
                 }
             }
             catch (InvalidOperationException)
             {
-                // Service does not exist
                 return false;
             }
             catch (Exception)
@@ -283,7 +287,7 @@ namespace POSPRA.SetupUI
                     if (!ValidateOldDatabase(oldDbPath))
                         return;
 
-                    CreateOldDatabaseBackup(oldDbPath);
+                    CreateSafeBackup(oldDbPath);
                 }
 
                 CreateDatabaseDirectory(dbPath);
@@ -305,6 +309,12 @@ namespace POSPRA.SetupUI
                 if (!InitializeDatabase(dbPath))
                     return;
 
+                // Migrate old data if service is available and old DB path is provided
+                if (_isServiceAvailable && !string.IsNullOrWhiteSpace(oldDbPath))
+                {
+                    await MigrateOldDatabaseAsync(oldDbPath, username, password);
+                }
+
                 ShowMessage("Setup completed successfully!", true, false);
                 await Task.Delay(2000);
                 Environment.Exit(0);
@@ -318,6 +328,54 @@ namespace POSPRA.SetupUI
         #endregion
 
         #region Validation Methods
+
+        private bool ValidateDatabasePath(string dbPath)
+        {
+            if (string.IsNullOrWhiteSpace(dbPath))
+            {
+                ShowMessage("Database path cannot be empty.", false, true);
+                return false;
+            }
+
+            try
+            {
+                var directory = Path.GetDirectoryName(dbPath);
+                if (string.IsNullOrWhiteSpace(directory))
+                {
+                    ShowMessage("Invalid database file path.", false, true);
+                    return false;
+                }
+
+                // Check if directory exists or can be created
+                if (!Directory.Exists(directory))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowMessage($"Cannot create directory: {ex.Message}", false, true);
+                        return false;
+                    }
+                }
+
+                // Check file extension
+                var extension = Path.GetExtension(dbPath);
+                if (string.IsNullOrEmpty(extension) || !extension.Equals(".db", StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowMessage("Database file must have .db extension.", false, true);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Invalid database path: {ex.Message}", false, true);
+                return false;
+            }
+        }
 
         private bool ValidateInputs(out string username, out string password, out string dbPath, out string oldDbPath)
         {
@@ -338,19 +396,21 @@ namespace POSPRA.SetupUI
                 return false;
             }
 
-            // Only validate old DB path if service is available
+            // Only require old DB path if service is available
             if (_isServiceAvailable && string.IsNullOrWhiteSpace(oldDbPath))
             {
                 ShowMessage("Please select an old database file path.", false, true);
                 return false;
             }
 
+            if (!ValidateDatabasePath(dbPath))
+                return false;
+
             return true;
         }
 
         private bool ValidateOldDatabase(string oldDbPath)
         {
-            // Skip validation if service is not available
             if (!_isServiceAvailable)
                 return true;
 
@@ -363,40 +423,44 @@ namespace POSPRA.SetupUI
 
             try
             {
-                using (var db = new LiteDatabase($"Filename={oldDbPath};Password={_defaultPassword}"))
+                var validationResult = ValidateImsFile(oldDbPath, _defaultPassword);
+
+                if (!validationResult.IsValid)
                 {
-                    var collectionNames = db.GetCollectionNames().ToList();
-
-                    if (collectionNames.Count == 0)
+                    if (validationResult.IsCorrupted)
                     {
-                        ShowMessage("Old database is empty. No data found.", false, true);
-                        return false;
+                        ShowMessage($"Database is corrupted: {validationResult.ErrorMessage}", false, true);
                     }
-
-                    bool hasData = false;
-                    foreach (var collectionName in collectionNames)
+                    else if (validationResult.IsEmpty)
                     {
-                        var collection = db.GetCollection(collectionName);
-                        if (collection.Count() > 0)
-                        {
-                            hasData = true;
-                            break;
-                        }
+                        ShowMessage($"Database is empty: {validationResult.ErrorMessage}", false, true);
                     }
-
-                    if (!hasData)
+                    else
                     {
-                        ShowMessage("Old database has no data. Please select a database with existing records.", false, true);
-                        return false;
+                        ShowMessage($"Validation failed: {validationResult.ErrorMessage}", false, true);
                     }
-
-                    return true;
+                    return false;
                 }
-            }
-            catch (LiteException ex) when (ex.ErrorCode == 123)
-            {
-                ShowMessage("Invalid password for old database or file is corrupted.", false, true);
-                return false;
+
+                if (validationResult.IsEmpty)
+                {
+                    ShowMessage("Old database has no data. Please select a database with existing records.", false, true);
+                    return false;
+                }
+
+                // Only sum counts that are greater than or equal to 0 (exclude corrupted collections with -1)
+                int totalRecords = validationResult.CollectionCounts.Values.Where(count => count >= 0).Sum();
+                int corruptedCollections = validationResult.CollectionCounts.Values.Count(count => count < 0);
+
+                string message = $"Database validated: {validationResult.CollectionNames.Count} collections, {totalRecords} total records";
+                if (corruptedCollections > 0)
+                {
+                    message += $" ({corruptedCollections} corrupted collection(s) will be skipped)";
+                }
+
+                ShowMessage(message, true, false);
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -412,6 +476,437 @@ namespace POSPRA.SetupUI
 
         #endregion
 
+        #region IMS File Validation Methods
+
+        /// <summary>
+        /// Validates IMS file for corruption and accessibility
+        /// </summary>
+        private ImsValidationResult ValidateImsFile(string imsFilePath, string password)
+        {
+            var result = new ImsValidationResult();
+
+            try
+            {
+                if (!File.Exists(imsFilePath))
+                {
+                    result.IsValid = false;
+                    result.ErrorMessage = "IMS file does not exist.";
+                    return result;
+                }
+
+                var fileInfo = new FileInfo(imsFilePath);
+                if (fileInfo.Length == 0)
+                {
+                    result.IsValid = false;
+                    result.IsEmpty = true;
+                    result.ErrorMessage = "IMS file is empty (0 bytes).";
+                    return result;
+                }
+
+                if (!IsValidLiteDbFile(imsFilePath))
+                {
+                    result.IsValid = false;
+                    result.IsCorrupted = true;
+                    result.ErrorMessage = "File does not appear to be a valid LiteDB database.";
+                    return result;
+                }
+
+                using (var db = new LiteDatabase($"Filename={imsFilePath};Password={password}"))
+                {
+                    try
+                    {
+                        result.CollectionNames = db.GetCollectionNames().ToList();
+
+                        if (result.CollectionNames.Count == 0)
+                        {
+                            result.IsValid = true;
+                            result.IsEmpty = true;
+                            result.ErrorMessage = "Database is empty (no collections).";
+                            return result;
+                        }
+
+                        bool hasAnyData = false;
+                        foreach (var collectionName in result.CollectionNames)
+                        {
+                            try
+                            {
+                                var collection = db.GetCollection(collectionName);
+                                int count = collection.Count();
+                                result.CollectionCounts[collectionName] = count;
+
+                                if (count > 0)
+                                    hasAnyData = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                result.CollectionCounts[collectionName] = -1;
+                                result.ErrorMessage += $" Warning: Collection '{collectionName}' is corrupted: {ex.Message}";
+                            }
+                        }
+
+                        if (!hasAnyData)
+                        {
+                            result.IsValid = true;
+                            result.IsEmpty = true;
+                            result.ErrorMessage = "Database has no data in any collection.";
+                            return result;
+                        }
+
+                        result.IsValid = true;
+                        return result;
+                    }
+                    catch (LiteException ex)
+                    {
+                        result.IsValid = false;
+                        result.IsCorrupted = true;
+                        result.ErrorMessage = $"Database corruption detected: {ex.Message}";
+                        return result;
+                    }
+                }
+            }
+            catch (LiteException ex) when (ex.ErrorCode == 123)
+            {
+                result.IsValid = false;
+                result.ErrorMessage = "Invalid password or encrypted database.";
+                return result;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                result.IsValid = false;
+                result.ErrorMessage = "Access denied. File is locked or insufficient permissions.";
+                return result;
+            }
+            catch (IOException ex)
+            {
+                result.IsValid = false;
+                result.ErrorMessage = $"IO Error: {ex.Message}";
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.IsValid = false;
+                result.IsCorrupted = true;
+                result.ErrorMessage = $"Unexpected error: {ex.Message}";
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Checks if file has valid LiteDB header
+        /// </summary>
+        private bool IsValidLiteDbFile(string filePath)
+        {
+            try
+            {
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    if (fs.Length < 8192)
+                        return false;
+
+                    byte[] header = new byte[7];
+                    fs.Read(header, 0, 7);
+
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region IMS Data Migration Methods
+
+        /// <summary>
+        /// Migrates data from old IMS database to API
+        /// </summary>
+        private async Task MigrateOldDatabaseAsync(string oldDbPath, string username, string password)
+        {
+            try
+            {
+                ShowMessage("Starting data migration...", true, false);
+
+                //await RunSingleLoad(async () =>
+                //{
+                // Load data from IMS file
+                var fileRecords = LoadFileRecordsFromIms(oldDbPath);
+
+
+                var logs = LoadLogsFromIms(oldDbPath);
+
+
+                // Show summary in MessageBox
+                ShowMigrationSummary(fileRecords, logs);
+
+                // Prepare data for API (ready for when you implement the API call)
+                await PrepareDataForApiAsync(fileRecords, logs, username, password);
+
+                //});
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Migration failed: {ex.Message}", false, true);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Shows migration summary in MessageBox
+        /// </summary>
+        private void ShowMigrationSummary(List<FileRecordDto> fileRecords, List<SyncLogDto> logs)
+        {
+            int totalFileRecords = fileRecords.Count;
+            int totalLogs = logs.Count;
+            int totalRecords = totalFileRecords + totalLogs;
+
+            string summaryMessage = $@"Data Migration Summary:
+
+File Records: {totalFileRecords}
+Logs: {totalLogs}
+Total Records: {totalRecords}
+
+The data is now ready to be sent to the API.
+FileRecordDto List: {totalFileRecords} records
+LogDto List: {totalLogs} records";
+
+            MessageBox.Show(
+                summaryMessage,
+                "Migration Summary",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
+            // Also show in the form message
+            ShowMessage($"Migration ready: {totalFileRecords} file records, {totalLogs} logs - Total: {totalRecords} records", true, false);
+        }
+
+        /// <summary>
+        /// Prepares data for API transmission (ready for API implementation)
+        /// </summary>
+        private async Task PrepareDataForApiAsync(List<FileRecordDto> fileRecords, List<SyncLogDto> logs, string username, string password)
+        {
+            try
+            {
+                if ((fileRecords == null || fileRecords.Count == 0) &&
+                    (logs == null || logs.Count == 0))
+                {
+                    ShowMessage("No data to send.", false, true);
+                    return;
+                }
+
+                var payload = new ScriptDTO
+                {
+                    FileRecord = fileRecords,
+                    Log = logs
+                };
+
+                ShowMessage($"Preparing {fileRecords.Count} file records and {logs.Count} logs for API...", true, false);
+
+                bool success = await SendDataToApiAsync(payload);
+                if (success)
+                {
+                    ShowMessage("Data successfully sent to API!", true, false);
+                }
+                else
+                {
+                    ShowMessage("Failed to send data to API", false, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error preparing API data: {ex.Message}", false, true);
+            }
+        }
+
+        /// <summary>
+        /// Ready-to-use method for sending data to API (commented out for now)
+        /// </summary>
+        private async Task<bool> SendDataToApiAsync(ScriptDTO payload)
+        {
+            try
+            {
+                var response = await _scriptservice.CreateScript(payload);
+
+                if (response.StatusCode == "200")
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error sending data to API: {ex.Message}", false, true);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Loads FileRecords from IMS database for API transmission
+        /// </summary>
+        private List<FileRecordDto> LoadFileRecordsFromIms(string imsFilePath)
+        {
+            var fileRecords = new List<FileRecordDto>();
+
+            try
+            {
+                using (var db = new LiteDatabase($"Filename={imsFilePath};Password={_defaultPassword}"))
+                {
+                    var collection = db.GetCollection("filerecords");
+                    var documents = collection.FindAll().ToList();
+
+                    foreach (var doc in documents)
+                    {
+                        try
+                        {
+                            var fileRecord = new FileRecordDto
+                            {
+                                ID = GetIntValue(doc, "_id", "ID", "Id"),
+                                POSID = GetIntValue(doc, "POSID", "PosId"),
+                                InvoiceData = GetStringValue(doc, "InvoiceData"),
+                                InvoiceNumber = GetStringValue(doc, "InvoiceNumber"),
+                                IsSynced = GetIntValue(doc, "IsSynced"),
+                                AttemptCount = GetIntValue(doc, "AttemptCount"),
+                                DateCreated = GetDateTimeValue(doc, "DateCreated"),
+                                DateModified = GetDateTimeValue(doc, "DateModified")
+                            };
+
+                            fileRecords.Add(fileRecord);
+                        }
+                        catch (Exception ex)
+                        {
+                            ShowMessage($"Error parsing FileRecord: {ex.Message}", false, false);
+                        }
+                    }
+                }
+
+                return fileRecords;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to load FileRecords: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Loads Logs from IMS database for API transmission
+        /// </summary>
+        private List<SyncLogDto> LoadLogsFromIms(string imsFilePath)
+        {
+            var logs = new List<SyncLogDto>();
+
+            using (var db = new LiteDatabase($"Filename={imsFilePath};Password={_defaultPassword};Mode=ReadOnly"))
+            {
+                var collection = db.GetCollection("logs");
+
+                // Stream instead of .ToList() to reduce memory & improve speed
+                foreach (var doc in collection.FindAll())
+                {
+                    try
+                    {
+                        var log = new SyncLogDto
+                        {
+                            Id = doc.TryGetValue("_id", out var idVal) ? idVal.AsInt64 : 0,
+                            Message = doc.TryGetValue("Message", out var msgVal) ? msgVal.AsString : string.Empty,
+                            Type = doc.TryGetValue("TypeId", out var typeVal) ? typeVal.ToString() : string.Empty,
+                            IsSynced = doc.TryGetValue("IsSynced", out var syncVal) && syncVal.AsBoolean,
+                        };
+
+                        logs.Add(log);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error parsing log record: {ex.Message}");
+                    }
+                }
+            }
+
+            return logs;
+        }
+
+        #endregion
+
+        #region BsonDocument Helper Methods
+
+        /// <summary>
+        /// Gets integer value from BsonDocument with fallback keys
+        /// </summary>
+        private int GetIntValue(BsonDocument doc, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (doc.ContainsKey(key))
+                {
+                    try
+                    {
+                        return doc[key].AsInt32;
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            return (int)doc[key].AsInt64;
+                        }
+                        catch
+                        {
+                            // Continue to next key
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets string value from BsonDocument with fallback keys
+        /// </summary>
+        private string GetStringValue(BsonDocument doc, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (doc.ContainsKey(key))
+                {
+                    try
+                    {
+                        return doc[key].AsString;
+                    }
+                    catch
+                    {
+                        // Continue to next key
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets DateTime value from BsonDocument with fallback keys
+        /// </summary>
+        private DateTime GetDateTimeValue(BsonDocument doc, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (doc.ContainsKey(key))
+                {
+                    try
+                    {
+                        return doc[key].AsDateTime;
+                    }
+                    catch
+                    {
+                        // Continue to next key
+                    }
+                }
+            }
+            return DateTime.MinValue;
+        }
+
+        #endregion
+
         #region Database Operations
 
         private void CreateDatabaseDirectory(string dbPath)
@@ -419,29 +914,43 @@ namespace POSPRA.SetupUI
             Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
         }
 
-        private void CreateOldDatabaseBackup(string oldDbPath)
+        private void CreateSafeBackup(string dbPath)
         {
-            // Skip backup if service is not available or path is empty
-            if (!_isServiceAvailable || string.IsNullOrWhiteSpace(oldDbPath))
-                return;
-
             try
             {
-                string backupDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
-                Directory.CreateDirectory(backupDirectory);
+                // Read from config first
+                string backupDir = ConfigurationManager.AppSettings["backupDir"];
 
-                string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-                string fileName = Path.GetFileNameWithoutExtension(oldDbPath);
-                string backupPath = Path.Combine(backupDirectory, $"{fileName}_backup_{timestamp}.ims");
+                // Fallback to default if not set
+                if (string.IsNullOrWhiteSpace(backupDir))
+                {
+                    backupDir = Path.Combine(Path.GetDirectoryName(dbPath), "Backups");
+                }
 
-                File.Copy(oldDbPath, backupPath, overwrite: true);
-                ShowMessage($"Backup created: {Path.GetFileName(backupPath)}", true, false);
+                // Ensure directory exists
+                Directory.CreateDirectory(backupDir);
+
+                // Build the backup filename
+                string backupFile = Path.Combine(
+                    backupDir,
+                    $"{Path.GetFileNameWithoutExtension(dbPath)}_backup_{DateTime.Now:yyyyMMdd_HHmmss}.ims"
+                );
+
+                // Create backup safely — read-while-in-use supported
+                using (var source = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var destination = new FileStream(backupFile, FileMode.Create, FileAccess.Write))
+                {
+                    source.CopyTo(destination);
+                }
+
+                ShowMessage($"Backup created successfully at: {backupFile}", true, true);
             }
             catch (Exception ex)
             {
-                ShowMessage($"Failed to create backup: {ex.Message}", false, true);
+                ShowMessage($"Backup failed: {ex.Message}", false, true);
             }
         }
+
 
         private bool InitializeDatabase(string dbPath)
         {
@@ -470,12 +979,33 @@ namespace POSPRA.SetupUI
         {
             try
             {
-                return GetMacAddress();
+                var mac = GetMacAddress();
+                if (mac == "UNKNOWN" || string.IsNullOrWhiteSpace(mac))
+                {
+                    // Generate a persistent machine identifier as fallback
+                    mac = GenerateMachineId();
+                    ShowMessage("Using generated machine identifier.", true, false);
+                }
+                return mac;
             }
             catch (Exception ex)
             {
-                ShowMessage($"Failed to read MAC address: {ex.Message}", false, true);
-                return "UNKNOWN";
+                ShowMessage($"Failed to read MAC address: {ex.Message}. Using fallback identifier.", false, true);
+                return GenerateMachineId();
+            }
+        }
+
+        private string GenerateMachineId()
+        {
+            // Create a persistent machine identifier based on machine name and other factors
+            var machineName = Environment.MachineName;
+            var userName = Environment.UserName;
+            var combined = $"{machineName}_{userName}_{Environment.OSVersion.Version}";
+
+            using (var md5 = System.Security.Cryptography.MD5.Create())
+            {
+                var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(combined));
+                return BitConverter.ToString(hash).Replace("-", "").Substring(0, 12);
             }
         }
 
@@ -545,15 +1075,38 @@ namespace POSPRA.SetupUI
 
         private JObject ParseAuthResponse(string responseBody)
         {
-            var json = JObject.Parse(responseBody);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(responseBody))
+                {
+                    throw new ArgumentException("Empty response body");
+                }
 
-            if (json.Type == JTokenType.String)
-                return JObject.Parse(json.ToString());
+                var json = JToken.Parse(responseBody);
 
-            if (json["response"]?.Type == JTokenType.String)
-                return JObject.Parse(json["response"].ToString());
+                // Handle string responses that contain JSON
+                if (json.Type == JTokenType.String)
+                {
+                    return JObject.Parse(json.ToString());
+                }
 
-            return json;
+                // Handle nested response property
+                if (json is JObject jobj && jobj["response"] != null)
+                {
+                    if (jobj["response"].Type == JTokenType.String)
+                    {
+                        return JObject.Parse(jobj["response"].ToString());
+                    }
+                    return jobj["response"] as JObject;
+                }
+
+                return json as JObject;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to parse authentication response: {ex.Message}", false, false);
+                return null;
+            }
         }
 
         private bool VerifyAuthentication(JObject json)
@@ -936,8 +1489,8 @@ namespace POSPRA.SetupUI
             {
                 this.TopMost = false;
                 SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-                Application.ExitThread();
-                Application.Exit();
+                //Application.ExitThread();
+                //Application.Exit();
                 Environment.Exit(exitCode);
             }
             catch
@@ -948,4 +1501,21 @@ namespace POSPRA.SetupUI
 
         #endregion
     }
+
+    #region IMS Validation Result Class
+
+    /// <summary>
+    /// Result of IMS file validation
+    /// </summary>
+    public class ImsValidationResult
+    {
+        public bool IsValid { get; set; }
+        public bool IsCorrupted { get; set; }
+        public bool IsEmpty { get; set; }
+        public string ErrorMessage { get; set; }
+        public List<string> CollectionNames { get; set; } = new List<string>();
+        public Dictionary<string, int> CollectionCounts { get; set; } = new Dictionary<string, int>();
+    }
+
+    #endregion
 }

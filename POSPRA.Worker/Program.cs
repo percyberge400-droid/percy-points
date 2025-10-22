@@ -12,6 +12,7 @@ using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
+using POSPRA.Application.Services.ScriptService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -98,6 +99,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<IWorkerLogService, WorkerLogService>();
         services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
         services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
+        services.AddScoped<IScriptService, ScriptService>();
         services.AddHttpContextAccessor();
 
         //----------------------------------------------------

@@ -15,6 +15,7 @@ using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
+using POSPRA.Application.Services.ScriptService;
 using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
@@ -106,6 +107,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
+            services.AddScoped<IScriptService, ScriptService>();
             services.AddScoped<IProductCatalogueSQLServerRepository, ProductCatalogueSQLServerRepository>();
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
             services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
