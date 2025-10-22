@@ -82,8 +82,18 @@ namespace POSPRA_WinFormsUI
 
             // Register DbContexts
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
-            services.AddDbContext<SqlServerDbContext>(opt =>
-                opt.UseSqlServer(configuration.GetConnectionString("SqlServerConnection")));
+
+            // ✅ Read AppSettings (just like API)
+            var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
+            bool isProduction = appSettings?.IsProduction ?? false;
+
+            // ✅ Choose the SQL Server connection string based on Production/Sandbox flag
+            string sqlServerConnString = configuration.GetConnectionString(
+                isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
+            ) ?? throw new InvalidOperationException("No valid SQL Server connection string found in appsettings.json");
+
+            // ✅ Register SQL Server using dynamic connection string
+            services.AddDbContext<SqlServerDbContext>(opt => opt.UseSqlServer(sqlServerConnString));
 
             // AutoMapper
             services.AddAutoMapper(cfg =>
