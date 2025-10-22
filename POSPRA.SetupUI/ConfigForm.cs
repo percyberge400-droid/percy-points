@@ -384,9 +384,15 @@ namespace POSPRA.SetupUI
             dbPath = txtFilePath.Text.Trim();
             oldDbPath = _isServiceAvailable ? txtOldDB.Text.Trim() : string.Empty;
 
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(username))
             {
-                ShowMessage("Please enter both POS ID and Access Code.", false, true);
+                ShowMessage("Please enter POS ID.", false, true);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ShowMessage("Please enter Token.", false, true);
                 return false;
             }
 
@@ -660,23 +666,6 @@ namespace POSPRA.SetupUI
             int totalFileRecords = fileRecords.Count;
             int totalLogs = logs.Count;
             int totalRecords = totalFileRecords + totalLogs;
-
-            string summaryMessage = $@"Data Migration Summary:
-
-File Records: {totalFileRecords}
-Logs: {totalLogs}
-Total Records: {totalRecords}
-
-The data is now ready to be sent to the API.
-FileRecordDto List: {totalFileRecords} records
-LogDto List: {totalLogs} records";
-
-            MessageBox.Show(
-                summaryMessage,
-                "Migration Summary",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
 
             // Also show in the form message
             ShowMessage($"Migration ready: {totalFileRecords} file records, {totalLogs} logs - Total: {totalRecords} records", true, false);
@@ -1127,7 +1116,7 @@ LogDto List: {totalLogs} records";
                 {
                     "200" when message?.Contains("record found") == true || message?.Contains("success") == true
                         => true,
-                    "401" => ShowError("Invalid POS ID or access code."),
+                    "401" => ShowError("Invalid POS ID or token."),
                     "403" => ShowError("Access denied. Unauthorized device."),
                     "404" => ShowError("MAC address verification failed."),
                     "500" => ShowError("Internal server error."),
@@ -1416,7 +1405,7 @@ LogDto List: {totalLogs} records";
 
             lblMessage.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             lblMessage.Padding = new Padding(10, 8, 10, 8);
-            lblMessage.TextAlign = ContentAlignment.MiddleLeft;
+            lblMessage.TextAlign = ContentAlignment.MiddleCenter;
             lblMessage.AutoSize = false;
             lblMessage.Height = 35;
             lblMessage.Width = 450;
