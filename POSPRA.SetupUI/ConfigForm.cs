@@ -661,23 +661,6 @@ namespace POSPRA.SetupUI
             int totalLogs = logs.Count;
             int totalRecords = totalFileRecords + totalLogs;
 
-            string summaryMessage = $@"Data Migration Summary:
-
-File Records: {totalFileRecords}
-Logs: {totalLogs}
-Total Records: {totalRecords}
-
-The data is now ready to be sent to the API.
-FileRecordDto List: {totalFileRecords} records
-LogDto List: {totalLogs} records";
-
-            MessageBox.Show(
-                summaryMessage,
-                "Migration Summary",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
-
             // Also show in the form message
             ShowMessage($"Migration ready: {totalFileRecords} file records, {totalLogs} logs - Total: {totalRecords} records", true, false);
         }
