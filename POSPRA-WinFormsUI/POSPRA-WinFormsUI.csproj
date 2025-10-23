@@ -64,4 +64,12 @@
 	  <ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Reports\ReportDataSet.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ReportDataSet.xsd</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
