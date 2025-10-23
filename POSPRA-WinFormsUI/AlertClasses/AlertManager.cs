@@ -5,11 +5,11 @@ namespace POSPRA_WinFormsUI.AlertClasses
 {
     public class AlertManager : Form
     {
-        // ----- Static queue for stacking multiple alerts (FIXED: List -> Queue) -----
+        // ----- Static queue for stacking multiple alerts -----
         private static readonly Queue<AlertManager> ActiveAlerts = new Queue<AlertManager>();
         private static readonly object LockObj = new object();
 
-        // ----- Cached icon bitmaps (FIXED: Static cache) -----
+        // ----- Cached icon bitmaps -----
         private static Image _successIcon;
         private static Image _errorIcon;
         private static Image _warningIcon;
@@ -30,6 +30,12 @@ namespace POSPRA_WinFormsUI.AlertClasses
         private Color foreColor;
         private Image iconImage;
 
+        // FIXED: State tracking to prevent stuck alerts
+        private bool isClosing = false;
+        private bool isFadingOut = false;
+        private DateTime createdTime;
+        private const int MaxLifetimeMs = 3000; // Absolute max: 3 seconds
+
         // layout constants
         private const int AlertWidth = 300;
         private const int AlertHeight = 75;
@@ -42,7 +48,6 @@ namespace POSPRA_WinFormsUI.AlertClasses
         // ------------------ Constructor ------------------
         public AlertManager(string message, string type = AlertType.Info, int duration = 3000)
         {
-            // base form settings
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.Manual;
             this.Size = new Size(AlertWidth, AlertHeight);
@@ -53,8 +58,8 @@ namespace POSPRA_WinFormsUI.AlertClasses
 
             duration = Math.Max(2000, Math.Min(duration, 3000));
             this.displayTime = duration;
+            this.createdTime = DateTime.Now; // FIXED: Track creation time
 
-            // FIXED: Optimized timer intervals (30ms = ~33 FPS)
             fadeInTimer = new System.Windows.Forms.Timer { Interval = 30 };
             fadeInTimer.Tick += FadeInTimer_Tick;
 
@@ -67,9 +72,20 @@ namespace POSPRA_WinFormsUI.AlertClasses
             slideTimer = new System.Windows.Forms.Timer { Interval = 20 };
             slideTimer.Tick += SlideTimer_Tick;
 
+            // FIXED: Failsafe timer - force close after max lifetime
+            var failsafeTimer = new System.Windows.Forms.Timer { Interval = 500 };
+            failsafeTimer.Tick += (s, e) =>
+            {
+                if ((DateTime.Now - createdTime).TotalMilliseconds > MaxLifetimeMs)
+                {
+                    failsafeTimer.Stop();
+                    ForceClose();
+                }
+            };
+            failsafeTimer.Start();
+
             ConfigureStyle(type);
 
-            // controls
             iconBox = new PictureBox
             {
                 Size = new Size(40, 40),
@@ -88,7 +104,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
                 Font = new Font("Segoe UI", 10F, FontStyle.Regular),
                 Text = message,
                 TextAlign = ContentAlignment.MiddleLeft,
-                BackColor = Color.Transparent // FIXED: Proper assignment
+                BackColor = Color.Transparent
             };
 
             this.Controls.Add(iconBox);
@@ -117,34 +133,20 @@ namespace POSPRA_WinFormsUI.AlertClasses
         {
             AlertManager oldestAlert = null;
 
-            // FIXED: Minimize lock scope to avoid deadlock with Invoke
             lock (LockObj)
             {
                 if (ActiveAlerts.Count >= MaxVisibleAlerts)
                 {
-                    oldestAlert = ActiveAlerts.Dequeue(); // FIXED: Queue O(1) operation
+                    oldestAlert = ActiveAlerts.Dequeue();
                 }
                 ActiveAlerts.Enqueue(this);
             }
 
-            // Close outside of lock to prevent deadlock
             if (oldestAlert != null)
             {
-                try
-                {
-                    if (!oldestAlert.IsDisposed && oldestAlert.IsHandleCreated)
-                    {
-                        if (oldestAlert.InvokeRequired)
-                            oldestAlert.Invoke(new Action(() => oldestAlert.Close()));
-                        else
-                            oldestAlert.Close();
-                    }
-                }
-                catch (ObjectDisposedException) { }
-                catch (InvalidOperationException) { }
+                oldestAlert.ForceClose(); // FIXED: New force close method
             }
 
-            // Reposition after lock
             RepositionAlerts();
 
             var workingArea = Screen.PrimaryScreen.WorkingArea;
@@ -160,25 +162,84 @@ namespace POSPRA_WinFormsUI.AlertClasses
             lifeTimer.Start();
         }
 
+        // FIXED: Force close method for stuck alerts
+        private void ForceClose()
+        {
+            if (isClosing || this.IsDisposed)
+                return;
+
+            isClosing = true;
+
+            try
+            {
+                // Stop all timers immediately
+                StopAllTimers();
+
+                if (this.InvokeRequired)
+                {
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        try
+                        {
+                            if (!this.IsDisposed)
+                                this.Close();
+                        }
+                        catch { }
+                    }));
+                }
+                else
+                {
+                    this.Close();
+                }
+            }
+            catch { }
+        }
+
+        // FIXED: Centralized timer stopping
+        private void StopAllTimers()
+        {
+            try
+            {
+                fadeInTimer?.Stop();
+                lifeTimer?.Stop();
+                fadeOutTimer?.Stop();
+                slideTimer?.Stop();
+            }
+            catch { }
+        }
+
         private void SlideTimer_Tick(object sender, EventArgs e)
         {
-            if (this.Location.X > targetX)
+            if (isClosing || this.IsDisposed) return;
+
+            try
             {
-                this.Location = new Point(this.Location.X - 20, this.Location.Y);
+                if (this.Location.X > targetX)
+                {
+                    this.Location = new Point(this.Location.X - 20, this.Location.Y);
+                }
+                else
+                {
+                    this.Location = new Point(targetX, this.Location.Y);
+                    slideTimer.Stop();
+                }
             }
-            else
+            catch (ObjectDisposedException)
             {
-                this.Location = new Point(targetX, this.Location.Y);
                 slideTimer.Stop();
             }
         }
 
         private void FadeInTimer_Tick(object sender, EventArgs e)
         {
+            if (isClosing || this.IsDisposed)
+            {
+                fadeInTimer.Stop();
+                return;
+            }
+
             try
             {
-                if (this.IsDisposed) return;
-
                 if (this.Opacity < 1.0)
                     this.Opacity = Math.Min(1.0, this.Opacity + 0.08);
                 else
@@ -193,25 +254,57 @@ namespace POSPRA_WinFormsUI.AlertClasses
         private void LifeTimer_Tick(object sender, EventArgs e)
         {
             lifeTimer.Stop();
+
+            if (isClosing || this.IsDisposed)
+                return;
+
+            isFadingOut = true;
             fadeOutTimer.Start();
         }
 
         private void FadeOutTimer_Tick(object sender, EventArgs e)
         {
-            if (this.Opacity > 0)
-                this.Opacity -= 0.08;
-            else
+            if (this.IsDisposed)
             {
                 fadeOutTimer.Stop();
-                this.Close();
+                return;
             }
+
+            try
+            {
+                // FIXED: More aggressive fade-out threshold
+                if (this.Opacity > 0.1)
+                {
+                    this.Opacity = Math.Max(0, this.Opacity - 0.1); // Faster fade
+                }
+                else
+                {
+                    fadeOutTimer.Stop();
+                    isClosing = true;
+                    this.Close();
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                fadeOutTimer.Stop();
+            }
+        }
+
+        // FIXED: More robust form closing
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (!isClosing)
+            {
+                isClosing = true;
+                StopAllTimers();
+            }
+            base.OnFormClosing(e);
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             base.OnFormClosed(e);
 
-            // FIXED: Remove from queue (convert to list temporarily)
             lock (LockObj)
             {
                 var tempList = ActiveAlerts.ToList();
@@ -223,10 +316,18 @@ namespace POSPRA_WinFormsUI.AlertClasses
                 }
             }
 
-            RepositionAlerts();
+            // FIXED: Use BeginInvoke to prevent blocking
+            Task.Run(() =>
+            {
+                System.Threading.Thread.Sleep(50); // Small delay
+                try
+                {
+                    this.BeginInvoke(new Action(() => RepositionAlerts()));
+                }
+                catch { }
+            });
         }
 
-        // FIXED: Reposition without holding lock
         private static void RepositionAlerts()
         {
             List<AlertManager> alertsCopy;
@@ -245,32 +346,35 @@ namespace POSPRA_WinFormsUI.AlertClasses
             {
                 var a = alertsCopy[i];
 
-                if (a.IsDisposed || !a.IsHandleCreated)
+                // FIXED: Skip stuck/closing alerts
+                if (a.IsDisposed || !a.IsHandleCreated || a.isClosing)
                     continue;
 
                 int x = workingArea.Right - a.Width - RightOffset;
                 int y = workingArea.Top + (i * (a.Height + VerticalMargin)) + TopOffset;
 
-                if (a.InvokeRequired)
+                try
                 {
-                    try
+                    if (a.InvokeRequired)
                     {
-                        a.Invoke((Action)(() => a.Location = new Point(x, y)));
+                        a.BeginInvoke((Action)(() => // FIXED: BeginInvoke instead of Invoke
+                        {
+                            if (!a.IsDisposed && !a.isClosing)
+                                a.Location = new Point(x, y);
+                        }));
                     }
-                    catch (ObjectDisposedException) { }
-                    catch (InvalidOperationException) { }
+                    else
+                    {
+                        a.Location = new Point(x, y);
+                    }
                 }
-                else
-                {
-                    a.Location = new Point(x, y);
-                }
+                catch { }
             }
         }
 
         // ------------------ Style configuration ------------------
         private void ConfigureStyle(string type)
         {
-            // FIXED: Use cached icons
             InitializeIconCache();
 
             backColor = Color.White;
@@ -319,7 +423,6 @@ namespace POSPRA_WinFormsUI.AlertClasses
             if (iconBox != null && iconImage != null) iconBox.Image = iconImage;
         }
 
-        // FIXED: Icon cache initialization
         private static void InitializeIconCache()
         {
             if (_successIcon == null)
@@ -377,24 +480,16 @@ namespace POSPRA_WinFormsUI.AlertClasses
             return path;
         }
 
-        // FIXED: Proper disposal of resources
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                fadeInTimer?.Stop();
+                StopAllTimers();
+
                 fadeInTimer?.Dispose();
-
-                lifeTimer?.Stop();
                 lifeTimer?.Dispose();
-
-                fadeOutTimer?.Stop();
                 fadeOutTimer?.Dispose();
-
-                slideTimer?.Stop();
                 slideTimer?.Dispose();
-
-                // Don't dispose cached static icons
             }
             base.Dispose(disposing);
         }
