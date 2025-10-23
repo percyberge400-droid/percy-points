@@ -43,6 +43,9 @@
         public const string InvalidInput = "Invalid input provided.";
         public const string UnauthorizedAccess = "You are not authorized to perform this action.";
         public const string SessionExpired = "Session has expired. Please log in again.";
+        public const string InvalidPosId = "Invalid POS ID.";
+        public const string InvalidMacAddress = "Invalid MAC Address.";
+        public const string InvalidToken= "Invalid Token.";
     }
 
     public static class AlertType
