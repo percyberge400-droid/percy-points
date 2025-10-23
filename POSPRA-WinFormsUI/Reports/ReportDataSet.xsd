@@ -41,7 +41,8 @@
               <xs:element name="POSID" msprop:Generator_ColumnPropNameInTable="POSIDColumn" msprop:Generator_ColumnPropNameInRow="POSID" msprop:Generator_UserColumnName="POSID" msprop:Generator_ColumnVarNameInTable="columnPOSID" type="xs:string" minOccurs="0" />
               <xs:element name="InvoiceNo" msprop:Generator_ColumnPropNameInTable="InvoiceNoColumn" msprop:Generator_ColumnPropNameInRow="InvoiceNo" msprop:Generator_UserColumnName="InvoiceNo" msprop:Generator_ColumnVarNameInTable="columnInvoiceNo" type="xs:string" minOccurs="0" />
               <xs:element name="TotalQty" msprop:Generator_ColumnPropNameInTable="TotalQtyColumn" msprop:Generator_ColumnPropNameInRow="TotalQty" msprop:Generator_UserColumnName="TotalQty" msprop:Generator_ColumnVarNameInTable="columnTotalQty" type="xs:string" minOccurs="0" />
-              <xs:element name="TotalTax" msprop:Generator_UserColumnName="TotalTax" msprop:Generator_ColumnPropNameInTable="TotalTaxColumn" msprop:Generator_ColumnPropNameInRow="TotalTax" msprop:Generator_ColumnVarNameInTable="columnTotalTax" type="xs:string" minOccurs="0" />
+              <xs:element name="TotalTax" msprop:Generator_ColumnPropNameInTable="TotalTaxColumn" msprop:Generator_ColumnPropNameInRow="TotalTax" msprop:Generator_UserColumnName="TotalTax" msprop:Generator_ColumnVarNameInTable="columnTotalTax" type="xs:string" minOccurs="0" />
+              <xs:element name="InvoiceType" msprop:Generator_ColumnPropNameInRow="InvoiceType" msprop:Generator_ColumnPropNameInTable="InvoiceTypeColumn" msprop:Generator_ColumnVarNameInTable="columnInvoiceType" msprop:Generator_UserColumnName="InvoiceType" type="xs:string" minOccurs="0" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

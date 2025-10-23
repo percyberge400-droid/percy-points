@@ -665,6 +665,8 @@ namespace POSPRA_WinFormsUI.Reports {
             
             private global::System.Data.DataColumn columnTotalTax;
             
+            private global::System.Data.DataColumn columnInvoiceType;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public HeaderDataTableDataTable() {
@@ -822,6 +824,14 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn InvoiceTypeColumn {
+                get {
+                    return this.columnInvoiceType;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -857,7 +867,23 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public HeaderDataTableRow AddHeaderDataTableRow(string BusinessName, string DateCreated, string ModeOfPayment, byte LogoImage, byte QRCodeImage, string NTN, string Address, string STRN, string PRALogo, string Total, string Discount, string POSID, string InvoiceNo, string TotalQty, string TotalTax) {
+            public HeaderDataTableRow AddHeaderDataTableRow(
+                        string BusinessName, 
+                        string DateCreated, 
+                        string ModeOfPayment, 
+                        byte LogoImage, 
+                        byte QRCodeImage, 
+                        string NTN, 
+                        string Address, 
+                        string STRN, 
+                        string PRALogo, 
+                        string Total, 
+                        string Discount, 
+                        string POSID, 
+                        string InvoiceNo, 
+                        string TotalQty, 
+                        string TotalTax, 
+                        string InvoiceType) {
                 HeaderDataTableRow rowHeaderDataTableRow = ((HeaderDataTableRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         BusinessName,
@@ -874,7 +900,8 @@ namespace POSPRA_WinFormsUI.Reports {
                         POSID,
                         InvoiceNo,
                         TotalQty,
-                        TotalTax};
+                        TotalTax,
+                        InvoiceType};
                 rowHeaderDataTableRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowHeaderDataTableRow);
                 return rowHeaderDataTableRow;
@@ -912,6 +939,7 @@ namespace POSPRA_WinFormsUI.Reports {
                 this.columnInvoiceNo = base.Columns["InvoiceNo"];
                 this.columnTotalQty = base.Columns["TotalQty"];
                 this.columnTotalTax = base.Columns["TotalTax"];
+                this.columnInvoiceType = base.Columns["InvoiceType"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -947,6 +975,8 @@ namespace POSPRA_WinFormsUI.Reports {
                 base.Columns.Add(this.columnTotalQty);
                 this.columnTotalTax = new global::System.Data.DataColumn("TotalTax", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnTotalTax);
+                this.columnInvoiceType = new global::System.Data.DataColumn("InvoiceType", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnInvoiceType);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1512,6 +1542,22 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string InvoiceType {
+                get {
+                    try {
+                        return ((string)(this[this.tableHeaderDataTable.InvoiceTypeColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'InvoiceType\' in table \'HeaderDataTable\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableHeaderDataTable.InvoiceTypeColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public bool IsBusinessNameNull() {
                 return this.IsNull(this.tableHeaderDataTable.BusinessNameColumn);
             }
@@ -1688,6 +1734,18 @@ namespace POSPRA_WinFormsUI.Reports {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public void SetTotalTaxNull() {
                 this[this.tableHeaderDataTable.TotalTaxColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsInvoiceTypeNull() {
+                return this.IsNull(this.tableHeaderDataTable.InvoiceTypeColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetInvoiceTypeNull() {
+                this[this.tableHeaderDataTable.InvoiceTypeColumn] = global::System.Convert.DBNull;
             }
         }
         

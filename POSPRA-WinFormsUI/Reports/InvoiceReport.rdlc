@@ -778,14 +778,14 @@
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Center</TextAlign>
+              <TextAlign>Left</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
         <Top>0.98056in</Top>
         <Left>0.51649cm</Left>
         <Height>0.18334in</Height>
-        <Width>6.45232cm</Width>
+        <Width>3.32504cm</Width>
         <ZIndex>6</ZIndex>
         <Style>
           <Border>
@@ -1299,6 +1299,48 @@
           </Border>
         </Style>
       </Line>
+      <Textbox Name="invoiceType">
+        <CanGrow>true</CanGrow>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>Invoice Type: </Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
+                </Style>
+              </TextRun>
+              <TextRun>
+                <Value>=First(Fields!InvoiceType.Value, "HeaderDataSet")</Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style>
+              <TextAlign>Left</TextAlign>
+            </Style>
+          </Paragraph>
+        </Paragraphs>
+        <Top>0.98056in</Top>
+        <Left>3.99787cm</Left>
+        <Height>0.18334in</Height>
+        <Width>2.99098cm</Width>
+        <ZIndex>25</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+            <Width>0.3pt</Width>
+          </Border>
+          <VerticalAlign>Bottom</VerticalAlign>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
+          <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
+        </Style>
+      </Textbox>
     </ReportItems>
     <Height>11.46309cm</Height>
     <Style>
@@ -1392,6 +1434,10 @@
         </Field>
         <Field Name="TotalTax">
           <DataField>TotalTax</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="InvoiceType">
+          <DataField>InvoiceType</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
       </Fields>
