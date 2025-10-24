@@ -38,7 +38,6 @@
             Name = "InvoiceReport";
             Text = "InvoiceReport";
             TopMost = true;
-            WindowState = FormWindowState.Maximized;
             ResumeLayout(false);
         }
 

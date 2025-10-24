@@ -75,7 +75,7 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>Item</Value>
+                              <Value>Description</Value>
                               <Style>
                                 <FontFamily />
                                 <FontSize>7.5pt</FontSize>
@@ -497,8 +497,8 @@
           </TablixMembers>
         </TablixRowHierarchy>
         <DataSetName>BodyDataSet</DataSetName>
-        <Top>1.59724in</Top>
-        <Left>0.33261cm</Left>
+        <Top>1.83335in</Top>
+        <Left>0.31233cm</Left>
         <Height>0.48278in</Height>
         <Width>6.47239cm</Width>
         <Style>
@@ -538,7 +538,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>0.52779in</Top>
+        <Top>0.77779in</Top>
         <Left>0.59022cm</Left>
         <Height>0.26666in</Height>
         <Width>5.87727cm</Width>
@@ -561,16 +561,9 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>Payment</Value>
+                <Value>Payment Mode:</Value>
                 <Style>
-                  <FontSize>7pt</FontSize>
-                  <FontWeight>Bold</FontWeight>
-                </Style>
-              </TextRun>
-              <TextRun>
-                <Value>:</Value>
-                <Style>
-                  <FontSize>8pt</FontSize>
+                  <FontSize>6.8pt</FontSize>
                   <FontWeight>Bold</FontWeight>
                 </Style>
               </TextRun>
@@ -583,7 +576,7 @@
               <TextRun>
                 <Value>=First(Fields!ModeOfPayment.Value, "HeaderDataSet")</Value>
                 <Style>
-                  <FontSize>7pt</FontSize>
+                  <FontSize>6.2pt</FontSize>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -592,10 +585,10 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>1.38335in</Top>
-        <Left>3.81402cm</Left>
+        <Top>1.61112in</Top>
+        <Left>3.65768cm</Left>
         <Height>0.2in</Height>
-        <Width>2.97088cm</Width>
+        <Width>3.12722cm</Width>
         <ZIndex>2</ZIndex>
         <Style>
           <Border>
@@ -639,7 +632,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>1.38335in</Top>
+        <Top>1.61112in</Top>
         <Left>0.33261cm</Left>
         <Height>0.19445in</Height>
         <Width>3.32507cm</Width>
@@ -679,7 +672,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>0.78612in</Top>
+        <Top>1.03612in</Top>
         <Left>0.59022cm</Left>
         <Height>0.18055in</Height>
         <Width>5.87727cm</Width>
@@ -727,7 +720,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>1.17779in</Top>
+        <Top>1.40556in</Top>
         <Left>0.33264cm</Left>
         <Height>0.19167in</Height>
         <Width>3.32504cm</Width>
@@ -782,10 +775,10 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>0.98056in</Top>
+        <Top>1.23056in</Top>
         <Left>0.33264cm</Left>
         <Height>0.18334in</Height>
-        <Width>3.32504cm</Width>
+        <Width>6.43213cm</Width>
         <ZIndex>6</ZIndex>
         <Style>
           <Border>
@@ -803,10 +796,10 @@
         <Source>Database</Source>
         <Value>=First(Fields!LogoImage.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
-        <Sizing>Fit</Sizing>
-        <Left>2.17838cm</Left>
-        <Height>0.47223in</Height>
-        <Width>2.77136cm</Width>
+        <Sizing>FitProportional</Sizing>
+        <Left>1.67038cm</Left>
+        <Height>0.77779in</Height>
+        <Width>3.92434cm</Width>
         <ZIndex>7</ZIndex>
         <Visibility>
           <Hidden>=IsNothing(First(Fields!LogoImage.Value, "HeaderDataSet"))</Hidden>
@@ -816,7 +809,6 @@
             <Style>None</Style>
             <Width>0.7pt</Width>
           </Border>
-          <PaddingTop>3pt</PaddingTop>
         </Style>
       </Image>
       <Image Name="QRCode">
@@ -824,9 +816,9 @@
         <Value>=First(Fields!QRCodeImage.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>Fit</Sizing>
-        <Top>82.65835mm</Top>
-        <Left>40.8143mm</Left>
-        <Height>2.28566cm</Height>
+        <Top>91.16104mm</Top>
+        <Left>40.17919mm</Left>
+        <Height>2.39638cm</Height>
         <Width>2.70347cm</Width>
         <ZIndex>8</ZIndex>
         <Style>
@@ -852,7 +844,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>4.18191in</Top>
+        <Top>4.54636in</Top>
         <Left>0.61023cm</Left>
         <Height>0.14167in</Height>
         <Width>5.82579cm</Width>
@@ -876,7 +868,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>4.33191in</Top>
+        <Top>4.69636in</Top>
         <Left>0.61023cm</Left>
         <Height>0.15833in</Height>
         <Width>5.82579cm</Width>
@@ -902,7 +894,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.49664in</Top>
+        <Top>2.87164in</Top>
         <Left>5.36575cm</Left>
         <Height>0.23333in</Height>
         <Width>1.41897cm</Width>
@@ -931,14 +923,14 @@
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Right</TextAlign>
+              <TextAlign>Left</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.28835in</Top>
-        <Left>5.36584cm</Left>
+        <Top>2.55224in</Top>
+        <Left>4.08143cm</Left>
         <Height>0.20833in</Height>
-        <Width>1.41897cm</Width>
+        <Width>1.54872cm</Width>
         <ZIndex>12</ZIndex>
         <Style>
           <Border>
@@ -969,7 +961,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.72995in</Top>
+        <Top>3.10495in</Top>
         <Left>5.36575cm</Left>
         <Height>0.20557in</Height>
         <Width>1.41897cm</Width>
@@ -990,7 +982,7 @@
         <Value>=First(Fields!PRALogo.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>FitProportional</Sizing>
-        <Top>8.62927cm</Top>
+        <Top>9.58177cm</Top>
         <Left>0.61023cm</Left>
         <Height>1.61177cm</Height>
         <Width>3.2313cm</Width>
@@ -1003,8 +995,8 @@
         </Style>
       </Image>
       <Line Name="Line2">
-        <Top>8.05413cm</Top>
-        <Left>0.3324cm</Left>
+        <Top>9.1161cm</Top>
+        <Left>0.35268cm</Left>
         <Height>0cm</Height>
         <Width>6.45232cm</Width>
         <ZIndex>15</ZIndex>
@@ -1035,10 +1027,10 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>5.81241cm</Top>
-        <Left>0.33255cm</Left>
+        <Top>5.91825cm</Top>
+        <Left>4.08143cm</Left>
         <Height>0.52915cm</Height>
-        <Width>1.81977cm</Width>
+        <Width>1.54872cm</Width>
         <ZIndex>16</ZIndex>
         <Style>
           <Border>
@@ -1067,7 +1059,7 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>6.34148cm</Top>
+        <Top>7.29398cm</Top>
         <Left>0.33246cm</Left>
         <Height>0.59265cm</Height>
         <Width>1.81977cm</Width>
@@ -1099,7 +1091,7 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>6.93411cm</Top>
+        <Top>7.88661cm</Top>
         <Left>0.33243cm</Left>
         <Height>0.52213cm</Height>
         <Width>1.81977cm</Width>
@@ -1123,7 +1115,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>Invoice no:</Value>
+                <Value>FBR Invoice no:</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                   <FontWeight>Bold</FontWeight>
@@ -1156,7 +1148,7 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.94942in</Top>
+        <Top>3.33974in</Top>
         <Left>0.33261cm</Left>
         <Height>0.2215in</Height>
         <Width>6.45229cm</Width>
@@ -1169,7 +1161,7 @@
         </Style>
       </Textbox>
       <Line Name="Line3">
-        <Top>7.49149cm</Top>
+        <Top>8.44399cm</Top>
         <Left>0.33243cm</Left>
         <Height>0cm</Height>
         <Width>6.43234cm</Width>
@@ -1188,7 +1180,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>Total Qty:</Value>
+                <Value>Total Qty</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                   <FontWeight>Bold</FontWeight>
@@ -1199,10 +1191,10 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox6</rd:DefaultName>
-        <Top>5.28326cm</Top>
+        <Top>5.91826cm</Top>
         <Left>0.33255cm</Left>
         <Height>0.52915cm</Height>
-        <Width>1.81977cm</Width>
+        <Width>1.26944cm</Width>
         <ZIndex>21</ZIndex>
         <Style>
           <Border>
@@ -1227,14 +1219,14 @@
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Right</TextAlign>
+              <TextAlign>Left</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>5.28326cm</Top>
-        <Left>5.36584cm</Left>
-        <Height>0.52915cm</Height>
-        <Width>1.41906cm</Width>
+        <Top>6.48269cm</Top>
+        <Left>0.3324cm</Left>
+        <Height>0.45851cm</Height>
+        <Width>0.95339cm</Width>
         <ZIndex>22</ZIndex>
         <Style>
           <Border>
@@ -1269,10 +1261,10 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>1.17779in</Top>
-        <Left>3.81402cm</Left>
+        <Top>1.40556in</Top>
+        <Left>3.65768cm</Left>
         <Height>0.19167in</Height>
-        <Width>2.97094cm</Width>
+        <Width>3.12728cm</Width>
         <ZIndex>23</ZIndex>
         <Style>
           <Border>
@@ -1287,7 +1279,7 @@
         </Style>
       </Textbox>
       <Line Name="Line4">
-        <Top>6.93411cm</Top>
+        <Top>7.2587cm</Top>
         <Left>0.35268cm</Left>
         <Height>0cm</Height>
         <Width>6.45232cm</Width>
@@ -1299,65 +1291,28 @@
           </Border>
         </Style>
       </Line>
-      <Textbox Name="invoiceType">
-        <CanGrow>true</CanGrow>
-        <Paragraphs>
-          <Paragraph>
-            <TextRuns>
-              <TextRun>
-                <Value>Invoice Type: </Value>
-                <Style>
-                  <FontSize>7pt</FontSize>
-                  <FontWeight>Bold</FontWeight>
-                </Style>
-              </TextRun>
-              <TextRun>
-                <Value>=First(Fields!InvoiceType.Value, "HeaderDataSet")</Value>
-                <Style>
-                  <FontSize>7pt</FontSize>
-                  <FontWeight>Normal</FontWeight>
-                </Style>
-              </TextRun>
-            </TextRuns>
-            <Style>
-              <TextAlign>Left</TextAlign>
-            </Style>
-          </Paragraph>
-        </Paragraphs>
-        <Top>0.98056in</Top>
-        <Left>3.81402cm</Left>
-        <Height>0.18334in</Height>
-        <Width>2.99098cm</Width>
-        <ZIndex>25</ZIndex>
-        <Style>
-          <Border>
-            <Style>None</Style>
-            <Width>0.3pt</Width>
-          </Border>
-          <VerticalAlign>Bottom</VerticalAlign>
-          <PaddingLeft>1pt</PaddingLeft>
-          <PaddingRight>1pt</PaddingRight>
-          <PaddingTop>1pt</PaddingTop>
-          <PaddingBottom>1pt</PaddingBottom>
-        </Style>
-      </Textbox>
     </ReportItems>
-    <Height>11.46309cm</Height>
+    <Height>12.39442cm</Height>
     <Style>
       <Border>
         <Style>None</Style>
-        <Width>0.7pt</Width>
+        <Width>0.3pt</Width>
       </Border>
     </Style>
   </Body>
   <Width>7.44204cm</Width>
   <Page>
-    <PageHeight>50cm</PageHeight>
+    <PageHeight>25cm</PageHeight>
     <PageWidth>8cm</PageWidth>
     <LeftMargin>0cm</LeftMargin>
     <RightMargin>0cm</RightMargin>
     <TopMargin>0cm</TopMargin>
-    <Style />
+    <Style>
+      <Border>
+        <Style>None</Style>
+        <Width>0.3pt</Width>
+      </Border>
+    </Style>
   </Page>
   <AutoRefresh>0</AutoRefresh>
   <DataSources>

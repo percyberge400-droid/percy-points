@@ -142,7 +142,7 @@ namespace POSPRA_WinFormsUI.Forms
             string paymentModeText = dto.PaymentMode switch
             {
                 1 => "Cash",
-                2 => "Credit",
+                2 => "Credit Card",
                 3 => "Online",
                 _ => "N/A"
             };
@@ -409,7 +409,7 @@ namespace POSPRA_WinFormsUI.Forms
         #endregion
     }
 
-    // Extension class for direct printing (add this in the same file or a new one)
+    // Extension class for direct printing 
     public static class LocalReportExtensions
     {
         public static void PrintToThermal(this LocalReport report, string printerName, float widthInches = 3.15f, float heightInches = 19.7f) // Default 80mm width, dynamic height passed in
@@ -417,7 +417,7 @@ namespace POSPRA_WinFormsUI.Forms
             var pageSettings = new PageSettings
             {
                 PaperSize = new PaperSize("Thermal 80mm", (int)(widthInches * 100), (int)(heightInches * 100)), // Hundredths of inch
-                Margins = new Margins(10, 10, 10, 10), // Small margins: 0.1in each
+                Margins = new Margins(2, 2, 2, 2), // Small margins: 0.1in each
                 Landscape = false // Portrait for receipts
             };
 
@@ -427,10 +427,10 @@ namespace POSPRA_WinFormsUI.Forms
                     <OutputFormat>EMF</OutputFormat>
                     <PageWidth>{widthInches}in</PageWidth>
                     <PageHeight>{heightInches}in</PageHeight>
-                    <MarginTop>0.1in</MarginTop>
-                    <MarginLeft>0.1in</MarginLeft>
-                    <MarginRight>0.1in</MarginRight>
-                    <MarginBottom>0.1in</MarginBottom>
+                    <MarginTop>0.02in</MarginTop>
+                    <MarginLeft>0.02in</MarginLeft>
+                    <MarginRight>0.02in</MarginRight>
+                    <MarginBottom>0.02in</MarginBottom>
                 </DeviceInfo>";
 
             Warning[] warnings;
