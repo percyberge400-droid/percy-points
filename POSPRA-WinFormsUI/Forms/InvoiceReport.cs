@@ -360,7 +360,7 @@ namespace POSPRA_WinFormsUI.Forms
         // Helper to calculate dynamic height in inches
         private float CalculateDynamicHeight(int itemCount)
         {
-            float headerHeight = 3f; // Adjust based on your report design (logos, address, etc.)
+            float headerHeight = 3f; // Adjust based on your report design (logotcs, address, e.)
             float rowHeight = 0.3f; // Adjust per item row height (including spacing)
             float footerHeight = 2f; // Adjust for totals, QR, etc.
             float buffer = 1f; // Extra space to avoid cutoff
@@ -383,7 +383,26 @@ namespace POSPRA_WinFormsUI.Forms
 
             // If not in config, list installed printers and filter/look for thermal (e.g., contains "80mm" or "Thermal")
             var installedPrinters = PrinterSettings.InstalledPrinters.Cast<string>().ToList();
-            var potentialThermal = installedPrinters.FirstOrDefault(p => p.Contains("80") || p.Contains("Thermal") || p.Contains("XP-") || p.Contains("POS-"));
+            var potentialThermal = installedPrinters.FirstOrDefault(p =>
+                p.Contains("80", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("85", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("Thermal", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("POS", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("XP-", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("XPrinter", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("BlackCopper", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("BC-", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("Rongta", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("RP", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("Epson", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("TM-", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("Bixolon", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("Citizen", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("GP-", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("Speed", StringComparison.OrdinalIgnoreCase) ||
+                p.Contains("Winspeed", StringComparison.OrdinalIgnoreCase)
+            );
+
 
             if (!string.IsNullOrEmpty(potentialThermal))
             {
