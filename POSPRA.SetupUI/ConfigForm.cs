@@ -1019,7 +1019,12 @@ namespace POSPRA.SetupUI
                 var nic = NetworkInterface.GetAllNetworkInterfaces()
                     .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up &&
                                          n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
-                return nic?.GetPhysicalAddress().ToString() ?? "UNKNOWN";
+
+                if (nic == null)
+                    return "UNKNOWN";
+
+                var bytes = nic.GetPhysicalAddress().GetAddressBytes();
+                return string.Join("-", bytes.Select(b => b.ToString("X2")));
             }
             catch
             {
