@@ -21,9 +21,9 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly bool _isFromDashboard;
         private readonly bool _printDirectly; // New flag for direct printing
         private ReportViewer _reportViewer;
-        private static readonly string businessname = ConfigurationManager.AppSettings["businessName"];
-        private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];
-        private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"];
+        private static readonly string businessname = ConfigurationManager.AppSettings["businessName"]; //
+        private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];     //
+        private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"]; //
         private static readonly Dictionary<string, byte[]> _qrCache = new();
         private static LocalReport _cachedReportTemplate;
         private int _itemCount; // To store the number of invoice items for dynamic height
@@ -107,6 +107,7 @@ namespace POSPRA_WinFormsUI.Forms
                 new DataColumn("BusinessName", typeof(string)),
                 new DataColumn("DateCreated", typeof(DateTime)),
                 new DataColumn("ModeOfPayment", typeof(string)),
+                new DataColumn("InvoiceType", typeof(string)),
                 new DataColumn("LogoImage", typeof(byte[])),
                 new DataColumn("QRCodeImage", typeof(byte[])),
                 new DataColumn("PRALogo", typeof(byte[])),
@@ -146,6 +147,15 @@ namespace POSPRA_WinFormsUI.Forms
                 _ => "N/A"
             };
             headerRow["ModeOfPayment"] = paymentModeText;
+            string InvoiceType = dto.InvoiceType switch
+            {
+                1 => "Sale",
+                2 => "Purchase",
+                3 => "Debit",
+                4 => "Credit",
+                _ => "N/A"
+            };
+            headerRow["InvoiceType"] = InvoiceType;
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;

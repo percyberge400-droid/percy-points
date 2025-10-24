@@ -778,14 +778,14 @@
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Center</TextAlign>
+              <TextAlign>Left</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
         <Top>0.98056in</Top>
         <Left>0.33264cm</Left>
         <Height>0.18334in</Height>
-        <Width>6.45232cm</Width>
+        <Width>3.32504cm</Width>
         <ZIndex>6</ZIndex>
         <Style>
           <Border>
@@ -1434,6 +1434,10 @@
         </Field>
         <Field Name="TotalTax">
           <DataField>TotalTax</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="InvoiceType">
+          <DataField>InvoiceType</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
       </Fields>
