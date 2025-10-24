@@ -498,7 +498,7 @@
         </TablixRowHierarchy>
         <DataSetName>BodyDataSet</DataSetName>
         <Top>1.59724in</Top>
-        <Left>0.51646cm</Left>
+        <Left>0.33261cm</Left>
         <Height>0.48278in</Height>
         <Width>6.47239cm</Width>
         <Style>
@@ -539,7 +539,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>0.52779in</Top>
-        <Left>0.77407cm</Left>
+        <Left>0.59022cm</Left>
         <Height>0.26666in</Height>
         <Width>5.87727cm</Width>
         <ZIndex>1</ZIndex>
@@ -593,7 +593,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>1.38335in</Top>
-        <Left>3.99787cm</Left>
+        <Left>3.81402cm</Left>
         <Height>0.2in</Height>
         <Width>2.97088cm</Width>
         <ZIndex>2</ZIndex>
@@ -640,7 +640,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>1.38335in</Top>
-        <Left>0.51646cm</Left>
+        <Left>0.33261cm</Left>
         <Height>0.19445in</Height>
         <Width>3.32507cm</Width>
         <ZIndex>3</ZIndex>
@@ -680,7 +680,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>0.78612in</Top>
-        <Left>0.77407cm</Left>
+        <Left>0.59022cm</Left>
         <Height>0.18055in</Height>
         <Width>5.87727cm</Width>
         <ZIndex>4</ZIndex>
@@ -728,7 +728,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>1.17779in</Top>
-        <Left>0.51649cm</Left>
+        <Left>0.33264cm</Left>
         <Height>0.19167in</Height>
         <Width>3.32504cm</Width>
         <ZIndex>5</ZIndex>
@@ -783,7 +783,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>0.98056in</Top>
-        <Left>0.51649cm</Left>
+        <Left>0.33264cm</Left>
         <Height>0.18334in</Height>
         <Width>6.45232cm</Width>
         <ZIndex>6</ZIndex>
@@ -804,7 +804,7 @@
         <Value>=First(Fields!LogoImage.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>Fit</Sizing>
-        <Left>2.36223cm</Left>
+        <Left>2.17838cm</Left>
         <Height>0.47223in</Height>
         <Width>2.77136cm</Width>
         <ZIndex>7</ZIndex>
@@ -825,7 +825,7 @@
         <MIMEType>image/png</MIMEType>
         <Sizing>Fit</Sizing>
         <Top>82.65835mm</Top>
-        <Left>42.6528mm</Left>
+        <Left>40.8143mm</Left>
         <Height>2.28566cm</Height>
         <Width>2.70347cm</Width>
         <ZIndex>8</ZIndex>
@@ -853,7 +853,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>4.18191in</Top>
-        <Left>0.79408cm</Left>
+        <Left>0.61023cm</Left>
         <Height>0.14167in</Height>
         <Width>5.82579cm</Width>
         <ZIndex>9</ZIndex>
@@ -877,7 +877,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>4.33191in</Top>
-        <Left>0.79408cm</Left>
+        <Left>0.61023cm</Left>
         <Height>0.15833in</Height>
         <Width>5.82579cm</Width>
         <ZIndex>10</ZIndex>
@@ -903,7 +903,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>2.49664in</Top>
-        <Left>5.5496cm</Left>
+        <Left>5.36575cm</Left>
         <Height>0.23333in</Height>
         <Width>1.41897cm</Width>
         <ZIndex>11</ZIndex>
@@ -936,7 +936,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>2.28835in</Top>
-        <Left>5.54969cm</Left>
+        <Left>5.36584cm</Left>
         <Height>0.20833in</Height>
         <Width>1.41897cm</Width>
         <ZIndex>12</ZIndex>
@@ -970,7 +970,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>2.72995in</Top>
-        <Left>5.5496cm</Left>
+        <Left>5.36575cm</Left>
         <Height>0.20557in</Height>
         <Width>1.41897cm</Width>
         <ZIndex>13</ZIndex>
@@ -991,7 +991,7 @@
         <MIMEType>image/png</MIMEType>
         <Sizing>FitProportional</Sizing>
         <Top>8.62927cm</Top>
-        <Left>0.79408cm</Left>
+        <Left>0.61023cm</Left>
         <Height>1.61177cm</Height>
         <Width>3.2313cm</Width>
         <ZIndex>14</ZIndex>
@@ -1004,7 +1004,7 @@
       </Image>
       <Line Name="Line2">
         <Top>8.05413cm</Top>
-        <Left>0.51625cm</Left>
+        <Left>0.3324cm</Left>
         <Height>0cm</Height>
         <Width>6.45232cm</Width>
         <ZIndex>15</ZIndex>
@@ -1036,7 +1036,7 @@
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
         <Top>5.81241cm</Top>
-        <Left>0.5164cm</Left>
+        <Left>0.33255cm</Left>
         <Height>0.52915cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>16</ZIndex>
@@ -1068,7 +1068,7 @@
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
         <Top>6.34148cm</Top>
-        <Left>0.51631cm</Left>
+        <Left>0.33246cm</Left>
         <Height>0.59265cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>17</ZIndex>
@@ -1100,7 +1100,7 @@
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
         <Top>6.93411cm</Top>
-        <Left>0.51628cm</Left>
+        <Left>0.33243cm</Left>
         <Height>0.52213cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>18</ZIndex>
@@ -1157,7 +1157,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>2.94942in</Top>
-        <Left>0.51646cm</Left>
+        <Left>0.33261cm</Left>
         <Height>0.2215in</Height>
         <Width>6.45229cm</Width>
         <ZIndex>19</ZIndex>
@@ -1170,7 +1170,7 @@
       </Textbox>
       <Line Name="Line3">
         <Top>7.49149cm</Top>
-        <Left>0.51628cm</Left>
+        <Left>0.33243cm</Left>
         <Height>0cm</Height>
         <Width>6.43234cm</Width>
         <ZIndex>20</ZIndex>
@@ -1200,7 +1200,7 @@
         </Paragraphs>
         <rd:DefaultName>Textbox6</rd:DefaultName>
         <Top>5.28326cm</Top>
-        <Left>0.5164cm</Left>
+        <Left>0.33255cm</Left>
         <Height>0.52915cm</Height>
         <Width>1.81977cm</Width>
         <ZIndex>21</ZIndex>
@@ -1232,7 +1232,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>5.28326cm</Top>
-        <Left>5.54969cm</Left>
+        <Left>5.36584cm</Left>
         <Height>0.52915cm</Height>
         <Width>1.41906cm</Width>
         <ZIndex>22</ZIndex>
@@ -1270,7 +1270,7 @@
           </Paragraph>
         </Paragraphs>
         <Top>1.17779in</Top>
-        <Left>3.99787cm</Left>
+        <Left>3.81402cm</Left>
         <Height>0.19167in</Height>
         <Width>2.97094cm</Width>
         <ZIndex>23</ZIndex>
@@ -1288,7 +1288,7 @@
       </Textbox>
       <Line Name="Line4">
         <Top>6.93411cm</Top>
-        <Left>0.53653cm</Left>
+        <Left>0.35268cm</Left>
         <Height>0cm</Height>
         <Width>6.45232cm</Width>
         <ZIndex>24</ZIndex>
@@ -1299,6 +1299,48 @@
           </Border>
         </Style>
       </Line>
+      <Textbox Name="invoiceType">
+        <CanGrow>true</CanGrow>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>Invoice Type: </Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>Bold</FontWeight>
+                </Style>
+              </TextRun>
+              <TextRun>
+                <Value>=First(Fields!InvoiceType.Value, "HeaderDataSet")</Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style>
+              <TextAlign>Left</TextAlign>
+            </Style>
+          </Paragraph>
+        </Paragraphs>
+        <Top>0.98056in</Top>
+        <Left>3.81402cm</Left>
+        <Height>0.18334in</Height>
+        <Width>2.99098cm</Width>
+        <ZIndex>25</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+            <Width>0.3pt</Width>
+          </Border>
+          <VerticalAlign>Bottom</VerticalAlign>
+          <PaddingLeft>1pt</PaddingLeft>
+          <PaddingRight>1pt</PaddingRight>
+          <PaddingTop>1pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
+        </Style>
+      </Textbox>
     </ReportItems>
     <Height>11.46309cm</Height>
     <Style>
@@ -1310,7 +1352,7 @@
   </Body>
   <Width>7.44204cm</Width>
   <Page>
-    <PageHeight>100cm</PageHeight>
+    <PageHeight>50cm</PageHeight>
     <PageWidth>8cm</PageWidth>
     <LeftMargin>0cm</LeftMargin>
     <RightMargin>0cm</RightMargin>

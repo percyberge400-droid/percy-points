@@ -10,6 +10,7 @@ using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Collections.Generic; // Added for List
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -18,28 +19,33 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly InvoiceDto _invoiceDto;
         private readonly string _invoiceNumber;
         private readonly bool _isFromDashboard;
+        private readonly bool _printDirectly; // New flag for direct printing
         private ReportViewer _reportViewer;
         private static readonly string businessname = ConfigurationManager.AppSettings["businessName"];
         private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];
         private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"];
         private static readonly Dictionary<string, byte[]> _qrCache = new();
         private static LocalReport _cachedReportTemplate;
+        private int _itemCount; // To store the number of invoice items for dynamic height
+
 
         // Constructor for Save button
-        public InvoiceReport(InvoiceDto invoiceDto)
+        public InvoiceReport(InvoiceDto invoiceDto, bool printDirectly = false)
         {
             InitializeComponent();
             _invoiceDto = invoiceDto ?? throw new ArgumentNullException(nameof(invoiceDto));
             _isFromDashboard = false;
+            _printDirectly = printDirectly;
             InitializeReportViewer();
         }
 
         // Constructor for Dashboard print
-        public InvoiceReport(string invoiceNumber)
+        public InvoiceReport(string invoiceNumber, bool printDirectly = false)
         {
             InitializeComponent();
             _invoiceNumber = invoiceNumber ?? throw new ArgumentNullException(nameof(invoiceNumber));
             _isFromDashboard = true;
+            _printDirectly = printDirectly;
             InitializeReportViewer();
         }
 
@@ -57,8 +63,8 @@ namespace POSPRA_WinFormsUI.Forms
 
             Controls.Add(_reportViewer);
 
-            // ✅ Apply thermal printer paper size (5.8cm × 15cm)
-            ApplyThermalPaperSize();
+            // ✅ Apply thermal printer paper size (8cm width, variable height for roll)
+
             LoadReport();
 
             // ✅ Thermal printer display mode
@@ -66,18 +72,18 @@ namespace POSPRA_WinFormsUI.Forms
             //_reportViewer.ZoomMode = ZoomMode.PageWidth;
 
         }
-        private void ApplyThermalPaperSize()
+        private void ApplyThermalPaperSize(float heightInCm = 50f) // Default fixed for preview, dynamic for print
         {
             try
             {
                 // Convert cm to hundredths of inch: 1 inch = 2.54 cm → 100 * cm / 2.54
-                int width = (int)(8.0 / 2.54 * 100);  // ≈ 228
-                int height = (int)(15 / 2.54 * 100); // ≈ 591
+                int width = (int)(8.0 / 2.54 * 100);  // ≈ 315 for 80mm
+                int height = (int)(heightInCm / 2.54 * 100); // Dynamic or default
 
                 var pageSettings = new PageSettings
                 {
-                    PaperSize = new PaperSize("Thermal80x150", width, height),
-                    Margins = new Margins(0, 0, 0, 0)
+                    PaperSize = new PaperSize("Thermal 80mm", width, height),
+                    Margins = new Margins(10, 10, 10, 10) // 0.1 inch margins
                 };
 
                 _reportViewer.SetPageSettings(pageSettings);
@@ -161,8 +167,8 @@ namespace POSPRA_WinFormsUI.Forms
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
                 row["TaxRate"] = item.TaxRate;
-                row["Qty"] = item.Quantity; 
-                row["Price"] = item.SaleValue;  
+                row["Qty"] = item.Quantity;
+                row["Price"] = item.SaleValue;
                 row["Tax"] = item.TaxCharged;
                 bodyTable.Rows.Add(row);
             }
@@ -230,7 +236,7 @@ namespace POSPRA_WinFormsUI.Forms
             if (_qrCache.TryGetValue(text, out var cached)) return cached;
             using var qrGen = new QRCodeGenerator();
             using var qrData = qrGen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-            using var qrCode = new QRCode(qrData); 
+            using var qrCode = new QRCode(qrData);
             using var bmp = qrCode.GetGraphic(3);
             using var ms = new MemoryStream();
             bmp.Save(ms, ImageFormat.Png);
@@ -249,13 +255,18 @@ namespace POSPRA_WinFormsUI.Forms
                 string reportPath = GetReportPath();
                 if (string.IsNullOrEmpty(reportPath))
                     return;
-                
+
                 var (header, body) = BuildInvoiceDataSets(_invoiceDto);
-                 
+                _itemCount = body.Rows.Count; // Store item count for dynamic height
+
                 _reportViewer.LocalReport.ReportPath = reportPath;
                 _reportViewer.LocalReport.DataSources.Clear();
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("HeaderDataSet", header));
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("BodyDataSet", body));
+
+                // Apply thermal settings before refresh (use default height for preview)
+                ApplyThermalPaperSize();
+
                 _reportViewer.RefreshReport();
             }
             catch (Exception ex)
@@ -277,5 +288,191 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         #endregion
+
+        #region Direct Printing
+
+        // Override Load event to handle direct printing
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            if (_printDirectly)
+            {
+                this.Visible = false; // Don't show the form
+                PrintDirectlyToThermal();
+                this.Close(); // Close after printing
+            }
+        }
+
+        // New method to handle direct printing to thermal printer
+        public void PrintDirectlyToThermal()
+        {
+            try
+            {
+                // Step 1: Find and select the thermal printer
+                string thermalPrinterName = FindThermalPrinter();
+
+                if (string.IsNullOrEmpty(thermalPrinterName))
+                {
+                    MessageBox.Show("Thermal printer not found or not selected.", "Printer Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Step 2: Get printer properties (for logging or validation)
+                PrinterSettings printerSettings = new PrinterSettings { PrinterName = thermalPrinterName };
+                if (!printerSettings.IsValid)
+                {
+                    MessageBox.Show($"Invalid printer: {thermalPrinterName}", "Printer Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Log properties (optional, for debugging)
+                // Example: supported paper sizes
+                string propertiesInfo = $"Printer: {thermalPrinterName}\n" +
+                                        $"Default Page Size: {printerSettings.DefaultPageSettings.PaperSize.Kind}\n" +
+                                        $"Landscape: {printerSettings.DefaultPageSettings.Landscape}";
+                // You can show or log this: // MessageBox.Show(propertiesInfo); // Uncomment if needed
+
+                // Step 3: "Connect" - In Windows, selecting the printer "connects" it via the driver.
+                // No explicit connect needed if installed.
+
+                // Step 4: Calculate dynamic height based on item count
+                float heightInches = CalculateDynamicHeight(_itemCount);
+
+                // Step 5: Print the report directly in background without preview
+                _reportViewer.LocalReport.PrintToThermal(thermalPrinterName, 3.15f, heightInches); // 80mm width, dynamic height
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error during direct printing: {ex.Message}", "Print Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Helper to calculate dynamic height in inches
+        private float CalculateDynamicHeight(int itemCount)
+        {
+            float headerHeight = 3f; // Adjust based on your report design (logos, address, etc.)
+            float rowHeight = 0.3f; // Adjust per item row height (including spacing)
+            float footerHeight = 2f; // Adjust for totals, QR, etc.
+            float buffer = 1f; // Extra space to avoid cutoff
+            float calculatedHeight = headerHeight + (itemCount * rowHeight) + footerHeight + buffer;
+            return Math.Max(3f, calculatedHeight); // Minimum 5 inches
+        }
+
+        // Helper to find thermal printer
+        private string FindThermalPrinter()
+        {
+            // First, check config for predefined printer name
+            string configPrinterName = ConfigurationManager.AppSettings["ThermalPrinterName"];
+            if (!string.IsNullOrEmpty(configPrinterName))
+            {
+                if (PrinterSettings.InstalledPrinters.Cast<string>().Contains(configPrinterName))
+                {
+                    return configPrinterName;
+                }
+            }
+
+            // If not in config, list installed printers and filter/look for thermal (e.g., contains "80mm" or "Thermal")
+            var installedPrinters = PrinterSettings.InstalledPrinters.Cast<string>().ToList();
+            var potentialThermal = installedPrinters.FirstOrDefault(p => p.Contains("80") || p.Contains("Thermal") || p.Contains("XP-") || p.Contains("POS-"));
+
+            if (!string.IsNullOrEmpty(potentialThermal))
+            {
+                return potentialThermal;
+            }
+
+            // If none found, show dialog to select
+            using (var dialog = new PrintDialog())
+            {
+                dialog.AllowSomePages = false;
+                dialog.AllowSelection = false;
+                dialog.UseEXDialog = true;
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    return dialog.PrinterSettings.PrinterName;
+                }
+            }
+
+            return null; // None selected
+        }
+
+        #endregion
+    }
+
+    // Extension class for direct printing (add this in the same file or a new one)
+    public static class LocalReportExtensions
+    {
+        public static void PrintToThermal(this LocalReport report, string printerName, float widthInches = 3.15f, float heightInches = 19.7f) // Default 80mm width, dynamic height passed in
+        {
+            var pageSettings = new PageSettings
+            {
+                PaperSize = new PaperSize("Thermal 80mm", (int)(widthInches * 100), (int)(heightInches * 100)), // Hundredths of inch
+                Margins = new Margins(10, 10, 10, 10), // Small margins: 0.1in each
+                Landscape = false // Portrait for receipts
+            };
+
+            // Device info for rendering (matches thermal size)
+            string deviceInfo = $@"
+                <DeviceInfo>
+                    <OutputFormat>EMF</OutputFormat>
+                    <PageWidth>{widthInches}in</PageWidth>
+                    <PageHeight>{heightInches}in</PageHeight>
+                    <MarginTop>0.1in</MarginTop>
+                    <MarginLeft>0.1in</MarginLeft>
+                    <MarginRight>0.1in</MarginRight>
+                    <MarginBottom>0.1in</MarginBottom>
+                </DeviceInfo>";
+
+            Warning[] warnings;
+            var streams = new List<Stream>();
+            var currentPageIndex = 0;
+
+            report.Render("Image", deviceInfo, (name, fileNameExtension, encoding, mimeType, willSeek) =>
+            {
+                var stream = new MemoryStream();
+                streams.Add(stream);
+                return stream;
+            }, out warnings);
+
+            foreach (Stream stream in streams)
+                stream.Position = 0;
+
+            if (streams == null || streams.Count == 0)
+                throw new Exception("Error: No content to print.");
+
+            var printDocument = new PrintDocument
+            {
+                PrinterSettings = { PrinterName = printerName },
+                DefaultPageSettings = pageSettings
+            };
+
+            if (!printDocument.PrinterSettings.IsValid)
+                throw new Exception($"Error: Printer '{printerName}' not found or invalid.");
+
+            printDocument.PrintPage += (sender, e) =>
+            {
+                Metafile pageImage = new Metafile(streams[currentPageIndex]);
+                Rectangle adjustedRect = new Rectangle(
+                    e.PageBounds.Left - (int)e.PageSettings.HardMarginX,
+                    e.PageBounds.Top - (int)e.PageSettings.HardMarginY,
+                    e.PageBounds.Width,
+                    e.PageBounds.Height);
+                e.Graphics.FillRectangle(Brushes.White, adjustedRect);
+                e.Graphics.DrawImage(pageImage, adjustedRect);
+                currentPageIndex++;
+                e.HasMorePages = (currentPageIndex < streams.Count);
+            };
+
+            printDocument.EndPrint += (sender, e) =>
+            {
+                if (streams != null)
+                {
+                    foreach (Stream stream in streams) stream.Close();
+                    streams.Clear();
+                }
+            };
+
+            printDocument.Print(); // Prints in background, no preview
+        }
     }
 }
