@@ -917,7 +917,8 @@ namespace POSPRA_WinFormsUI
                     {
                         printForm.PrintDirectlyToThermal();
                     }
-                    
+
+                    AlertManager.ShowSuccess("Invoice saved successfully");
                     _ = CreateLog("invoice saved successfully", AlertType.Success);
 
                 }
