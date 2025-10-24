@@ -907,8 +907,17 @@ namespace POSPRA_WinFormsUI
                     }
 
                     // ✅ Now that invoiceDto contains FBRInvoiceNumber, print it
+                    bool ShowDialog = false; // Or set based on config/user choice
                     InvoiceReport printForm = new InvoiceReport(invoiceDto);
-                    printForm.ShowDialog();
+                    if (ShowDialog)
+                    {
+                        printForm.ShowDialog();
+                    }
+                    else
+                    {
+                        printForm.PrintDirectlyToThermal();
+                    }
+                    
                     _ = CreateLog("invoice saved successfully", AlertType.Success);
 
                 }
