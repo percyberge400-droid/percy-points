@@ -34,6 +34,8 @@
         public const string DataSynchronized = "Data synchronized successfully.";
         public const string BackupCompleted = "Backup completed successfully.";
         public const string RecordFound = "Record Found.";
+        public const string AlreadyConfigured = "PosId already configured.";
+        public const string InternetNotAvailable = "PosId already configured.";
 
         // ===== Generic Error =====
         public const string UnknownError = "An unexpected error occurred. Please try again.";
@@ -45,7 +47,7 @@
         public const string SessionExpired = "Session has expired. Please log in again.";
         public const string InvalidPosId = "Invalid POS ID.";
         public const string InvalidMacAddress = "Invalid MAC Address.";
-        public const string InvalidToken= "Invalid Token.";
+        public const string InvalidToken = "Invalid Token.";
     }
 
     public static class AlertType
@@ -87,6 +89,7 @@
         public const string Error = "500";
         public const string NotFound = "404";
         public const string Unauthorized = "401";
+        public const string ServiceUnavailable = "503";
     }
 
     public enum InvoiceStatus

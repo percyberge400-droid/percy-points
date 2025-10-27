@@ -37,7 +37,7 @@ namespace POSPRA.Infrastructure.Context
             base.OnModelCreating(modelBuilder);
 
             //Add Fluent API configurations here if needed
-            modelBuilder.Entity<PosClients>().HasNoKey();
+            //modelBuilder.Entity<PosClients>().HasNoKey();
 
             modelBuilder.Entity<Invoice>()
             .HasMany(i => i.InvoiceItems)
