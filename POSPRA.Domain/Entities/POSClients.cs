@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace POSPRA.Domain.Entities
 {
     [Table("PosClients")]
     public class PosClients
     {
+        [Key]
         public long POSRegistrationNumber { get; set; }
         public string? POSIdentificatioNumber { get; set; }
         public string? NTN { get; set; }
@@ -36,6 +38,7 @@ namespace POSPRA.Domain.Entities
         public long? POSBranchID { get; set; }
         public string? MacAddressInput { get; set; }
         public bool? IsConnected { get; set; }
+        public bool? IsConfigured { get; set; }
         public DateTime? HeartbeatUpdatedOn { get; set; }
         public string? Token { get; set; }
         public string? PASSWORD { get; set; }

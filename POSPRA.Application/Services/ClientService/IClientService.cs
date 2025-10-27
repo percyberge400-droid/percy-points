@@ -7,5 +7,6 @@ namespace POSPRA.Application.Services.ClientService
     public interface IClientService
     {
         Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto);
+        Task<string> UpdateConfigurationFlag(bool isConfiguration);
     }
 }
