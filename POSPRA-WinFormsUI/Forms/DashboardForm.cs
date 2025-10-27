@@ -50,6 +50,8 @@ namespace POSPRA_WinFormsUI.Forms
         private int _printingRowIndex = -1;
         private string _posId;
 
+        private int _lastSyncedInvoiceCount = 0;
+
         private readonly SemaphoreSlim _checkSemaphore = new SemaphoreSlim(1, 1);
 
         // ✅ NEW: Virtual Mode Cache
@@ -140,14 +142,12 @@ namespace POSPRA_WinFormsUI.Forms
             EnableVirtualMode();
         }
 
-        // ✅ NEW: Cache images once
         private void CacheImages()
         {
             _greenTickCached = Resources.GreenTick;
             _redCrossCached = Resources.RedCross;
         }
 
-        // ✅ NEW: Enable Virtual Mode
         private void EnableVirtualMode()
         {
             InvoicesDataGridView.VirtualMode = true;
@@ -157,7 +157,6 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.CellValueNeeded += LogsDataGridView_CellValueNeeded;
         }
 
-        // ✅ NEW: Virtual Mode - Invoice Data Provider
         private void InvoicesDataGridView_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
         {
             if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count) return;
@@ -187,7 +186,6 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // ✅ NEW: Virtual Mode - Log Data Provider
         private void LogsDataGridView_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
         {
             if (_logCache == null || e.RowIndex >= _logCache.Count) return;
@@ -305,21 +303,40 @@ namespace POSPRA_WinFormsUI.Forms
                 if (invoiceResponse?.Data == null || logResponse?.Data == null)
                     return false;
 
-                var filteredInvoices = invoiceResponse.Data
-                    .Where(i => i.DateCreated >= _startDate && i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
+                // ✅ FIX: Use same filtering logic as LoadAndShowInvoicesAsync
+                var allInvoices = invoiceResponse.Data.ToList();
+                var allLogs = logResponse.Data.ToList();
 
-                var filteredLogs = logResponse.Data
-                    .Where(l => l.CreatedAtPk >= _startDate && l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+                // Check if we should apply date filter (same logic as load methods)
+                bool shouldFilterByDate = !(_startDate == DateTime.Today.AddDays(-7) && _endDate == DateTime.Today);
+
+                IEnumerable<dynamic> filteredInvoices = allInvoices;
+                IEnumerable<LogDto> filteredLogs = allLogs;
+
+                if (shouldFilterByDate)
+                {
+                    filteredInvoices = allInvoices.Where(i =>
+                        i.DateCreated >= _startDate &&
+                        i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
+
+                    filteredLogs = allLogs.Where(l =>
+                        l.CreatedAtPk >= _startDate &&
+                        l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+                }
 
                 int currentInvoiceCount = filteredInvoices.Count();
+                int currentSyncedCount = filteredInvoices.Count(i => i.IsSynced == 1);
                 int currentLogCount = filteredLogs.Count();
 
-                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
-                                 (currentLogCount != _lastLogCount);
+                bool hasChanges =
+                    (currentInvoiceCount != _lastInvoiceCount) ||
+                    (currentSyncedCount != _lastSyncedInvoiceCount) ||
+                    (currentLogCount != _lastLogCount);
 
                 if (hasChanges)
                 {
                     _lastInvoiceCount = currentInvoiceCount;
+                    _lastSyncedInvoiceCount = currentSyncedCount;
                     _lastLogCount = currentLogCount;
                 }
 
@@ -348,7 +365,10 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void AutoRefreshTimer_Tick(object sender, EventArgs e)
         {
+            // ✅ Check if already loading
             if (_isLoadingFlag == 1) return;
+
+            // ✅ Check user interaction
             if (IsUserInteracting()) return;
 
             try
@@ -357,13 +377,18 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (hasChanges)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[AutoRefresh] Changes detected - refreshing data");
                     await BackgroundRefreshAsync();
                     _lastRefreshTime = DateTime.Now;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AutoRefresh] No changes detected");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Auto-refresh error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Auto-refresh error: {ex.Message}");
             }
         }
 
@@ -632,8 +657,9 @@ namespace POSPRA_WinFormsUI.Forms
                     await LoadAndShowLogsAsync();
                 });
 
-                _lastInvoiceCount = InvoicesDataGridView.Rows.Count;
-                _lastLogCount = LogsDataGridView.Rows.Count;
+                _lastInvoiceCount = _invoiceCache?.Count ?? 0;
+                _lastSyncedInvoiceCount = _invoiceCache?.Count(i => i.IsSynced == "Yes") ?? 0;
+                _lastLogCount = _logCache?.Count ?? 0;
                 _lastRefreshTime = DateTime.Now;
 
                 InvoicesDataGridView.DataError += dataGridView_DataError;
@@ -729,6 +755,9 @@ namespace POSPRA_WinFormsUI.Forms
 
                 // ✅ Set row count for virtual mode (instant)
                 InvoicesDataGridView.RowCount = _invoiceCache.Count;
+                InvoicesDataGridView.Invalidate();
+                InvoicesDataGridView.Refresh();
+
 
                 int syncedCount = _invoiceCache.Count(i => i.IsSynced == "Yes");
                 int pendingCount = _invoiceCache.Count - syncedCount;
@@ -816,6 +845,8 @@ namespace POSPRA_WinFormsUI.Forms
 
                 // ✅ Set row count for virtual mode (instant)
                 LogsDataGridView.RowCount = _logCache.Count;
+                LogsDataGridView.Invalidate();
+                LogsDataGridView.Refresh();
 
                 LogsDataGridView.ClearSelection();
                 LogsDataGridView.CurrentCell = null;
@@ -1753,7 +1784,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        private void DrawInvoicePieChart(Panel panel, int pendingCount, int syncedCount)
+        private void DrawInvoicePieChart(Panel panel, int syncedCount, int pendingCount)
         {
             if (panel == null) return;
 
@@ -1764,7 +1795,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             panel.Controls.Clear();
 
-            List<int> values = new List<int> { pendingCount, syncedCount };
+            List<int> values = new List<int> { syncedCount, pendingCount };
             List<Color> colors = new List<Color>
             {
                 ColorTranslator.FromHtml("#66BB6A"),
