@@ -689,11 +689,10 @@ namespace POSPRA_WinFormsUI
             // Calculations
             decimal grossAmount = quantity * saleValuePerUnit;
             decimal discountAmount = grossAmount * (discountPercent / 100m);
-            decimal amountAfterDiscount = Math.Max(0, grossAmount - discountAmount);
 
-            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
-            decimal furtherTaxAmount = amountAfterDiscount * (furtherTaxPercent / 100m);
-            decimal totalAmount = amountAfterDiscount + taxAmount + furtherTaxAmount;
+            decimal taxAmount = grossAmount * (taxRatePercent / 100m);
+            decimal furtherTaxAmount = grossAmount * (furtherTaxPercent / 100m);
+            decimal totalAmount = Math.Max(0, grossAmount + taxAmount + furtherTaxAmount - discountAmount);
 
             // Update UI fields
             itemDiscountAmount.Text = discountAmount.ToString("0.00");
@@ -906,16 +905,39 @@ namespace POSPRA_WinFormsUI
                         return;
                     }
 
-                    // ✅ Now that invoiceDto contains FBRInvoiceNumber, print it
-                    bool ShowDialog = false; // Or set based on config/user choice
-                    InvoiceReport printForm = new InvoiceReport(invoiceDto);
-                    if (ShowDialog)
+                    // 🔹 Print configuration
+                    bool showDialog = false; // Or set based on config/user choice
+
+                    if (showDialog)
                     {
+                        // ShowDialog blocks by design, run on UI thread
+                        InvoiceReport printForm = new InvoiceReport(invoiceDto);
                         printForm.ShowDialog();
                     }
                     else
                     {
-                        printForm.PrintDirectlyToThermal();
+                        // 🚀 Complete background printing - zero UI blocking
+                        _ = Task.Run(() =>
+                        {
+                            try
+                            {
+                                // Create form and print entirely in background thread
+                                InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                                printForm.PrintDirectlyToThermal();
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log error without blocking UI
+                                try
+                                {
+                                    this.BeginInvoke(new Action(() =>
+                                    {
+                                        _ = CreateLog($"Print error: {ex.Message}", AlertType.Error);
+                                    }));
+                                }
+                                catch { /* Ignore if form is disposed */ }
+                            }
+                        });
                     }
 
                     AlertManager.ShowSuccess("Invoice saved successfully");
@@ -1645,27 +1667,16 @@ namespace POSPRA_WinFormsUI
             decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? dp : 0m;
             decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
-            // Step 1: Calculate gross sale amount
-            decimal grossAmount = quantity * saleValuePerUnit;
 
-            // Step 2: Calculate discount amount from percentage
+            decimal grossAmount = quantity * saleValuePerUnit;
             decimal discountAmount = grossAmount * (discountPercent / 100m);
+
+            decimal taxAmount = grossAmount * (taxRatePercent / 100m);
+            decimal furtherTaxAmount = grossAmount * (furtherTaxPercent / 100m);
+            decimal totalAmount = Math.Max(0, grossAmount + taxAmount + furtherTaxAmount - discountAmount);
 
             // Update readonly discount amount field
             itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
-
-            // Step 3: Deduct discount
-            decimal amountAfterDiscount = grossAmount - discountAmount;
-            if (amountAfterDiscount < 0) amountAfterDiscount = 0;
-
-            // Step 4: Calculate tax (percentage of amount after discount)
-            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
-
-            // Step 5: Calculate further tax (percentage of amount after discount)
-            decimal furtherTaxAmount = amountAfterDiscount * (furtherTaxPercent / 100m);
-
-            // Step 6: Calculate final total
-            decimal totalAmount = amountAfterDiscount + taxAmount + furtherTaxAmount;
 
             // Update UI
             totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
