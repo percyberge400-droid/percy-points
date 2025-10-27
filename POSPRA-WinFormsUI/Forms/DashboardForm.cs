@@ -62,6 +62,10 @@ namespace POSPRA_WinFormsUI.Forms
         private static Image _greenTickCached;
         private static Image _redCrossCached;
 
+        private Bitmap _cachedPieChart = null;
+        private int _lastPieChartSynced = -1;
+        private int _lastPieChartPending = -1;
+
         public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService,
             IFileRecordService fileRecordService, ISendLogToCloudService sendLogToCloudService, IPosService posService)
         {
@@ -1047,10 +1051,11 @@ namespace POSPRA_WinFormsUI.Forms
             dtpStartDate.Value = _startDate;
             dtpEndDate.Value = _endDate;
             UpdateDateRangeLabel();
+
             await RunSingleLoad(async () =>
             {
-                await LoadAndShowInvoicesAsync();
-                await LoadAndShowLogsAsync();
+                await LoadAndShowInvoicesAsync(skipDateFilter: false);
+                await LoadAndShowLogsAsync(skipDateFilter: false);
             });
         }
 
@@ -1063,15 +1068,14 @@ namespace POSPRA_WinFormsUI.Forms
             _endDate = DateTime.Today;
             dtpStartDate.Value = _startDate;
             dtpEndDate.Value = _endDate;
-            lblDateRange.Text = "Select Date From-To";
+            UpdateDateRangeLabel();
 
             await RunSingleLoad(async () =>
             {
-                await LoadAndShowInvoicesAsync(skipDateFilter: true);
-                await LoadAndShowLogsAsync(skipDateFilter: true);
+                await LoadAndShowInvoicesAsync(skipDateFilter: false);
+                await LoadAndShowLogsAsync(skipDateFilter: false);
             });
         }
-
         private void ClearDataGridView(DataGridView dataGridView)
         {
             if (dataGridView == null) return;
@@ -1140,8 +1144,10 @@ namespace POSPRA_WinFormsUI.Forms
 
             try
             {
-                ClearAllGrids();
-                await Task.Delay(100);
+                _invoiceCache?.Clear();
+                _logCache?.Clear();
+                InvoicesDataGridView.RowCount = 0;
+                LogsDataGridView.RowCount = 0;
 
                 bool skipDateFilter = false;
                 _filterSyncedOnly = false;
@@ -1152,8 +1158,10 @@ namespace POSPRA_WinFormsUI.Forms
                     await LoadAndShowLogsAsync(skipDateFilter: skipDateFilter);
                 });
 
-                _lastInvoiceCount = InvoicesDataGridView.Rows.Count;
-                _lastLogCount = LogsDataGridView.Rows.Count;
+                // ✅ Use cache instead of Rows
+                _lastInvoiceCount = _invoiceCache?.Count ?? 0;
+                _lastSyncedInvoiceCount = _invoiceCache?.Count(i => i.IsSynced == "Yes") ?? 0;
+                _lastLogCount = _logCache?.Count ?? 0;
             }
             catch (Exception ex)
             {
@@ -1165,7 +1173,6 @@ namespace POSPRA_WinFormsUI.Forms
                     _autoRefreshTimer.Start();
             }
         }
-
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
@@ -1780,10 +1787,17 @@ namespace POSPRA_WinFormsUI.Forms
         {
             if (sender is Panel panel)
             {
-                DrawInvoicePieChart(panel, _syncedCount, _pendingCount);
+                // Only redraw if data actually changed OR chart doesn't exist
+                if (_cachedPieChart == null ||
+                    _lastPieChartSynced != _syncedCount ||
+                    _lastPieChartPending != _pendingCount)
+                {
+                    DrawInvoicePieChart(panel, _syncedCount, _pendingCount);
+                    _lastPieChartSynced = _syncedCount;
+                    _lastPieChartPending = _pendingCount;
+                }
             }
         }
-
         private void DrawInvoicePieChart(Panel panel, int syncedCount, int pendingCount)
         {
             if (panel == null) return;
