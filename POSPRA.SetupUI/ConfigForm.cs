@@ -111,6 +111,9 @@ namespace POSPRA.SetupUI
             txtPassword.TextChanged += ValidateForm;
             btnBrowse.Click += btnBrowseMain_Click;
             btnBrowseOLD.Click += btnBrowseOld_Click;
+
+            rdoSandbox.Click += rdoSandbox_Click;
+            rdoProduction.Click += rdoProduction_Click;
         }
 
         private void InitializeMessageTimer()
@@ -310,7 +313,6 @@ namespace POSPRA.SetupUI
                     return;
 
                 SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName);
-                SaveEnvironmentSettings();
                 UpdateSetupConfig(dbPath);
 
                 if (!InitializeDatabase(dbPath))
@@ -1285,22 +1287,15 @@ namespace POSPRA.SetupUI
                 ShowMessage($"Failed to update {Path.GetFileName(jsonFilePath)}: {ex.Message}", false, true);
             }
         }
-
-        private void SaveEnvironmentSettings()
+        private async void rdoSandbox_Click(object sender, EventArgs e)
         {
-            try
-            {
-                if (rdoProduction.Checked)
-                    SaveEnvironmentToApiConfig("Production");
-                else if (rdoSandbox.Checked)
-                    SaveEnvironmentToApiConfig("Sandbox");
-            }
-            catch (Exception ex)
-            {
-                ShowMessage($"Failed to save environment settings: {ex.Message}", false, true);
-            }
-        }
+            SaveEnvironmentToApiConfig("Sandbox");
 
+        }
+        private async void rdoProduction_Click(object sender, EventArgs e)
+        {
+            SaveEnvironmentToApiConfig("Production");
+        }
         private void SaveEnvironmentToApiConfig(string environment)
         {
             try
