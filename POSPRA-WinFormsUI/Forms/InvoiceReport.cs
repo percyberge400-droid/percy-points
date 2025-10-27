@@ -69,24 +69,25 @@ namespace POSPRA_WinFormsUI.Forms
 
             // ✅ Thermal printer display mode
             _reportViewer.SetDisplayMode(DisplayMode.PrintLayout);
-            //_reportViewer.ZoomMode = ZoomMode.PageWidth;
+            _reportViewer.ZoomMode = ZoomMode.PageWidth;
 
         }
-        private void ApplyThermalPaperSize(float heightInCm = 50f) // Default fixed for preview, dynamic for print
+        private void ApplyThermalPaperSize() // Default fixed for preview, dynamic for print
         {
             try
             {
                 // Convert cm to hundredths of inch: 1 inch = 2.54 cm → 100 * cm / 2.54
                 int width = (int)(8.0 / 2.54 * 100);  // ≈ 315 for 80mm
-                int height = (int)(heightInCm / 2.54 * 100); // Dynamic or default
+                //int height = (int)(totalHeightCm / 2.54 * 100); // Dynamic
 
                 var pageSettings = new PageSettings
                 {
-                    PaperSize = new PaperSize("Thermal 80mm", width, height),
-                    Margins = new Margins(10, 10, 10, 10) // 0.1 inch margins
+                    PaperSize = new PaperSize("Thermal 80mm", width, 0),
+                    Margins = new Margins(5, 5, 5, 5) // 0.1 inch margins
                 };
 
                 _reportViewer.SetPageSettings(pageSettings);
+                _reportViewer.RefreshReport();
             }
             catch (Exception ex)
             {
@@ -141,8 +142,8 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["DateCreated"] = dto.DateTime;
             string paymentModeText = dto.PaymentMode switch
             {
-                1 => "Cash",
-                2 => "Credit Card",
+                1 => "Credit Card",
+                2 => "Cash",
                 3 => "Online",
                 _ => "N/A"
             };
@@ -173,7 +174,7 @@ namespace POSPRA_WinFormsUI.Forms
             foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
-                row["Amount"] = item.TotalAmount;
+                row["Amount"] = item.TotalAmount + item.Discount;
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
                 row["TaxRate"] = item.TaxRate;
@@ -187,7 +188,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private byte[] LoadCompanyLogo()
         {
-            string logoKey = ConfigurationManager.AppSettings["BusinessLOGO"];
+            string logoKey = ConfigurationManager.AppSettings["LOGO-new"];
             if (!string.IsNullOrEmpty(logoKey))
             {
                 var res = Resources.ResourceManager.GetObject(logoKey);
@@ -206,7 +207,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private byte[] LoadPraLogo()
         {
-            string logoKey = ConfigurationManager.AppSettings["LOGO"];
+            string logoKey = ConfigurationManager.AppSettings["LOGO-new"];
             if (!string.IsNullOrEmpty(logoKey))
             {
                 var res = Resources.ResourceManager.GetObject(logoKey);
@@ -275,7 +276,6 @@ namespace POSPRA_WinFormsUI.Forms
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("BodyDataSet", body));
 
                 // Apply thermal settings before refresh (use default height for preview)
-                ApplyThermalPaperSize();
 
                 _reportViewer.RefreshReport();
             }
@@ -313,12 +313,12 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // New method to handle direct printing to thermal printer
+        //method to handle direct printing to thermal printer
         public void PrintDirectlyToThermal()
         {
             try
             {
-                // Step 1: Find and select the thermal printer
+                //Find and select the thermal printer
                 string thermalPrinterName = FindThermalPrinter();
 
                 if (string.IsNullOrEmpty(thermalPrinterName))
@@ -327,7 +327,7 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                // Step 2: Get printer properties (for logging or validation)
+                // printer properties
                 PrinterSettings printerSettings = new PrinterSettings { PrinterName = thermalPrinterName };
                 if (!printerSettings.IsValid)
                 {
@@ -335,21 +335,14 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                // Log properties (optional, for debugging)
                 // Example: supported paper sizes
                 string propertiesInfo = $"Printer: {thermalPrinterName}\n" +
                                         $"Default Page Size: {printerSettings.DefaultPageSettings.PaperSize.Kind}\n" +
                                         $"Landscape: {printerSettings.DefaultPageSettings.Landscape}";
-                // You can show or log this: // MessageBox.Show(propertiesInfo); // Uncomment if needed
-
-                // Step 3: "Connect" - In Windows, selecting the printer "connects" it via the driver.
-                // No explicit connect needed if installed.
-
-                // Step 4: Calculate dynamic height based on item count
-                float heightInches = CalculateDynamicHeight(_itemCount);
+                
 
                 // Step 5: Print the report directly in background without preview
-                _reportViewer.LocalReport.PrintToThermal(thermalPrinterName, 3.15f, heightInches); // 80mm width, dynamic height
+                _reportViewer.LocalReport.PrintToThermal(thermalPrinterName, 3.15); // 80mm width, dynamic height
             }
             catch (Exception ex)
             {
@@ -357,100 +350,101 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // Helper to calculate dynamic height in inches
-        private float CalculateDynamicHeight(int itemCount)
-        {
-            float headerHeight = 3f; // Adjust based on your report design (logotcs, address, e.)
-            float rowHeight = 0.3f; // Adjust per item row height (including spacing)
-            float footerHeight = 2f; // Adjust for totals, QR, etc.
-            float buffer = 1f; // Extra space to avoid cutoff
-            float calculatedHeight = headerHeight + (itemCount * rowHeight) + footerHeight + buffer;
-            return Math.Max(3f, calculatedHeight); // Minimum 5 inches
-        }
-
+        
         // Helper to find thermal printer
         private string FindThermalPrinter()
         {
-            // First, check config for predefined printer name
-            string configPrinterName = ConfigurationManager.AppSettings["ThermalPrinterName"];
-            if (!string.IsNullOrEmpty(configPrinterName))
+
+            try
             {
-                if (PrinterSettings.InstalledPrinters.Cast<string>().Contains(configPrinterName))
+                var installedPrinters = PrinterSettings.InstalledPrinters.Cast<string>().ToList();
+
+                if (installedPrinters == null || installedPrinters.Count == 0)
+                    throw new InvalidOperationException("No printers are installed on this system.");
+
+                // common brand/model keywords
+                var potentialThermal = installedPrinters.FirstOrDefault(p =>
+                    p.Contains("80", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("85", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Thermal", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("POS", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("XP-", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("XPrinter", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("BlackCopper", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("BC-", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Rongta", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("RP", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Epson", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("TM-", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Bixolon", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Citizen", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("GP-", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Gprinter", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Speed", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Winspeed", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Zjiang", StringComparison.OrdinalIgnoreCase) ||
+                    p.Contains("Xypos", StringComparison.OrdinalIgnoreCase)
+                );
+
+
+                if (!string.IsNullOrEmpty(potentialThermal))
+                    return potentialThermal;
+
+                // ⚠️ If not found,select manually
+                using (var dialog = new PrintDialog())
                 {
-                    return configPrinterName;
+                    dialog.AllowSomePages = false;
+                    dialog.AllowSelection = false;
+                    dialog.UseEXDialog = true;
+
+                    MessageBox.Show(
+                        "No thermal printer detected automatically.\n\nPlease select a printer manually.",
+                        "Select Printer",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                        return dialog.PrinterSettings.PrinterName;
                 }
+
+                // None found or selected
+                throw new InvalidOperationException("No suitable thermal printer was found or selected.");
             }
-
-            // If not in config, list installed printers and filter/look for thermal (e.g., contains "80mm" or "Thermal")
-            var installedPrinters = PrinterSettings.InstalledPrinters.Cast<string>().ToList();
-            var potentialThermal = installedPrinters.FirstOrDefault(p =>
-                p.Contains("80", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("85", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("Thermal", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("POS", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("XP-", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("XPrinter", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("BlackCopper", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("BC-", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("Rongta", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("RP", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("Epson", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("TM-", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("Bixolon", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("Citizen", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("GP-", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("Speed", StringComparison.OrdinalIgnoreCase) ||
-                p.Contains("Winspeed", StringComparison.OrdinalIgnoreCase)
-            );
-
-
-            if (!string.IsNullOrEmpty(potentialThermal))
+            catch (Exception ex)
             {
-                return potentialThermal;
+                MessageBox.Show($"Printer detection failed:\n{ex.Message}", "Printer Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
             }
-
-            // If none found, show dialog to select
-            using (var dialog = new PrintDialog())
-            {
-                dialog.AllowSomePages = false;
-                dialog.AllowSelection = false;
-                dialog.UseEXDialog = true;
-
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    return dialog.PrinterSettings.PrinterName;
-                }
-            }
-
-            return null; // None selected
         }
-
-        #endregion
     }
+    #endregion
+
 
     // Extension class for direct printing 
+
     public static class LocalReportExtensions
     {
-        public static void PrintToThermal(this LocalReport report, string printerName, float widthInches = 3.15f, float heightInches = 19.7f) // Default 80mm width, dynamic height passed in
+        public static void PrintToThermal(this LocalReport report, string printerName, double widthInche=3.15) // Default 80mm width, dynamic height passed in
         {
             var pageSettings = new PageSettings
             {
-                PaperSize = new PaperSize("Thermal 80mm", (int)(widthInches * 100), (int)(heightInches * 100)), // Hundredths of inch
+                PaperSize = new PaperSize("Thermal 80mm", (int)(widthInche * 100), 0), // Hundredths of inch
                 Margins = new Margins(2, 2, 2, 2), // Small margins: 0.1in each
                 Landscape = false // Portrait for receipts
             };
 
             // Device info for rendering (matches thermal size)
             string deviceInfo = $@"
-                <DeviceInfo>
-                    <OutputFormat>EMF</OutputFormat>
-                    <PageWidth>{widthInches}in</PageWidth>
-                    <PageHeight>{heightInches}in</PageHeight>
-                    <MarginTop>0.02in</MarginTop>
-                    <MarginLeft>0.02in</MarginLeft>
-                    <MarginRight>0.02in</MarginRight>
-                    <MarginBottom>0.02in</MarginBottom>
-                </DeviceInfo>";
+                    <DeviceInfo>
+                        <OutputFormat>EMF</OutputFormat>
+                        <PageWidth>{widthInche}in</PageWidth>
+                        <PageHeight>0in</PageHeight>
+                        <MarginTop>0.002in</MarginTop>
+                        <MarginLeft>0.002in</MarginLeft>
+                        <MarginRight>0.002in</MarginRight>
+                        <MarginBottom>0.002in</MarginBottom>
+                    </DeviceInfo>";
 
             Warning[] warnings;
             var streams = new List<Stream>();
@@ -501,7 +495,7 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             };
 
-            printDocument.Print(); // Prints in background, no preview
+            printDocument.Print(); // Prints in background,
         }
     }
 }
