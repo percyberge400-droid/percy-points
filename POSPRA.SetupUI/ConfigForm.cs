@@ -1305,32 +1305,40 @@ namespace POSPRA.SetupUI
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(_jsonMainPath) || !File.Exists(_jsonMainPath))
+                // Local function to update one file
+                void UpdateConfigFile(string path)
                 {
-                    ShowMessage("API config file not found.", false, true);
-                    return;
+                    if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                    {
+                        ShowMessage($"Config file not found: {path}", false, true);
+                        return;
+                    }
+
+                    // Read existing JSON
+                    string json = File.ReadAllText(path);
+                    dynamic config = JsonConvert.DeserializeObject(json) ?? new JObject();
+
+                    // Ensure AppSettings section exists
+                    if (config["AppSettings"] == null)
+                        config["AppSettings"] = new JObject();
+
+                    // Set isProduction based on environment
+                    bool isProd = environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
+                    config["AppSettings"]["isProduction"] = isProd;
+
+                    // Save the updated JSON
+                    File.WriteAllText(path, JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented));
                 }
 
-                string json = File.ReadAllText(_jsonMainPath);
-                dynamic config = JsonConvert.DeserializeObject(json) ?? new JObject();
+                // Update both main and worker config files
+                UpdateConfigFile(_jsonMainPath);
+                UpdateConfigFile(_jsonWorkerPath);
 
-                if (config["AppSettings"] == null)
-                    config["AppSettings"] = new JObject();
-
-                config["AppSettings"]["Environment"] = environment;
-                string apiUrl = environment.Equals("Production", StringComparison.OrdinalIgnoreCase)
-                    ? "https://api.yourdomain.com"
-                    : "https://sandbox.api.yourdomain.com";
-                config["AppSettings"]["ApiBaseUrl"] = apiUrl;
-
-                bool isProd = environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
-                config["AppSettings"]["isProduction"] = isProd;
-
-                File.WriteAllText(_jsonMainPath, JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented));
+                ShowMessage($"Environment updated successfully: isProduction = {(environment.Equals("Production", StringComparison.OrdinalIgnoreCase) ? "true" : "false")}", true, false);
             }
             catch (Exception ex)
             {
-                ShowMessage($"Failed to update API config: {ex.Message}", false, false);
+                ShowMessage($"Failed to update configuration: {ex.Message}", false, false);
             }
         }
 
