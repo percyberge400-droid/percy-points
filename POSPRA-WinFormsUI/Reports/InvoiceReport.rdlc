@@ -6,28 +6,63 @@
         <TablixBody>
           <TablixColumns>
             <TablixColumn>
-              <Width>0.63331cm</Width>
+              <Width>2.55036cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>1.67844cm</Width>
+              <Width>0.6184cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>0.93056cm</Width>
+              <Width>0.85334cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>1.22602cm</Width>
+              <Width>1.43102cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>0.81406cm</Width>
-            </TablixColumn>
-            <TablixColumn>
-              <Width>1.19cm</Width>
+              <Width>1.01927cm</Width>
             </TablixColumn>
           </TablixColumns>
           <TablixRows>
             <TablixRow>
               <Height>0.2486in</Height>
               <TablixCells>
+                <TablixCell>
+                  <CellContents>
+                    <Textbox Name="Textbox1">
+                      <CanGrow>true</CanGrow>
+                      <CanShrink>true</CanShrink>
+                      <KeepTogether>true</KeepTogether>
+                      <Paragraphs>
+                        <Paragraph>
+                          <TextRuns>
+                            <TextRun>
+                              <Value>Description</Value>
+                              <Style>
+                                <FontFamily />
+                                <FontSize>7.5pt</FontSize>
+                                <FontWeight>Bold</FontWeight>
+                              </Style>
+                            </TextRun>
+                          </TextRuns>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                          </Style>
+                        </Paragraph>
+                      </Paragraphs>
+                      <rd:DefaultName>Textbox1</rd:DefaultName>
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.7pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Solid</Style>
+                        </BottomBorder>
+                        <VerticalAlign>Middle</VerticalAlign>
+                        <PaddingTop>1.8pt</PaddingTop>
+                      </Style>
+                    </Textbox>
+                  </CellContents>
+                </TablixCell>
                 <TablixCell>
                   <CellContents>
                     <Textbox Name="Textbox2">
@@ -54,7 +89,7 @@
                       <Style>
                         <Border>
                           <Style>None</Style>
-                          <Width>0.3pt</Width>
+                          <Width>0.7pt</Width>
                         </Border>
                         <BottomBorder>
                           <Style>Solid</Style>
@@ -67,47 +102,8 @@
                 </TablixCell>
                 <TablixCell>
                   <CellContents>
-                    <Textbox Name="Textbox1">
+                    <Textbox Name="Textbox8">
                       <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
-                      <KeepTogether>true</KeepTogether>
-                      <Paragraphs>
-                        <Paragraph>
-                          <TextRuns>
-                            <TextRun>
-                              <Value>Description</Value>
-                              <Style>
-                                <FontFamily />
-                                <FontSize>7.5pt</FontSize>
-                                <FontWeight>Bold</FontWeight>
-                              </Style>
-                            </TextRun>
-                          </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
-                        </Paragraph>
-                      </Paragraphs>
-                      <rd:DefaultName>Textbox1</rd:DefaultName>
-                      <Style>
-                        <Border>
-                          <Style>None</Style>
-                          <Width>0.3pt</Width>
-                        </Border>
-                        <BottomBorder>
-                          <Style>Solid</Style>
-                        </BottomBorder>
-                        <VerticalAlign>Middle</VerticalAlign>
-                        <PaddingTop>1.8pt</PaddingTop>
-                      </Style>
-                    </Textbox>
-                  </CellContents>
-                </TablixCell>
-                <TablixCell>
-                  <CellContents>
-                    <Textbox Name="hdrPrice">
-                      <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
                       <KeepTogether>true</KeepTogether>
                       <Paragraphs>
                         <Paragraph>
@@ -126,10 +122,11 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
+                      <rd:DefaultName>Textbox8</rd:DefaultName>
                       <Style>
                         <Border>
                           <Style>None</Style>
-                          <Width>0.3pt</Width>
+                          <Width>0.7pt</Width>
                         </Border>
                         <BottomBorder>
                           <Style>Solid</Style>
@@ -142,15 +139,14 @@
                 </TablixCell>
                 <TablixCell>
                   <CellContents>
-                    <Textbox Name="hdrTaxRate">
+                    <Textbox Name="Textbox11">
                       <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
                       <KeepTogether>true</KeepTogether>
                       <Paragraphs>
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>Tax Rate</Value>
+                              <Value>Tax Rate%</Value>
                               <Style>
                                 <FontFamily />
                                 <FontSize>7.5pt</FontSize>
@@ -163,47 +159,11 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
+                      <rd:DefaultName>Textbox11</rd:DefaultName>
                       <Style>
                         <Border>
                           <Style>None</Style>
-                          <Width>0.3pt</Width>
-                        </Border>
-                        <BottomBorder>
-                          <Style>Solid</Style>
-                        </BottomBorder>
-                        <VerticalAlign>Middle</VerticalAlign>
-                        <PaddingTop>1.8pt</PaddingTop>
-                      </Style>
-                    </Textbox>
-                  </CellContents>
-                </TablixCell>
-                <TablixCell>
-                  <CellContents>
-                    <Textbox Name="hdrTax">
-                      <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
-                      <KeepTogether>true</KeepTogether>
-                      <Paragraphs>
-                        <Paragraph>
-                          <TextRuns>
-                            <TextRun>
-                              <Value>GST</Value>
-                              <Style>
-                                <FontFamily />
-                                <FontSize>7.5pt</FontSize>
-                                <FontWeight>Bold</FontWeight>
-                              </Style>
-                            </TextRun>
-                          </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
-                        </Paragraph>
-                      </Paragraphs>
-                      <Style>
-                        <Border>
-                          <Style>None</Style>
-                          <Width>0.3pt</Width>
+                          <Width>0.7pt</Width>
                         </Border>
                         <BottomBorder>
                           <Style>Solid</Style>
@@ -224,7 +184,7 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>Amount</Value>
+                              <Value>Total</Value>
                               <Style>
                                 <FontFamily />
                                 <FontSize>7.5pt</FontSize>
@@ -240,7 +200,7 @@
                       <Style>
                         <Border>
                           <Style>None</Style>
-                          <Width>0.3pt</Width>
+                          <Width>0.7pt</Width>
                         </Border>
                         <BottomBorder>
                           <Style>Solid</Style>
@@ -258,8 +218,42 @@
               <TablixCells>
                 <TablixCell>
                   <CellContents>
+                    <Textbox Name="txtDescription">
+                      <CanGrow>true</CanGrow>
+                      <CanShrink>true</CanShrink>
+                      <Paragraphs>
+                        <Paragraph>
+                          <TextRuns>
+                            <TextRun>
+                              <Value>=Fields!itemName.Value</Value>
+                              <Style>
+                                <FontSize>7pt</FontSize>
+                              </Style>
+                            </TextRun>
+                          </TextRuns>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                          </Style>
+                        </Paragraph>
+                      </Paragraphs>
+                      <Style>
+                        <Border>
+                          <Style>None</Style>
+                          <Width>0.3pt</Width>
+                        </Border>
+                        <BottomBorder>
+                          <Style>Dashed</Style>
+                        </BottomBorder>
+                        <VerticalAlign>Middle</VerticalAlign>
+                      </Style>
+                    </Textbox>
+                  </CellContents>
+                </TablixCell>
+                <TablixCell>
+                  <CellContents>
                     <Textbox Name="Qty">
                       <CanGrow>true</CanGrow>
+                      <KeepTogether>true</KeepTogether>
                       <Paragraphs>
                         <Paragraph>
                           <TextRuns>
@@ -285,53 +279,16 @@
                         <BottomBorder>
                           <Style>Dashed</Style>
                         </BottomBorder>
-                        <VerticalAlign>Bottom</VerticalAlign>
-                        <PaddingTop>2pt</PaddingTop>
-                        <PaddingBottom>2pt</PaddingBottom>
+                        <VerticalAlign>Middle</VerticalAlign>
                       </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
                 <TablixCell>
                   <CellContents>
-                    <Textbox Name="txtDescription">
+                    <Textbox Name="Price">
                       <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
-                      <Paragraphs>
-                        <Paragraph>
-                          <TextRuns>
-                            <TextRun>
-                              <Value>=Fields!itemName.Value</Value>
-                              <Style>
-                                <FontSize>7pt</FontSize>
-                              </Style>
-                            </TextRun>
-                          </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
-                        </Paragraph>
-                      </Paragraphs>
-                      <Style>
-                        <Border>
-                          <Style>None</Style>
-                          <Width>0.3pt</Width>
-                        </Border>
-                        <BottomBorder>
-                          <Style>Dashed</Style>
-                        </BottomBorder>
-                        <VerticalAlign>Bottom</VerticalAlign>
-                        <PaddingTop>2pt</PaddingTop>
-                        <PaddingBottom>2pt</PaddingBottom>
-                      </Style>
-                    </Textbox>
-                  </CellContents>
-                </TablixCell>
-                <TablixCell>
-                  <CellContents>
-                    <Textbox Name="txtPrice">
-                      <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
+                      <KeepTogether>true</KeepTogether>
                       <Paragraphs>
                         <Paragraph>
                           <TextRuns>
@@ -339,7 +296,7 @@
                               <Value>=Fields!Price.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
-                                <Format>0.0;(0.0)</Format>
+                                <Format>0;(0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -348,6 +305,7 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
+                      <rd:DefaultName>Price</rd:DefaultName>
                       <Style>
                         <Border>
                           <Style>None</Style>
@@ -356,18 +314,16 @@
                         <BottomBorder>
                           <Style>Dashed</Style>
                         </BottomBorder>
-                        <VerticalAlign>Bottom</VerticalAlign>
-                        <PaddingTop>2pt</PaddingTop>
-                        <PaddingBottom>2pt</PaddingBottom>
+                        <VerticalAlign>Middle</VerticalAlign>
                       </Style>
                     </Textbox>
                   </CellContents>
                 </TablixCell>
                 <TablixCell>
                   <CellContents>
-                    <Textbox Name="txtTaxRate">
+                    <Textbox Name="TaxRate">
                       <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
+                      <KeepTogether>true</KeepTogether>
                       <Paragraphs>
                         <Paragraph>
                           <TextRuns>
@@ -375,7 +331,6 @@
                               <Value>=Fields!TaxRate.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
-                                <Format>0.0;(0.0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -384,6 +339,7 @@
                           </Style>
                         </Paragraph>
                       </Paragraphs>
+                      <rd:DefaultName>TaxRate</rd:DefaultName>
                       <Style>
                         <Border>
                           <Style>None</Style>
@@ -392,45 +348,7 @@
                         <BottomBorder>
                           <Style>Dashed</Style>
                         </BottomBorder>
-                        <VerticalAlign>Bottom</VerticalAlign>
-                        <PaddingTop>2pt</PaddingTop>
-                        <PaddingBottom>2pt</PaddingBottom>
-                      </Style>
-                    </Textbox>
-                  </CellContents>
-                </TablixCell>
-                <TablixCell>
-                  <CellContents>
-                    <Textbox Name="txtTax">
-                      <CanGrow>true</CanGrow>
-                      <CanShrink>true</CanShrink>
-                      <Paragraphs>
-                        <Paragraph>
-                          <TextRuns>
-                            <TextRun>
-                              <Value>=Fields!Tax.Value</Value>
-                              <Style>
-                                <FontSize>7pt</FontSize>
-                                <Format>0.0;(0.0)</Format>
-                              </Style>
-                            </TextRun>
-                          </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
-                        </Paragraph>
-                      </Paragraphs>
-                      <Style>
-                        <Border>
-                          <Style>None</Style>
-                          <Width>0.3pt</Width>
-                        </Border>
-                        <BottomBorder>
-                          <Style>Dashed</Style>
-                        </BottomBorder>
-                        <VerticalAlign>Bottom</VerticalAlign>
-                        <PaddingTop>2pt</PaddingTop>
-                        <PaddingBottom>2pt</PaddingBottom>
+                        <VerticalAlign>Middle</VerticalAlign>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -447,7 +365,7 @@
                               <Value>=Fields!Amount.Value</Value>
                               <Style>
                                 <FontSize>7pt</FontSize>
-                                <Format>0.0;(0.0)</Format>
+                                <Format>0;(0)</Format>
                               </Style>
                             </TextRun>
                           </TextRuns>
@@ -464,9 +382,7 @@
                         <BottomBorder>
                           <Style>Dashed</Style>
                         </BottomBorder>
-                        <VerticalAlign>Bottom</VerticalAlign>
-                        <PaddingTop>2pt</PaddingTop>
-                        <PaddingBottom>2pt</PaddingBottom>
+                        <VerticalAlign>Middle</VerticalAlign>
                       </Style>
                     </Textbox>
                   </CellContents>
@@ -477,7 +393,6 @@
         </TablixBody>
         <TablixColumnHierarchy>
           <TablixMembers>
-            <TablixMember />
             <TablixMember />
             <TablixMember />
             <TablixMember />
@@ -498,19 +413,21 @@
         </TablixRowHierarchy>
         <DataSetName>BodyDataSet</DataSetName>
         <Top>1.83335in</Top>
-        <Left>0.31233cm</Left>
+        <Left>0.33264cm</Left>
         <Height>0.48278in</Height>
         <Width>6.47239cm</Width>
         <Style>
           <Border>
             <Style>None</Style>
-            <Width>0.3pt</Width>
+            <Width>0.7pt</Width>
           </Border>
           <TopBorder>
             <Style>Solid</Style>
+            <Width>0.7pt</Width>
           </TopBorder>
           <BottomBorder>
-            <Style>None</Style>
+            <Style>Solid</Style>
+            <Width>0.7pt</Width>
           </BottomBorder>
           <FontSize>9pt</FontSize>
           <FontWeight>Normal</FontWeight>
@@ -778,7 +695,7 @@
         <Top>1.23056in</Top>
         <Left>0.33264cm</Left>
         <Height>0.18334in</Height>
-        <Width>6.43213cm</Width>
+        <Width>6.45232cm</Width>
         <ZIndex>6</ZIndex>
         <Style>
           <Border>
@@ -809,6 +726,7 @@
             <Style>None</Style>
             <Width>0.7pt</Width>
           </Border>
+          <PaddingTop>1pt</PaddingTop>
         </Style>
       </Image>
       <Image Name="QRCode">
@@ -816,10 +734,10 @@
         <Value>=First(Fields!QRCodeImage.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>Fit</Sizing>
-        <Top>91.16104mm</Top>
-        <Left>40.17919mm</Left>
-        <Height>2.39638cm</Height>
-        <Width>2.70347cm</Width>
+        <Top>88.30298mm</Top>
+        <Left>40.1786mm</Left>
+        <Height>2.54107cm</Height>
+        <Width>2.44963cm</Width>
         <ZIndex>8</ZIndex>
         <Style>
           <Border>
@@ -847,7 +765,7 @@
         <Top>4.54636in</Top>
         <Left>0.61023cm</Left>
         <Height>0.14167in</Height>
-        <Width>5.82579cm</Width>
+        <Width>5.85726cm</Width>
         <ZIndex>9</ZIndex>
         <Style />
       </Textbox>
@@ -885,7 +803,7 @@
                 <Value>=Sum(Fields!Discount.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
-                  <Format>0.0;(0.0)</Format>
+                  <Format>0;(0)</Format>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -894,17 +812,17 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.87164in</Top>
+        <Top>2.78834in</Top>
         <Left>5.36575cm</Left>
         <Height>0.23333in</Height>
-        <Width>1.41897cm</Width>
+        <Width>1.43925cm</Width>
         <ZIndex>11</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
           <VerticalAlign>Middle</VerticalAlign>
-          <PaddingTop>2pt</PaddingTop>
+          <PaddingTop>3.8pt</PaddingTop>
           <Direction>LTR</Direction>
         </Style>
       </Textbox>
@@ -918,26 +836,26 @@
                 <Value>=First(Fields!TotalTax.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
-                  <Format>0.0;(0.0)</Format>
+                  <Format>0;(0)</Format>
                 </Style>
               </TextRun>
             </TextRuns>
             <Style>
-              <TextAlign>Left</TextAlign>
+              <TextAlign>Right</TextAlign>
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>2.55224in</Top>
-        <Left>4.08143cm</Left>
-        <Height>0.20833in</Height>
-        <Width>1.54872cm</Width>
+        <Top>2.55221in</Top>
+        <Left>5.36578cm</Left>
+        <Height>0.23612in</Height>
+        <Width>1.43925cm</Width>
         <ZIndex>12</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
           <VerticalAlign>Middle</VerticalAlign>
-          <PaddingTop>2pt</PaddingTop>
+          <PaddingTop>3pt</PaddingTop>
           <Direction>LTR</Direction>
         </Style>
       </Textbox>
@@ -951,7 +869,7 @@
                 <Value>=First(Fields!Total.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
-                  <Format>0.0 'Rs';(0.0 'Rs')</Format>
+                  <Format>'Rs' 0;('Rs' 0)</Format>
                   <rd:FormatSymbolCulture>en-PK</rd:FormatSymbolCulture>
                 </Style>
               </TextRun>
@@ -961,10 +879,10 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>3.10495in</Top>
-        <Left>5.36575cm</Left>
-        <Height>0.20557in</Height>
-        <Width>1.41897cm</Width>
+        <Top>3.02167in</Top>
+        <Left>5.36569cm</Left>
+        <Height>0.15835in</Height>
+        <Width>1.43925cm</Width>
         <ZIndex>13</ZIndex>
         <Style>
           <Border>
@@ -972,7 +890,7 @@
             <Width>0.3pt</Width>
           </Border>
           <VerticalAlign>Middle</VerticalAlign>
-          <PaddingTop>2pt</PaddingTop>
+          <PaddingTop>3pt</PaddingTop>
           <Direction>LTR</Direction>
           <rd:FormatSymbolCulture>en-PK</rd:FormatSymbolCulture>
         </Style>
@@ -982,8 +900,8 @@
         <Value>=First(Fields!PRALogo.Value, "HeaderDataSet")</Value>
         <MIMEType>image/png</MIMEType>
         <Sizing>FitProportional</Sizing>
-        <Top>9.58177cm</Top>
-        <Left>0.61023cm</Left>
+        <Top>9.26069cm</Top>
+        <Left>0.61017cm</Left>
         <Height>1.61177cm</Height>
         <Width>3.2313cm</Width>
         <ZIndex>14</ZIndex>
@@ -995,15 +913,15 @@
         </Style>
       </Image>
       <Line Name="Line2">
-        <Top>9.1161cm</Top>
-        <Left>0.35268cm</Left>
+        <Top>8.79502cm</Top>
+        <Left>0.33237cm</Left>
         <Height>0cm</Height>
-        <Width>6.45232cm</Width>
+        <Width>6.47266cm</Width>
         <ZIndex>15</ZIndex>
         <Style>
           <Border>
-            <Style>Dashed</Style>
-            <Width>0.6pt</Width>
+            <Style>Solid</Style>
+            <Width>0.7pt</Width>
           </Border>
         </Style>
       </Line>
@@ -1016,6 +934,7 @@
               <TextRun>
                 <Value>Sales Tax</Value>
                 <Style>
+                  <FontStyle>Normal</FontStyle>
                   <FontSize>8pt</FontSize>
                   <FontWeight>Bold</FontWeight>
                 </Style>
@@ -1027,10 +946,10 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>5.91825cm</Top>
-        <Left>4.08143cm</Left>
-        <Height>0.52915cm</Height>
-        <Width>1.54872cm</Width>
+        <Top>6.47587cm</Top>
+        <Left>0.33237cm</Left>
+        <Height>0.6065cm</Height>
+        <Width>1.84002cm</Width>
         <ZIndex>16</ZIndex>
         <Style>
           <Border>
@@ -1048,6 +967,7 @@
               <TextRun>
                 <Value>Discount</Value>
                 <Style>
+                  <FontStyle>Normal</FontStyle>
                   <FontSize>8pt</FontSize>
                   <FontWeight>Bold</FontWeight>
                 </Style>
@@ -1059,10 +979,10 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>7.29398cm</Top>
-        <Left>0.33246cm</Left>
+        <Top>7.08236cm</Top>
+        <Left>0.33264cm</Left>
         <Height>0.59265cm</Height>
-        <Width>1.81977cm</Width>
+        <Width>1.83975cm</Width>
         <ZIndex>17</ZIndex>
         <Style>
           <Border>
@@ -1078,7 +998,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>Total (PKR)</Value>
+                <Value>Net Total</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
                   <FontWeight>Bold</FontWeight>
@@ -1091,10 +1011,10 @@
           </Paragraph>
         </Paragraphs>
         <rd:DefaultName>Textbox3</rd:DefaultName>
-        <Top>7.88661cm</Top>
-        <Left>0.33243cm</Left>
-        <Height>0.52213cm</Height>
-        <Width>1.81977cm</Width>
+        <Top>7.67501cm</Top>
+        <Left>0.33264cm</Left>
+        <Height>0.40222cm</Height>
+        <Width>1.83975cm</Width>
         <ZIndex>18</ZIndex>
         <Style>
           <Border>
@@ -1106,6 +1026,7 @@
             <Width>0.3pt</Width>
           </TopBorder>
           <VerticalAlign>Middle</VerticalAlign>
+          <PaddingTop>3pt</PaddingTop>
         </Style>
       </Textbox>
       <Textbox Name="InvoiceNo">
@@ -1148,10 +1069,10 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>3.33974in</Top>
-        <Left>0.33261cm</Left>
-        <Height>0.2215in</Height>
-        <Width>6.45229cm</Width>
+        <Top>3.23557in</Top>
+        <Left>0.33255cm</Left>
+        <Height>0.19926in</Height>
+        <Width>6.47239cm</Width>
         <ZIndex>19</ZIndex>
         <Style>
           <Border>
@@ -1161,81 +1082,18 @@
         </Style>
       </Textbox>
       <Line Name="Line3">
-        <Top>8.44399cm</Top>
-        <Left>0.33243cm</Left>
+        <Top>8.14779cm</Top>
+        <Left>0.33237cm</Left>
         <Height>0cm</Height>
-        <Width>6.43234cm</Width>
+        <Width>6.493cm</Width>
         <ZIndex>20</ZIndex>
         <Style>
           <Border>
-            <Style>Dashed</Style>
-            <Width>0.5pt</Width>
+            <Style>Solid</Style>
+            <Width>0.7pt</Width>
           </Border>
         </Style>
       </Line>
-      <Textbox Name="Textbox6">
-        <CanGrow>true</CanGrow>
-        <KeepTogether>true</KeepTogether>
-        <Paragraphs>
-          <Paragraph>
-            <TextRuns>
-              <TextRun>
-                <Value>Total Qty</Value>
-                <Style>
-                  <FontSize>8pt</FontSize>
-                  <FontWeight>Bold</FontWeight>
-                </Style>
-              </TextRun>
-            </TextRuns>
-            <Style />
-          </Paragraph>
-        </Paragraphs>
-        <rd:DefaultName>Textbox6</rd:DefaultName>
-        <Top>5.91826cm</Top>
-        <Left>0.33255cm</Left>
-        <Height>0.52915cm</Height>
-        <Width>1.26944cm</Width>
-        <ZIndex>21</ZIndex>
-        <Style>
-          <Border>
-            <Style>None</Style>
-          </Border>
-          <VerticalAlign>Middle</VerticalAlign>
-          <PaddingBottom>1pt</PaddingBottom>
-        </Style>
-      </Textbox>
-      <Textbox Name="TotalQty">
-        <CanGrow>true</CanGrow>
-        <KeepTogether>true</KeepTogether>
-        <Paragraphs>
-          <Paragraph>
-            <TextRuns>
-              <TextRun>
-                <Value>=First(Fields!TotalQty.Value, "HeaderDataSet")</Value>
-                <Style>
-                  <FontSize>8pt</FontSize>
-                  <Format>0;(0)</Format>
-                </Style>
-              </TextRun>
-            </TextRuns>
-            <Style>
-              <TextAlign>Left</TextAlign>
-            </Style>
-          </Paragraph>
-        </Paragraphs>
-        <Top>6.48269cm</Top>
-        <Left>0.3324cm</Left>
-        <Height>0.45851cm</Height>
-        <Width>0.95339cm</Width>
-        <ZIndex>22</ZIndex>
-        <Style>
-          <Border>
-            <Style>None</Style>
-          </Border>
-          <VerticalAlign>Middle</VerticalAlign>
-          <PaddingTop>1pt</PaddingTop>
-        </Style>
-      </Textbox>
       <Textbox Name="NTNLabel2">
         <CanGrow>true</CanGrow>
         <Paragraphs>
@@ -1265,7 +1123,7 @@
         <Left>3.65768cm</Left>
         <Height>0.19167in</Height>
         <Width>3.12728cm</Width>
-        <ZIndex>23</ZIndex>
+        <ZIndex>21</ZIndex>
         <Style>
           <Border>
             <Style>None</Style>
@@ -1279,30 +1137,174 @@
         </Style>
       </Textbox>
       <Line Name="Line4">
-        <Top>7.2587cm</Top>
-        <Left>0.35268cm</Left>
+        <Top>6.54643cm</Top>
+        <Left>0.33237cm</Left>
         <Height>0cm</Height>
-        <Width>6.45232cm</Width>
+        <Width>6.47266cm</Width>
+        <ZIndex>22</ZIndex>
+        <Style>
+          <Border>
+            <Style>Solid</Style>
+            <Width>0.7pt</Width>
+          </Border>
+        </Style>
+      </Line>
+      <Textbox Name="Textbox35">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>=Sum(Fields!Qty.Value, "BodyDataSet")</Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                  <Format>0;(0)</Format>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style>
+              <TextAlign>Center</TextAlign>
+            </Style>
+          </Paragraph>
+        </Paragraphs>
+        <rd:DefaultName>Textbox35</rd:DefaultName>
+        <Top>5.91825cm</Top>
+        <Left>2.87264cm</Left>
+        <Height>0.55762cm</Height>
+        <Width>0.60316cm</Width>
+        <ZIndex>23</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+          <VerticalAlign>Middle</VerticalAlign>
+          <PaddingTop>1.8pt</PaddingTop>
+        </Style>
+      </Textbox>
+      <Textbox Name="Textbox38">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>=Sum(Fields!Amount.Value, "BodyDataSet")</Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                  <Format>0;(0)</Format>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style>
+              <TextAlign>Right</TextAlign>
+            </Style>
+          </Paragraph>
+        </Paragraphs>
+        <rd:DefaultName>Textbox35</rd:DefaultName>
+        <Top>5.91825cm</Top>
+        <Left>5.66528cm</Left>
+        <Height>0.55762cm</Height>
+        <Width>1.13975cm</Width>
         <ZIndex>24</ZIndex>
         <Style>
           <Border>
-            <Style>Dashed</Style>
-            <Width>0.5pt</Width>
+            <Style>None</Style>
+          </Border>
+          <VerticalAlign>Middle</VerticalAlign>
+          <PaddingTop>1.5pt</PaddingTop>
+        </Style>
+      </Textbox>
+      <Textbox Name="Textbox9">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>Gross Total</Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>SemiBold</FontWeight>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style />
+          </Paragraph>
+        </Paragraphs>
+        <rd:DefaultName>Textbox6</rd:DefaultName>
+        <Top>5.88297cm</Top>
+        <Left>4.01786cm</Left>
+        <Height>0.5929cm</Height>
+        <Width>1.57686cm</Width>
+        <ZIndex>25</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+          <VerticalAlign>Middle</VerticalAlign>
+          <PaddingTop>5pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
+        </Style>
+      </Textbox>
+      <Textbox Name="Textbox10">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>Total Quantity</Value>
+                <Style>
+                  <FontSize>7pt</FontSize>
+                  <FontWeight>SemiBold</FontWeight>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style />
+          </Paragraph>
+        </Paragraphs>
+        <rd:DefaultName>Textbox6</rd:DefaultName>
+        <Top>5.9182cm</Top>
+        <Left>0.33264cm</Left>
+        <Height>0.5929cm</Height>
+        <Width>1.81956cm</Width>
+        <ZIndex>26</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+          <VerticalAlign>Middle</VerticalAlign>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>1pt</PaddingBottom>
+        </Style>
+      </Textbox>
+      <Line Name="Line5">
+        <Top>7.67501cm</Top>
+        <Left>0.35271cm</Left>
+        <Height>0cm</Height>
+        <Width>6.47266cm</Width>
+        <ZIndex>27</ZIndex>
+        <Style>
+          <Border>
+            <Style>Solid</Style>
+            <Width>0.7pt</Width>
           </Border>
         </Style>
       </Line>
     </ReportItems>
-    <Height>12.39442cm</Height>
+    <Height>12.64841cm</Height>
     <Style>
       <Border>
         <Style>None</Style>
-        <Width>0.3pt</Width>
       </Border>
     </Style>
   </Body>
-  <Width>7.44204cm</Width>
+  <Width>7.14146cm</Width>
   <Page>
-    <PageHeight>25cm</PageHeight>
+    <PageHeight>20cm</PageHeight>
     <PageWidth>8cm</PageWidth>
     <LeftMargin>0cm</LeftMargin>
     <RightMargin>0cm</RightMargin>
