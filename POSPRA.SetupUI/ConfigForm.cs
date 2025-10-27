@@ -297,15 +297,6 @@ namespace POSPRA.SetupUI
                 if (!ValidateInputs(out string username, out string password, out string dbPath, out string oldDbPath))
                     return;
 
-                // Only validate and backup old database if service is available
-                if (_isServiceAvailable)
-                {
-                    if (!ValidateOldDatabase(oldDbPath))
-                        return;
-
-                    CreateSafeBackup(oldDbPath);
-                }
-
                 CreateDatabaseDirectory(dbPath);
 
                 var mac = TryGetMacAddress();
@@ -331,6 +322,14 @@ namespace POSPRA.SetupUI
                     await MigrateOldDatabaseAsync(oldDbPath, username, password);
                 }
 
+                // Only validate and backup old database if service is available
+                if (_isServiceAvailable)
+                {
+                    if (!ValidateOldDatabase(oldDbPath))
+                        return;
+
+                    CreateSafeBackup(oldDbPath);
+                }
                 ShowMessage("Setup completed successfully!", true, false);
                 await Task.Delay(2000);
                 Environment.Exit(0);
