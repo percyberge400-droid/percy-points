@@ -173,7 +173,6 @@
             itemDiscountPercent.PlaceholderText = "Discount %";
             itemDiscountPercent.Size = new Size(96, 24);
             itemDiscountPercent.TabIndex = 58;
-            itemDiscountPercent.Text = "10";
             // 
             // TaxChargedlbl
             // 
@@ -208,7 +207,6 @@
             pctCode.PlaceholderText = "PCT Code";
             pctCode.Size = new Size(197, 24);
             pctCode.TabIndex = 10;
-            pctCode.Text = "78";
             // 
             // TaxRatelbl
             // 
@@ -229,7 +227,6 @@
             salevalue.PlaceholderText = "Sale Value";
             salevalue.Size = new Size(197, 24);
             salevalue.TabIndex = 16;
-            salevalue.Text = "100";
             // 
             // salevaluelbl
             // 
@@ -249,7 +246,6 @@
             TaxRatebox.PlaceholderText = "Tax Rate";
             TaxRatebox.Size = new Size(200, 24);
             TaxRatebox.TabIndex = 12;
-            TaxRatebox.Text = "10";
             // 
             // itemDiscountlbl
             // 
@@ -270,7 +266,6 @@
             totalamount.PlaceholderText = "Total Amount";
             totalamount.Size = new Size(194, 24);
             totalamount.TabIndex = 11;
-            totalamount.Text = "105";
             // 
             // ItemCode
             // 
@@ -283,7 +278,6 @@
             ItemCode.PlaceholderText = "Item Code";
             ItemCode.Size = new Size(197, 24);
             ItemCode.TabIndex = 9;
-            ItemCode.Text = "78";
             // 
             // ItemNamelbl
             // 
@@ -324,7 +318,6 @@
             ItemName.PlaceholderText = "Item Name";
             ItemName.Size = new Size(197, 24);
             ItemName.TabIndex = 14;
-            ItemName.Text = "12345678";
             // 
             // ItemCodelbl
             // 
@@ -354,7 +347,6 @@
             qty.PlaceholderText = "QUANTITY";
             qty.Size = new Size(197, 24);
             qty.TabIndex = 15;
-            qty.Text = "1";
             // 
             // lblCustomerRegType
             // 
@@ -615,7 +607,6 @@
             refUSIN.PlaceholderText = "Ref USIN";
             refUSIN.Size = new Size(123, 24);
             refUSIN.TabIndex = 8;
-            refUSIN.Text = "1";
             // 
             // refUSINlbl
             // 
@@ -674,7 +665,6 @@
             USIN.PlaceholderText = "USIN";
             USIN.Size = new Size(123, 24);
             USIN.TabIndex = 7;
-            USIN.Text = "1";
             // 
             // USINlbl
             // 
@@ -722,7 +712,6 @@
             buyerphone.PlaceholderText = "Buyer Phone Number";
             buyerphone.Size = new Size(123, 24);
             buyerphone.TabIndex = 4;
-            buyerphone.Text = "12345678912";
             // 
             // label18
             // 
@@ -742,7 +731,6 @@
             BuyerBname.PlaceholderText = "Buyer Name";
             BuyerBname.Size = new Size(123, 24);
             BuyerBname.TabIndex = 3;
-            BuyerBname.Text = "1";
             // 
             // label19
             // 
@@ -762,7 +750,6 @@
             buyerntn.PlaceholderText = "Buyer NTN";
             buyerntn.Size = new Size(123, 24);
             buyerntn.TabIndex = 2;
-            buyerntn.Text = "1234567";
             // 
             // label20
             // 
@@ -782,7 +769,6 @@
             buyercnic.PlaceholderText = "Buyer CNIC";
             buyercnic.Size = new Size(123, 24);
             buyercnic.TabIndex = 1;
-            buyercnic.Text = "1234567891234";
             // 
             // panel1
             // 
@@ -1063,10 +1049,8 @@
             // Invoice type ComboBox
             invoicetype.DataSource = new List<KeyValuePair<byte, string>>()
             {
-                new KeyValuePair<byte, string>(1, "Sale"),
-                new KeyValuePair<byte, string>(2, "Purchase"),
-                new KeyValuePair<byte, string>(3, "Debit"),
-                new KeyValuePair<byte, string>(4, "Credit")
+                new KeyValuePair<byte, string>(1, "Sale Invoice"),
+                new KeyValuePair<byte, string>(4, "Credit Invoice")
             };
             invoicetype.DisplayMember = "Value";
             invoicetype.ValueMember = "Key";
