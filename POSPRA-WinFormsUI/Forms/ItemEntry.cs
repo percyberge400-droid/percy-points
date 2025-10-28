@@ -916,7 +916,9 @@ namespace POSPRA_WinFormsUI
                     }
 
                     // 🔹 Print configuration
-                    bool showDialog = false; // Or set based on config/user choice
+                    string printerName = InvoiceReport.FindThermalPrinter();
+                    bool showDialog = string.IsNullOrWhiteSpace(printerName);
+                    //bool showDialog = false; // Or set based on config/user choice
 
                     if (showDialog)
                     {

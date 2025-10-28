@@ -1455,22 +1455,25 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index) return;
+            // ✅ 1. Validate the click
+            if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index)
+                return;
 
-            var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
             var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
-            if (!_printLinkBounds.Contains(mousePos)) return;
+            if (!_printLinkBounds.Contains(mousePos))
+                return;
 
-            if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count) return;
+            if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count)
+                return;
 
             var invoice = _invoiceCache[e.RowIndex];
             var invoiceNumber = invoice.InvoiceNumber;
 
-            var origPrintText = "Print";
             _printingRowIndex = e.RowIndex;
 
             try
             {
+                // ✅ 2. UI setup
                 InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
                 InvoicesDataGridView.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
@@ -1484,15 +1487,18 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.BringToFront();
                 }
 
-                var response = await Task.Run(() => _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
+                // ✅ 3. Load invoice data from API/service
+                var response = await Task.Run(() =>
+                    _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
 
                 if (response?.Data == null)
                 {
-                    MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("⚠️ No data found for this invoice.",
+                        "Data Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
+                // ✅ 4. Print thread setup
                 var tcs = new TaskCompletionSource<object?>();
 
                 Thread printThread = new Thread(() =>
@@ -1501,6 +1507,19 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         using (var printForm = new InvoiceReport(response.Data))
                         {
+                            // 🔹 Hide progress bar only after RDLC finishes rendering
+                            printForm.ReportLoaded += (s, args) =>
+                            {
+                                this.Invoke(new Action(() =>
+                                {
+                                    if (progressBar != null)
+                                    {
+                                        progressBar.Visible = false;
+                                        progressBar.Style = ProgressBarStyle.Continuous;
+                                    }
+                                }));
+                            };
+
                             printForm.FormClosed += (s, args) => tcs.TrySetResult(null);
                             Application.Run(printForm);
                         }
@@ -1519,11 +1538,12 @@ namespace POSPRA_WinFormsUI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error printing invoice: {ex.Message}", "Print Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error printing invoice: {ex.Message}",
+                    "Print Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
+                // ✅ 5. UI cleanup
                 _printingRowIndex = -1;
                 InvoicesDataGridView.Enabled = true;
                 this.Cursor = Cursors.Default;
@@ -1537,6 +1557,7 @@ namespace POSPRA_WinFormsUI.Forms
                 InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
             }
         }
+
 
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {

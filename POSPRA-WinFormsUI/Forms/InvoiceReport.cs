@@ -26,6 +26,7 @@ namespace POSPRA_WinFormsUI.Forms
         private static readonly Dictionary<string, byte[]> _qrCache = new();
         private static LocalReport _cachedReportTemplate;
         private int _itemCount; // To store the number of invoice items for dynamic height
+        public event EventHandler ReportLoaded;
 
         private void InvoiceReport_Shown(object? sender, EventArgs e)
         {
@@ -285,14 +286,26 @@ namespace POSPRA_WinFormsUI.Forms
                 _reportViewer.LocalReport.DataSources.Add(new ReportDataSource("BodyDataSet", body));
 
                 // Apply thermal settings before refresh (use default height for preview)
-
                 _reportViewer.RefreshReport();
+
+                // ✅ Fire event when RDLC report finishes rendering
+                _reportViewer.RenderingComplete += (s, e) =>
+                {
+                    try
+                    {
+                        // Let dashboard know the report is ready (for hiding progress bar or printing)
+                        ReportLoaded?.Invoke(this, EventArgs.Empty);
+                    }
+                    catch { /* Safely ignore any UI thread timing issues */ }
+                };
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading report: {ex.Message}", "Report Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading report: {ex.Message}", "Report Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         private string GetReportPath(string reportFileName = "InvoiceReport.rdlc")
         {
