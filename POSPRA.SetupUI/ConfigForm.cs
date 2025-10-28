@@ -307,10 +307,17 @@ namespace POSPRA.SetupUI
                 if (json == null)
                     return;
 
-                var (branchName, branchAddress, businessName) = ExtractBranchDetails(json);
+                var (branchName, branchAddress, businessName, IsActive) = ExtractBranchDetails(json);
 
                 if (!VerifyAuthentication(json))
                     return;
+
+                if (IsActive == "True")
+                {
+                    ShowMessage("POSID already configured!", false, true);
+                    MessageBox.Show("POSID already configured!");
+                    return;
+                }
 
                 SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName);
                 UpdateSetupConfig(dbPath);
@@ -1159,7 +1166,7 @@ namespace POSPRA.SetupUI
 
         #region Configuration Save Methods
 
-        private (string branchName, string branchAddress, string businessName) ExtractBranchDetails(JObject json)
+        private (string branchName, string branchAddress, string businessName, string IsActive) ExtractBranchDetails(JObject json)
         {
             try
             {
@@ -1169,7 +1176,8 @@ namespace POSPRA.SetupUI
                     return (
                         data["branchName"]?.ToString() ?? "N/A",
                         data["branchAddress"]?.ToString() ?? "N/A",
-                        data["businessName"]?.ToString() ?? "N/A"
+                        data["businessName"]?.ToString() ?? "N/A",
+                        data["isActive"]?.ToString() ?? "N/A"
                     );
                 }
             }
@@ -1177,7 +1185,7 @@ namespace POSPRA.SetupUI
             {
                 ShowMessage($"Error extracting branch details: {ex.Message}", false, true);
             }
-            return ("N/A", "N/A", "N/A");
+            return ("N/A", "N/A", "N/A", "N/A");
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string dbPath,

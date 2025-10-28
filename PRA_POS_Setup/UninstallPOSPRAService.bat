@@ -1,4 +1,6 @@
 @echo off
+setlocal enabledelayedexpansion
+
 :: ==========================================
 :: Ensure script runs as administrator
 :: ==========================================
@@ -12,11 +14,25 @@ if %errorlevel% neq 0 (
 )
 
 :: ==========================================
-:: Service Uninstallation Logic
+:: Step 1 — Call UpdateConfigurationFlag(false)
 :: ==========================================
-SET ServiceName=POSPRAWorker
+set "ServiceExe=%~dp0POSPRAWorker.exe"
+if exist "%ServiceExe%" (
+    echo Updating configuration flag to false...
+    "%ServiceExe%" update-config-flag false
+    if %errorlevel% neq 0 (
+        echo [WARNING] UpdateConfigurationFlag(false) returned a non-zero code.
+    )
+) else (
+    echo [WARNING] POSPRAWorker.exe not found at "%ServiceExe%".
+)
 
-:: Check if service exists
+:: ==========================================
+:: Step 2 — Uninstall the service
+:: ==========================================
+set "ServiceName=POSPRAWorker"
+
+echo Checking if service "%ServiceName%" exists...
 sc query "%ServiceName%" >nul 2>&1
 if %errorlevel%==0 (
     echo Stopping service "%ServiceName%" ...
@@ -24,10 +40,10 @@ if %errorlevel%==0 (
     timeout /t 3 /nobreak >nul
 
     echo Deleting service "%ServiceName%" ...
-    sc delete "%ServiceName%"
+    sc delete "%ServiceName%" >nul 2>&1
     echo Service "%ServiceName%" uninstalled successfully.
 ) else (
     echo Service "%ServiceName%" does not exist.
 )
 
-pause
+exit /b 0
