@@ -637,9 +637,9 @@
             refUSINlbl.ForeColor = Color.FromArgb(75, 85, 99);
             refUSINlbl.Location = new Point(415, 18);
             refUSINlbl.Name = "refUSINlbl";
-            refUSINlbl.Size = new Size(88, 20);
+            refUSINlbl.Size = new Size(118, 20);
             refUSINlbl.TabIndex = 75;
-            refUSINlbl.Text = "Ref USIN";
+            refUSINlbl.Text = "Ref Invoice No.";
             // 
             // paymentmode
             // 
@@ -695,9 +695,9 @@
             USINlbl.ForeColor = Color.FromArgb(75, 85, 99);
             USINlbl.Location = new Point(286, 18);
             USINlbl.Name = "USINlbl";
-            USINlbl.Size = new Size(76, 20);
+            USINlbl.Size = new Size(123, 20);
             USINlbl.TabIndex = 56;
-            USINlbl.Text = "USIN";
+            USINlbl.Text = "User Invoice No.";
             // 
             // panel2
             // 
