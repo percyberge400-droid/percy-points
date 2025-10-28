@@ -16,6 +16,9 @@ namespace POSPRA.Application.AutoMapperProfile
             CreateMap<FileRecordDto, FileRecord>();
             CreateMap<FileRecord, FileRecordDto>();
 
+            CreateMap<CreateLogDto, Logs>();
+            CreateMap<Logs, CreateLogDto>();
+
             CreateMap<LogDto, Logs>();
             CreateMap<Logs, LogDto>();
 

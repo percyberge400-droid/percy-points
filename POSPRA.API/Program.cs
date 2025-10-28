@@ -106,7 +106,6 @@ namespace POSPRA.API
             //----------------------------------------------------
             builder.Services.AddAutoMapper(cfg =>
             {
-                cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<PosProfile>();
             });
 

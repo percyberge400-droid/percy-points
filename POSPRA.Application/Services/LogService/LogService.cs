@@ -141,25 +141,37 @@ namespace POSPRA.Application.Services.LogService
         /// Logs to local SQLite with retry and fallback-to-file.
         /// Automatically fills CreatedAtUtc/CreatedAtPk in the entity.
         /// </summary>
-        public async Task CreateLogAsync(Logs model)
+        public async Task<ApiResponse<CreateLogDto>> CreateLogAsync(CreateLogDto dto)
         {
-            if (model == null)
-                throw new ArgumentNullException(nameof(model));
+            if (dto == null)
+                return new ApiResponse<CreateLogDto>(
+                    ApiStatusCode.NotFound,
+                    ResponseMessages.UnknownError,
+                    null!,
+                    "Log DTO cannot be null.");
 
-            // ensure timestamps always set
-            model.CreatedAtPk = DateTime.Now;
-            model.POSID = _settings.POS;
+            // Ensure timestamps and POS ID are set
+            dto.CreatedAtPk = DateTime.Now;
+            dto.POSID = _settings.POS;
 
             try
             {
+                var model = _mapper.Map<Logs>(dto);
                 await _logSQLiteRepository.AddAsync(model);
                 await _sqliteUnitOfWork.SaveChangesAsync();
+
+                // ✅ Success response
+                return new ApiResponse<CreateLogDto>(
+                    ApiStatusCode.Success,
+                    ResponseMessages.RecordSaved,
+                    dto,
+                    string.Empty);
             }
             catch (Exception ex)
             {
                 try
                 {
-                    // create an internal log for the failure itself
+                    // Create an internal log for the failure itself
                     var errorLog = new Logs
                     {
                         Message = $"{DateTime.UtcNow}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
@@ -184,6 +196,13 @@ namespace POSPRA.Application.Services.LogService
                         "log_fallback.txt",
                         $"{DateTime.UtcNow:o}: Failed to log -> {ex.Message}{Environment.NewLine}");
                 }
+
+                // ❌ Error response
+                return new ApiResponse<CreateLogDto>(
+                    ApiStatusCode.ServiceUnavailable,
+                    ResponseMessages.UnknownError,
+                    null!,
+                    ex.Message);
             }
         }
 
@@ -223,7 +242,7 @@ namespace POSPRA.Application.Services.LogService
         /// Build a fully populated Logs entity from the current HTTP context
         /// and any extra data you supply.
         /// </summary>
-        public Logs BuildLog(
+        public CreateLogDto BuildLog(
          string message,
          string type,
          string? module = null,
@@ -235,7 +254,7 @@ namespace POSPRA.Application.Services.LogService
         {
             var ctx = _httpContextAccessor.HttpContext;   // will be null in WinForms
 
-            return new Logs
+            return new CreateLogDto
             {
                 Message = message,
                 Type = type,

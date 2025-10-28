@@ -11,6 +11,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.FileRecordRepository;
 using System.Text;
@@ -238,7 +239,7 @@ namespace POSPRA.Application.Services.InvoiceService
             catch (Exception ex)
             {
                 string errorMessage = $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
-                await _logService.CreateLogAsync(new Logs(errorMessage, AlertType.Exception, false));
+                await _logService.CreateLogAsync(new CreateLogDto(errorMessage, AlertType.Exception, false));
                 return new ApiResponse<(string, int)>(
                 ApiStatusCode.Error,
                 ResponseMessages.UnknownError,

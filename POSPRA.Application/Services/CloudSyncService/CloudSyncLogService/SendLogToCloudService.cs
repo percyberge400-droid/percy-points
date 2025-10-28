@@ -61,7 +61,7 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
                 }
                 else if (response.StatusCode != ApiStatusCode.NotFound)
                 {
-                    await _logService.CreateLogAsync(new Logs(ResponseMessages.DataNotFound, AlertType.Exception, false));
+                    await _logService.CreateLogAsync(new CreateLogDto(ResponseMessages.DataNotFound, AlertType.Exception, false));
                 }
             }
             catch (Exception ex)
@@ -69,7 +69,7 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
                 var errorMessage =
                     $"{GlobalVariables.DATE} InsertInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
 
-                await _logService.CreateLogAsync(new Logs(errorMessage, AlertType.Error, false));
+                await _logService.CreateLogAsync(new CreateLogDto(errorMessage, AlertType.Error, false));
             }
         }
 
@@ -79,7 +79,7 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
             {
                 if (logDtos.Count == 0)
                 {
-                    await _logService.CreateLogAsync(new Logs(ResponseMessages.DataNotFound, AlertType.Exception, false));
+                    await _logService.CreateLogAsync(new CreateLogDto(ResponseMessages.DataNotFound, AlertType.Exception, false));
                     return null;
                 }
 
@@ -90,7 +90,7 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
                 var resp = await _http.PostAsync(url, content);
                 if (!resp.IsSuccessStatusCode)
                 {
-                    await _logService.CreateLogAsync(new Logs(ResponseMessages.DatabaseError, AlertType.Warning, false));
+                    await _logService.CreateLogAsync(new CreateLogDto(ResponseMessages.DatabaseError, AlertType.Warning, false));
                 }
                 return resp;
             }
@@ -99,7 +99,7 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
                 var errorMessage =
                     $"{GlobalVariables.DATE} PostException: {ex.InnerException?.Message ?? ex.Message}";
 
-                await _logService.CreateLogAsync(new Logs(errorMessage, AlertType.Exception, false));
+                await _logService.CreateLogAsync(new CreateLogDto(errorMessage, AlertType.Exception, false));
             }
             return null;
         }

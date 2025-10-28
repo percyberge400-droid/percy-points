@@ -4,6 +4,7 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.LogDtos;
+using POSPRA.DTOs.LogDTOs;
 
 namespace POSPRA.Application.Services.CloudSyncService.WorkerLogService
 {
@@ -34,7 +35,7 @@ namespace POSPRA.Application.Services.CloudSyncService.WorkerLogService
                 StackTrace = stackTrace
             };
 
-            await logSvc.CreateLogAsync(_mapper.Map<Logs>(log));
+            await logSvc.CreateLogAsync(_mapper.Map<CreateLogDto>(log));
         }
 
         public async Task LogStartup(string workerName, string workerId)

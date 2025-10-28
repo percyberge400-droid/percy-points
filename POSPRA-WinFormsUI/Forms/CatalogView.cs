@@ -2,6 +2,7 @@
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 
@@ -444,7 +445,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var log = new Logs
+                var log = new CreateLogDto
                 {
                     Message = message,
                     Type = type,

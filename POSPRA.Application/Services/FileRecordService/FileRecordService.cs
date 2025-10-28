@@ -5,6 +5,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.UnitOfWork;
 
@@ -120,7 +121,7 @@ namespace POSPRA.Application.Services.FileRecordService
                 var errorMessage =
                     $"{GlobalVariables.DATE} InsertInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
 
-                await _logService.CreateLogAsync(new Logs(errorMessage, AlertType.Exception, false));
+                await _logService.CreateLogAsync(new CreateLogDto(errorMessage, AlertType.Exception, false));
                 return 0;
             }
         }

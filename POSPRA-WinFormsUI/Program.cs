@@ -98,7 +98,6 @@ namespace POSPRA_WinFormsUI
             // AutoMapper
             services.AddAutoMapper(cfg =>
             {
-                cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<PosProfile>();
             });
 

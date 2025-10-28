@@ -4,6 +4,7 @@ using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
@@ -658,7 +659,7 @@ namespace POSPRA_WinFormsUI
 
         private async Task CreateLog(string message, string type)
         {
-            var log = new Logs
+            var log = new CreateLogDto
             {
                 Message = message,
                 Type = type,
