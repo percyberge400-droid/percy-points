@@ -260,7 +260,21 @@ namespace POSPRA.SetupUI
                 btnOk.Enabled = false;
                 btnOk.Text = "Processing...";
 
-                await ProcessSetupAsync();
+                // 🟢 Get the selected environment value from radio buttons
+                string selectedEnvironment = null;
+
+                if (rdoSandbox.Checked)
+                    selectedEnvironment = "Sandbox";
+                else if (rdoProduction.Checked)
+                    selectedEnvironment = "Production";
+                else
+                {
+                    ShowMessage("Please select an environment first (Sandbox or Production).", false, false);
+                    return;
+                }
+
+                // 🟢 Pass the selected environment to your setup method
+                await ProcessSetupAsync(selectedEnvironment);
             }
             catch (Exception ex)
             {
@@ -272,6 +286,7 @@ namespace POSPRA.SetupUI
                 btnOk.Text = "OK";
             }
         }
+
 
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -293,7 +308,7 @@ namespace POSPRA.SetupUI
 
         #region Main Setup Process
 
-        private async Task ProcessSetupAsync()
+        private async Task ProcessSetupAsync(string selectedEnvironment)
         {
             try
             {
@@ -303,7 +318,7 @@ namespace POSPRA.SetupUI
                 CreateDatabaseDirectory(dbPath);
 
                 var mac = TryGetMacAddress();
-                var json = await AuthenticateAsync(username, password, mac);
+                var json = await AuthenticateAsync(username, password, mac, selectedEnvironment);
                 if (json == null)
                     return;
 
@@ -1040,7 +1055,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private async Task<JObject> AuthenticateAsync(string username, string password, string mac)
+        private async Task<JObject> AuthenticateAsync(string username, string password, string mac,string selectedEnvironment)
         {
             try
             {
@@ -1048,7 +1063,8 @@ namespace POSPRA.SetupUI
                 {
                     posId = username,
                     macAddress = mac,
-                    token = password
+                    token = password,
+                    Environment= selectedEnvironment
                 };
 
                 string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];

@@ -16,6 +16,9 @@
         public const string DecryptSave = "api/live/decrypt-save";
         public const string ExportCSV = "api/live/export-csv";
         public const string Authenticate = "api/Live/authenticate-by-mac";
+
+        // Configuration API
+        public const string SetEnvironment = "api/Configuration/set-environment";
     }
 
     public static class ResponseMessages
