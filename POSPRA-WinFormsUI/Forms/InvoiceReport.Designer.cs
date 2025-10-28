@@ -37,7 +37,6 @@
             ClientSize = new Size(692, 783);
             Name = "InvoiceReport";
             Text = "InvoiceReport";
-            TopMost = true;
             ResumeLayout(false);
         }
 

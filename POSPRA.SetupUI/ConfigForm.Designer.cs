@@ -85,19 +85,18 @@
             // 
             // lblMessage
             // 
+            lblMessage.AutoEllipsis = true;
+            lblMessage.AutoSize = true;
             lblMessage.BackColor = Color.White;
             lblMessage.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             lblMessage.ForeColor = Color.FromArgb(76, 175, 80);
             lblMessage.Location = new Point(132, 520);
+            lblMessage.MaximumSize = new Size(600, 0);
             lblMessage.Name = "lblMessage";
-            lblMessage.Size = new Size(455, 45);
+            lblMessage.Size = new Size(0, 25);
             lblMessage.TabIndex = 20;
             lblMessage.TextAlign = ContentAlignment.MiddleCenter;
             lblMessage.Visible = false;
-            lblMessage.AutoEllipsis = true;
-            lblMessage.MaximumSize = new Size(600, 0);
-            lblMessage.AutoSize = true;
-
             // 
             // btnBrowseOLD
             // 
@@ -139,7 +138,7 @@
             // 
             rdoProduction.AutoSize = true;
             rdoProduction.Font = new Font("Segoe UI", 10.2F);
-            rdoProduction.Location = new Point(408, 115);
+            rdoProduction.Location = new Point(395, 149);
             rdoProduction.Name = "rdoProduction";
             rdoProduction.Size = new Size(115, 27);
             rdoProduction.TabIndex = 16;
@@ -151,7 +150,7 @@
             rdoSandbox.AutoSize = true;
             rdoSandbox.Checked = true;
             rdoSandbox.Font = new Font("Segoe UI", 10.2F);
-            rdoSandbox.Location = new Point(220, 115);
+            rdoSandbox.Location = new Point(294, 149);
             rdoSandbox.Name = "rdoSandbox";
             rdoSandbox.Size = new Size(97, 27);
             rdoSandbox.TabIndex = 15;
@@ -347,11 +346,9 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             ClientSize = new Size(727, 628);
-            ControlBox = true;
             Controls.Add(mainPanel);
             FormBorderStyle = FormBorderStyle.None;
             MaximizeBox = false;
-            MinimizeBox = true;
             Name = "ConfigForm";
             ShowIcon = false;
             StartPosition = FormStartPosition.CenterScreen;
