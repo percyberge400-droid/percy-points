@@ -21,6 +21,7 @@ namespace POSPRA.DTOs.InvoiceDtos
         public string? BuyerPhoneNumber { get; set; }
 
         public int PaymentMode { get; set; }
+        public int SaleType { get; set; }
 
         public decimal TotalBillAmount { get; set; }
 

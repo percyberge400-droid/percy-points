@@ -44,11 +44,35 @@ namespace POSPRA.Application.Services.FiscalService
                 AddError("Invalid Invoice Date!");
 
             //--------NTN / CNIC----
-            var ntn = TrimSafe(invoice.BuyerCNIC);
-            if (ntn.Length == 0)
-                AddError("Invalid NTN/CNIC!");
-            else if (ntn.Length < 7 || ntn.Length > 13)
-                AddError("NTN/CNIC should be between 7 and 13 characters.");
+            var ntn = TrimSafe(invoice.BuyerNTN);
+            if (!string.IsNullOrWhiteSpace(ntn))
+            {
+                // NTN must be exactly 7 alphanumeric characters if provided
+                if (ntn.Length != 7)
+                    AddError("Buyer NTN must be exactly 7 characters.");
+                else if (!ntn.All(char.IsLetterOrDigit))
+                    AddError("Buyer NTN must contain only alphanumeric characters.");
+            }
+
+            var cnic = TrimSafe(invoice.BuyerCNIC);
+            if (!string.IsNullOrWhiteSpace(cnic))
+            {
+                // CNIC must be exactly 13 digits if provided
+                if (cnic.Length != 13)
+                    AddError("Buyer CNIC must be exactly 13 digits.");
+                else if (!cnic.All(char.IsDigit))
+                    AddError("Buyer CNIC must contain only numeric digits.");
+            }
+
+            var phone = TrimSafe(invoice.BuyerPhoneNumber);
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                // Phone must be 11 or 13 digits if provided
+                if (phone.Length != 11 && phone.Length != 13)
+                    AddError("Buyer Phone Number must be 11 or 13 digits.");
+                else if (!phone.All(char.IsDigit))
+                    AddError("Buyer Phone Number must contain only numeric digits.");
+            }
 
             //--------Buyer / Seller--
             if (IsEmpty(invoice.BuyerName))

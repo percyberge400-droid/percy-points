@@ -108,7 +108,7 @@ namespace POSPRA_WinFormsUI
             itemDiscountPercent.TextChanged += RecalculateTotals;
             itemDiscountPercent.KeyPress += NumericOnlyWithLength_KeyPress;
 
-            invoicetype.SelectedIndexChanged += Invoicetype_SelectedIndexChanged;
+            //invoicetype.SelectedIndexChanged += Invoicetype_SelectedIndexChanged;
 
             SetupContextMenu();
             CaptureOriginalLayout();
@@ -331,45 +331,56 @@ namespace POSPRA_WinFormsUI
             int row2ControlY = 107;
             int controlHeight = 24;
 
-            // Calculate widths for Row 1 (6 columns with special handling for discount)
-            int availableWidth = pnlBasicInfo.Width - (padding * 2) - (spacing * 5);
+            // Calculate widths for Row 1 (now 7 columns instead of 6)
+            int availableWidth = pnlBasicInfo.Width - (padding * 2) - (spacing * 6);
 
-            // Widths: 4 equal columns + discount% (smaller) + discount Rs (smaller)
-            int standardColWidth = (int)(availableWidth * 0.20); // 20% each for first 4
-            int discountPercentWidth = (int)(availableWidth * 0.10); // 10% for discount %
-            int discountAmountWidth = (int)(availableWidth * 0.10); // 10% for discount Rs
+            // Sale Type takes 12%, Item Code 13%, PCT Code 15%, Total Amount 16%, Tax Rate 14%, then discount fields at 15% each
+            int saleTypeWidth = (int)(availableWidth * 0.12);
+            int itemCodeWidth = (int)(availableWidth * 0.13);
+            int pctCodeWidth = (int)(availableWidth * 0.15);
+            int totalAmountWidth = (int)(availableWidth * 0.16);
+            int taxRateWidth = (int)(availableWidth * 0.14);
+            int discountPercentWidth = (int)(availableWidth * 0.15);
+            int discountAmountWidth = (int)(availableWidth * 0.15);
 
             // Row 1 Column positions
-            int col1X = padding;
-            int col2X = col1X + standardColWidth + spacing;
-            int col3X = col2X + standardColWidth + spacing;
-            int col4X = col3X + standardColWidth + spacing;
-            int col5X = col4X + standardColWidth + spacing;
+            int col0X = padding;
+            int col1X = col0X + saleTypeWidth + spacing;
+            int col2X = col1X + itemCodeWidth + spacing;
+            int col3X = col2X + pctCodeWidth + spacing;
+            int col4X = col3X + totalAmountWidth + spacing;
+            int col5X = col4X + taxRateWidth + spacing;
             int col6X = col5X + discountPercentWidth + spacing;
+
+            // ROW 1 - Sale Type
+            lbinvoicetype.Location = new Point(col0X, row1LabelY);
+            lbinvoicetype.AutoSize = true;
+            cmbInvoiceType.Location = new Point(col0X, row1ControlY);
+            cmbInvoiceType.Size = new Size(saleTypeWidth, 28);
 
             // ROW 1 - Item Code
             ItemCodelbl.Location = new Point(col1X, row1LabelY);
             ItemCodelbl.AutoSize = true;
             ItemCode.Location = new Point(col1X, row1ControlY);
-            ItemCode.Size = new Size(standardColWidth, controlHeight);
+            ItemCode.Size = new Size(itemCodeWidth, controlHeight);
 
             // ROW 1 - PCT Code
             lblCustomerRegType.Location = new Point(col2X, row1LabelY);
             lblCustomerRegType.AutoSize = true;
             pctCode.Location = new Point(col2X, row1ControlY);
-            pctCode.Size = new Size(standardColWidth, controlHeight);
+            pctCode.Size = new Size(pctCodeWidth, controlHeight);
 
             // ROW 1 - Total Amount
             totalamountlbl.Location = new Point(col3X, row1LabelY);
             totalamountlbl.AutoSize = true;
             totalamount.Location = new Point(col3X, row1ControlY);
-            totalamount.Size = new Size(standardColWidth, controlHeight);
+            totalamount.Size = new Size(totalAmountWidth, controlHeight);
 
             // ROW 1 - Tax Rate
             TaxRatelbl.Location = new Point(col4X, row1LabelY);
             TaxRatelbl.AutoSize = true;
             TaxRatebox.Location = new Point(col4X, row1ControlY);
-            TaxRatebox.Size = new Size(standardColWidth, controlHeight);
+            TaxRatebox.Size = new Size(taxRateWidth, controlHeight);
 
             // ROW 1 - Discount %
             itemDiscountlbl.Location = new Point(col5X, row1LabelY);
@@ -383,12 +394,11 @@ namespace POSPRA_WinFormsUI
             itemDiscountAmount.Location = new Point(col6X, row1ControlY);
             itemDiscountAmount.Size = new Size(discountAmountWidth, controlHeight);
 
-            // Calculate widths for Row 2 (5 columns - last one spans 2)
+            // Row 2 unchanged from original
             int row2Col1Width = (int)(availableWidth * 0.20);
             int row2Col2Width = (int)(availableWidth * 0.20);
             int row2Col3Width = (int)(availableWidth * 0.20);
             int row2Col4Width = (int)(availableWidth * 0.20);
-            int row2Col5Width = (int)(availableWidth * 0.20); // Tax Charged spans remaining
 
             int row2Col1X = padding;
             int row2Col2X = row2Col1X + row2Col1Width + spacing;
@@ -427,7 +437,6 @@ namespace POSPRA_WinFormsUI
             int remainingWidth = pnlBasicInfo.Width - row2Col5X - padding;
             TaxCharged.Size = new Size(remainingWidth, controlHeight);
         }
-
         private void Panel1_Resize(object sender, EventArgs e)
         {
             if (panel1.Width == 0 || panel1.Height == 0) return;
@@ -864,6 +873,7 @@ namespace POSPRA_WinFormsUI
                     BuyerName = BuyerBname.Text.Trim(),
                     BuyerPhoneNumber = buyerphone.Text.Trim(),
                     PaymentMode = GetSelectedPaymentMode(),
+                    SaleType = GetSaleType(),
                     TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
                     TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
                     TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
@@ -1743,7 +1753,7 @@ namespace POSPRA_WinFormsUI
             if (invoicetype.SelectedItem is KeyValuePair<byte, string> kvp)
                 return kvp.Key;
 
-            return 1; // Default to Sale
+            return 1;
         }
 
         private byte GetSelectedPaymentMode()
@@ -1751,7 +1761,14 @@ namespace POSPRA_WinFormsUI
             if (paymentmode.SelectedItem is KeyValuePair<byte, string> kvp)
                 return kvp.Key;
 
-            return 1; // Default to Card
+            return 1;
+        }
+
+        private byte GetSaleType()
+        {
+            if (cmbInvoiceType.SelectedItem is KeyValuePair<byte, string> kvp)
+                return kvp.Key;
+            return 1;
         }
 
         #endregion
@@ -1771,6 +1788,7 @@ namespace POSPRA_WinFormsUI
                 BuyerName = BuyerBname.Text.Trim(),
                 BuyerPhoneNumber = buyerphone.Text.Trim(),
                 PaymentMode = GetSelectedPaymentMode(),
+
                 TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : 0m,
                 TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : 0m,
                 TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : 0m,
@@ -1787,10 +1805,19 @@ namespace POSPRA_WinFormsUI
 
         private bool ValidateItemEntry(InvoiceItems inputData)
         {
-            // Item Code
+            // Item Code (comes from pctCode textbox - PCT Code)
             if (string.IsNullOrWhiteSpace(inputData.ItemCode))
             {
-                AlertManager.ShowError("Please enter an Item Code.");
+                AlertManager.ShowError("Please enter a PCT Code.");
+                this.BeginInvoke(new Action(() => pctCode.Focus()));
+                return false;
+            }
+
+            // PCT Code (comes from ItemCode textbox - HS Code) - Optional
+            // You can make this required if needed
+            if (string.IsNullOrWhiteSpace(inputData.PCTCode))
+            {
+                AlertManager.ShowError("Please enter the Item Code.");
                 this.BeginInvoke(new Action(() => ItemCode.Focus()));
                 return false;
             }
@@ -1821,7 +1848,6 @@ namespace POSPRA_WinFormsUI
 
             return true;
         }
-
         private bool IsInvoiceHeaderEmptyForAdding()
         {
             return string.IsNullOrWhiteSpace(posid.Text)
@@ -1837,55 +1863,47 @@ namespace POSPRA_WinFormsUI
         {
             if (string.IsNullOrWhiteSpace(posid.Text))
             {
-                MessageBox.Show("POS ID is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AlertManager.ShowError("POS ID is required.");
                 this.BeginInvoke(new Action(() => posid.Focus()));
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(buyerntn.Text))
+            // ✅ Buyer NTN is now optional - only validate if provided
+            if (!string.IsNullOrWhiteSpace(buyerntn.Text))
             {
-                MessageBox.Show("Buyer NTN is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.BeginInvoke(new Action(() => buyerntn.Focus()));
-                return false;
-            }
-            else if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length != 7)
-            {
-                MessageBox.Show("Buyer NTN must be exactly 7 characters.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.BeginInvoke(new Action(() => buyerntn.Focus()));
-                return false;
+                if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length != 7)
+                {
+                    AlertManager.ShowError("Buyer NTN must be exactly 7 alphanumeric characters.");
+                    this.BeginInvoke(new Action(() => buyerntn.Focus()));
+                    return false;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(BuyerBname.Text))
             {
-                MessageBox.Show("Buyer Name is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AlertManager.ShowError("Buyer Name is required.");
                 this.BeginInvoke(new Action(() => BuyerBname.Focus()));
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(buyercnic.Text))
+            // ✅ Buyer CNIC is now optional - only validate if provided
+            if (!string.IsNullOrWhiteSpace(buyercnic.Text))
             {
-                MessageBox.Show("Buyer CNIC is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.BeginInvoke(new Action(() => buyercnic.Focus()));
-                return false;
+                if (!buyercnic.Text.All(char.IsDigit) || buyercnic.Text.Length != 13)
+                {
+                    AlertManager.ShowError("Buyer CNIC must be exactly 13 digits.");
+                    this.BeginInvoke(new Action(() => buyercnic.Focus()));
+                    return false;
+                }
             }
-            else if (!buyercnic.Text.All(char.IsDigit) || buyercnic.Text.Length != 13)
+            if (!string.IsNullOrWhiteSpace(buyerphone.Text))
             {
-                MessageBox.Show("Buyer CNIC must be exactly 13 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.BeginInvoke(new Action(() => buyercnic.Focus()));
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(buyerphone.Text))
-            {
-                MessageBox.Show("Buyer Phone Number is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.BeginInvoke(new Action(() => buyerphone.Focus()));
-                return false;
-            }
-            else if (!buyerphone.Text.All(char.IsDigit) || !(buyerphone.Text.Length == 11 || buyerphone.Text.Length == 13))
-            {
-                MessageBox.Show("Buyer Phone Number must be 11 or 13 digits long.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.BeginInvoke(new Action(() => buyerphone.Focus()));
-                return false;
+                if (!buyerphone.Text.All(char.IsDigit) || !(buyerphone.Text.Length == 11 || buyerphone.Text.Length == 13))
+                {
+                    AlertManager.ShowError("Buyer Phone Number must be 11 or 13 digits long.");
+                    this.BeginInvoke(new Action(() => buyerphone.Focus()));
+                    return false;
+                }
             }
 
             // RefUSIN (if visible → must be numeric and 7 digits)
@@ -1893,7 +1911,7 @@ namespace POSPRA_WinFormsUI
             {
                 if (!refUSIN.Text.All(char.IsDigit) || refUSIN.Text.Length != 7)
                 {
-                    MessageBox.Show("Ref USIN must be exactly 7 digits.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AlertManager.ShowError("Ref USIN must be exactly 7 digits.");
                     this.BeginInvoke(new Action(() => refUSIN.Focus()));
                     return false;
                 }
@@ -1901,7 +1919,6 @@ namespace POSPRA_WinFormsUI
 
             return true;
         }
-
         #endregion
 
         #region Responsive / Rounded Corners
