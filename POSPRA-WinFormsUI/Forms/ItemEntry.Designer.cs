@@ -31,6 +31,8 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
+            lbinvoicetype = new Label();
+            cmbInvoiceType = new ComboBox();
             label4 = new Label();
             itemDiscountAmount = new TextBox();
             itemDiscountPercent = new TextBox();
@@ -115,6 +117,8 @@
             pnlBasicInfo.BackColor = Color.FromArgb(250, 250, 250);
             pnlBasicInfo.BackgroundImageLayout = ImageLayout.None;
             pnlBasicInfo.BorderStyle = BorderStyle.FixedSingle;
+            pnlBasicInfo.Controls.Add(lbinvoicetype);
+            pnlBasicInfo.Controls.Add(cmbInvoiceType);
             pnlBasicInfo.Controls.Add(label4);
             pnlBasicInfo.Controls.Add(itemDiscountAmount);
             pnlBasicInfo.Controls.Add(itemDiscountPercent);
@@ -143,6 +147,24 @@
             pnlBasicInfo.Name = "pnlBasicInfo";
             pnlBasicInfo.Size = new Size(1145, 167);
             pnlBasicInfo.TabIndex = 6;
+            // 
+            // lbinvoicetype
+            // 
+            lbinvoicetype.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            lbinvoicetype.ForeColor = Color.FromArgb(75, 85, 99);
+            lbinvoicetype.Location = new Point(24, 19);
+            lbinvoicetype.Name = "lbinvoicetype";
+            lbinvoicetype.Size = new Size(120, 20);
+            lbinvoicetype.TabIndex = 76;
+            lbinvoicetype.Text = "Sale Type";
+            // 
+            // cmbInvoiceType
+            // 
+            cmbInvoiceType.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbInvoiceType.Location = new Point(24, 42);
+            cmbInvoiceType.Name = "cmbInvoiceType";
+            cmbInvoiceType.Size = new Size(197, 28);
+            cmbInvoiceType.TabIndex = 76;
             // 
             // label4
             // 
@@ -173,7 +195,6 @@
             itemDiscountPercent.PlaceholderText = "Discount %";
             itemDiscountPercent.Size = new Size(96, 24);
             itemDiscountPercent.TabIndex = 58;
-            itemDiscountPercent.Text = "10";
             // 
             // TaxChargedlbl
             // 
@@ -208,14 +229,13 @@
             pctCode.PlaceholderText = "PCT Code";
             pctCode.Size = new Size(197, 24);
             pctCode.TabIndex = 10;
-            pctCode.Text = "78";
             // 
             // TaxRatelbl
             // 
             TaxRatelbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             TaxRatelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             TaxRatelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            TaxRatelbl.Location = new Point(677, 19);
+            TaxRatelbl.Location = new Point(672, 19);
             TaxRatelbl.Name = "TaxRatelbl";
             TaxRatelbl.Size = new Size(102, 20);
             TaxRatelbl.TabIndex = 19;
@@ -224,18 +244,17 @@
             // salevalue
             // 
             salevalue.Font = new Font("Microsoft Sans Serif", 9F);
-            salevalue.Location = new Point(462, 111);
+            salevalue.Location = new Point(680, 113);
             salevalue.Name = "salevalue";
             salevalue.PlaceholderText = "Sale Value";
-            salevalue.Size = new Size(197, 24);
+            salevalue.Size = new Size(209, 24);
             salevalue.TabIndex = 16;
-            salevalue.Text = "100";
             // 
             // salevaluelbl
             // 
             salevaluelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             salevaluelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            salevaluelbl.Location = new Point(465, 88);
+            salevaluelbl.Location = new Point(683, 92);
             salevaluelbl.Name = "salevaluelbl";
             salevaluelbl.Size = new Size(95, 20);
             salevaluelbl.TabIndex = 44;
@@ -244,12 +263,11 @@
             // TaxRatebox
             // 
             TaxRatebox.Font = new Font("Microsoft Sans Serif", 9F);
-            TaxRatebox.Location = new Point(682, 44);
+            TaxRatebox.Location = new Point(677, 44);
             TaxRatebox.Name = "TaxRatebox";
             TaxRatebox.PlaceholderText = "Tax Rate";
-            TaxRatebox.Size = new Size(200, 24);
+            TaxRatebox.Size = new Size(104, 24);
             TaxRatebox.TabIndex = 12;
-            TaxRatebox.Text = "10";
             // 
             // itemDiscountlbl
             // 
@@ -270,26 +288,24 @@
             totalamount.PlaceholderText = "Total Amount";
             totalamount.Size = new Size(194, 24);
             totalamount.TabIndex = 11;
-            totalamount.Text = "105";
             // 
             // ItemCode
             // 
-            ItemCode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            ItemCode.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             ItemCode.BackColor = Color.White;
             ItemCode.Font = new Font("Microsoft Sans Serif", 9F);
             ItemCode.ImeMode = ImeMode.Disable;
-            ItemCode.Location = new Point(18, 42);
+            ItemCode.Location = new Point(26, 113);
             ItemCode.Name = "ItemCode";
             ItemCode.PlaceholderText = "Item Code";
-            ItemCode.Size = new Size(197, 24);
+            ItemCode.Size = new Size(195, 24);
             ItemCode.TabIndex = 9;
-            ItemCode.Text = "78";
             // 
             // ItemNamelbl
             // 
             ItemNamelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             ItemNamelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            ItemNamelbl.Location = new Point(20, 90);
+            ItemNamelbl.Location = new Point(238, 90);
             ItemNamelbl.Name = "ItemNamelbl";
             ItemNamelbl.Size = new Size(88, 20);
             ItemNamelbl.TabIndex = 27;
@@ -300,9 +316,9 @@
             FurtureTaxlbl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             FurtureTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             FurtureTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            FurtureTaxlbl.Location = new Point(677, 90);
+            FurtureTaxlbl.Location = new Point(798, 19);
             FurtureTaxlbl.Name = "FurtureTaxlbl";
-            FurtureTaxlbl.Size = new Size(212, 20);
+            FurtureTaxlbl.Size = new Size(91, 20);
             FurtureTaxlbl.TabIndex = 28;
             FurtureTaxlbl.Text = "Further Tax";
             // 
@@ -310,27 +326,27 @@
             // 
             FurtureTax.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             FurtureTax.Font = new Font("Microsoft Sans Serif", 9F);
-            FurtureTax.Location = new Point(677, 113);
+            FurtureTax.Location = new Point(787, 44);
             FurtureTax.Name = "FurtureTax";
             FurtureTax.PlaceholderText = "Further Tax";
-            FurtureTax.Size = new Size(203, 24);
+            FurtureTax.Size = new Size(102, 24);
             FurtureTax.TabIndex = 17;
             // 
             // ItemName
             // 
+            ItemName.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             ItemName.Font = new Font("Microsoft Sans Serif", 9F);
-            ItemName.Location = new Point(20, 113);
+            ItemName.Location = new Point(238, 113);
             ItemName.Name = "ItemName";
             ItemName.PlaceholderText = "Item Name";
             ItemName.Size = new Size(197, 24);
             ItemName.TabIndex = 14;
-            ItemName.Text = "12345678";
             // 
             // ItemCodelbl
             // 
             ItemCodelbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             ItemCodelbl.ForeColor = Color.FromArgb(75, 85, 99);
-            ItemCodelbl.Location = new Point(20, 19);
+            ItemCodelbl.Location = new Point(28, 90);
             ItemCodelbl.Name = "ItemCodelbl";
             ItemCodelbl.Size = new Size(120, 20);
             ItemCodelbl.TabIndex = 34;
@@ -340,7 +356,7 @@
             // 
             lblSellerAddress.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             lblSellerAddress.ForeColor = Color.FromArgb(75, 85, 99);
-            lblSellerAddress.Location = new Point(240, 90);
+            lblSellerAddress.Location = new Point(458, 92);
             lblSellerAddress.Name = "lblSellerAddress";
             lblSellerAddress.Size = new Size(74, 20);
             lblSellerAddress.TabIndex = 35;
@@ -349,12 +365,11 @@
             // qty
             // 
             qty.Font = new Font("Microsoft Sans Serif", 9F);
-            qty.Location = new Point(240, 113);
+            qty.Location = new Point(458, 113);
             qty.Name = "qty";
             qty.PlaceholderText = "QUANTITY";
             qty.Size = new Size(197, 24);
             qty.TabIndex = 15;
-            qty.Text = "1";
             // 
             // lblCustomerRegType
             // 
@@ -615,7 +630,6 @@
             refUSIN.PlaceholderText = "Ref USIN";
             refUSIN.Size = new Size(123, 24);
             refUSIN.TabIndex = 8;
-            refUSIN.Text = "1";
             // 
             // refUSINlbl
             // 
@@ -623,9 +637,9 @@
             refUSINlbl.ForeColor = Color.FromArgb(75, 85, 99);
             refUSINlbl.Location = new Point(415, 18);
             refUSINlbl.Name = "refUSINlbl";
-            refUSINlbl.Size = new Size(88, 20);
+            refUSINlbl.Size = new Size(118, 20);
             refUSINlbl.TabIndex = 75;
-            refUSINlbl.Text = "Ref USIN";
+            refUSINlbl.Text = "Ref Invoice No.";
             // 
             // paymentmode
             // 
@@ -674,7 +688,6 @@
             USIN.PlaceholderText = "USIN";
             USIN.Size = new Size(123, 24);
             USIN.TabIndex = 7;
-            USIN.Text = "1";
             // 
             // USINlbl
             // 
@@ -682,9 +695,9 @@
             USINlbl.ForeColor = Color.FromArgb(75, 85, 99);
             USINlbl.Location = new Point(286, 18);
             USINlbl.Name = "USINlbl";
-            USINlbl.Size = new Size(76, 20);
+            USINlbl.Size = new Size(123, 20);
             USINlbl.TabIndex = 56;
-            USINlbl.Text = "USIN";
+            USINlbl.Text = "User Invoice No.";
             // 
             // panel2
             // 
@@ -722,7 +735,6 @@
             buyerphone.PlaceholderText = "Buyer Phone Number";
             buyerphone.Size = new Size(123, 24);
             buyerphone.TabIndex = 4;
-            buyerphone.Text = "12345678912";
             // 
             // label18
             // 
@@ -742,7 +754,6 @@
             BuyerBname.PlaceholderText = "Buyer Name";
             BuyerBname.Size = new Size(123, 24);
             BuyerBname.TabIndex = 3;
-            BuyerBname.Text = "1";
             // 
             // label19
             // 
@@ -762,7 +773,6 @@
             buyerntn.PlaceholderText = "Buyer NTN";
             buyerntn.Size = new Size(123, 24);
             buyerntn.TabIndex = 2;
-            buyerntn.Text = "1234567";
             // 
             // label20
             // 
@@ -782,7 +792,6 @@
             buyercnic.PlaceholderText = "Buyer CNIC";
             buyercnic.Size = new Size(123, 24);
             buyercnic.TabIndex = 1;
-            buyercnic.Text = "1234567891234";
             // 
             // panel1
             // 
@@ -1052,25 +1061,40 @@
             // Payment mode ComboBox
             paymentmode.DataSource = new List<KeyValuePair<byte, string>>()
             {
-                new KeyValuePair<byte, string>(1, "Card"),
-                new KeyValuePair<byte, string>(2, "Cash"),
-                new KeyValuePair<byte, string>(3, "Online")
+                new KeyValuePair<byte, string>(1, "Cash"),
+                new KeyValuePair<byte, string>(2, "Card"),
+                new KeyValuePair<byte, string>(3, "Gift Voucher"),
+                new KeyValuePair<byte, string>(4, "Loyalty Card"),
+                new KeyValuePair<byte, string>(5, "Mixed"),
+                new KeyValuePair<byte, string>(6, "Cheque")
             };
             paymentmode.DisplayMember = "Value";
             paymentmode.ValueMember = "Key";
-            paymentmode.SelectedValue = (byte)2; // default: Cash
+            paymentmode.SelectedValue = (byte)1;
 
             // Invoice type ComboBox
             invoicetype.DataSource = new List<KeyValuePair<byte, string>>()
             {
-                new KeyValuePair<byte, string>(1, "Sale"),
-                new KeyValuePair<byte, string>(2, "Purchase"),
-                new KeyValuePair<byte, string>(3, "Debit"),
-                new KeyValuePair<byte, string>(4, "Credit")
+                new KeyValuePair<byte, string>(1, "New"),
+                new KeyValuePair<byte, string>(2, "Sale Invoice"),
+                new KeyValuePair<byte, string>(3, "Credit Invoice")
             };
             invoicetype.DisplayMember = "Value";
             invoicetype.ValueMember = "Key";
-            invoicetype.SelectedValue = (byte)1; // default: Sale
+            invoicetype.SelectedValue = (byte)1;
+            
+            cmbInvoiceType.DataSource = new List<KeyValuePair<byte, string>>()
+            {
+                new KeyValuePair<byte, string>(1, "New"),
+                new KeyValuePair<byte, string>(3, "Credit"),
+                new KeyValuePair<byte, string>(11, "3rd Schedule New"),
+                new KeyValuePair<byte, string>(13, "3rd Schedule Credit"),
+                new KeyValuePair<byte, string>(139, "Sales of goods against SRO 297(I)/2023")
+            };
+            cmbInvoiceType.ValueMember = "Key";
+            cmbInvoiceType.DisplayMember = "Value";
+            cmbInvoiceType.SelectedValue = (byte)1;
+
         }
 
         // Event handler for form load
@@ -1093,7 +1117,7 @@
         public TextBox PCTCode { get; private set; }
         private Label label7;
         private TextBox rate;
-        private Label label5;
+        private Label lbinvoicetype;
         private TextBox ItemCode;
         private Label ItemNamelbl;
         private Label FurtureTaxlbl;
@@ -1168,5 +1192,6 @@
         private TextBox itemDiscountAmount;
         private TextBox itemDiscountPercent;
         private Label label4;
+        private ComboBox cmbInvoiceType;
     }
 }
