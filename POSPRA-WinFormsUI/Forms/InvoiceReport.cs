@@ -1,16 +1,10 @@
 ﻿using Microsoft.Reporting.WinForms;
 using POSPRA.DTOs.InvoiceDtos;
 using QRCoder;
-using System;
 using System.Configuration;
 using System.Data;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Printing;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using System.Collections.Generic; // Added for List
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -339,7 +333,7 @@ namespace POSPRA_WinFormsUI.Forms
                 string propertiesInfo = $"Printer: {thermalPrinterName}\n" +
                                         $"Default Page Size: {printerSettings.DefaultPageSettings.PaperSize.Kind}\n" +
                                         $"Landscape: {printerSettings.DefaultPageSettings.Landscape}";
-                
+
 
                 // Step 5: Print the report directly in background without preview
                 _reportViewer.LocalReport.PrintToThermal(thermalPrinterName, 3.15); // 80mm width, dynamic height
@@ -350,7 +344,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        
+
         // Helper to find thermal printer
         private string FindThermalPrinter()
         {
@@ -425,11 +419,12 @@ namespace POSPRA_WinFormsUI.Forms
 
     public static class LocalReportExtensions
     {
-        public static void PrintToThermal(this LocalReport report, string printerName, double widthInche=3.15) // Default 80mm width, dynamic height passed in
+        public static void PrintToThermal(this LocalReport report, string printerName, double widthInche = 3.15) // Default 80mm width, dynamic height passed in
         {
+            const double HeightInches = 100;
             var pageSettings = new PageSettings
             {
-                PaperSize = new PaperSize("Thermal 80mm", (int)(widthInche * 100), 0), // Hundredths of inch
+                PaperSize = new PaperSize("Thermal 80mm", (int)(widthInche * 100), (int)(HeightInches * 100)), // Hundredths of inch
                 Margins = new Margins(2, 2, 2, 2), // Small margins: 0.1in each
                 Landscape = false // Portrait for receipts
             };
@@ -439,7 +434,7 @@ namespace POSPRA_WinFormsUI.Forms
                     <DeviceInfo>
                         <OutputFormat>EMF</OutputFormat>
                         <PageWidth>{widthInche}in</PageWidth>
-                        <PageHeight>0in</PageHeight>
+                        <PageHeight>{HeightInches}in</PageHeight>
                         <MarginTop>0.002in</MarginTop>
                         <MarginLeft>0.002in</MarginLeft>
                         <MarginRight>0.002in</MarginRight>
