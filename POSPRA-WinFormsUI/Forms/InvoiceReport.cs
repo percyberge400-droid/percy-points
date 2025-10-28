@@ -1,5 +1,6 @@
 ﻿using Microsoft.Reporting.WinForms;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA_WinFormsUI.AlertClasses;
 using QRCoder;
 using System.Configuration;
 using System.Data;
@@ -10,6 +11,10 @@ namespace POSPRA_WinFormsUI.Forms
 {
     public partial class InvoiceReport : Form
     {
+        public InvoiceReport()
+        {
+            InitializeComponent();
+        }
         private readonly InvoiceDto _invoiceDto;
         private readonly string _invoiceNumber;
         private readonly bool _isFromDashboard;
@@ -22,6 +27,16 @@ namespace POSPRA_WinFormsUI.Forms
         private static LocalReport _cachedReportTemplate;
         private int _itemCount; // To store the number of invoice items for dynamic height
 
+        private void InvoiceReport_Shown(object? sender, EventArgs e)
+        {
+            // Bring window in front without keeping it topmost
+            if (!this.IsDisposed && this.Visible)
+            {
+                this.TopMost = true;
+                this.TopMost = false;
+                this.Activate();
+            }
+        }
 
         // Constructor for Save button
         public InvoiceReport(InvoiceDto invoiceDto, bool printDirectly = false)
@@ -317,7 +332,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                 if (string.IsNullOrEmpty(thermalPrinterName))
                 {
-                    MessageBox.Show("Thermal printer not found or not selected.", "Printer Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AlertManager.ShowError("Thermal printer not found or not selected.");
                     return;
                 }
 
@@ -325,7 +340,7 @@ namespace POSPRA_WinFormsUI.Forms
                 PrinterSettings printerSettings = new PrinterSettings { PrinterName = thermalPrinterName };
                 if (!printerSettings.IsValid)
                 {
-                    MessageBox.Show($"Invalid printer: {thermalPrinterName}", "Printer Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AlertManager.ShowError($"Invalid printer: {thermalPrinterName}");
                     return;
                 }
 
@@ -340,13 +355,13 @@ namespace POSPRA_WinFormsUI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error during direct printing: {ex.Message}", "Print Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AlertManager.ShowError($"Error during direct printing: {ex.Message}");
             }
         }
 
 
         // Helper to find thermal printer
-        private string FindThermalPrinter()
+        public static string? FindThermalPrinter()
         {
 
             try
@@ -384,30 +399,12 @@ namespace POSPRA_WinFormsUI.Forms
                 if (!string.IsNullOrEmpty(potentialThermal))
                     return potentialThermal;
 
-                // ⚠️ If not found,select manually
-                using (var dialog = new PrintDialog())
-                {
-                    dialog.AllowSomePages = false;
-                    dialog.AllowSelection = false;
-                    dialog.UseEXDialog = true;
-
-                    MessageBox.Show(
-                        "No thermal printer detected automatically.\n\nPlease select a printer manually.",
-                        "Select Printer",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                        return dialog.PrinterSettings.PrinterName;
-                }
-
                 // None found or selected
-                throw new InvalidOperationException("No suitable thermal printer was found or selected.");
+                throw new InvalidOperationException("No suitable thermal printer was found.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Printer detection failed:\n{ex.Message}", "Printer Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AlertManager.ShowError($"Printer detection failed:\n{ex.Message}");
                 throw;
             }
         }
