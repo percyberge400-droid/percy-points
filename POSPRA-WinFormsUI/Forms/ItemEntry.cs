@@ -914,57 +914,68 @@ namespace POSPRA_WinFormsUI
                         ResetUI(progressTaskCts);
                         return;
                     }
-
-                    // 🔹 Print configuration
-                    string printerName = InvoiceReport.FindThermalPrinter();
-                    bool showDialog = string.IsNullOrWhiteSpace(printerName);
-                    //bool showDialog = false; // Or set based on config/user choice
-
-                    if (showDialog)
+                    try
                     {
-                        // ShowDialog blocks by design, run on UI thread
-                        InvoiceReport printForm = new InvoiceReport(invoiceDto);
-                        printForm.ShowDialog();
-                    }
-                    else
-                    {
-                        // 🚀 Complete background printing - zero UI blocking
-                        _ = Task.Run(() =>
+                        // 🔹 Print configuration
+                        string printerName = InvoiceReport.FindThermalPrinter();
+                        bool showDialog = string.IsNullOrWhiteSpace(printerName);
+                        //bool showDialog = false; // Or set based on config/user choice
+
+                        if (showDialog)
                         {
-                            try
+                            // ShowDialog blocks by design, run on UI thread
+                            InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                            printForm.ShowDialog();
+                        }
+                        else
+                        {
+                            // 🚀 Complete background printing - zero UI blocking
+                            _ = Task.Run(() =>
                             {
-                                // Create form and print entirely in background thread
-                                InvoiceReport printForm = new InvoiceReport(invoiceDto);
-                                printForm.PrintDirectlyToThermal();
-                            }
-                            catch (Exception ex)
-                            {
-                                // Log error without blocking UI
                                 try
                                 {
-                                    this.BeginInvoke(new Action(() =>
-                                    {
-                                        _ = CreateLog($"Print error: {ex.Message}", AlertType.Error);
-                                    }));
+                                    // Create form and print entirely in background thread
+                                    InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                                    printForm.PrintDirectlyToThermal();
                                 }
-                                catch { /* Ignore if form is disposed */ }
-                            }
-                        });
+                                catch (Exception ex)
+                                {
+                                    // Log error without blocking UI
+                                    try
+                                    {
+                                        this.BeginInvoke(new Action(() =>
+                                        {
+                                            _ = CreateLog($"Print error: {ex.Message}", AlertType.Error);
+                                        }));
+                                    }
+                                    catch { /* Ignore if form is disposed */ }
+                                }
+                            });
+                        }
                     }
-
-                    AlertManager.ShowSuccess("Invoice saved successfully");
-                    _ = CreateLog("invoice saved successfully", AlertType.Success);
+                    catch
+                    {
+                        AlertManager.ShowInfo("Thermal Printer not Found!");
+                        return;
+                    }
+                    finally
+                    {
+                        AlertManager.ShowSuccess("Invoice saved successfully");
+                        _ = CreateLog("invoice saved successfully", AlertType.Success);
+                    }
 
                 }
                 catch (Exception ex)
                 {
                     AlertManager.ShowError($"Error saving invoice: {ex.Message}");
+                    return;
                 }
             }
             catch (Exception ex)
             {
                 AlertManager.ShowError($"Error: {ex.Message}");
                 ResetUI(progressTaskCts);
+                return;
             }
         }
 
