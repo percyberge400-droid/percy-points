@@ -90,7 +90,7 @@
             lblMessage.BackColor = Color.White;
             lblMessage.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
             lblMessage.ForeColor = Color.FromArgb(76, 175, 80);
-            lblMessage.Location = new Point(132, 520);
+            lblMessage.Location = new Point(132, 484);
             lblMessage.MaximumSize = new Size(600, 0);
             lblMessage.Name = "lblMessage";
             lblMessage.Size = new Size(0, 25);
@@ -106,7 +106,7 @@
             btnBrowseOLD.FlatStyle = FlatStyle.Flat;
             btnBrowseOLD.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
             btnBrowseOLD.ForeColor = Color.White;
-            btnBrowseOLD.Location = new Point(460, 425);
+            btnBrowseOLD.Location = new Point(460, 389);
             btnBrowseOLD.Name = "btnBrowseOLD";
             btnBrowseOLD.Size = new Size(50, 32);
             btnBrowseOLD.TabIndex = 17;
@@ -118,7 +118,7 @@
             txtOldDB.BackColor = Color.White;
             txtOldDB.BorderStyle = BorderStyle.FixedSingle;
             txtOldDB.Font = new Font("Segoe UI", 11F);
-            txtOldDB.Location = new Point(220, 425);
+            txtOldDB.Location = new Point(220, 389);
             txtOldDB.Name = "txtOldDB";
             txtOldDB.Size = new Size(230, 32);
             txtOldDB.TabIndex = 19;
@@ -128,7 +128,7 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label4.ForeColor = Color.FromArgb(64, 64, 64);
-            label4.Location = new Point(220, 395);
+            label4.Location = new Point(220, 359);
             label4.Name = "label4";
             label4.Size = new Size(135, 23);
             label4.TabIndex = 18;
@@ -138,7 +138,7 @@
             // 
             rdoProduction.AutoSize = true;
             rdoProduction.Font = new Font("Segoe UI", 10.2F);
-            rdoProduction.Location = new Point(395, 149);
+            rdoProduction.Location = new Point(395, 113);
             rdoProduction.Name = "rdoProduction";
             rdoProduction.Size = new Size(115, 27);
             rdoProduction.TabIndex = 16;
@@ -150,7 +150,7 @@
             rdoSandbox.AutoSize = true;
             rdoSandbox.Checked = true;
             rdoSandbox.Font = new Font("Segoe UI", 10.2F);
-            rdoSandbox.Location = new Point(294, 149);
+            rdoSandbox.Location = new Point(294, 113);
             rdoSandbox.Name = "rdoSandbox";
             rdoSandbox.Size = new Size(97, 27);
             rdoSandbox.TabIndex = 15;
@@ -163,7 +163,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label1.ForeColor = Color.FromArgb(64, 64, 64);
-            label1.Location = new Point(220, 153);
+            label1.Location = new Point(220, 117);
             label1.Name = "label1";
             label1.Size = new Size(64, 23);
             label1.TabIndex = 12;
@@ -178,7 +178,7 @@
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(400, 472);
+            btnCancel.Location = new Point(400, 436);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(110, 45);
             btnCancel.TabIndex = 11;
@@ -188,7 +188,7 @@
             // 
             // progressBar
             // 
-            progressBar.Location = new Point(220, 567);
+            progressBar.Location = new Point(220, 530);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(290, 32);
             progressBar.TabIndex = 9;
@@ -262,7 +262,7 @@
             btnBrowse.FlatStyle = FlatStyle.Flat;
             btnBrowse.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
             btnBrowse.ForeColor = Color.White;
-            btnBrowse.Location = new Point(460, 344);
+            btnBrowse.Location = new Point(460, 308);
             btnBrowse.Name = "btnBrowse";
             btnBrowse.Size = new Size(50, 32);
             btnBrowse.TabIndex = 3;
@@ -274,7 +274,7 @@
             txtFilePath.BackColor = Color.White;
             txtFilePath.BorderStyle = BorderStyle.FixedSingle;
             txtFilePath.Font = new Font("Segoe UI", 11F);
-            txtFilePath.Location = new Point(220, 344);
+            txtFilePath.Location = new Point(220, 308);
             txtFilePath.Name = "txtFilePath";
             txtFilePath.Size = new Size(230, 32);
             txtFilePath.TabIndex = 8;
@@ -284,7 +284,7 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label3.ForeColor = Color.FromArgb(64, 64, 64);
-            label3.Location = new Point(220, 314);
+            label3.Location = new Point(220, 278);
             label3.Name = "label3";
             label3.Size = new Size(147, 23);
             label3.TabIndex = 7;
@@ -295,7 +295,7 @@
             txtPassword.BackColor = Color.White;
             txtPassword.BorderStyle = BorderStyle.FixedSingle;
             txtPassword.Font = new Font("Segoe UI", 11F);
-            txtPassword.Location = new Point(220, 264);
+            txtPassword.Location = new Point(220, 228);
             txtPassword.MaxLength = 120;
             txtPassword.Name = "txtPassword";
             txtPassword.PasswordChar = '•';
@@ -307,7 +307,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             label2.ForeColor = Color.FromArgb(64, 64, 64);
-            label2.Location = new Point(220, 234);
+            label2.Location = new Point(220, 198);
             label2.Name = "label2";
             label2.Size = new Size(55, 23);
             label2.TabIndex = 5;
@@ -318,7 +318,7 @@
             txtUsername.BackColor = Color.White;
             txtUsername.BorderStyle = BorderStyle.FixedSingle;
             txtUsername.Font = new Font("Segoe UI", 11F);
-            txtUsername.Location = new Point(220, 184);
+            txtUsername.Location = new Point(220, 148);
             txtUsername.MaxLength = 120;
             txtUsername.Name = "txtUsername";
             txtUsername.Size = new Size(290, 32);
@@ -332,7 +332,7 @@
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnOk.ForeColor = Color.White;
-            btnOk.Location = new Point(220, 472);
+            btnOk.Location = new Point(220, 436);
             btnOk.Name = "btnOk";
             btnOk.Size = new Size(110, 45);
             btnOk.TabIndex = 4;
