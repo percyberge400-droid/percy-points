@@ -318,7 +318,7 @@ namespace POSPRA.SetupUI
                 CreateDatabaseDirectory(dbPath);
 
                 var mac = TryGetMacAddress();
-                var environment = await SetEnvironmentAsync(selectedEnvironment);
+                var environment = await SetEnvironmentAsync(username,selectedEnvironment);
                 if (environment==null)
                 {
                     return;
@@ -1111,12 +1111,13 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private async Task<JObject> SetEnvironmentAsync(string selectedEnvironment)
+        private async Task<JObject> SetEnvironmentAsync(string POSID1,string selectedEnvironment)
         {
             try
             {
                 var payload = new
-                {                   
+                {
+                    POSID= POSID1,
                     Environment = selectedEnvironment
                 };
 
