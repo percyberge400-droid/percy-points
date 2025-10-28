@@ -10,6 +10,7 @@ using POSPRA.DTOs.ClientDtos;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.ClientRepository;
 using POSPRA.Repositories.UnitOfWork;
+using System.Text.Json;
 
 namespace POSPRA.Application.Services.ClientService
 {
@@ -36,10 +37,38 @@ namespace POSPRA.Application.Services.ClientService
         {
             try
             {
-                // ✅ 1. Select environment
+                // ✅ 1. Select environment (default sandbox)
                 string environment = dto.Environment?.Trim().ToLower() ?? "sandbox";
 
-                // ✅ 2. Choose connection string from configuration
+                // ✅ 2. Load and update appsettings.json (IsProduction flag)
+                string configFilePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+                string json = string.Join(
+                    Environment.NewLine,
+                    File.ReadAllLines(configFilePath)
+                        .Where(line => !line.TrimStart().StartsWith("//"))
+                );
+
+                // ✅ Then parse safely
+                using var jsonDoc = JsonDocument.Parse(json);
+
+                var jsonObj = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+                if (jsonObj != null && jsonObj.ContainsKey("AppSettings"))
+                {
+                    var appSettings = JsonSerializer.Deserialize<AppSettings>(jsonObj["AppSettings"].ToString()!);
+
+                    if (appSettings != null)
+                    {
+                        appSettings.IsProduction = environment == "production";
+
+                        // ✅ Write back updated AppSettings
+                        jsonObj["AppSettings"] = appSettings;
+                        string updatedJson = JsonSerializer.Serialize(jsonObj, new JsonSerializerOptions { WriteIndented = true });
+                        await File.WriteAllTextAsync(configFilePath, updatedJson);
+                    }
+                }
+
+                // ✅ 3. Choose connection string
                 string connectionStringKey = environment == "production"
                     ? "SqlServerConnectionProduction"
                     : "SqlServerConnectionSandbox";
@@ -55,13 +84,13 @@ namespace POSPRA.Application.Services.ClientService
                         string.Empty);
                 }
 
-                // ✅ 3. Create new DbContext with selected connection
+                // ✅ 4. Create DbContext
                 var optionsBuilder = new DbContextOptionsBuilder<SqlServerDbContext>();
                 optionsBuilder.UseSqlServer(connectionString);
 
                 using var sqlServerContext = new SqlServerDbContext(optionsBuilder.Options);
 
-                // ✅ 4. Query PosClients table
+                // ✅ 5. Query and validate
                 var entity = await sqlServerContext.Set<PosClients>()
                     .FirstOrDefaultAsync(m => m.POSRegistrationNumber == dto.PosId);
 
@@ -74,12 +103,10 @@ namespace POSPRA.Application.Services.ClientService
                         string.Empty);
                 }
 
-                // ✅ 5. Validate MAC and Token
+                // ✅ 6. Validate MAC & Token
                 var errors = new List<string>();
-
                 if (entity.MAC_Address != dto.MacAddress)
                     errors.Add(ResponseMessages.InvalidMacAddress);
-
                 if (entity.Token != dto.Token)
                     errors.Add(ResponseMessages.InvalidToken);
 
@@ -93,7 +120,7 @@ namespace POSPRA.Application.Services.ClientService
                         string.Empty);
                 }
 
-                // ✅ 6. Check configuration status
+                // ✅ 7. Configuration flag check
                 if (entity.IsConfigured == true)
                 {
                     return new ApiResponse<PosClients>(
@@ -103,26 +130,13 @@ namespace POSPRA.Application.Services.ClientService
                         string.Empty);
                 }
 
-                // ✅ 7. Update flag (reuse your existing helper)
                 var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
 
                 if (statusCode == ApiStatusCode.ServiceUnavailable)
-                {
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.ServiceUnavailable,
-                        ResponseMessages.InternetNotAvailable,
-                        null!,
-                        string.Empty);
-                }
+                    return new ApiResponse<PosClients>(ApiStatusCode.ServiceUnavailable, ResponseMessages.InternetNotAvailable, null!, string.Empty);
 
                 if (statusCode == ApiStatusCode.NotFound)
-                {
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.NotFound,
-                        ResponseMessages.DataNotFound,
-                        null!,
-                        string.Empty);
-                }
+                    return new ApiResponse<PosClients>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null!, string.Empty);
 
                 entity.IsConfigured = true;
 
@@ -142,6 +156,7 @@ namespace POSPRA.Application.Services.ClientService
                     string.Empty);
             }
         }
+
 
         public async Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId)
         {
