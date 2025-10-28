@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.ClientService;
-using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.DTOs;
 using POSPRA.DTOs.ClientDtos;
 using POSPRA.DTOs.FiscalDtos;
 using POSPRA.DTOs.InvoiceDtos;
-using POSPRA.DTOs.LogDtos;
 using POSPRA.DTOs.LogDTOs;
 
 namespace POSPRA.API.Controllers
@@ -36,6 +34,10 @@ namespace POSPRA.API.Controllers
         [HttpPost("authenticate-by-mac")]
         public async Task<ActionResult<ApiResponse<string>>> AuthenticateByMacAsync(ClientValidationDto dto) =>
             Ok(await _clientService.GetByMacAsync(dto));
+
+        [HttpPost("update-configuration-flag")]
+        public async Task<ActionResult<ApiResponse<string>>> UpdateConfigurationFlag(bool isConfiguration) =>
+            Ok(await _clientService.UpdateConfigurationFlag(isConfiguration));
 
         [HttpPost("create-cloud-log")]
         public async Task<ActionResult<ApiResponse<string>>> CreateCloudLog(List<SyncLogDto> logDtos) =>
