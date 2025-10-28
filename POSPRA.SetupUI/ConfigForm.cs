@@ -318,13 +318,13 @@ namespace POSPRA.SetupUI
                 CreateDatabaseDirectory(dbPath);
 
                 var mac = TryGetMacAddress();
-                var environment = await SetEnvironmentAsync(username,selectedEnvironment);
-                if (environment==null)
-                {
-                    return;
+                //var environment = await SetEnvironmentAsync(username,selectedEnvironment);
+                //if (environment==null)
+                //{
+                //    return;
 
-                }
-                var json = await AuthenticateAsync(username, password, mac);
+                //}
+                var json = await AuthenticateAsync(username, password, mac, selectedEnvironment);
                 if (json == null)
                     return;
 
@@ -1061,7 +1061,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private async Task<JObject> AuthenticateAsync(string username, string password, string mac)
+        private async Task<JObject> AuthenticateAsync(string username, string password, string mac,string selectedEnvironment)
         {
             try
             {
@@ -1070,7 +1070,8 @@ namespace POSPRA.SetupUI
                     posId = username,
                     macAddress = mac,
                     token = password,
-                    
+                    Environment= selectedEnvironment
+
                 };
 
                 string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];

@@ -40,7 +40,6 @@
             btnCancel = new Button();
             progressBar = new ProgressBar();
             headerPanel = new Panel();
-            lblSubtitle = new Label();
             lblWelcome = new Label();
             pictureBox1 = new PictureBox();
             LOGO_img = new PictureBox();
@@ -197,7 +196,6 @@
             // headerPanel
             // 
             headerPanel.BackColor = Color.FromArgb(52, 168, 164);
-            headerPanel.Controls.Add(lblSubtitle);
             headerPanel.Controls.Add(lblWelcome);
             headerPanel.Controls.Add(pictureBox1);
             headerPanel.Controls.Add(LOGO_img);
@@ -208,26 +206,13 @@
             headerPanel.TabIndex = 0;
             headerPanel.Paint += headerPanel_Paint;
             // 
-            // lblSubtitle
-            // 
-            lblSubtitle.AutoSize = true;
-            lblSubtitle.BackColor = Color.Transparent;
-            lblSubtitle.Font = new Font("Segoe UI", 10F);
-            lblSubtitle.ForeColor = Color.White;
-            lblSubtitle.Location = new Point(260, 66);
-            lblSubtitle.Name = "lblSubtitle";
-            lblSubtitle.Size = new Size(206, 23);
-            lblSubtitle.TabIndex = 2;
-            lblSubtitle.Text = "Please login to continue...";
-            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
-            // 
             // lblWelcome
             // 
             lblWelcome.AutoSize = true;
             lblWelcome.BackColor = Color.Transparent;
             lblWelcome.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
             lblWelcome.ForeColor = Color.White;
-            lblWelcome.Location = new Point(260, 15);
+            lblWelcome.Location = new Point(260, 27);
             lblWelcome.Name = "lblWelcome";
             lblWelcome.Size = new Size(197, 46);
             lblWelcome.TabIndex = 1;
@@ -369,7 +354,6 @@
         private Panel mainPanel;
         private Panel headerPanel;
         private Label lblWelcome;
-        private Label lblSubtitle;
         private PictureBox pictureBox1;
         private PictureBox LOGO_img;
         private TextBox txtUsername;
