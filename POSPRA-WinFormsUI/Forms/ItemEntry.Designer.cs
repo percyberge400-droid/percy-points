@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
             label4 = new Label();
             itemDiscountAmount = new TextBox();
@@ -237,7 +237,7 @@
             salevaluelbl.Name = "salevaluelbl";
             salevaluelbl.Size = new Size(95, 20);
             salevaluelbl.TabIndex = 44;
-            salevaluelbl.Text = "Sale Value";
+            salevaluelbl.Text = "Unit Price";
             // 
             // TaxRatebox
             // 
@@ -262,10 +262,12 @@
             // 
             // totalamount
             // 
+            totalamount.BackColor = SystemColors.Control;
             totalamount.Font = new Font("Microsoft Sans Serif", 9F);
             totalamount.Location = new Point(465, 42);
             totalamount.Name = "totalamount";
             totalamount.PlaceholderText = "Total Amount";
+            totalamount.ReadOnly = true;
             totalamount.Size = new Size(194, 24);
             totalamount.TabIndex = 11;
             totalamount.Text = "105";
@@ -289,9 +291,9 @@
             ItemNamelbl.ForeColor = Color.FromArgb(75, 85, 99);
             ItemNamelbl.Location = new Point(20, 90);
             ItemNamelbl.Name = "ItemNamelbl";
-            ItemNamelbl.Size = new Size(88, 20);
+            ItemNamelbl.Size = new Size(120, 20);
             ItemNamelbl.TabIndex = 27;
-            ItemNamelbl.Text = "Item Name";
+            ItemNamelbl.Text = "Item Description";
             // 
             // FurtureTaxlbl
             // 
@@ -302,7 +304,7 @@
             FurtureTaxlbl.Name = "FurtureTaxlbl";
             FurtureTaxlbl.Size = new Size(205, 20);
             FurtureTaxlbl.TabIndex = 28;
-            FurtureTaxlbl.Text = "Sale Type";
+            FurtureTaxlbl.Text = "Services Rendered";
             // 
             // FurtureTax
             // 
@@ -360,9 +362,9 @@
             lblCustomerRegType.ForeColor = Color.FromArgb(75, 85, 99);
             lblCustomerRegType.Location = new Point(240, 19);
             lblCustomerRegType.Name = "lblCustomerRegType";
-            lblCustomerRegType.Size = new Size(106, 20);
+            lblCustomerRegType.Size = new Size(164, 20);
             lblCustomerRegType.TabIndex = 37;
-            lblCustomerRegType.Text = "PCT Code";
+            lblCustomerRegType.Text = "HS Code (8 digits)";
             // 
             // totalamountlbl
             // 
@@ -424,22 +426,22 @@
             dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.White;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
-            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.White;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle3.SelectionBackColor = Color.White;
+            dataGridViewCellStyle3.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.White;
+            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 419);

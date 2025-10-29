@@ -368,11 +368,11 @@ namespace POSPRA_WinFormsUI
             pctCode.Location = new Point(row1Col4X, row1ControlY);
             pctCode.Size = new Size(row1ColWidth, controlHeight);
 
-            // ROW 1 - Total Amount
-            totalamountlbl.Location = new Point(row1Col5X, row1LabelY);
-            totalamountlbl.AutoSize = true;
-            totalamount.Location = new Point(row1Col5X, row1ControlY);
-            totalamount.Size = new Size(row1ColWidth, controlHeight);
+            // ROW 1 - Unit Price
+            salevaluelbl.Location = new Point(row1Col5X, row1LabelY);
+            salevaluelbl.AutoSize = true;
+            salevalue.Location = new Point(row1Col5X, row1ControlY);
+            salevalue.Size = new Size(row1ColWidth, controlHeight);
 
             // ROW 2: Sale Value | Quantity | Tax Rate | Discount% | Discount Rs | Tax Charged
             // Calculate widths - 6 columns total
@@ -389,42 +389,42 @@ namespace POSPRA_WinFormsUI
             int row2Col5X = row2Col4X + discountPercentWidth + spacing;
             int row2Col6X = row2Col5X + discountAmountWidth + spacing;
 
-            // ROW 2 - Sale Value
-            salevaluelbl.Location = new Point(row2Col1X, row2LabelY);
-            salevaluelbl.AutoSize = true;
-            salevalue.Location = new Point(row2Col1X, row2ControlY);
-            salevalue.Size = new Size(row2StandardWidth, controlHeight);
-
             // ROW 2 - Quantity
-            lblSellerAddress.Location = new Point(row2Col2X, row2LabelY);
+            lblSellerAddress.Location = new Point(row2Col1X, row2LabelY);
             lblSellerAddress.AutoSize = true;
-            qty.Location = new Point(row2Col2X, row2ControlY);
+            qty.Location = new Point(row2Col1X, row2ControlY);
             qty.Size = new Size(row2StandardWidth, controlHeight);
 
             // ROW 2 - Tax Rate
-            TaxRatelbl.Location = new Point(row2Col3X, row2LabelY);
+            TaxRatelbl.Location = new Point(row2Col2X, row2LabelY);
             TaxRatelbl.AutoSize = true;
-            TaxRatebox.Location = new Point(row2Col3X, row2ControlY);
+            TaxRatebox.Location = new Point(row2Col2X, row2ControlY);
             TaxRatebox.Size = new Size(row2StandardWidth, controlHeight);
 
-            // ROW 2 - Discount %
-            itemDiscountlbl.Location = new Point(row2Col4X, row2LabelY);
+            // ROW 2 - Discount (%)
+            itemDiscountlbl.Location = new Point(row2Col3X, row2LabelY);
             itemDiscountlbl.AutoSize = true;
-            itemDiscountPercent.Location = new Point(row2Col4X, row2ControlY);
-            itemDiscountPercent.Size = new Size(discountPercentWidth, controlHeight);
+            itemDiscountPercent.Location = new Point(row2Col3X, row2ControlY);
+            itemDiscountPercent.Size = new Size(row2StandardWidth, controlHeight);
 
             // ROW 2 - Discount Rs.
-            label4.Location = new Point(row2Col5X, row2LabelY);
+            label4.Location = new Point(row2Col4X, row2LabelY);
             label4.AutoSize = true;
-            itemDiscountAmount.Location = new Point(row2Col5X, row2ControlY);
-            itemDiscountAmount.Size = new Size(discountAmountWidth, controlHeight);
+            itemDiscountAmount.Location = new Point(row2Col4X, row2ControlY);
+            itemDiscountAmount.Size = new Size(discountPercentWidth, controlHeight);
 
             // ROW 2 - Tax Charged
-            TaxChargedlbl.Location = new Point(row2Col6X, row2LabelY);
+            TaxChargedlbl.Location = new Point(row2Col5X, row2LabelY);
             TaxChargedlbl.AutoSize = true;
-            TaxCharged.Location = new Point(row2Col6X, row2ControlY);
+            TaxCharged.Location = new Point(row2Col5X, row2ControlY);
+            TaxCharged.Size = new Size(discountAmountWidth, controlHeight);
+
+            // ROW 2 - Tax Charged
+            totalamountlbl.Location = new Point(row2Col6X, row2LabelY);
+            totalamountlbl.AutoSize = true;
+            totalamount.Location = new Point(row2Col6X, row2ControlY);
             int remainingWidth = pnlBasicInfo.Width - row2Col6X - padding;
-            TaxCharged.Size = new Size(Math.Max(remainingWidth, taxChargedWidth), controlHeight);
+            totalamount.Size = new Size(Math.Max(remainingWidth, taxChargedWidth), controlHeight);
         }
         private void Panel1_Resize(object sender, EventArgs e)
         {
@@ -1057,10 +1057,15 @@ namespace POSPRA_WinFormsUI
             var header = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
             header.Paint += (s, e) =>
             {
-                using var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
-                    header.ClientRectangle, accentTeal, accentBlue, 0f);
+                using var brush = new LinearGradientBrush(
+                    header.ClientRectangle,
+                    ColorTranslator.FromHtml("#1B8C76"),  // top teal
+                    ColorTranslator.FromHtml("#125E8A"),  // bottom blue
+                    90f  // vertical gradient
+                );
                 e.Graphics.FillRectangle(brush, header.ClientRectangle);
             };
+
 
             var lblTitle = new Label
             {
@@ -1169,13 +1174,13 @@ namespace POSPRA_WinFormsUI
             listView.Columns.Add("Tax Rate", 80, HorizontalAlignment.Center);
 
             // Product detail panel (shown when item selected)
+            // ✅ Product detail panel (fixed footer-style)
             var detailPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
-                Height = 0,
-                BackColor = ColorTranslator.FromHtml("#F0F4F8"),
-                Padding = new Padding(12, 8, 12, 8),
-                Visible = false
+                Height = 60,
+                BackColor = ColorTranslator.FromHtml("#F8FAFB"),
+                Padding = new Padding(12, 8, 12, 8)
             };
             detailPanel.Paint += (s, e) =>
             {
@@ -1188,8 +1193,9 @@ namespace POSPRA_WinFormsUI
                 Dock = DockStyle.Fill,
                 Font = new Font("Segoe UI", 9F),
                 ForeColor = ColorTranslator.FromHtml("#2C3E50"),
-                Text = "",
-                AutoSize = false
+                Text = "Select a product to see details...",
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true
             };
             detailPanel.Controls.Add(lblDetail);
 
@@ -1265,15 +1271,13 @@ namespace POSPRA_WinFormsUI
                 {
                     var p = currentResults[listView.SelectedIndices[0]];
                     lblDetail.Text = $"📦 Code: {p.ProductCode}   |   🏷️ HS Code: {p.HSCode ?? "N/A"}   |   💰 Tax Rate: {p.TaxRate?.ToString() ?? "0"}%";
-                    detailPanel.Height = 60;
-                    detailPanel.Visible = true;
                 }
                 else
                 {
-                    detailPanel.Height = 0;
-                    detailPanel.Visible = false;
+                    lblDetail.Text = "Select a product to see details...";
                 }
             };
+
 
             // Double-click to select
             listView.DoubleClick += (s, e) =>
@@ -1286,8 +1290,15 @@ namespace POSPRA_WinFormsUI
                 }
             };
 
-            content.Controls.Add(detailPanel);
-            content.Controls.Add(listView);
+            var listContainer = new Panel
+            {
+                Dock = DockStyle.Fill
+            };
+            listContainer.Controls.Add(listView);
+            listContainer.Controls.Add(detailPanel);
+
+            content.Controls.Add(listContainer);
+
             content.Controls.Add(lblResultCount);
             content.Controls.Add(inputWrapper);
 
@@ -1403,20 +1414,26 @@ namespace POSPRA_WinFormsUI
 
         private void DisplayProductInfo(ProductCatalogueDto product)
         {
-            ItemCode.Text = product.ProductCode?.ToString() ?? "";     // PCT Code in pctCode field
+            // Fill basic info
+            ItemCode.Text = product.ProductCode?.ToString() ?? "";
             ItemName.Text = product.ProductDescription ?? "";
-            pctCode.Text = product.HSCode ?? "";                      // HS Code in ItemCode field
+            pctCode.Text = product.HSCode ?? "";
 
-            // Set tax rate percentage from product catalog
-            // TaxRate is already a string or nullable decimal - handle both cases
-            if (product.TaxRate != null)
+            // Handle tax rate (remove % if present and ensure numeric)
+            string rawTaxRate = product.TaxRate?.ToString() ?? "0";
+
+            if (rawTaxRate.Contains("%"))
+                rawTaxRate = rawTaxRate.Replace("%", "").Trim();
+
+            TaxRatebox.Text = rawTaxRate;
+
+            // 🔁 Trigger recalculations or dependent logic after selection
+            try
             {
-                TaxRatebox.Text = product.TaxRate.ToString();
+                CalculateItemTotals();
+                UpdateInvoiceTotals();
             }
-            else
-            {
-                TaxRatebox.Text = "0";
-            }
+            catch { /* silently skip if events not defined */ }
         }
 
         #endregion

@@ -466,7 +466,6 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.AllowUserToAddRows = false;
             InvoicesDataGridView.AllowUserToDeleteRows = false;
             InvoicesDataGridView.BackgroundColor = Color.White;
-            InvoicesDataGridView.BorderStyle = BorderStyle.None;
             InvoicesDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             InvoicesDataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             InvoicesDataGridView.ColumnHeadersHeight = 50;

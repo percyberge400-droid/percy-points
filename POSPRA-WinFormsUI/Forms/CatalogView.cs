@@ -329,14 +329,27 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 try
                 {
-                    // Fetch from local DB using FiscalService
                     var response = await _productCatalogueService.GetProductCatalogue();
+                    var allItems = response?.Data?.OrderBy(p => p.ItemSerialNumber).ToList() ?? new List<ProductCatalogueDto>();
 
-                    var list = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
-                    PopulateGrid(list);
+                    // ✅ Compute total pages
+                    int totalRecords = allItems.Count;
+                    int totalPages = (int)Math.Ceiling((double)totalRecords / _pageSize);
+                    if (_currentPage > totalPages && totalPages > 0)
+                        _currentPage = totalPages;
 
-                    lblPageNumber.Text = $"Page {_currentPage}";
-                    btnNext.Enabled = list.Count() >= _pageSize; // Enable next if full page
+                    // ✅ Apply pagination
+                    var pageData = allItems
+                        .Skip((_currentPage - 1) * _pageSize)
+                        .Take(_pageSize)
+                        .ToList();
+
+                    // ✅ Bind data to grid
+                    PopulateGrid(pageData);
+
+                    // ✅ Update pagination controls
+                    lblPageNumber.Text = $"Page {_currentPage} of {totalPages} (Total: {totalRecords})";
+                    btnNext.Enabled = _currentPage < totalPages;
                     btnPrev.Enabled = _currentPage > 1;
                 }
                 catch (Exception ex)
@@ -347,11 +360,28 @@ namespace POSPRA_WinFormsUI.Forms
             });
         }
 
+        private async Task NextPage()
+        {
+            _currentPage++;
+            await LoadFromLocalDB();
+        }
+
+        private async Task PrevPage()
+        {
+            if (_currentPage > 1)
+            {
+                _currentPage--;
+                await LoadFromLocalDB();
+            }
+        }
+
+
         /// <summary>
         /// Filter products from LOCAL database based on search
         /// </summary>
         private async Task FilterProductsFromLocalDB()
         {
+            _currentPage = 1;
             await RunSingleLoad(async () =>
             {
                 try
@@ -421,22 +451,6 @@ namespace POSPRA_WinFormsUI.Forms
                 SetCell("colPosUOM", product.PosUnitOfMeasurement);
                 SetCell("colTaxRate", product.TaxRate);
                 SetCell("colSROno", product.SroScheduleNumber);
-            }
-        }
-
-
-        private async Task NextPage()
-        {
-            _currentPage++;
-            await LoadFromLocalDB();
-        }
-
-        private async Task PrevPage()
-        {
-            if (_currentPage > 1)
-            {
-                _currentPage--;
-                await LoadFromLocalDB();
             }
         }
 

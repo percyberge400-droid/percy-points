@@ -137,13 +137,13 @@ namespace POSPRA_WinFormsUI.Forms
             );
             ApplyGradientBackground(
                 panelPending,
-                ColorTranslator.FromHtml("#E53935"),
-                ColorTranslator.FromHtml("#EF5350")
+                ColorTranslator.FromHtml("#AC0101"),
+                ColorTranslator.FromHtml("#D50000")
             );
             ApplyGradientBackground(
                 panelPaid,
-                ColorTranslator.FromHtml("#43A047"),
-                ColorTranslator.FromHtml("#66BB6A")
+                ColorTranslator.FromHtml("#48A787"),
+                ColorTranslator.FromHtml("#0D7351")
             );
             AddImageToPanelRight(panelAll, Resources.InvoiceAll);
             AddImageToPanelRight(panelPending, Resources.NotSynced);
