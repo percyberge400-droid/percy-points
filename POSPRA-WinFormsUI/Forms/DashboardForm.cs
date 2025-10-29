@@ -113,6 +113,22 @@ namespace POSPRA_WinFormsUI.Forms
             panellogchart.Resize -= LogChartPanel_Resize;
             panellogchart.Resize += LogChartPanel_Resize;
 
+            lblTotalLogsCount.Click += panelTotalLogs_Click;
+            lblTotalLogsTitle.Click += panelTotalLogs_Click;
+            panelTotalLogs.Click += panelTotalLogs_Click;
+
+            lblErrorLogsTitle.Click += panelErrorLogs_Click;
+            lblErrorLogsCount.Click += panelErrorLogs_Click;
+            panelErrorLogs.Click += panelErrorLogs_Click;
+
+            lblInfoLogsCount.Click += panelInfoLogs_Click;
+            lblInfoLogsTitle.Click += panelInfoLogs_Click;
+            panelInfoLogs.Click += panelInfoLogs_Click;
+
+            lblWarningLogsCount.Click += panelWarningLogs_Click;
+            lblWarningLogsTitle.Click += panelWarningLogs_Click;
+            panelWarningLogs.Click += panelWarningLogs_Click;
+
             if (progressBar != null) progressBar.Visible = false;
             ApplyGradientBackground(
                 panelAll,
@@ -452,6 +468,25 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 _autoRefreshTimer.Start();
             }
+        }
+        #endregion
+
+        #region log filtering
+        private async void panelTotalLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "success");
+        }
+        private async void panelErrorLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "error");
+        }
+        private async void panelWarningLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "warning");
+        }
+        private async void panelInfoLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "info");
         }
         #endregion
 
@@ -802,65 +837,79 @@ namespace POSPRA_WinFormsUI.Forms
         private async Task LoadAndShowLogsAsync(
             IEnumerable<LogDto>? preloadedLogs = null,
             bool skipDateFilter = false,
-            string? logTypeFilter = null) // 👈 optional log type filter
+            string? logTypeFilter = null)
         {
             try
             {
-                var response = preloadedLogs == null ? await _logService.GetAllAsync() : null;
-                var logs = preloadedLogs ?? response?.Data;
+                IEnumerable<LogDto> logs;
+                IEnumerable<LogDto> allLogsForStats; // ✅ Keep unfiltered logs for statistics
 
-                if (logs == null || !logs.Any())
+                if (preloadedLogs != null)
                 {
-                    _logCache = new List<LogDisplayModel>();
-                    LogsDataGridView.RowCount = 0;
-                    WindowsLocalAppNotification.Show("Logs", "No logs available to display");
-                    AlertManager.ShowWarning("No logs available to display");
+                    logs = preloadedLogs;
+                    allLogsForStats = preloadedLogs;
+                }
+                else
+                {
+                    var response = await _logService.GetAllAsync();
 
-                    CalculateLogStatistics(null);
-                    UpdateLogStatisticsDisplay();
-                    return;
+                    if (response?.Data == null || !response.Data.Any())
+                    {
+                        _logCache = new List<LogDisplayModel>();
+                        LogsDataGridView.RowCount = 0;
+
+                        WindowsLocalAppNotification.Show("Logs", "No logs available to display");
+                        AlertManager.ShowWarning("No logs available to display");
+
+                        CalculateLogStatistics(null);
+                        UpdateLogStatisticsDisplay();
+                        return;
+                    }
+
+                    logs = response.Data;
+                    allLogsForStats = response.Data;
                 }
 
-                IEnumerable<LogDto> filteredLogs = logs;
-
-                // ✅ Apply date filter if required
+                // ✅ Apply date filter (affects both stats + display)
                 if (!skipDateFilter)
                 {
-                    filteredLogs = filteredLogs.Where(l =>
+                    logs = logs.Where(l =>
+                        l.CreatedAtPk >= _startDate &&
+                        l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+
+                    allLogsForStats = allLogsForStats.Where(l =>
                         l.CreatedAtPk >= _startDate &&
                         l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
-                // ✅ Apply log type filter (case-insensitive, grouped logic)
+                // ✅ Calculate statistics BEFORE applying type filter
+                CalculateLogStatistics(allLogsForStats);
+                UpdateLogStatisticsDisplay();
+
+                // ✅ Apply log type filter (for grid display only)
                 if (!string.IsNullOrWhiteSpace(logTypeFilter))
                 {
                     string filter = logTypeFilter.Trim().ToLower();
 
-                    filteredLogs = filteredLogs.Where(l =>
+                    logs = logs.Where(l =>
                     {
                         var type = (l.Type ?? string.Empty).ToLower();
 
                         return filter switch
                         {
-                            // Group error/exception
+                            // Grouped filters
                             "error" or "exception" => type.Contains("error") || type.Contains("exception"),
-
-                            // Group info/information
                             "info" or "information" => type.Contains("info") || type.Contains("information"),
-
-                            // Direct matches
                             "warning" => type.Contains("warning"),
                             "success" => type.Contains("success"),
-
-                            // Default: show all if unknown
                             _ => true
                         };
                     });
                 }
 
-                var logsList = filteredLogs.OrderByDescending(l => l.CreatedAtPk).ToList();
+                var logsList = logs.OrderByDescending(l => l.CreatedAtPk).ToList();
 
-                // ✅ Handle empty results after filtering
+                // ✅ Handle empty results after filter
                 if (!logsList.Any())
                 {
                     _logCache = new List<LogDisplayModel>();
@@ -868,17 +917,10 @@ namespace POSPRA_WinFormsUI.Forms
 
                     WindowsLocalAppNotification.Show("Logs", $"No {logTypeFilter ?? "filtered"} logs available to display");
                     AlertManager.ShowWarning($"No {logTypeFilter ?? "filtered"} logs available to display");
-
-                    CalculateLogStatistics(null);
-                    UpdateLogStatisticsDisplay();
                     return;
                 }
 
-                // ✅ Calculate stats and update UI
-                CalculateLogStatistics(logsList);
-                UpdateLogStatisticsDisplay();
-
-                // ✅ Build cache for Virtual Mode
+                // ✅ Build log cache for display
                 _logCache = logsList
                     .Select((log, index) => new LogDisplayModel
                     {
@@ -890,10 +932,13 @@ namespace POSPRA_WinFormsUI.Forms
                     })
                     .ToList();
 
-                // ✅ Update DataGrid instantly
+                // ✅ Refresh DataGridView safely
+                LogsDataGridView.SuspendLayout();
                 LogsDataGridView.RowCount = _logCache.Count;
+                LogsDataGridView.ResumeLayout(false);
                 LogsDataGridView.Invalidate();
                 LogsDataGridView.Refresh();
+                Application.DoEvents();
 
                 LogsDataGridView.ClearSelection();
                 LogsDataGridView.CurrentCell = null;
