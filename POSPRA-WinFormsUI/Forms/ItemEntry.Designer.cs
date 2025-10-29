@@ -46,7 +46,7 @@
             ItemCode = new TextBox();
             ItemNamelbl = new Label();
             FurtureTaxlbl = new Label();
-            FurtureTax = new TextBox();
+            FurtureTax = new ComboBox();
             ItemName = new TextBox();
             ItemCodelbl = new Label();
             lblSellerAddress = new Label();
@@ -91,8 +91,6 @@
             TotalSaleValue = new TextBox();
             TotalQuantitylbl = new Label();
             TotalQuantity = new TextBox();
-            totalFurtherTaxlbl = new Label();
-            TotalFurtherTax = new TextBox();
             Discountlbl = new Label();
             Discount = new TextBox();
             posid = new TextBox();
@@ -302,18 +300,18 @@
             FurtureTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
             FurtureTaxlbl.Location = new Point(677, 90);
             FurtureTaxlbl.Name = "FurtureTaxlbl";
-            FurtureTaxlbl.Size = new Size(212, 20);
+            FurtureTaxlbl.Size = new Size(205, 20);
             FurtureTaxlbl.TabIndex = 28;
-            FurtureTaxlbl.Text = "Further Tax";
+            FurtureTaxlbl.Text = "Sale Type";
             // 
             // FurtureTax
             // 
             FurtureTax.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            FurtureTax.DropDownStyle = ComboBoxStyle.DropDownList;
             FurtureTax.Font = new Font("Microsoft Sans Serif", 9F);
             FurtureTax.Location = new Point(677, 113);
             FurtureTax.Name = "FurtureTax";
-            FurtureTax.PlaceholderText = "Further Tax";
-            FurtureTax.Size = new Size(203, 24);
+            FurtureTax.Size = new Size(205, 26);
             FurtureTax.TabIndex = 17;
             // 
             // ItemName
@@ -615,7 +613,6 @@
             refUSIN.PlaceholderText = "Ref USIN";
             refUSIN.Size = new Size(123, 24);
             refUSIN.TabIndex = 8;
-            refUSIN.Text = "1";
             // 
             // refUSINlbl
             // 
@@ -674,7 +671,6 @@
             USIN.PlaceholderText = "USIN";
             USIN.Size = new Size(123, 24);
             USIN.TabIndex = 7;
-            USIN.Text = "1";
             // 
             // USINlbl
             // 
@@ -722,7 +718,6 @@
             buyerphone.PlaceholderText = "Buyer Phone Number";
             buyerphone.Size = new Size(123, 24);
             buyerphone.TabIndex = 4;
-            buyerphone.Text = "12345678912";
             // 
             // label18
             // 
@@ -742,7 +737,6 @@
             BuyerBname.PlaceholderText = "Buyer Name";
             BuyerBname.Size = new Size(123, 24);
             BuyerBname.TabIndex = 3;
-            BuyerBname.Text = "1";
             // 
             // label19
             // 
@@ -762,7 +756,6 @@
             buyerntn.PlaceholderText = "Buyer NTN";
             buyerntn.Size = new Size(123, 24);
             buyerntn.TabIndex = 2;
-            buyerntn.Text = "1234567";
             // 
             // label20
             // 
@@ -782,7 +775,6 @@
             buyercnic.PlaceholderText = "Buyer CNIC";
             buyercnic.Size = new Size(123, 24);
             buyercnic.TabIndex = 1;
-            buyercnic.Text = "1234567891234";
             // 
             // panel1
             // 
@@ -795,8 +787,6 @@
             panel1.Controls.Add(TotalSaleValue);
             panel1.Controls.Add(TotalQuantitylbl);
             panel1.Controls.Add(TotalQuantity);
-            panel1.Controls.Add(totalFurtherTaxlbl);
-            panel1.Controls.Add(TotalFurtherTax);
             panel1.Controls.Add(Discountlbl);
             panel1.Controls.Add(Discount);
             panel1.Controls.Add(posid);
@@ -867,26 +857,6 @@
             TotalQuantity.ReadOnly = true;
             TotalQuantity.Size = new Size(139, 24);
             TotalQuantity.TabIndex = 12;
-            // 
-            // totalFurtherTaxlbl
-            // 
-            totalFurtherTaxlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            totalFurtherTaxlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            totalFurtherTaxlbl.Location = new Point(821, 15);
-            totalFurtherTaxlbl.Name = "totalFurtherTaxlbl";
-            totalFurtherTaxlbl.Size = new Size(136, 24);
-            totalFurtherTaxlbl.TabIndex = 65;
-            totalFurtherTaxlbl.Text = "FurtherTax";
-            // 
-            // TotalFurtherTax
-            // 
-            TotalFurtherTax.Font = new Font("Microsoft Sans Serif", 9F);
-            TotalFurtherTax.Location = new Point(818, 38);
-            TotalFurtherTax.Name = "TotalFurtherTax";
-            TotalFurtherTax.PlaceholderText = "Further Tax";
-            TotalFurtherTax.ReadOnly = true;
-            TotalFurtherTax.Size = new Size(139, 24);
-            TotalFurtherTax.TabIndex = 16;
             // 
             // Discountlbl
             // 
@@ -1063,14 +1033,24 @@
             // Invoice type ComboBox
             invoicetype.DataSource = new List<KeyValuePair<byte, string>>()
             {
-                new KeyValuePair<byte, string>(1, "Sale"),
-                new KeyValuePair<byte, string>(2, "Purchase"),
-                new KeyValuePair<byte, string>(3, "Debit"),
-                new KeyValuePair<byte, string>(4, "Credit")
+                new KeyValuePair<byte, string>(1, "New"),
+                new KeyValuePair<byte, string>(2, "Debit Invoice"),
+                new KeyValuePair<byte, string>(3, "Credit Invoice")
             };
             invoicetype.DisplayMember = "Value";
             invoicetype.ValueMember = "Key";
             invoicetype.SelectedValue = (byte)1; // default: Sale
+
+            FurtureTax.DataSource = new List<KeyValuePair<byte, string>>()
+            {
+                new KeyValuePair<byte, string>(1, "New"),
+                new KeyValuePair<byte, string>(2, "Debit"),
+                new KeyValuePair<byte, string>(3, "Credit")
+            };
+            FurtureTax.DisplayMember = "Value";
+            FurtureTax.ValueMember = "Key";
+            FurtureTax.SelectedValue = (byte)1; // default: Sale
+
         }
 
         // Event handler for form load
@@ -1097,7 +1077,7 @@
         private TextBox ItemCode;
         private Label ItemNamelbl;
         private Label FurtureTaxlbl;
-        private TextBox FurtureTax;
+        private ComboBox FurtureTax;
         private TextBox ItemName;
         private Label lblBuyerAddress;
         private Label lblBasicInfo;
@@ -1129,8 +1109,6 @@
         private TextBox Discount;
         private Label TotalTaxChargedlbl;
         private TextBox TotalTaxCharged;
-        private Label totalFurtherTaxlbl;
-        private TextBox TotalFurtherTax;
         private Label TotalSaleValuelbl;
         private TextBox TotalSaleValue;
         private Label SalesTaxApplicablelbl;

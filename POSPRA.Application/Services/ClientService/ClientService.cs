@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.NetworkService;
@@ -6,6 +8,7 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.ClientDtos;
+using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.ClientRepository;
 using POSPRA.Repositories.UnitOfWork;
 
@@ -48,36 +51,33 @@ namespace POSPRA.Application.Services.ClientService
             var entity = await _clientRepository.FirstOrDefaultAsync(m =>
                                 m.POSRegistrationNumber == dto.PosId);
 
-            if (entity == null)
-            {
-                return new ApiResponse<PosClients>(
-                    ApiStatusCode.NotFound,
-                    ResponseMessages.InvalidPosId,
-                    null!,
-                    string.Empty);
-            }
+                if (entity == null)
+                {
+                    return new ApiResponse<PosClients>(
+                        ApiStatusCode.NotFound,
+                        ResponseMessages.InvalidPosId,
+                        null!,
+                        string.Empty);
+                }
 
-            // Collect error messages for MAC and Token
-            var errors = new List<string>();
+                // ✅ 5. Validate MAC and Token
+                var errors = new List<string>();
 
-            if (entity.MAC_Address != dto.MacAddress)
-                errors.Add(ResponseMessages.InvalidMacAddress);
+                if (entity.MAC_Address != dto.MacAddress)
+                    errors.Add(ResponseMessages.InvalidMacAddress);
 
-            if (entity.Token != dto.Token)
-                errors.Add(ResponseMessages.InvalidToken);
+                if (entity.Token != dto.Token)
+                    errors.Add(ResponseMessages.InvalidToken);
 
-            // If any error exists, return proper message
-            if (errors.Any())
-            {
-                // If both are invalid → concatenate
-                var errorMessage = string.Join(" | ", errors);
-
-                return new ApiResponse<PosClients>(
-                    ApiStatusCode.NotFound,
-                    errorMessage,
-                    null!,
-                    string.Empty);
-            }
+                if (errors.Any())
+                {
+                    var errorMessage = string.Join(" | ", errors);
+                    return new ApiResponse<PosClients>(
+                        ApiStatusCode.NotFound,
+                        errorMessage,
+                        null!,
+                        string.Empty);
+                }
 
             if (entity.IsActive == true)
             {
@@ -90,23 +90,23 @@ namespace POSPRA.Application.Services.ClientService
 
             var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
 
-            if (statusCode == ApiStatusCode.ServiceUnavailable)
-            {
-                return new ApiResponse<PosClients>(
-                    ApiStatusCode.ServiceUnavailable,
-                    ResponseMessages.InternetNotAvailable,
-                    null!,
-                    string.Empty);
-            }
+                if (statusCode == ApiStatusCode.ServiceUnavailable)
+                {
+                    return new ApiResponse<PosClients>(
+                        ApiStatusCode.ServiceUnavailable,
+                        ResponseMessages.InternetNotAvailable,
+                        null!,
+                        string.Empty);
+                }
 
-            if (statusCode == ApiStatusCode.NotFound)
-            {
-                return new ApiResponse<PosClients>(
-                    ApiStatusCode.NotFound,
-                    ResponseMessages.DataNotFound,
-                    null!,
-                    string.Empty);
-            }
+                if (statusCode == ApiStatusCode.NotFound)
+                {
+                    return new ApiResponse<PosClients>(
+                        ApiStatusCode.NotFound,
+                        ResponseMessages.DataNotFound,
+                        null!,
+                        string.Empty);
+                }
 
             entity.IsActive = true;
             // ✅ All validations passed

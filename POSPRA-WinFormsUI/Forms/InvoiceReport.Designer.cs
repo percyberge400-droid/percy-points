@@ -36,8 +36,9 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(692, 783);
             Name = "InvoiceReport";
-            Text = "InvoiceReport";
-            TopMost = true;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Invoice Report";
+            Shown += InvoiceReport_Shown; 
             ResumeLayout(false);
         }
 

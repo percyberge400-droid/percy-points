@@ -113,6 +113,22 @@ namespace POSPRA_WinFormsUI.Forms
             panellogchart.Resize -= LogChartPanel_Resize;
             panellogchart.Resize += LogChartPanel_Resize;
 
+            lblTotalLogsCount.Click += panelTotalLogs_Click;
+            lblTotalLogsTitle.Click += panelTotalLogs_Click;
+            panelTotalLogs.Click += panelTotalLogs_Click;
+
+            lblErrorLogsTitle.Click += panelErrorLogs_Click;
+            lblErrorLogsCount.Click += panelErrorLogs_Click;
+            panelErrorLogs.Click += panelErrorLogs_Click;
+
+            lblInfoLogsCount.Click += panelInfoLogs_Click;
+            lblInfoLogsTitle.Click += panelInfoLogs_Click;
+            panelInfoLogs.Click += panelInfoLogs_Click;
+
+            lblWarningLogsCount.Click += panelWarningLogs_Click;
+            lblWarningLogsTitle.Click += panelWarningLogs_Click;
+            panelWarningLogs.Click += panelWarningLogs_Click;
+
             if (progressBar != null) progressBar.Visible = false;
             ApplyGradientBackground(
                 panelAll,
@@ -307,11 +323,9 @@ namespace POSPRA_WinFormsUI.Forms
                 if (invoiceResponse?.Data == null || logResponse?.Data == null)
                     return false;
 
-                // ✅ FIX: Use same filtering logic as LoadAndShowInvoicesAsync
                 var allInvoices = invoiceResponse.Data.ToList();
                 var allLogs = logResponse.Data.ToList();
 
-                // Check if we should apply date filter (same logic as load methods)
                 bool shouldFilterByDate = !(_startDate == DateTime.Today.AddDays(-7) && _endDate == DateTime.Today);
 
                 IEnumerable<dynamic> filteredInvoices = allInvoices;
@@ -454,6 +468,25 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 _autoRefreshTimer.Start();
             }
+        }
+        #endregion
+
+        #region log filtering
+        private async void panelTotalLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "success");
+        }
+        private async void panelErrorLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "error");
+        }
+        private async void panelWarningLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "warning");
+        }
+        private async void panelInfoLogs_Click(object sender, EventArgs e)
+        {
+            await LoadAndShowLogsAsync(logTypeFilter: "info");
         }
         #endregion
 
@@ -801,41 +834,93 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // ✅ OPTIMIZED: Load Logs with Virtual Mode
-        private async Task LoadAndShowLogsAsync(IEnumerable<LogDto>? preloadedLogs = null, bool skipDateFilter = false)
+        private async Task LoadAndShowLogsAsync(
+            IEnumerable<LogDto>? preloadedLogs = null,
+            bool skipDateFilter = false,
+            string? logTypeFilter = null)
         {
             try
             {
-                var response = preloadedLogs == null ? await _logService.GetAllAsync() : null;
-                var logs = preloadedLogs ?? response?.Data;
+                IEnumerable<LogDto> logs;
+                IEnumerable<LogDto> allLogsForStats; // ✅ Keep unfiltered logs for statistics
 
-                if (logs == null || !logs.Any())
+                if (preloadedLogs != null)
                 {
-                    _logCache = new List<LogDisplayModel>();
-                    LogsDataGridView.RowCount = 0;
-                    WindowsLocalAppNotification.Show("Logs", "No logs available to display");
-                    AlertManager.ShowWarning("No logs available to display");
+                    logs = preloadedLogs;
+                    allLogsForStats = preloadedLogs;
+                }
+                else
+                {
+                    var response = await _logService.GetAllAsync();
 
-                    CalculateLogStatistics(null);
-                    UpdateLogStatisticsDisplay();
-                    return;
+                    if (response?.Data == null || !response.Data.Any())
+                    {
+                        _logCache = new List<LogDisplayModel>();
+                        LogsDataGridView.RowCount = 0;
+
+                        WindowsLocalAppNotification.Show("Logs", "No logs available to display");
+                        AlertManager.ShowWarning("No logs available to display");
+
+                        CalculateLogStatistics(null);
+                        UpdateLogStatisticsDisplay();
+                        return;
+                    }
+
+                    logs = response.Data;
+                    allLogsForStats = response.Data;
                 }
 
-                IEnumerable<LogDto> filteredLogs = logs;
-
+                // ✅ Apply date filter (affects both stats + display)
                 if (!skipDateFilter)
                 {
-                    filteredLogs = filteredLogs.Where(l =>
+                    logs = logs.Where(l =>
+                        l.CreatedAtPk >= _startDate &&
+                        l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
+
+                    allLogsForStats = allLogsForStats.Where(l =>
                         l.CreatedAtPk >= _startDate &&
                         l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
-                var logsList = filteredLogs.OrderByDescending(l => l.CreatedAtPk).ToList();
-
-                CalculateLogStatistics(logsList);
+                // ✅ Calculate statistics BEFORE applying type filter
+                CalculateLogStatistics(allLogsForStats);
                 UpdateLogStatisticsDisplay();
 
-                // ✅ Build cache for virtual mode
+                // ✅ Apply log type filter (for grid display only)
+                if (!string.IsNullOrWhiteSpace(logTypeFilter))
+                {
+                    string filter = logTypeFilter.Trim().ToLower();
+
+                    logs = logs.Where(l =>
+                    {
+                        var type = (l.Type ?? string.Empty).ToLower();
+
+                        return filter switch
+                        {
+                            // Grouped filters
+                            "error" or "exception" => type.Contains("error") || type.Contains("exception"),
+                            "info" or "information" => type.Contains("info") || type.Contains("information"),
+                            "warning" => type.Contains("warning"),
+                            "success" => type.Contains("success"),
+                            _ => true
+                        };
+                    });
+                }
+
+                var logsList = logs.OrderByDescending(l => l.CreatedAtPk).ToList();
+
+                // ✅ Handle empty results after filter
+                if (!logsList.Any())
+                {
+                    _logCache = new List<LogDisplayModel>();
+                    LogsDataGridView.RowCount = 0;
+
+                    WindowsLocalAppNotification.Show("Logs", $"No {logTypeFilter ?? "filtered"} logs available to display");
+                    AlertManager.ShowWarning($"No {logTypeFilter ?? "filtered"} logs available to display");
+                    return;
+                }
+
+                // ✅ Build log cache for display
                 _logCache = logsList
                     .Select((log, index) => new LogDisplayModel
                     {
@@ -847,10 +932,13 @@ namespace POSPRA_WinFormsUI.Forms
                     })
                     .ToList();
 
-                // ✅ Set row count for virtual mode (instant)
+                // ✅ Refresh DataGridView safely
+                LogsDataGridView.SuspendLayout();
                 LogsDataGridView.RowCount = _logCache.Count;
+                LogsDataGridView.ResumeLayout(false);
                 LogsDataGridView.Invalidate();
                 LogsDataGridView.Refresh();
+                Application.DoEvents();
 
                 LogsDataGridView.ClearSelection();
                 LogsDataGridView.CurrentCell = null;
@@ -1455,22 +1543,25 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index) return;
+            // ✅ 1. Validate the click
+            if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index)
+                return;
 
-            var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
             var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
-            if (!_printLinkBounds.Contains(mousePos)) return;
+            if (!_printLinkBounds.Contains(mousePos))
+                return;
 
-            if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count) return;
+            if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count)
+                return;
 
             var invoice = _invoiceCache[e.RowIndex];
             var invoiceNumber = invoice.InvoiceNumber;
 
-            var origPrintText = "Print";
             _printingRowIndex = e.RowIndex;
 
             try
             {
+                // ✅ 2. UI setup
                 InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
                 InvoicesDataGridView.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
@@ -1484,15 +1575,18 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.BringToFront();
                 }
 
-                var response = await Task.Run(() => _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
+                // ✅ 3. Load invoice data from API/service
+                var response = await Task.Run(() =>
+                    _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
 
                 if (response?.Data == null)
                 {
-                    MessageBox.Show("⚠️ No data found for this invoice.", "Data Not Found",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("⚠️ No data found for this invoice.",
+                        "Data Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
+                // ✅ 4. Print thread setup
                 var tcs = new TaskCompletionSource<object?>();
 
                 Thread printThread = new Thread(() =>
@@ -1501,6 +1595,19 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         using (var printForm = new InvoiceReport(response.Data))
                         {
+                            // 🔹 Hide progress bar only after RDLC finishes rendering
+                            printForm.ReportLoaded += (s, args) =>
+                            {
+                                this.Invoke(new Action(() =>
+                                {
+                                    if (progressBar != null)
+                                    {
+                                        progressBar.Visible = false;
+                                        progressBar.Style = ProgressBarStyle.Continuous;
+                                    }
+                                }));
+                            };
+
                             printForm.FormClosed += (s, args) => tcs.TrySetResult(null);
                             Application.Run(printForm);
                         }
@@ -1519,11 +1626,12 @@ namespace POSPRA_WinFormsUI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error printing invoice: {ex.Message}", "Print Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error printing invoice: {ex.Message}",
+                    "Print Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
+                // ✅ 5. UI cleanup
                 _printingRowIndex = -1;
                 InvoicesDataGridView.Enabled = true;
                 this.Cursor = Cursors.Default;
@@ -1537,6 +1645,7 @@ namespace POSPRA_WinFormsUI.Forms
                 InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
             }
         }
+
 
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
