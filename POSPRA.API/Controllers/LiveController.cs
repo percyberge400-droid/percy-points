@@ -37,7 +37,7 @@ namespace POSPRA.API.Controllers
 
         [HttpPost("update-configuration-flag")]
         public async Task<ActionResult<ApiResponse<string>>> UpdateConfigurationFlag(bool isConfiguration) =>
-            Ok(await _clientService.UpdateConfigurationFlag(isConfiguration));
+            Ok(await _clientService.UpdateConfigurationFlag(isConfiguration,null));
 
         [HttpPost("create-cloud-log")]
         public async Task<ActionResult<ApiResponse<string>>> CreateCloudLog(List<SyncLogDto> logDtos) =>
