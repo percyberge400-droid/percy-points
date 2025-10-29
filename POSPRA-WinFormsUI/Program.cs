@@ -1,10 +1,10 @@
-﻿using System.Drawing.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -28,6 +28,8 @@ using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA_WinFormsUI.Forms;
+using System;
+using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
 {
@@ -82,16 +84,19 @@ namespace POSPRA_WinFormsUI
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
 
             // ✅ Read AppSettings (just like API)
-            var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
-            bool isProduction = appSettings?.IsProduction ?? false;
+            //var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
+            //bool isProduction = appSettings?.IsProduction ?? false;
 
             // ✅ Choose the SQL Server connection string based on Production/Sandbox flag
-            string sqlServerConnString = configuration.GetConnectionString(
-                isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
-            ) ?? throw new InvalidOperationException("No valid SQL Server connection string found in appsettings.json");
-
-            // ✅ Register SQL Server using dynamic connection string
-            services.AddDbContext<SqlServerDbContext>(opt => opt.UseSqlServer(sqlServerConnString));
+            //string sqlServerConnString = configuration.GetConnectionString(
+            //    isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
+            //) ?? throw new InvalidOperationException("No valid SQL Server connection string found in appsettings.json");
+            services.AddDbContext<SqlServerDbContext>((sp, options) =>
+            {
+                var configService = sp.GetRequiredService<IEnvironmentConfigService>();
+                var connectionString = configService.GetConnectionString();
+                options.UseSqlServer(connectionString);
+            });
 
             // AutoMapper
             services.AddAutoMapper(cfg =>
@@ -127,6 +132,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddSingleton<IConfiguration>(configuration);
+            services.AddSingleton<IEnvironmentConfigService, EnvironmentConfigService>();
             services.AddHttpClient<HttpService>();
 
             services.AddHttpContextAccessor();

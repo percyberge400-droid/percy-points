@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
@@ -17,18 +18,32 @@ namespace POSPRA.Application.Services.ClientService
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         private readonly INetworkService _networkService;
         private readonly AppSettings _settings;
-        public ClientService(IClientRepository clientRepository, IMapper mapper, ISqlServerUnitOfWork sqlServerUnitOfWork, INetworkService networkService,
-            IOptions<AppSettings> options)
+        private readonly IEnvironmentConfigService _environmentConfigService;
+        public ClientService(IClientRepository clientRepository,
+            IMapper mapper,
+            ISqlServerUnitOfWork sqlServerUnitOfWork,
+            INetworkService networkService,
+            IOptions<AppSettings> options,
+            IEnvironmentConfigService environmentConfigService)
         {
             _clientRepository = clientRepository;
             _mapper = mapper;
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
             _networkService = networkService;
             _settings = options.Value;
+            _environmentConfigService = environmentConfigService;
         }
 
         public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
         {
+            var output = _environmentConfigService.SetEnvironment(dto.Environment == "Production" ? true : false);
+            if (output.StatusCode != ApiStatusCode.Success)
+                return new ApiResponse<PosClients>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null,
+                    string.Empty);
+
             // Check POS ID
             var entity = await _clientRepository.FirstOrDefaultAsync(m =>
                                 m.POSRegistrationNumber == dto.PosId);
@@ -64,7 +79,7 @@ namespace POSPRA.Application.Services.ClientService
                     string.Empty);
             }
 
-            if (entity.IsConfigured == true)
+            if (entity.IsActive == true)
             {
                 return new ApiResponse<PosClients>(
                     ApiStatusCode.NotFound,
@@ -73,7 +88,7 @@ namespace POSPRA.Application.Services.ClientService
                     string.Empty);
             }
 
-            var statusCode = await UpdateConfigurationFlag(true);
+            var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
 
             if (statusCode == ApiStatusCode.ServiceUnavailable)
             {
@@ -93,7 +108,7 @@ namespace POSPRA.Application.Services.ClientService
                     string.Empty);
             }
 
-            entity.IsConfigured = true;
+            entity.IsActive = true;
             // ✅ All validations passed
             return new ApiResponse<PosClients>(
                 ApiStatusCode.Success,
@@ -102,7 +117,7 @@ namespace POSPRA.Application.Services.ClientService
                 string.Empty);
         }
 
-        public async Task<string> UpdateConfigurationFlag(bool isConfiguration)
+        public async Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId)
         {
             bool internetAvailable = await _networkService.IsInternetAvailableAsync();
 
@@ -111,21 +126,25 @@ namespace POSPRA.Application.Services.ClientService
                 return ApiStatusCode.ServiceUnavailable;
             }
 
+            // ✅ Use _settings.PosId if posId is null, 0, or not provided
+            long effectivePosId = (posId.HasValue && posId.Value > 0)
+                ? posId.Value
+                : _settings.POS;
+
             var entity = await _clientRepository.FirstOrDefaultAsync(m =>
-                            m.POSRegistrationNumber == _settings.POS);
+                            m.POSRegistrationNumber == effectivePosId);
 
             if (entity is null)
             {
                 return ApiStatusCode.NotFound;
             }
 
-            entity.IsConnected = isConfiguration;
+            entity.IsActive = isConfiguration;
 
             await _clientRepository.UpdateAsync(entity);
             await _sqlServerUnitOfWork.SaveChangesAsync();
 
             return ApiStatusCode.Success;
         }
-
     }
 }

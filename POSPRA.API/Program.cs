@@ -7,6 +7,7 @@ using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -86,18 +87,23 @@ namespace POSPRA.API
                 options.UseSqlite($"Data Source={dbPath}"));
 
             // Read the isProduction flag from AppSettings
-            var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
-            bool isProduction = appSettings!.IsProduction;
+            //var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
+            //bool isProduction = appSettings!.IsProduction;
 
             // Choose the SQL Server connection string based on the flag
-            string sqlConnectionString = builder.Configuration.GetConnectionString(
-                isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
-            ) ?? throw new InvalidOperationException("Missing SQL Server connection string for the selected environment for api.");
+            //string sqlConnectionString = builder.Configuration.GetConnectionString(
+            //    isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
+            //) ?? throw new InvalidOperationException("Missing SQL Server connection string for the selected environment for api.");
 
+            builder.Services.AddSingleton<IEnvironmentConfigService, EnvironmentConfigService>();
             // Register SQL Server DbContext with the selected connection string
-            builder.Services.AddDbContext<SqlServerDbContext>(options =>
-                options.UseSqlServer(sqlConnectionString),
-                ServiceLifetime.Scoped);
+            builder.Services.AddDbContext<SqlServerDbContext>((sp, options) =>
+            {
+                var configService = sp.GetRequiredService<IEnvironmentConfigService>();
+                var connectionString = configService.GetConnectionString();
+                options.UseSqlServer(connectionString);
+            });
+
 
             //----------------------------------------------------
             // 🔧 AutoMapper

@@ -25,5 +25,13 @@
         public int IMSUpdateInterval { get; set; }
         public int WorkerDelayTime { get; set; }
         public string DefaultDBFilePath { get; set; }
+
+        public ConnectionStrings ConnectionStrings { get; set; } = new();
+    }
+
+    public class ConnectionStrings
+    {
+        public string SqlServerConnectionProduction { get; set; } = string.Empty;
+        public string SqlServerConnectionSandbox { get; set; } = string.Empty;
     }
 }
