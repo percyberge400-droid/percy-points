@@ -307,11 +307,9 @@ namespace POSPRA_WinFormsUI.Forms
                 if (invoiceResponse?.Data == null || logResponse?.Data == null)
                     return false;
 
-                // ✅ FIX: Use same filtering logic as LoadAndShowInvoicesAsync
                 var allInvoices = invoiceResponse.Data.ToList();
                 var allLogs = logResponse.Data.ToList();
 
-                // Check if we should apply date filter (same logic as load methods)
                 bool shouldFilterByDate = !(_startDate == DateTime.Today.AddDays(-7) && _endDate == DateTime.Today);
 
                 IEnumerable<dynamic> filteredInvoices = allInvoices;
@@ -801,8 +799,10 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // ✅ OPTIMIZED: Load Logs with Virtual Mode
-        private async Task LoadAndShowLogsAsync(IEnumerable<LogDto>? preloadedLogs = null, bool skipDateFilter = false)
+        private async Task LoadAndShowLogsAsync(
+            IEnumerable<LogDto>? preloadedLogs = null,
+            bool skipDateFilter = false,
+            string? logTypeFilter = null) // 👈 optional log type filter
         {
             try
             {
@@ -823,6 +823,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                 IEnumerable<LogDto> filteredLogs = logs;
 
+                // ✅ Apply date filter if required
                 if (!skipDateFilter)
                 {
                     filteredLogs = filteredLogs.Where(l =>
@@ -830,12 +831,54 @@ namespace POSPRA_WinFormsUI.Forms
                         l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
                 }
 
+                // ✅ Apply log type filter (case-insensitive, grouped logic)
+                if (!string.IsNullOrWhiteSpace(logTypeFilter))
+                {
+                    string filter = logTypeFilter.Trim().ToLower();
+
+                    filteredLogs = filteredLogs.Where(l =>
+                    {
+                        var type = (l.Type ?? string.Empty).ToLower();
+
+                        return filter switch
+                        {
+                            // Group error/exception
+                            "error" or "exception" => type.Contains("error") || type.Contains("exception"),
+
+                            // Group info/information
+                            "info" or "information" => type.Contains("info") || type.Contains("information"),
+
+                            // Direct matches
+                            "warning" => type.Contains("warning"),
+                            "success" => type.Contains("success"),
+
+                            // Default: show all if unknown
+                            _ => true
+                        };
+                    });
+                }
+
                 var logsList = filteredLogs.OrderByDescending(l => l.CreatedAtPk).ToList();
 
+                // ✅ Handle empty results after filtering
+                if (!logsList.Any())
+                {
+                    _logCache = new List<LogDisplayModel>();
+                    LogsDataGridView.RowCount = 0;
+
+                    WindowsLocalAppNotification.Show("Logs", $"No {logTypeFilter ?? "filtered"} logs available to display");
+                    AlertManager.ShowWarning($"No {logTypeFilter ?? "filtered"} logs available to display");
+
+                    CalculateLogStatistics(null);
+                    UpdateLogStatisticsDisplay();
+                    return;
+                }
+
+                // ✅ Calculate stats and update UI
                 CalculateLogStatistics(logsList);
                 UpdateLogStatisticsDisplay();
 
-                // ✅ Build cache for virtual mode
+                // ✅ Build cache for Virtual Mode
                 _logCache = logsList
                     .Select((log, index) => new LogDisplayModel
                     {
@@ -847,7 +890,7 @@ namespace POSPRA_WinFormsUI.Forms
                     })
                     .ToList();
 
-                // ✅ Set row count for virtual mode (instant)
+                // ✅ Update DataGrid instantly
                 LogsDataGridView.RowCount = _logCache.Count;
                 LogsDataGridView.Invalidate();
                 LogsDataGridView.Refresh();

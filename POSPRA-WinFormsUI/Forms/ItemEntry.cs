@@ -89,7 +89,6 @@ namespace POSPRA_WinFormsUI
             qty.TextChanged += RecalculateTotals;
             salevalue.TextChanged += RecalculateTotals;
             TaxRatebox.TextChanged += RecalculateTotals;
-            FurtureTax.TextChanged += RecalculateTotals;
 
             buyercnic.KeyPress += NumericOnlyWithLength_KeyPress;
             buyerntn.KeyPress += NumericOnlyWithLength_KeyPress;
@@ -103,12 +102,11 @@ namespace POSPRA_WinFormsUI
             TaxRatebox.KeyPress += NumericOnlyWithLength_KeyPress;
             qty.KeyPress += NumericOnlyWithLength_KeyPress;
             salevalue.KeyPress += NumericOnlyWithLength_KeyPress;
-            FurtureTax.KeyPress += NumericOnlyWithLength_KeyPress;
             TaxCharged.KeyPress += NumericOnlyWithLength_KeyPress;
             itemDiscountPercent.TextChanged += RecalculateTotals;
             itemDiscountPercent.KeyPress += NumericOnlyWithLength_KeyPress;
 
-            //invoicetype.SelectedIndexChanged += Invoicetype_SelectedIndexChanged;
+            invoicetype.SelectedIndexChanged += Invoicetype_SelectedIndexChanged;
 
             SetupContextMenu();
             CaptureOriginalLayout();
@@ -331,121 +329,112 @@ namespace POSPRA_WinFormsUI
             int row2ControlY = 107;
             int controlHeight = 24;
 
-            // Calculate widths for Row 1 (now 7 columns instead of 6)
-            int availableWidth = pnlBasicInfo.Width - (padding * 2) - (spacing * 6);
+            // Calculate available width
+            int availableWidth = pnlBasicInfo.Width - (padding * 2);
 
-            // Sale Type takes 12%, Item Code 13%, PCT Code 15%, Total Amount 16%, Tax Rate 14%, then discount fields at 15% each
-            int saleTypeWidth = (int)(availableWidth * 0.12);
-            int itemCodeWidth = (int)(availableWidth * 0.13);
-            int pctCodeWidth = (int)(availableWidth * 0.15);
-            int totalAmountWidth = (int)(availableWidth * 0.16);
-            int taxRateWidth = (int)(availableWidth * 0.14);
-            int discountPercentWidth = (int)(availableWidth * 0.15);
-            int discountAmountWidth = (int)(availableWidth * 0.15);
+            // ROW 1: Sale Type | Item Code | Item Name | PCT Code | Total Amount (5 equal columns)
+            int row1Spacing = (spacing * 4); // 4 gaps between 5 columns
+            int row1ColWidth = (availableWidth - row1Spacing) / 5;
 
-            // Row 1 Column positions
-            int col0X = padding;
-            int col1X = col0X + saleTypeWidth + spacing;
-            int col2X = col1X + itemCodeWidth + spacing;
-            int col3X = col2X + pctCodeWidth + spacing;
-            int col4X = col3X + totalAmountWidth + spacing;
-            int col5X = col4X + taxRateWidth + spacing;
-            int col6X = col5X + discountPercentWidth + spacing;
+            int row1Col1X = padding;
+            int row1Col2X = row1Col1X + row1ColWidth + spacing;
+            int row1Col3X = row1Col2X + row1ColWidth + spacing;
+            int row1Col4X = row1Col3X + row1ColWidth + spacing;
+            int row1Col5X = row1Col4X + row1ColWidth + spacing;
 
-            // ROW 1 - Sale Type
-            lbinvoicetype.Location = new Point(col0X, row1LabelY);
-            lbinvoicetype.AutoSize = true;
-            cmbInvoiceType.Location = new Point(col0X, row1ControlY);
-            cmbInvoiceType.Size = new Size(saleTypeWidth, 28);
+            // ROW 1 - Sale Type (assuming this is the combobox shown as "New" in the image)
+            // Note: You'll need to verify the control name for Sale Type
+            // For now using FurtureTax controls as placeholder - replace with actual Sale Type controls
+            FurtureTaxlbl.Location = new Point(row1Col1X, row1LabelY);
+            FurtureTaxlbl.AutoSize = true;
+            FurtureTax.Location = new Point(row1Col1X, row1ControlY);
+            FurtureTax.Size = new Size(row1ColWidth, controlHeight);
 
             // ROW 1 - Item Code
-            ItemCodelbl.Location = new Point(col1X, row1LabelY);
+            ItemCodelbl.Location = new Point(row1Col2X, row1LabelY);
             ItemCodelbl.AutoSize = true;
-            ItemCode.Location = new Point(col1X, row1ControlY);
-            ItemCode.Size = new Size(itemCodeWidth, controlHeight);
+            ItemCode.Location = new Point(row1Col2X, row1ControlY);
+            ItemCode.Size = new Size(row1ColWidth, controlHeight);
+
+            // ROW 1 - Item Name
+            ItemNamelbl.Location = new Point(row1Col3X, row1LabelY);
+            ItemNamelbl.AutoSize = true;
+            ItemName.Location = new Point(row1Col3X, row1ControlY);
+            ItemName.Size = new Size(row1ColWidth, controlHeight);
 
             // ROW 1 - PCT Code
-            lblCustomerRegType.Location = new Point(col2X, row1LabelY);
+            lblCustomerRegType.Location = new Point(row1Col4X, row1LabelY);
             lblCustomerRegType.AutoSize = true;
-            pctCode.Location = new Point(col2X, row1ControlY);
-            pctCode.Size = new Size(pctCodeWidth, controlHeight);
+            pctCode.Location = new Point(row1Col4X, row1ControlY);
+            pctCode.Size = new Size(row1ColWidth, controlHeight);
 
             // ROW 1 - Total Amount
-            totalamountlbl.Location = new Point(col3X, row1LabelY);
+            totalamountlbl.Location = new Point(row1Col5X, row1LabelY);
             totalamountlbl.AutoSize = true;
-            totalamount.Location = new Point(col3X, row1ControlY);
-            totalamount.Size = new Size(totalAmountWidth, controlHeight);
+            totalamount.Location = new Point(row1Col5X, row1ControlY);
+            totalamount.Size = new Size(row1ColWidth, controlHeight);
 
-            // ROW 1 - Tax Rate
-            TaxRatelbl.Location = new Point(col4X, row1LabelY);
-            TaxRatelbl.AutoSize = true;
-            TaxRatebox.Location = new Point(col4X, row1ControlY);
-            TaxRatebox.Size = new Size(taxRateWidth, controlHeight);
-
-            // ROW 1 - Discount %
-            itemDiscountlbl.Location = new Point(col5X, row1LabelY);
-            itemDiscountlbl.AutoSize = true;
-            itemDiscountPercent.Location = new Point(col5X, row1ControlY);
-            itemDiscountPercent.Size = new Size(discountPercentWidth, controlHeight);
-
-            // ROW 1 - Discount Rs.
-            label4.Location = new Point(col6X, row1LabelY);
-            label4.AutoSize = true;
-            itemDiscountAmount.Location = new Point(col6X, row1ControlY);
-            itemDiscountAmount.Size = new Size(discountAmountWidth, controlHeight);
-
-            // Row 2 unchanged from original
-            int row2Col1Width = (int)(availableWidth * 0.20);
-            int row2Col2Width = (int)(availableWidth * 0.20);
-            int row2Col3Width = (int)(availableWidth * 0.20);
-            int row2Col4Width = (int)(availableWidth * 0.20);
+            // ROW 2: Sale Value | Quantity | Tax Rate | Discount% | Discount Rs | Tax Charged
+            // Calculate widths - 6 columns total
+            int row2Spacing = (spacing * 5); // 5 gaps between 6 columns
+            int row2StandardWidth = (int)((availableWidth - row2Spacing) * 0.18);  // 18% for first 3
+            int discountPercentWidth = (int)((availableWidth - row2Spacing) * 0.12); // 12% for discount %
+            int discountAmountWidth = (int)((availableWidth - row2Spacing) * 0.16); // 16% for discount Rs
+            int taxChargedWidth = (int)((availableWidth - row2Spacing) * 0.18);     // 18% for tax charged
 
             int row2Col1X = padding;
-            int row2Col2X = row2Col1X + row2Col1Width + spacing;
-            int row2Col3X = row2Col2X + row2Col2Width + spacing;
-            int row2Col4X = row2Col3X + row2Col3Width + spacing;
-            int row2Col5X = row2Col4X + row2Col4Width + spacing;
+            int row2Col2X = row2Col1X + row2StandardWidth + spacing;
+            int row2Col3X = row2Col2X + row2StandardWidth + spacing;
+            int row2Col4X = row2Col3X + row2StandardWidth + spacing;
+            int row2Col5X = row2Col4X + discountPercentWidth + spacing;
+            int row2Col6X = row2Col5X + discountAmountWidth + spacing;
 
-            // ROW 2 - Item Name
-            ItemNamelbl.Location = new Point(row2Col1X, row2LabelY);
-            ItemNamelbl.AutoSize = true;
-            ItemName.Location = new Point(row2Col1X, row2ControlY);
-            ItemName.Size = new Size(row2Col1Width, controlHeight);
+            // ROW 2 - Sale Value
+            salevaluelbl.Location = new Point(row2Col1X, row2LabelY);
+            salevaluelbl.AutoSize = true;
+            salevalue.Location = new Point(row2Col1X, row2ControlY);
+            salevalue.Size = new Size(row2StandardWidth, controlHeight);
 
             // ROW 2 - Quantity
             lblSellerAddress.Location = new Point(row2Col2X, row2LabelY);
             lblSellerAddress.AutoSize = true;
             qty.Location = new Point(row2Col2X, row2ControlY);
-            qty.Size = new Size(row2Col2Width, controlHeight);
+            qty.Size = new Size(row2StandardWidth, controlHeight);
 
-            // ROW 2 - Sale Value
-            salevaluelbl.Location = new Point(row2Col3X, row2LabelY);
-            salevaluelbl.AutoSize = true;
-            salevalue.Location = new Point(row2Col3X, row2ControlY);
-            salevalue.Size = new Size(row2Col3Width, controlHeight);
+            // ROW 2 - Tax Rate
+            TaxRatelbl.Location = new Point(row2Col3X, row2LabelY);
+            TaxRatelbl.AutoSize = true;
+            TaxRatebox.Location = new Point(row2Col3X, row2ControlY);
+            TaxRatebox.Size = new Size(row2StandardWidth, controlHeight);
 
-            // ROW 2 - Further Tax
-            FurtureTaxlbl.Location = new Point(row2Col4X, row2LabelY);
-            FurtureTaxlbl.AutoSize = true;
-            FurtureTax.Location = new Point(row2Col4X, row2ControlY);
-            FurtureTax.Size = new Size(row2Col4Width, controlHeight);
+            // ROW 2 - Discount %
+            itemDiscountlbl.Location = new Point(row2Col4X, row2LabelY);
+            itemDiscountlbl.AutoSize = true;
+            itemDiscountPercent.Location = new Point(row2Col4X, row2ControlY);
+            itemDiscountPercent.Size = new Size(discountPercentWidth, controlHeight);
 
-            // ROW 2 - Tax Charged (spans remaining width)
-            TaxChargedlbl.Location = new Point(row2Col5X, row2LabelY);
+            // ROW 2 - Discount Rs.
+            label4.Location = new Point(row2Col5X, row2LabelY);
+            label4.AutoSize = true;
+            itemDiscountAmount.Location = new Point(row2Col5X, row2ControlY);
+            itemDiscountAmount.Size = new Size(discountAmountWidth, controlHeight);
+
+            // ROW 2 - Tax Charged
+            TaxChargedlbl.Location = new Point(row2Col6X, row2LabelY);
             TaxChargedlbl.AutoSize = true;
-            TaxCharged.Location = new Point(row2Col5X, row2ControlY);
-            int remainingWidth = pnlBasicInfo.Width - row2Col5X - padding;
-            TaxCharged.Size = new Size(remainingWidth, controlHeight);
+            TaxCharged.Location = new Point(row2Col6X, row2ControlY);
+            int remainingWidth = pnlBasicInfo.Width - row2Col6X - padding;
+            TaxCharged.Size = new Size(Math.Max(remainingWidth, taxChargedWidth), controlHeight);
         }
         private void Panel1_Resize(object sender, EventArgs e)
         {
             if (panel1.Width == 0 || panel1.Height == 0) return;
 
-            // 7 equal columns with padding
+            // 6 equal columns with padding
             int padding = 20;
             int spacing = 8;
-            int availableWidth = panel1.Width - (padding * 2) - (spacing * 6);
-            int colWidth = availableWidth / 7;
+            int availableWidth = panel1.Width - (padding * 2) - (spacing * 5);
+            int colWidth = availableWidth / 6;
 
             int labelY = 12;
             int controlY = 36;
@@ -458,7 +447,6 @@ namespace POSPRA_WinFormsUI
             int col4X = col3X + colWidth + spacing;
             int col5X = col4X + colWidth + spacing;
             int col6X = col5X + colWidth + spacing;
-            int col7X = col6X + colWidth + spacing;
 
             // POS ID
             label15.Location = new Point(col1X, labelY);
@@ -490,16 +478,10 @@ namespace POSPRA_WinFormsUI
             Discount.Location = new Point(col5X, controlY);
             Discount.Size = new Size(colWidth, controlHeight);
 
-            // Further Tax
-            totalFurtherTaxlbl.Location = new Point(col6X, labelY);
-            totalFurtherTaxlbl.AutoSize = true;
-            TotalFurtherTax.Location = new Point(col6X, controlY);
-            TotalFurtherTax.Size = new Size(colWidth, controlHeight);
-
             // Total Bill Amount
-            TotalBillAmountlbl.Location = new Point(col7X, labelY);
+            TotalBillAmountlbl.Location = new Point(col6X, labelY);
             TotalBillAmountlbl.AutoSize = true;
-            TotalBillAmount.Location = new Point(col7X, controlY);
+            TotalBillAmount.Location = new Point(col6X, controlY);
             TotalBillAmount.Size = new Size(colWidth, controlHeight);
         }
 
@@ -693,15 +675,14 @@ namespace POSPRA_WinFormsUI
             decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? Math.Max(0, sv) : 0m;
             decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? Math.Max(0, tr) : 0m;
             decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? Math.Max(0, Math.Min(100, dp)) : 0m;
-            decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? Math.Max(0, ft) : 0m;
 
             // Calculations
             decimal grossAmount = quantity * saleValuePerUnit;
             decimal discountAmount = grossAmount * (discountPercent / 100m);
+            decimal amountAfterDiscount = Math.Max(0, grossAmount - discountAmount);
 
-            decimal taxAmount = grossAmount * (taxRatePercent / 100m);
-            decimal furtherTaxAmount = grossAmount * (furtherTaxPercent / 100m);
-            decimal totalAmount = Math.Max(0, grossAmount + taxAmount + furtherTaxAmount - discountAmount);
+            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
+            decimal totalAmount = amountAfterDiscount + taxAmount;
 
             // Update UI fields
             itemDiscountAmount.Text = discountAmount.ToString("0.00");
@@ -718,7 +699,7 @@ namespace POSPRA_WinFormsUI
                 Discount = discountAmount,             // Store calculated amount
                 TaxRate = (double)taxRatePercent,      // Store percentage
                 TaxCharged = taxAmount,                // Calculated tax amount
-                FurtherTax = furtherTaxAmount,         // Calculated further tax amount
+                FurtherTax = GetSelectedSaleType(),         // Calculated further tax amount
                 TotalAmount = totalAmount,
                 InvoiceType = GetSelectedInvoiceType(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
@@ -732,19 +713,6 @@ namespace POSPRA_WinFormsUI
         {
             try
             {
-                if (IsInvoiceHeaderEmptyForAdding())
-                {
-                    var res = MessageBox.Show(
-                        "Invoice header appears empty. You can add items now and fill header details later before saving. Do you want to continue?",
-                        "Invoice Header Empty",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-
-                    if (res == DialogResult.No)
-                        return;
-                    _ = CreateLog("Invoice header looks incomplete.", AlertType.Info);
-                }
-
                 CurrentInvoice = CollectInvoiceData();
                 InvoiceItems inputData = GetTextboxData();
 
@@ -831,13 +799,6 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                if (!AreInvoiceFieldsValid())
-                {
-                    AlertManager.ShowError("Invoice header is incomplete. Please fill in the invoice header before saving.");
-                    ResetUI(progressTaskCts);
-                    return;
-                }
-
                 if (MessageBox.Show("Are you sure you want to save and print this invoice?",
                                     "Confirm Save", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 {
@@ -857,7 +818,6 @@ namespace POSPRA_WinFormsUI
                     TaxCharged = item.TaxCharged ?? 0m,
                     TaxRate = item.TaxRate,
                     Discount = item.Discount ?? 0m,
-                    FurtherTax = item.FurtherTax ?? 0m,
                     InvoiceType = (byte)GetSelectedInvoiceType(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
                 }).ToList();
@@ -873,13 +833,12 @@ namespace POSPRA_WinFormsUI
                     BuyerName = BuyerBname.Text.Trim(),
                     BuyerPhoneNumber = buyerphone.Text.Trim(),
                     PaymentMode = GetSelectedPaymentMode(),
-                    SaleType = GetSaleType(),
                     TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
                     TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
                     TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
                     TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
                     Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
-                    FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : itemDtos.Sum(x => x.FurtherTax),
+                    FurtherTax = (byte)GetSelectedSaleType(),
                     DateTime = DateTime.Now,
                     InvoiceItemDto = itemDtos
                 };
@@ -1528,15 +1487,6 @@ namespace POSPRA_WinFormsUI
 
             // Calculate back the further tax percentage from stored amount
             decimal afterDiscount = grossAmount - (item.Discount ?? 0);
-            if (afterDiscount > 0 && item.FurtherTax.HasValue && item.FurtherTax.Value > 0)
-            {
-                decimal furtherTaxPercent = (item.FurtherTax.Value / afterDiscount) * 100m;
-                FurtureTax.Text = Math.Round(furtherTaxPercent, 2).ToString();
-            }
-            else
-            {
-                FurtureTax.Text = "0";
-            }
 
             totalamount.Text = (item.TotalAmount ?? 0m).ToString();
             TaxCharged.Text = (item.TaxCharged ?? 0m).ToString();
@@ -1554,7 +1504,6 @@ namespace POSPRA_WinFormsUI
             TaxCharged.Clear();
             itemDiscountPercent.Clear();
             itemDiscountAmount.Clear();
-            FurtureTax.Clear();
         }
 
         private void ClearForm(Control parent)
@@ -1592,7 +1541,6 @@ namespace POSPRA_WinFormsUI
             TotalSaleValue.Clear();
             TotalTaxCharged.Clear();
             Discount.Clear();
-            TotalFurtherTax.Clear();
         }
 
         private void RemoveSelectedItem()
@@ -1652,9 +1600,7 @@ namespace POSPRA_WinFormsUI
             row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
             row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");          // Tax rate percentage
             row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");
-            row.Cells["colFutureTax"].Value = (item.FurtherTax ?? 0m).ToString("0.00");
-
-            row.Cells["colInvoiceType"].Value = GetInvoiceTypeName(GetSelectedInvoiceType());
+            row.Cells["colFutureTax"].Value = GetSaleTypeName(GetSelectedSaleType());
             row.Cells["colRefUSIN"].Value = item.RefUSIN ?? "";
         }
 
@@ -1662,14 +1608,13 @@ namespace POSPRA_WinFormsUI
 
         #region Helper Methods
 
-        private string GetInvoiceTypeName(byte invoiceType)
+        private string GetSaleTypeName(byte FurtureTax)
         {
-            return invoiceType switch
+            return FurtureTax switch
             {
-                1 => "Sale",
-                2 => "Purchase",
-                3 => "Debit",
-                4 => "Credit",
+                1 => "New",
+                2 => "Debit",
+                3 => "Credit",
                 _ => "Unknown"
             };
         }
@@ -1688,18 +1633,27 @@ namespace POSPRA_WinFormsUI
             decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
 
             decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? dp : 0m;
-            decimal furtherTaxPercent = decimal.TryParse(FurtureTax.Text, out var ft) ? ft : 0m;
 
-
+            // Step 1: Calculate gross sale amount
             decimal grossAmount = quantity * saleValuePerUnit;
-            decimal discountAmount = grossAmount * (discountPercent / 100m);
 
-            decimal taxAmount = grossAmount * (taxRatePercent / 100m);
-            decimal furtherTaxAmount = grossAmount * (furtherTaxPercent / 100m);
-            decimal totalAmount = Math.Max(0, grossAmount + taxAmount + furtherTaxAmount - discountAmount);
+            // Step 2: Calculate discount amount from percentage
+            decimal discountAmount = grossAmount * (discountPercent / 100m);
 
             // Update readonly discount amount field
             itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
+
+            // Step 3: Deduct discount
+            decimal amountAfterDiscount = grossAmount - discountAmount;
+            if (amountAfterDiscount < 0) amountAfterDiscount = 0;
+
+            // Step 4: Calculate tax (percentage of amount after discount)
+            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
+
+            // Step 5: Calculate further tax (percentage of amount after discount)
+
+            // Step 6: Calculate final total
+            decimal totalAmount = amountAfterDiscount + taxAmount;
 
             // Update UI
             totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
@@ -1726,7 +1680,6 @@ namespace POSPRA_WinFormsUI
                 TotalTaxCharged.Text = "0.00";
                 TotalBillAmount.Text = "0.00";
                 Discount.Text = "0.00";
-                TotalFurtherTax.Text = "0.00";
                 return;
             }
 
@@ -1743,9 +1696,6 @@ namespace POSPRA_WinFormsUI
             // Total Tax Charged = Sum of all calculated tax amounts
             decimal totalTaxCharged = addedItems.Sum(i => i.TaxCharged ?? 0m);
 
-            // Total Further Tax = Sum of all calculated further tax amounts
-            decimal totalFurtherTax = addedItems.Sum(i => i.FurtherTax ?? 0m);
-
             // Total Bill Amount = Sum of all item total amounts
             decimal totalBillAmount = addedItems.Sum(i => i.TotalAmount ?? 0m);
 
@@ -1754,7 +1704,6 @@ namespace POSPRA_WinFormsUI
             TotalSaleValue.Text = totalGrossSaleValue.ToString("0.00");
             TotalTaxCharged.Text = totalTaxCharged.ToString("0.00");
             Discount.Text = totalDiscount.ToString("0.00");
-            TotalFurtherTax.Text = totalFurtherTax.ToString("0.00");
             TotalBillAmount.Text = totalBillAmount.ToString("0.00");
         }
 
@@ -1766,7 +1715,7 @@ namespace POSPRA_WinFormsUI
             if (invoicetype.SelectedItem is KeyValuePair<byte, string> kvp)
                 return kvp.Key;
 
-            return 1;
+            return 1; // Default to Sale
         }
 
         private byte GetSelectedPaymentMode()
@@ -1774,13 +1723,14 @@ namespace POSPRA_WinFormsUI
             if (paymentmode.SelectedItem is KeyValuePair<byte, string> kvp)
                 return kvp.Key;
 
-            return 1;
+            return 1; // Default to Card
         }
 
-        private byte GetSaleType()
+        private byte GetSelectedSaleType()
         {
-            if (cmbInvoiceType.SelectedItem is KeyValuePair<byte, string> kvp)
+            if (FurtureTax.SelectedItem is KeyValuePair<byte, string> kvp)
                 return kvp.Key;
+
             return 1;
         }
 
@@ -1801,18 +1751,17 @@ namespace POSPRA_WinFormsUI
                 BuyerName = BuyerBname.Text.Trim(),
                 BuyerPhoneNumber = buyerphone.Text.Trim(),
                 PaymentMode = GetSelectedPaymentMode(),
-
                 TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : 0m,
                 TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : 0m,
                 TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : 0m,
                 TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : 0m,
                 Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : 0m,
-                FurtherTax = decimal.TryParse(TotalFurtherTax.Text, out var furtherTax) ? furtherTax : 0m,
                 DateTime = DateTime.Now
             };
         }
 
         #endregion
+
 
         #region validation
 
@@ -1890,6 +1839,13 @@ namespace POSPRA_WinFormsUI
                     this.BeginInvoke(new Action(() => buyerntn.Focus()));
                     return false;
                 }
+            }
+
+            if (string.IsNullOrWhiteSpace(BuyerBname.Text))
+            {
+                AlertManager.ShowError("Buyer Name is required.");
+                this.BeginInvoke(new Action(() => BuyerBname.Focus()));
+                return false;
             }
 
             // ✅ Buyer CNIC is now optional - only validate if provided
@@ -2272,23 +2228,10 @@ namespace POSPRA_WinFormsUI
             var colFutureTax = new DataGridViewTextBoxColumn
             {
                 Name = "colFutureTax",
-                HeaderText = "Further Tax",
+                HeaderText = "Sale Type",
                 Width = 120,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
-            };
-
-            var colInvoiceType = new DataGridViewTextBoxColumn
-            {
-                Name = "colInvoiceType",
-                HeaderText = "Inv Type",
-                Width = 120,
-                ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
 
@@ -2306,7 +2249,7 @@ namespace POSPRA_WinFormsUI
             {
         colSrNo, colProductCode, colHSCode, colProductDescription, colQuantity,
         colRate, colDiscount, colSalesValueExcST, colTotalValue,
-        colSalesTax, colExtraTax, colFutureTax, colInvoiceType, colRefUSIN
+        colSalesTax, colExtraTax, colFutureTax, colRefUSIN
             });
         }
         #endregion
