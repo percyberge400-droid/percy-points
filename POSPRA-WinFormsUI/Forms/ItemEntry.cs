@@ -1892,13 +1892,6 @@ namespace POSPRA_WinFormsUI
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(BuyerBname.Text))
-            {
-                AlertManager.ShowError("Buyer Name is required.");
-                this.BeginInvoke(new Action(() => BuyerBname.Focus()));
-                return false;
-            }
-
             // ✅ Buyer CNIC is now optional - only validate if provided
             if (!string.IsNullOrWhiteSpace(buyercnic.Text))
             {

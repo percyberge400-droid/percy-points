@@ -1076,7 +1076,7 @@
             invoicetype.DataSource = new List<KeyValuePair<byte, string>>()
             {
                 new KeyValuePair<byte, string>(1, "New"),
-                new KeyValuePair<byte, string>(2, "Sale Invoice"),
+                new KeyValuePair<byte, string>(2, "Debit Invoice"),
                 new KeyValuePair<byte, string>(3, "Credit Invoice")
             };
             invoicetype.DisplayMember = "Value";
@@ -1086,10 +1086,8 @@
             cmbInvoiceType.DataSource = new List<KeyValuePair<byte, string>>()
             {
                 new KeyValuePair<byte, string>(1, "New"),
-                new KeyValuePair<byte, string>(3, "Credit"),
-                new KeyValuePair<byte, string>(11, "3rd Schedule New"),
-                new KeyValuePair<byte, string>(13, "3rd Schedule Credit"),
-                new KeyValuePair<byte, string>(139, "Sales of goods against SRO 297(I)/2023")
+                new KeyValuePair<byte, string>(2, "Debit"),
+                new KeyValuePair<byte, string>(3, "Credit")
             };
             cmbInvoiceType.ValueMember = "Key";
             cmbInvoiceType.DisplayMember = "Value";

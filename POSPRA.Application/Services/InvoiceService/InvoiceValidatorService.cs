@@ -74,10 +74,6 @@ namespace POSPRA.Application.Services.FiscalService
                     AddError("Buyer Phone Number must contain only numeric digits.");
             }
 
-            //--------Buyer / Seller--
-            if (IsEmpty(invoice.BuyerName))
-                AddError("Invalid Buyer/Seller Name!");
-
             //if (IsEmpty(invoice.DestinationAddress))
             //    AddError("Invalid Destination Address!");
 
