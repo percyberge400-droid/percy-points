@@ -17,7 +17,6 @@ using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
-using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -28,7 +27,6 @@ using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
-using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
 
 namespace POSPRA_WinFormsUI
@@ -106,11 +104,9 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
             services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
-            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFileRecordService, FileRecordService>();
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();

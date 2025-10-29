@@ -17,7 +17,6 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
-using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -28,7 +27,6 @@ using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
-using POSPRA.Repositories.UserRepository;
 
 namespace POSPRA.API
 {
@@ -116,7 +114,6 @@ namespace POSPRA.API
             builder.Services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped(typeof(SqlServerRepository<>));
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             builder.Services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             builder.Services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
@@ -128,7 +125,6 @@ namespace POSPRA.API
             //----------------------------------------------------
             // 🔧 Application Services
             //----------------------------------------------------
-            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ILogService, LogService>();
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
