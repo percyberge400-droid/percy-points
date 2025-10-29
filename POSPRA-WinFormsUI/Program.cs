@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Drawing.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
@@ -29,7 +30,6 @@ using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
-using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
 {
@@ -58,7 +58,7 @@ namespace POSPRA_WinFormsUI
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                //Directory.CreateDirectory(dbDirectory); // ✅ This line must be active
+                Directory.CreateDirectory(dbDirectory); // ✅ This line must be active
             }
 
             // ✅ Initialize SQLite database if needed
@@ -68,7 +68,7 @@ namespace POSPRA_WinFormsUI
 
             using (var context = new SqliteDbContext(sqliteOptions))
             {
-                //context.Database.EnsureCreated(); // Creates the DB file & schema if not present
+                context.Database.EnsureCreated(); // Creates the DB file & schema if not present
             }
 
             // ✅ Load JSON config (for any additional modern config)

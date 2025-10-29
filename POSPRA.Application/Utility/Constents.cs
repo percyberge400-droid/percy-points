@@ -9,7 +9,10 @@
         // Fiscal API
         public const string GetAllUnsyncedAsync = "api/fileRecord/getallunsynced";
         public const string GetAll = "api/fileRecord/getall";
+        public const string UpdateFileReacord = "api/fileRecord/update-filereacord";
+        public const string CreateLog = "api/log/create-logAsync";
         public const string Create = "api/invoice/create";
+        public const string IsCloudSyncEnabledAsync = "api/configuration/iscloud-syncenabled";
 
         // Live API
         public const string CreateCloudLog = "api/live/create-cloud-log";
