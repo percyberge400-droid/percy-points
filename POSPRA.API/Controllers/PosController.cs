@@ -19,8 +19,8 @@ namespace POSPRA.API.Controllers
         [HttpPost("HeartBeat")]
         public async Task<IActionResult> HeartBeat()
         {
-            var posId = _requestHeaderService.GetPosId();
-            var response = await _posService.UpdateHeartBeatAsync(posId);
+            //var posId = _requestHeaderService.GetPosId();
+            var response = await _posService.UpdateHeartBeatAsync(133013);
             return Ok(response);
         }
 
