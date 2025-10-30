@@ -15,6 +15,8 @@ using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
+using POSPRA.Application.Services.PosService;
+using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
 using POSPRA.Application.Services.UserService;
@@ -144,6 +146,7 @@ namespace POSPRA.API
             builder.Services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
             builder.Services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
             builder.Services.AddScoped<IScriptService, ScriptService>();
+            builder.Services.AddScoped<IPosService, PosService>();
 
             builder.Services.AddHttpClient<HttpService>();
             builder.Services.AddHttpContextAccessor();

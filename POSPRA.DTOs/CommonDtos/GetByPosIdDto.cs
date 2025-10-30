@@ -2,6 +2,6 @@
 {
     public class GetByPosIdDto
     {
-        public long PosId { get; set; }
+        public int PosId { get; set; }
     }
 }

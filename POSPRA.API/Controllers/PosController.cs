@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.HelperService;
 using POSPRA.Application.Services.PosService;
+using POSPRA.DTOs.CommanDtos;
 
 namespace POSPRA.API.Controllers
 {
@@ -17,10 +18,9 @@ namespace POSPRA.API.Controllers
         /// Heartbeat Status
         /// </returns>
         [HttpPost("HeartBeat")]
-        public async Task<IActionResult> HeartBeat()
+        public async Task<IActionResult> HeartBeat(GetByPosIdDto dto)
         {
-            var posId = _requestHeaderService.GetPosId();
-            var response = await _posService.UpdateHeartBeatAsync(posId);
+            var response = await _posService.UpdateHeartBeatAsync(dto.PosId);
             return Ok(response);
         }
 

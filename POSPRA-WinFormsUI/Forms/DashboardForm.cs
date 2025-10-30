@@ -4,12 +4,16 @@ using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.PosService;
+using POSPRA.Application.Utility;
+using POSPRA.DTOs;
+using POSPRA.DTOs.ClientDtos;
 using POSPRA.DTOs.LogDtos;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Data;
 using System.Drawing.Drawing2D;
+using System.Net.Http.Json;
 using System.Text;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -22,6 +26,9 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly IInvoiceService _invoiceService;
         private readonly ISendLogToCloudService _sendLogToCloudService;
         private readonly IPosService _posService;
+        private readonly string _baseUrl;
+
+        private readonly HttpClient _httpClient;
         private System.Timers.Timer _heartbeatTimer;
 
         private bool _isInitialLoad = true;
@@ -67,9 +74,15 @@ namespace POSPRA_WinFormsUI.Forms
         private int _lastPieChartSynced = -1;
         private int _lastPieChartPending = -1;
 
-        public DashboardForm(IServiceProvider provider, ILogService logService, IInvoiceService invoiceService,
-            IFileRecordService fileRecordService, ISendLogToCloudService sendLogToCloudService, IPosService posService)
+        public DashboardForm(IServiceProvider provider,
+            ILogService logService,
+            IInvoiceService invoiceService,
+            IFileRecordService fileRecordService,
+            ISendLogToCloudService sendLogToCloudService,
+            IPosService posService
+            )
         {
+
             InitializeComponent();
 
             this.Load += (s, e) => CenterProgressBar();
@@ -78,7 +91,8 @@ namespace POSPRA_WinFormsUI.Forms
             _provider = provider;
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             _sendLogToCloudService = sendLogToCloudService;
-
+            _baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
+            _httpClient = new HttpClient(); // local instance for manual URL handling
             //RoundAllButtons(this, 4);
 
             FormBorderStyle = FormBorderStyle.None;
@@ -325,7 +339,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             if (_heartbeatTimer == null)
             {
-                _heartbeatTimer = new System.Timers.Timer(10000);
+                _heartbeatTimer = new System.Timers.Timer(100000);
                 _heartbeatTimer.Elapsed += async (s, e) => await UpdateHeartbeatAsync(decryptedPosId);
                 _heartbeatTimer.AutoReset = true;
                 _heartbeatTimer.Enabled = true;
@@ -345,15 +359,37 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                var heartbeatResponse = await _posService.UpdateHeartBeatAsync(posId);
-
-                if (heartbeatResponse?.StatusCode == "200" && heartbeatResponse.Data != null)
+                if (string.IsNullOrEmpty(_baseUrl))
                 {
-                    var serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
-                    UpdateHeartbeatLabel(serverTime, isError: false);
+                    System.Diagnostics.Debug.WriteLine("BaseUrl not found in configuration.");
+                    UpdateHeartbeatLabel(isError: true);
+                    return;
+                }
+
+                // ✅ Combine BaseUrl + Endpoint
+                var fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
+                var requestBody = new { PosId = posId };
+                var json = JsonContent.Create(requestBody);
+
+                var response = await _httpClient.PostAsync(fullUrl, json);
+                if (response.IsSuccessStatusCode)
+                {
+                    var heartbeatResponse = await response.Content.ReadFromJsonAsync<ApiResponse<HeartBeatDto>>();
+
+                    if (heartbeatResponse?.StatusCode == ApiStatusCode.Success && heartbeatResponse.Data != null)
+                    {
+                        var serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
+                        UpdateHeartbeatLabel(serverTime, isError: false);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Heartbeat API returned no data: {heartbeatResponse?.Message}");
+                        UpdateHeartbeatLabel(isError: true);
+                    }
                 }
                 else
                 {
+                    System.Diagnostics.Debug.WriteLine($"Heartbeat failed: {response.StatusCode}");
                     UpdateHeartbeatLabel(isError: true);
                 }
             }
@@ -761,7 +797,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+                var encryptedPosId = System.Configuration.ConfigurationManager.AppSettings["Username"] ?? "0";
                 var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
                 StartHeartbeatTimer(decryptedPosId);
 
