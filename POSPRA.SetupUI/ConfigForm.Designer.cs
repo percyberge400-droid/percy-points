@@ -191,6 +191,7 @@
             progressBar.Location = new Point(220, 536);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(290, 32);
+            progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.TabIndex = 9;
             // 
             // headerPanel
