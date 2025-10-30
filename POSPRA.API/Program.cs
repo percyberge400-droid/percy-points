@@ -55,6 +55,8 @@ namespace POSPRA.API
         {
             var builder = WebApplication.CreateBuilder(args ?? Array.Empty<string>());
 
+            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            
             //----------------------------------------------------
             // 🔧 Kestrel URL binding
             // IIS hosting will ignore this and use web.config instead,
@@ -72,28 +74,22 @@ namespace POSPRA.API
             //----------------------------------------------------
             // 🔧 Database configuration
             //----------------------------------------------------
-            string? dbPath = builder.Configuration.GetSection("AppSettings:DefaultDBFilePath")?.Value;
-
-            // fallback if not found
-            if (string.IsNullOrWhiteSpace(dbPath))
+            builder.Services.AddDbContext<SqliteDbContext>((sp, options) =>
             {
-                dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
-            }
+                var config = sp.GetRequiredService<IConfiguration>();
+                var dbPath = config["AppSettings:DefaultDBFilePath"];
 
-            // ✅ Ensure SqliteDbContext uses this path
-            SqliteDbContext.SetDatabasePath(dbPath);
+                if (string.IsNullOrWhiteSpace(dbPath))
+                    dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
 
-            builder.Services.AddDbContext<SqliteDbContext>(options =>
-                options.UseSqlite($"Data Source={dbPath}"));
+                // Optional: ensure directory exists
+                var dir = Path.GetDirectoryName(dbPath);
+                if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
 
-            // Read the isProduction flag from AppSettings
-            //var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
-            //bool isProduction = appSettings!.IsProduction;
-
-            // Choose the SQL Server connection string based on the flag
-            //string sqlConnectionString = builder.Configuration.GetConnectionString(
-            //    isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
-            //) ?? throw new InvalidOperationException("Missing SQL Server connection string for the selected environment for api.");
+                SqliteDbContext.SetDatabasePath(dbPath);
+                options.UseSqlite($"Data Source={dbPath}");
+            });
 
             builder.Services.AddSingleton<IEnvironmentConfigService, EnvironmentConfigService>();
             // Register SQL Server DbContext with the selected connection string
