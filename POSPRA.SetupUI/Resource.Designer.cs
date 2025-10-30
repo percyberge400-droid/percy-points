@@ -79,5 +79,33 @@ namespace POSPRA.SetupUI {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pra_Comp_logo {
+            get {
+                object obj = ResourceManager.GetObject("pra_Comp_logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pralLogo {
+            get {
+                object obj = ResourceManager.GetObject("pralLogo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        internal static System.Drawing.Bitmap browseIcon
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("browseIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
