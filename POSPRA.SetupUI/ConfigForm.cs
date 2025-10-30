@@ -247,11 +247,31 @@ namespace POSPRA.SetupUI
         {
             base.OnLoad(e);
             this.CenterToScreen();
+
+            // Bring it to the very top once
             this.TopMost = true;
-            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-            this.Activate();
             this.BringToFront();
+            this.Activate();
+
+            // Force it to appear above all windows briefly
+            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+            // After a short delay, remove TopMost so other windows can appear above later
+            Task.Delay(1000).ContinueWith(_ =>
+            {
+                if (!this.IsDisposed)
+                {
+                    this.Invoke((Action)(() =>
+                    {
+                        this.TopMost = false;
+                        SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
+                            SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                    }));
+                }
+            });
         }
+
 
         private async void btnOk_Click(object sender, EventArgs e)
         {
