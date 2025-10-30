@@ -145,6 +145,20 @@
     {
         "CustomAction"
         {
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_11507398BD0E494FB8A88EFFC3C23E33"
+            {
+            "Name" = "8:Publish Items from BATTO_EXE (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_3C450B3E45344B30B48E9C92CB6937DF"
+            "FileType" = "3:2"
+            "InstallAction" = "3:2"
+            "Arguments" = "8:/Commit"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_0BBEEDC8_3471_439F_82BF_4A9568A620C2"
+            "InstallerClass" = "11:FALSE"
+            "CustomActionData" = "8:"
+            }
             "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_7CB1B821084448B8AD6511EC3A132E13"
             {
             "Name" = "8:Publish Items from BATTO_EXE (Active)"
@@ -156,20 +170,6 @@
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
             "Identifier" = "8:_E36C5C72_5F1F_4F18_AFEC_709C14DA4F75"
-            "InstallerClass" = "11:FALSE"
-            "CustomActionData" = "8:"
-            }
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_C20A4752CA1949158A8943BC307029CD"
-            {
-            "Name" = "8:Publish Items from BATTO_EXE (Active)"
-            "Condition" = "8:"
-            "Object" = "8:_3C450B3E45344B30B48E9C92CB6937DF"
-            "FileType" = "3:2"
-            "InstallAction" = "3:2"
-            "Arguments" = "8:/Commit"
-            "EntryPoint" = "8:"
-            "Sequence" = "3:1"
-            "Identifier" = "8:_0BBEEDC8_3471_439F_82BF_4A9568A620C2"
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
             }
@@ -194,7 +194,7 @@
             "Object" = "8:_3C450B3E45344B30B48E9C92CB6937DF"
             "FileType" = "3:2"
             "InstallAction" = "3:3"
-            "Arguments" = "8:/Rollback"
+            "Arguments" = "8:/Uninstall"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
             "Identifier" = "8:_A70BAA73_8473_44AE_A7A7_07D123429094"
@@ -363,7 +363,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:POS Component"
         "ProductCode" = "8:{6A2879D1-E93D-422F-978D-B231820AA62B}"
-        "PackageCode" = "8:{684FAC00-DD6E-404E-B998-BBFC96C0FDF3}"
+        "PackageCode" = "8:{1B40D932-ED74-4053-957B-069B5B03FC7C}"
         "UpgradeCode" = "8:{239EA055-E78F-4033-95C6-4DA1C9496960}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -926,7 +926,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_0D0CAC81CC684C55B22336A8430317F9"
             {
-            "SourcePath" = "8:..\\EncryptTool\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\EncryptTool\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -954,7 +954,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_3C450B3E45344B30B48E9C92CB6937DF"
             {
-            "SourcePath" = "8:..\\BATTO_EXE\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\BATTO_EXE\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -1010,7 +1010,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_47DC25F7F55948F8967E06D7F700EEC6"
             {
-            "SourcePath" = "8:..\\POSPRA.Worker\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.Worker\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -1094,7 +1094,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6F25B2E1C6BE4DDF94A78A1BDFE8E007"
             {
-            "SourcePath" = "8:..\\POSPRA-WinFormsUI\\obj\\Debug\\net9.0-windows10.0.17763.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA-WinFormsUI\\obj\\Release\\net9.0-windows10.0.17763.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -1150,7 +1150,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B197E02983A840AD81E08012CDDD90BA"
             {
-            "SourcePath" = "8:..\\POSPRA.API\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.Api\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
@@ -1178,7 +1178,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_BB24F3ACBB854B98BB3FFB882140C1C8"
             {
-            "SourcePath" = "8:..\\POSPRA.SetupUI\\obj\\Debug\\net9.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\POSPRA.SetupUI\\obj\\Release\\net9.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
