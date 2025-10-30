@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
             label4 = new Label();
             itemDiscountAmount = new TextBox();
@@ -171,7 +171,6 @@
             itemDiscountPercent.PlaceholderText = "Discount %";
             itemDiscountPercent.Size = new Size(96, 24);
             itemDiscountPercent.TabIndex = 58;
-            itemDiscountPercent.Text = "10";
             // 
             // TaxChargedlbl
             // 
@@ -206,7 +205,6 @@
             pctCode.PlaceholderText = "PCT Code";
             pctCode.Size = new Size(197, 24);
             pctCode.TabIndex = 10;
-            pctCode.Text = "78";
             // 
             // TaxRatelbl
             // 
@@ -227,7 +225,6 @@
             salevalue.PlaceholderText = "Sale Value";
             salevalue.Size = new Size(197, 24);
             salevalue.TabIndex = 16;
-            salevalue.Text = "100";
             // 
             // salevaluelbl
             // 
@@ -247,7 +244,6 @@
             TaxRatebox.PlaceholderText = "Tax Rate";
             TaxRatebox.Size = new Size(200, 24);
             TaxRatebox.TabIndex = 12;
-            TaxRatebox.Text = "10";
             // 
             // itemDiscountlbl
             // 
@@ -270,7 +266,6 @@
             totalamount.ReadOnly = true;
             totalamount.Size = new Size(194, 24);
             totalamount.TabIndex = 11;
-            totalamount.Text = "105";
             // 
             // ItemCode
             // 
@@ -283,7 +278,6 @@
             ItemCode.PlaceholderText = "Item Code";
             ItemCode.Size = new Size(197, 24);
             ItemCode.TabIndex = 9;
-            ItemCode.Text = "78";
             // 
             // ItemNamelbl
             // 
@@ -324,7 +318,6 @@
             ItemName.PlaceholderText = "Item Name";
             ItemName.Size = new Size(197, 24);
             ItemName.TabIndex = 14;
-            ItemName.Text = "12345678";
             // 
             // ItemCodelbl
             // 
@@ -354,7 +347,6 @@
             qty.PlaceholderText = "QUANTITY";
             qty.Size = new Size(197, 24);
             qty.TabIndex = 15;
-            qty.Text = "1";
             // 
             // lblCustomerRegType
             // 
@@ -396,7 +388,7 @@
             btnEdit.FlatStyle = FlatStyle.Flat;
             btnEdit.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold);
             btnEdit.ForeColor = Color.Transparent;
-            btnEdit.Location = new Point(1020, 379);
+            btnEdit.Location = new Point(1010, 379);
             btnEdit.Name = "btnEdit";
             btnEdit.Size = new Size(155, 33);
             btnEdit.TabIndex = 22;
@@ -426,22 +418,22 @@
             dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = Color.White;
-            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle3.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle3.SelectionBackColor = Color.White;
-            dataGridViewCellStyle3.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.White;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle1.SelectionBackColor = Color.White;
+            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = Color.White;
-            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle4.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.White;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 419);
@@ -462,9 +454,9 @@
             lblInvoicesListing.ForeColor = Color.FromArgb(17, 24, 39);
             lblInvoicesListing.Location = new Point(30, 390);
             lblInvoicesListing.Name = "lblInvoicesListing";
-            lblInvoicesListing.Size = new Size(129, 22);
+            lblInvoicesListing.Size = new Size(177, 22);
             lblInvoicesListing.TabIndex = 0;
-            lblInvoicesListing.Text = "📊ITEMS LIST";
+            lblInvoicesListing.Text = "📊PRODUCTS LIST";
             // 
             // btn_remove
             // 
@@ -474,7 +466,7 @@
             btn_remove.FlatStyle = FlatStyle.Flat;
             btn_remove.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold);
             btn_remove.ForeColor = Color.Transparent;
-            btn_remove.Location = new Point(859, 379);
+            btn_remove.Location = new Point(849, 379);
             btn_remove.Name = "btn_remove";
             btn_remove.Size = new Size(155, 33);
             btn_remove.TabIndex = 21;
@@ -489,7 +481,7 @@
             btnProceed.FlatStyle = FlatStyle.Flat;
             btnProceed.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold);
             btnProceed.ForeColor = Color.Transparent;
-            btnProceed.Location = new Point(695, 379);
+            btnProceed.Location = new Point(685, 379);
             btnProceed.Name = "btnProceed";
             btnProceed.Size = new Size(155, 33);
             btnProceed.TabIndex = 20;
@@ -524,17 +516,18 @@
             // 
             // btnsearch
             // 
+            btnsearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnsearch.AutoSize = true;
-            btnsearch.BackColor = Color.Teal;
+            btnsearch.BackColor = Color.Black;
             btnsearch.FlatAppearance.BorderSize = 0;
             btnsearch.FlatStyle = FlatStyle.Flat;
-            btnsearch.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnsearch.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnsearch.ForeColor = Color.Transparent;
-            btnsearch.Location = new Point(228, 172);
+            btnsearch.Location = new Point(1053, 174);
             btnsearch.Name = "btnsearch";
-            btnsearch.Size = new Size(43, 32);
+            btnsearch.Size = new Size(112, 30);
             btnsearch.TabIndex = 18;
-            btnsearch.Text = "🔍";
+            btnsearch.Text = "🔍 Search";
             btnsearch.UseVisualStyleBackColor = false;
             // 
             // btnclear
@@ -545,7 +538,7 @@
             btnclear.FlatStyle = FlatStyle.Flat;
             btnclear.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold);
             btnclear.ForeColor = Color.Transparent;
-            btnclear.Location = new Point(531, 379);
+            btnclear.Location = new Point(521, 379);
             btnclear.Name = "btnclear";
             btnclear.Size = new Size(155, 33);
             btnclear.TabIndex = 19;
@@ -578,11 +571,11 @@
             // 
             label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
-            label1.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Bold);
+            label1.Font = new Font("Microsoft Sans Serif", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(17, 24, 39);
             label1.Location = new Point(27, 723);
             label1.Name = "label1";
-            label1.Size = new Size(215, 22);
+            label1.Size = new Size(199, 22);
             label1.TabIndex = 72;
             label1.Text = "💰INVOICE SUMMARY";
             // 
@@ -612,7 +605,7 @@
             refUSIN.ImeMode = ImeMode.Disable;
             refUSIN.Location = new Point(410, 41);
             refUSIN.Name = "refUSIN";
-            refUSIN.PlaceholderText = "Ref USIN";
+            refUSIN.PlaceholderText = "Reference User Invoice No.";
             refUSIN.Size = new Size(123, 24);
             refUSIN.TabIndex = 8;
             // 
@@ -620,11 +613,11 @@
             // 
             refUSINlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             refUSINlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            refUSINlbl.Location = new Point(415, 18);
+            refUSINlbl.Location = new Point(411, 18);
             refUSINlbl.Name = "refUSINlbl";
-            refUSINlbl.Size = new Size(88, 20);
+            refUSINlbl.Size = new Size(209, 20);
             refUSINlbl.TabIndex = 75;
-            refUSINlbl.Text = "Ref USIN";
+            refUSINlbl.Text = "Reference User Invoice No.";
             // 
             // paymentmode
             // 
@@ -670,7 +663,7 @@
             USIN.ImeMode = ImeMode.Disable;
             USIN.Location = new Point(281, 41);
             USIN.Name = "USIN";
-            USIN.PlaceholderText = "USIN";
+            USIN.PlaceholderText = "User Invoice No.";
             USIN.Size = new Size(123, 24);
             USIN.TabIndex = 7;
             // 
@@ -678,11 +671,11 @@
             // 
             USINlbl.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             USINlbl.ForeColor = Color.FromArgb(75, 85, 99);
-            USINlbl.Location = new Point(286, 18);
+            USINlbl.Location = new Point(281, 18);
             USINlbl.Name = "USINlbl";
-            USINlbl.Size = new Size(76, 20);
+            USINlbl.Size = new Size(141, 20);
             USINlbl.TabIndex = 56;
-            USINlbl.Text = "USIN";
+            USINlbl.Text = "User Invoice No.";
             // 
             // panel2
             // 

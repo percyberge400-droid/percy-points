@@ -3,6 +3,7 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
+using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 using AlertType = POSPRA.Application.Utility.AlertType;
@@ -15,40 +16,36 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly ILogService _logService;
         private CancellationTokenSource _internetCheckCts;
         private CancellationTokenSource _workerServiceCts;
-        private readonly List<Form> _independentForms = new List<Form>();
+        private readonly List<Form> _independentForms = new();
         private DateTime? offlineSince = null;
         private bool? wasOnline = null;
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private bool _workerServiceAlertShown = false;
 
+        // 🎨 Animation tracking for status badges
+        private int _internetPulseFrame = 0;
+        private int _posPulseFrame = 0;
+        private System.Windows.Forms.Timer _animationTimer;
+
         public Main(IServiceProvider provider, ILogService logService)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
-
             InitializeComponent();
-            this.IsMdiContainer = true;
 
+            this.IsMdiContainer = true;
             panInvoiceSelection.Visible = false;
             panExportInvoice.Visible = false;
             panCatalogView.Visible = false;
-
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#48A787");
-
             Form childForm = _provider.GetRequiredService<DashboardForm>();
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
-
             this.Resize += Main_Resize;
-            StartInternetStatusChecker();
-            StartWorkerServiceStatusChecker();
 
-            posStatus.Font = new Font(posStatus.Font, FontStyle.Italic);
-            posStatus.ForeColor = Color.Gray;
-
-            internetStatus.Font = new Font(internetStatus.Font, FontStyle.Italic);
-            internetStatus.ForeColor = Color.Gray;
+            // 🚀 Initialize catchy status system
+            InitializeStatusSystem();
 
             string posCOMP = ConfigurationManager.AppSettings["posCOMP"];
             if (!string.IsNullOrEmpty(posCOMP))
@@ -57,14 +54,29 @@ namespace POSPRA_WinFormsUI.Forms
                 if (res is Image img)
                 {
                     pictureBox2.Image = img;
-                    //picLogo.SizeMode = PictureBoxSizeMode.Zoom;
                 }
             }
+        }
+
+        private void InitializeStatusSystem()
+        {
+            // First set the background color before styling
+            panel2.BackColor = Color.White;
+
+            StyleStatusPanel();
+            StartInternetStatusChecker();
+            StartWorkerServiceStatusChecker();
+            StartStatusAnimations();
+
+            posStatus.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
+            internetStatus.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
+            _animationTimer?.Stop();
+            _animationTimer?.Dispose();
             StopInternetStatusChecker();
             StopWorkerServiceStatusChecker();
             foreach (var form in _independentForms.ToArray())
@@ -76,8 +88,198 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
+        private void StyleStatusPanel()
+        {
+            panel2.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Glossy gradient background
+                using (var brush = new LinearGradientBrush(
+                    panel2.ClientRectangle,
+                    Color.White,
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(brush, panel2.ClientRectangle);
+                }
+
+                // Subtle top highlight
+                using (var highlight = new LinearGradientBrush(
+                    new Rectangle(0, 0, panel2.Width, 20),
+                    Color.FromArgb(60, 255, 255, 255),
+                    Color.Transparent,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(highlight, 0, 0, panel2.Width, 20);
+                }
+
+                // Bottom shadow line
+                using (Pen shadow = new Pen(Color.FromArgb(40, 0, 0, 0), 1))
+                    e.Graphics.DrawLine(shadow, 0, panel2.Height - 1, panel2.Width, panel2.Height - 1);
+            };
+
+            // Disable AutoSize and Anchor for manual positioning
+            lblNetworkStatus.AutoSize = true;
+            lblNetworkStatus.Anchor = AnchorStyles.None;
+            internetStatus.AutoSize = false;
+            internetStatus.Anchor = AnchorStyles.None;
+            lblWorkerService.AutoSize = true;
+            lblWorkerService.Anchor = AnchorStyles.None;
+            posStatus.AutoSize = false;
+            posStatus.Anchor = AnchorStyles.None;
+
+            // Style the status badges first (this sets their size)
+            StyleStatusBadge(internetStatus, false);
+            StyleStatusBadge(posStatus, false);
+
+            // Calculate total width needed (with padding)
+            int totalWidth = lblNetworkStatus.Width + 10 + internetStatus.Width + 30 +
+                           lblWorkerService.Width + 10 + posStatus.Width + 60; // Extra padding
+
+            // Resize panel2 to fit content with margins
+            panel2.Width = Math.Max(totalWidth, 550); // Minimum width of 550
+
+            // Reposition panel2 to stay anchored to the right
+            panel2.Location = new Point(panel1.Width - panel2.Width, 0);
+
+            // Center the entire group in panel2
+            int startX = (panel2.Width - (totalWidth - 60)) / 2; // Subtract extra padding for centering
+            int centerY = (panel2.Height - lblNetworkStatus.Height) / 2;
+
+            // Position all elements
+            lblNetworkStatus.Location = new Point(startX, centerY);
+            internetStatus.Location = new Point(lblNetworkStatus.Right + 10,
+                                                (panel2.Height - internetStatus.Height) / 2);
+            lblWorkerService.Location = new Point(internetStatus.Right + 30, centerY);
+            posStatus.Location = new Point(lblWorkerService.Right + 10,
+                                          (panel2.Height - posStatus.Height) / 2);
+        }
+
+        private void StyleStatusBadge(Label lbl, bool isActive)
+        {
+            lbl.AutoSize = false;
+            lbl.TextAlign = ContentAlignment.MiddleCenter;
+            lbl.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
+            lbl.Size = new Size(110, 32);
+            lbl.Region = new Region(CreateRoundRectPath(new Rectangle(0, 0, lbl.Width, lbl.Height), 12));
+
+            // Store which pulse frame to use based on label
+            lbl.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                Rectangle rect = new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1);
+
+                // Get the appropriate pulse frame
+                int currentPulseFrame = (lbl == internetStatus) ? _internetPulseFrame : _posPulseFrame;
+
+                // Determine colors based on status
+                Color bgColor, glowColor, dotColor;
+                if (isActive)
+                {
+                    bgColor = Color.FromArgb(72, 167, 135);
+                    glowColor = Color.FromArgb(187, 247, 208);
+                    dotColor = Color.White;
+                }
+                else
+                {
+                    bgColor = Color.FromArgb(220, 53, 69); // Red for offline/inactive
+                    glowColor = Color.FromArgb(248, 215, 218);
+                    dotColor = Color.White;
+                }
+
+                // Gradient background
+                using (var bgBrush = new LinearGradientBrush(
+                    rect,
+                    bgColor,
+                    Color.FromArgb(Math.Max(0, bgColor.R - 20), Math.Max(0, bgColor.G - 20), Math.Max(0, bgColor.B - 20)),
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRoundedRectangle(bgBrush, rect, 6);
+                }
+
+                // Animated pulse effect for both states
+                float pulseAlpha = (float)(Math.Sin(currentPulseFrame * 0.1) * 0.3 + 0.7);
+                using (Pen pulsePen = new Pen(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
+                {
+                    e.Graphics.DrawRoundedRectangle(pulsePen, rect, 12);
+                }
+
+                // Animated status dot with glow (both states get glow)
+                int dotSize = isActive ? 8 : 8;
+                int dotX = 8;
+                int dotY = lbl.Height / 2 - dotSize / 2;
+
+                // Glow effect for both active and inactive states
+                float glowIntensity = (float)(Math.Sin(currentPulseFrame * 0.15) * 0.4 + 0.6);
+                using (var glowBrush = new SolidBrush(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
+                {
+                    e.Graphics.FillEllipse(glowBrush, dotX - 3, dotY - 3, dotSize + 6, dotSize + 6);
+                }
+
+                // Main dot
+                using (var dotBrush = new LinearGradientBrush(
+                    new Rectangle(dotX, dotY, dotSize, dotSize),
+                    dotColor,
+                    Color.White,
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillEllipse(dotBrush, dotX, dotY, dotSize, dotSize);
+                }
+
+                // Text with subtle shadow
+                string statusText = lbl.Text.Replace("●", "").Trim();
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(40, 0, 0, 0)))
+                {
+                    TextRenderer.DrawText(
+                        e.Graphics,
+                        statusText,
+                        lbl.Font,
+                        new Rectangle(21, 1, lbl.Width - 25, lbl.Height),
+                        Color.FromArgb(40, 0, 0, 0),
+                        TextFormatFlags.VerticalCenter | TextFormatFlags.Left
+                    );
+                }
+
+                TextRenderer.DrawText(
+                    e.Graphics,
+                    statusText,
+                    lbl.Font,
+                    new Rectangle(20, 0, lbl.Width - 24, lbl.Height),
+                    Color.White,
+                    TextFormatFlags.VerticalCenter | TextFormatFlags.Left
+                );
+            };
+        }
+        private void StartStatusAnimations()
+        {
+            _animationTimer = new System.Windows.Forms.Timer { Interval = 50 };
+            _animationTimer.Tick += (s, e) =>
+            {
+                _internetPulseFrame++;
+                _posPulseFrame++;
+
+                if (internetStatus?.IsHandleCreated == true)
+                    internetStatus.Invalidate();
+                if (posStatus?.IsHandleCreated == true)
+                    posStatus.Invalidate();
+            };
+            _animationTimer.Start();
+        }
+
+        private void UpdateStatusBadge(Label lbl, bool isActive, string text)
+        {
+            if (lbl == null || !lbl.IsHandleCreated) return;
+
+            lbl.BeginInvoke(new Action(() =>
+            {
+                lbl.Text = text;
+                StyleStatusBadge(lbl, isActive);
+                lbl.Invalidate();
+            }));
+        }
+
         private void Main_Resize(object sender, EventArgs e) => HandleFormStateChange();
-        private void Main_WindowStateChanged(object sender, EventArgs e) => HandleFormStateChange();
 
         private void HandleFormStateChange()
         {
@@ -106,35 +308,10 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        private void OpenIndependentForm<T>() where T : Form
-        {
-            foreach (var existingForm in _independentForms)
-            {
-                if (existingForm is T && !existingForm.IsDisposed)
-                {
-                    if (!existingForm.Visible)
-                        existingForm.Show();
-                    existingForm.BringToFront();
-                    if (existingForm.WindowState == FormWindowState.Minimized)
-                        existingForm.WindowState = FormWindowState.Normal;
-                    return;
-                }
-            }
-
-            var newForm = _provider.GetRequiredService<T>();
-            newForm.MdiParent = null;
-            newForm.ShowInTaskbar = true;
-            newForm.StartPosition = FormStartPosition.CenterScreen;
-            newForm.FormBorderStyle = FormBorderStyle.Sizable;
-            newForm.FormClosed += (s, e) => _independentForms.Remove(newForm);
-            _independentForms.Add(newForm);
-            newForm.Show();
-            newForm.BringToFront();
-        }
-
+        // 🌐 CATCHY INTERNET STATUS CHECKER
         private void StartInternetStatusChecker()
         {
-            _internetCheckCts = new CancellationTokenSource();
+            _internetCheckCts = new();
             CancellationToken ct = _internetCheckCts.Token;
 
             _ = Task.Run(async () =>
@@ -145,23 +322,14 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         bool online = await CheckInternetConnectivityAsync();
 
-                        if (internetStatus != null && internetStatus.IsHandleCreated)
-                        {
-                            internetStatus.BeginInvoke(new Action(() =>
-                            {
-                                // Update main label
-                                internetStatus.Text = $"{(online ? "● Online" : "● Offline")}";
-                                internetStatus.Font = new Font(internetStatus.Font, FontStyle.Bold);
-                                internetStatus.ForeColor = online ? Color.Green : Color.Red;
-                            }));
-                        }
+                        UpdateStatusBadge(internetStatus, online, online ? "Online" : "Offline");
 
                         if (wasOnline != null && wasOnline != online)
                         {
                             if (!online)
                             {
                                 offlineSince = DateTime.Now;
-                                ShowAlert("Internet connection lost!", "Error", true);
+                                ShowAlert("Connection Lost! Going offline...", nameof(AlertType.Error), true, "Internet Alert");
                                 _ = CreateLog("Internet connection lost", AlertType.Error);
                                 lastOfflineAlertTime = DateTime.Now;
                             }
@@ -171,24 +339,19 @@ namespace POSPRA_WinFormsUI.Forms
                                 if (offlineSince.HasValue)
                                 {
                                     TimeSpan downTime = DateTime.Now - offlineSince.Value;
-                                    downtimeMsg = $" (Downtime: {downTime.TotalSeconds:F0} seconds)";
+                                    downtimeMsg = $" Reconnected after {downTime.TotalSeconds:F0}s";
                                 }
-                                ShowAlert("Internet connection restored!", "Success", true);
+                                ShowAlert($"Back Online!{downtimeMsg}", nameof(AlertType.Success), true, "Internet Restored");
                                 _ = CreateLog("Internet connection restored" + downtimeMsg, AlertType.Success);
                                 offlineSince = null;
                             }
                         }
                         else if (!online)
                         {
-                            if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 5)
+                            if ((DateTime.Now - lastOfflineAlertTime).TotalSeconds >= 30)
                             {
-                                string msg = "Internet connection still offline";
-                                if (offlineSince.HasValue)
-                                {
-                                    TimeSpan downTime = DateTime.Now - offlineSince.Value;
-                                    msg += $" ({downTime.TotalSeconds:F0} seconds)";
-                                }
-                                ShowAlert("Internet connection lost!", "Error", false);
+                                TimeSpan downTime = offlineSince.HasValue ? DateTime.Now - offlineSince.Value : TimeSpan.Zero;
+                                ShowAlert($"Still Offline ({downTime.TotalSeconds:F0}s)", nameof(AlertType.Error), false, "Connection Status");
                                 lastOfflineAlertTime = DateTime.Now;
                             }
                         }
@@ -196,10 +359,7 @@ namespace POSPRA_WinFormsUI.Forms
                         wasOnline = online;
                         await Task.Delay(5000, ct);
                     }
-                    catch (TaskCanceledException)
-                    {
-                        break;
-                    }
+                    catch (TaskCanceledException) { break; }
                 }
             }, ct);
         }
@@ -221,14 +381,16 @@ namespace POSPRA_WinFormsUI.Forms
             _internetCheckCts?.Dispose();
         }
 
+        // 🔧 CATCHY POS SERVICE STATUS CHECKER
         private void StartWorkerServiceStatusChecker()
         {
-            _workerServiceCts = new CancellationTokenSource();
+            _workerServiceCts = new();
             CancellationToken ct = _workerServiceCts.Token;
 
             _ = Task.Run(async () =>
             {
                 bool wasRunning = true;
+                int consecutiveChecks = 0;
 
                 while (!ct.IsCancellationRequested)
                 {
@@ -236,28 +398,30 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         bool isRunning = await IsWorkerServiceRunningAsync();
 
-                        if (posStatus != null && posStatus.IsHandleCreated)
-                        {
-                            posStatus.BeginInvoke(new Action(() =>
-                            {
-                                // Update main label
-                                posStatus.Text = $"{(isRunning ? "● Active" : "● Inactive")}";
-                                posStatus.Font = new Font(posStatus.Font, FontStyle.Bold);
-                                posStatus.ForeColor = isRunning ? Color.Green : Color.Red;
-                            }));
-                        }
+                        UpdateStatusBadge(posStatus, isRunning, isRunning ? "Active" : "Inactive");
 
                         if (!isRunning && wasRunning)
                         {
-                            WindowsLocalAppNotification.Show("POS Service Alert", "POS service is inactive!");
+                            WindowsLocalAppNotification.Show("POS Service Alert", "Service stopped unexpectedly!");
                             _ = CreateLog("POS service is inactive!", AlertType.Warning);
                             _workerServiceAlertShown = true;
+                            consecutiveChecks = 0;
                         }
                         else if (isRunning && !wasRunning)
                         {
-                            WindowsLocalAppNotification.Show("POS Service Alert", "POS service restored!");
+                            WindowsLocalAppNotification.Show("POS Service Restored", "Service is back online!");
                             _ = CreateLog("POS service restored!", AlertType.Success);
                             _workerServiceAlertShown = false;
+                            consecutiveChecks = 0;
+                        }
+                        else if (!isRunning)
+                        {
+                            consecutiveChecks++;
+                            // Remind every 5 checks (25 seconds) if still down
+                            if (consecutiveChecks % 5 == 0)
+                            {
+                                ShowAlert($"POS Service still inactive ({consecutiveChecks * 5}s)", nameof(AlertType.Warning), false, "Service Monitor");
+                            }
                         }
 
                         wasRunning = isRunning;
@@ -293,17 +457,15 @@ namespace POSPRA_WinFormsUI.Forms
             await _logService.CreateLogAsync(log);
         }
 
-        private void ShowAlert(string message, string alertType, bool isShowWindowsNotification, string title = "Alert")
+        private void ShowAlert(string message, string alertType, bool showWindowsNotification, string title = "Alert")
         {
             if (!this.IsHandleCreated) return;
-
             this.BeginInvoke(new Action(() =>
             {
                 try
                 {
-                    if (isShowWindowsNotification)
+                    if (showWindowsNotification)
                         WindowsLocalAppNotification.Show(title, message);
-
                     if (alertType == nameof(AlertType.Error))
                         AlertManager.ShowError(message);
                     else if (alertType == nameof(AlertType.Success))
@@ -360,21 +522,14 @@ namespace POSPRA_WinFormsUI.Forms
             LoadView("Catalog View");
         }
 
-        public void LoadView(string v)
+        public void LoadView(string viewName)
         {
             if (this.ActiveMdiChild != null)
             {
-                var activeChild = this.ActiveMdiChild;
-                activeChild.Close();
-                activeChild.Dispose();
+                this.ActiveMdiChild.Close();
+                // this.ActiveMdiChild.Dispose();
             }
-            foreach (Form child in this.MdiChildren)
-            {
-                child.Close();
-                child.Dispose();
-            }
-
-            Form childForm = v switch
+            Form childForm = viewName switch
             {
                 "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
                 "Invoice Entry" => _provider.GetRequiredService<ItemEntry>(),
@@ -382,19 +537,39 @@ namespace POSPRA_WinFormsUI.Forms
                 "Catalog View" => _provider.GetRequiredService<CatalogView>(),
                 _ => throw new NotImplementedException()
             };
-
-            if (childForm == null) return;
-
             childForm.TopLevel = false;
             childForm.FormBorderStyle = FormBorderStyle.None;
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
-            childForm.Location = new Point(0, 0);
-            childForm.Size = this.ClientSize;
             childForm.Show();
-            //childForm.Refresh ();
         }
 
+        // 🔹 CHANGED TO PUBLIC for extension methods
+        public static GraphicsPath CreateRoundRectPath(Rectangle rect, int radius)
+        {
+            int d = radius * 2;
+            GraphicsPath path = new GraphicsPath();
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+    }
+
+    public static class GraphicsExtensions
+    {
+        public static void DrawRoundedRectangle(this Graphics g, Pen pen, Rectangle rect, int radius)
+        {
+            using var path = Main.CreateRoundRectPath(rect, radius);
+            g.DrawPath(pen, path);
+        }
+
+        public static void FillRoundedRectangle(this Graphics g, Brush brush, Rectangle rect, int radius)
+        {
+            using var path = Main.CreateRoundRectPath(rect, radius);
+            g.FillPath(brush, path);
+        }
     }
 }
-

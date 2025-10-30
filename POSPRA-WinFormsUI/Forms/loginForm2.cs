@@ -47,7 +47,7 @@ namespace POSPRA_WinFormsUI.Forms
                     //picLogo.SizeMode = PictureBoxSizeMode.Zoom;
                 }
             }
-            string posCOMP = ConfigurationManager.AppSettings["posCOMP"];
+            string posCOMP = ConfigurationManager.AppSettings["pos"];
             if (!string.IsNullOrEmpty(posCOMP))
             {
                 var res = Resources.ResourceManager.GetObject(posCOMP);

@@ -114,7 +114,7 @@ namespace POSPRA_WinFormsUI
             InitializeEmptyGrid();
 
             StyleProductDataGridView();
-            SetButtonImage(btnsearch, Resources.search, Color.Black);
+            //SetButtonImage(btnsearch, Resources.search, Color.Black);
 
             _logService = logService;
             _productCatalogueService = productCatalogueService;
@@ -1593,33 +1593,6 @@ namespace POSPRA_WinFormsUI
             }
         }
 
-        private void AddItemToDataGrid(InvoiceItems item)
-        {
-            int rowIndex = dataGridView1.Rows.Add();
-            var row = dataGridView1.Rows[rowIndex];
-
-            row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
-            row.Cells["colProductCode"].Value = item.ItemCode ?? "";         // PCT Code
-            row.Cells["colHSCode"].Value = item.PCTCode ?? "";               // HS Code
-            row.Cells["colProductDescription"].Value = item.ItemName ?? "";
-
-            row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
-            row.Cells["colRate"].Value = (item.SaleValue ?? 0m).ToString("0.00");
-            row.Cells["colDiscount"].Value = (item.Discount ?? 0m).ToString("0.00");  // Discount amount
-
-            // Sales value excluding sales tax: (quantity × rate) - discount
-            decimal qty = item.Quantity ?? 0m;
-            decimal rate = item.SaleValue ?? 0m;
-            decimal discountAmount = item.Discount ?? 0m;
-            decimal salesValueExcTax = Math.Round((qty * rate) - discountAmount, 2);
-            row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
-
-            row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
-            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");          // Tax rate percentage
-            row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");
-            row.Cells["colFutureTax"].Value = GetSaleTypeName(GetSelectedSaleType());
-            row.Cells["colRefUSIN"].Value = item.RefUSIN ?? "";
-        }
 
         #endregion
 
@@ -2047,6 +2020,29 @@ namespace POSPRA_WinFormsUI
         #endregion
 
         #region datagrid style
+        private void AddItemToDataGrid(InvoiceItems item)
+        {
+            int rowIndex = dataGridView1.Rows.Add();
+            var row = dataGridView1.Rows[rowIndex];
+
+            row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
+            row.Cells["colFutureTax"].Value = GetSaleTypeName(GetSelectedSaleType());
+            row.Cells["colProductCode"].Value = item.ItemCode ?? "";
+            row.Cells["colProductDescription"].Value = item.ItemName ?? "";
+            row.Cells["colHSCode"].Value = item.PCTCode ?? "";
+
+            row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
+
+            decimal qty = item.Quantity ?? 0m;
+            decimal rate = item.SaleValue ?? 0m;
+            decimal discountAmount = item.Discount ?? 0m;
+            decimal salesValueExcTax = Math.Round((qty * rate) - discountAmount, 2);
+
+            row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
+            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");
+            row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");
+            row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
+        }
 
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -2096,34 +2092,44 @@ namespace POSPRA_WinFormsUI
 
         private void StyleProductDataGridView()
         {
-            // Clear existing columns
             dataGridView1.Columns.Clear();
-
-            // Apply your base style
             StyleDataGridView(dataGridView1);
 
-            // Define product grid columns
             var colSrNo = new DataGridViewTextBoxColumn
             {
                 Name = "colSrNo",
                 HeaderText = "Sr. No.",
-                Width = 80,
+                Width = 70,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    ForeColor = Color.FromArgb(107, 114, 128),
-                    Font = new Font("Segoe UI", 9F)
-                }
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            };
+
+            var colFutureTax = new DataGridViewTextBoxColumn
+            {
+                Name = "colFutureTax",
+                HeaderText = "Sale Type",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable
             };
 
             var colProductCode = new DataGridViewTextBoxColumn
             {
                 Name = "colProductCode",
-                HeaderText = "Item Code",
-                Width = 120,
+                HeaderText = "Product Code",
+                Width = 140,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
+                SortMode = DataGridViewColumnSortMode.NotSortable
+            };
+
+            var colProductDescription = new DataGridViewTextBoxColumn
+            {
+                Name = "colProductDescription",
+                HeaderText = "Product Description",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable
             };
 
             var colHSCode = new DataGridViewTextBoxColumn
@@ -2132,16 +2138,7 @@ namespace POSPRA_WinFormsUI
                 HeaderText = "HS Code",
                 Width = 120,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-            };
-
-            var colProductDescription = new DataGridViewTextBoxColumn
-            {
-                Name = "colProductDescription",
-                HeaderText = "Item Name",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
+                SortMode = DataGridViewColumnSortMode.NotSortable
             };
 
             var colQuantity = new DataGridViewTextBoxColumn
@@ -2150,35 +2147,7 @@ namespace POSPRA_WinFormsUI
                 HeaderText = "Quantity",
                 Width = 100,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
-            };
-
-            var colRate = new DataGridViewTextBoxColumn
-            {
-                Name = "colRate",
-                HeaderText = "Rate",
-                Width = 100,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
-            };
-
-            var colDiscount = new DataGridViewTextBoxColumn
-            {
-                Name = "colDiscount",
-                HeaderText = "Discount (Amt)",
-                Width = 120,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
                     Alignment = DataGridViewContentAlignment.MiddleRight,
@@ -2189,10 +2158,38 @@ namespace POSPRA_WinFormsUI
             var colSalesValueExcST = new DataGridViewTextBoxColumn
             {
                 Name = "colSalesValueExcST",
-                HeaderText = "Sales Value (exc ST)",
-                Width = 140,
+                HeaderText = "Sales Value (Excl. ST)",
+                Width = 160,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colSalesTax = new DataGridViewTextBoxColumn
+            {
+                Name = "colSalesTax",
+                HeaderText = "Sales Tax (%)",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Format = "0.00"
+                }
+            };
+
+            var colExtraTax = new DataGridViewTextBoxColumn
+            {
+                Name = "colExtraTax",
+                HeaderText = "Extra Tax",
+                Width = 120,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
                     Alignment = DataGridViewContentAlignment.MiddleRight,
@@ -2206,69 +2203,22 @@ namespace POSPRA_WinFormsUI
                 HeaderText = "Total Value",
                 Width = 140,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
                     Alignment = DataGridViewContentAlignment.MiddleRight,
                     Format = "0.00"
                 }
             };
-
-            var colSalesTax = new DataGridViewTextBoxColumn
-            {
-                Name = "colSalesTax",
-                HeaderText = "Tax Rate (%)",
-                Width = 120,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
-            };
-
-            var colExtraTax = new DataGridViewTextBoxColumn
-            {
-                Name = "colExtraTax",
-                HeaderText = "Tax Charged",
-                Width = 120,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
-            };
-
-            var colFutureTax = new DataGridViewTextBoxColumn
-            {
-                Name = "colFutureTax",
-                HeaderText = "Sale Type",
-                Width = 120,
-                ReadOnly = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-            };
-
-            var colRefUSIN = new DataGridViewTextBoxColumn
-            {
-                Name = "colRefUSIN",
-                HeaderText = "Ref USIN",
-                Width = 120,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-            };
-
-            // Add all columns
+            // Add in the correct order (as you specified)
             dataGridView1.Columns.AddRange(new DataGridViewColumn[]
             {
-        colSrNo, colProductCode, colHSCode, colProductDescription, colQuantity,
-        colRate, colDiscount, colSalesValueExcST, colTotalValue,
-        colSalesTax, colExtraTax, colFutureTax, colRefUSIN
+        colSrNo, colFutureTax, colProductCode, colProductDescription, colHSCode,
+        colQuantity, colSalesValueExcST, colSalesTax, colExtraTax, colTotalValue
             });
         }
+
+
         #endregion
 
         #region Control Helper

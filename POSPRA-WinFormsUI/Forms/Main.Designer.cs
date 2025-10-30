@@ -52,7 +52,7 @@
             // 
             // panel1
             // 
-            panel1.BackColor = Color.FromArgb(224, 242, 254);
+            panel1.BackColor = Color.White;
             panel1.Controls.Add(panel2);
             panel1.Controls.Add(pictureBox2);
             panel1.Controls.Add(panCatalogView);
@@ -73,7 +73,7 @@
             // panel2
             // 
             panel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            panel2.BackColor = Color.Cornsilk;
+            panel2.BackColor = Color.White;
             panel2.Controls.Add(posStatus);
             panel2.Controls.Add(lblWorkerService);
             panel2.Controls.Add(internetStatus);
@@ -132,9 +132,9 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            pictureBox2.Location = new Point(5, 0);
+            pictureBox2.Location = new Point(12, 3);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(187, 60);
+            pictureBox2.Size = new Size(182, 53);
             pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox2.TabIndex = 6;
             pictureBox2.TabStop = false;
@@ -143,10 +143,10 @@
             // 
             panCatalogView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panCatalogView.BackColor = Color.FromArgb(72, 167, 135);
-            panCatalogView.Location = new Point(912, 45);
+            panCatalogView.Location = new Point(912, 46);
             panCatalogView.Margin = new Padding(3, 4, 3, 4);
             panCatalogView.Name = "panCatalogView";
-            panCatalogView.Size = new Size(33, 11);
+            panCatalogView.Size = new Size(33, 5);
             panCatalogView.TabIndex = 6;
             // 
             // btnCatalogView
@@ -170,10 +170,10 @@
             // 
             panExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panExportInvoice.BackColor = Color.FromArgb(72, 167, 135);
-            panExportInvoice.Location = new Point(735, 45);
+            panExportInvoice.Location = new Point(735, 46);
             panExportInvoice.Margin = new Padding(3, 4, 3, 4);
             panExportInvoice.Name = "panExportInvoice";
-            panExportInvoice.Size = new Size(33, 11);
+            panExportInvoice.Size = new Size(33, 5);
             panExportInvoice.TabIndex = 2;
             // 
             // btnDashboard
@@ -231,20 +231,20 @@
             // 
             panDashboard.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panDashboard.BackColor = Color.FromArgb(72, 167, 135);
-            panDashboard.Location = new Point(422, 45);
+            panDashboard.Location = new Point(422, 46);
             panDashboard.Margin = new Padding(3, 4, 3, 4);
             panDashboard.Name = "panDashboard";
-            panDashboard.Size = new Size(33, 11);
+            panDashboard.Size = new Size(33, 5);
             panDashboard.TabIndex = 2;
             // 
             // panInvoiceSelection
             // 
             panInvoiceSelection.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panInvoiceSelection.BackColor = Color.FromArgb(72, 167, 135);
-            panInvoiceSelection.Location = new Point(573, 45);
+            panInvoiceSelection.Location = new Point(573, 46);
             panInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             panInvoiceSelection.Name = "panInvoiceSelection";
-            panInvoiceSelection.Size = new Size(33, 11);
+            panInvoiceSelection.Size = new Size(33, 5);
             panInvoiceSelection.TabIndex = 2;
             // 
             // sqliteCommand1

@@ -9,6 +9,7 @@ using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Data;
+using System.Drawing.Drawing2D;
 using System.Text;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -77,6 +78,8 @@ namespace POSPRA_WinFormsUI.Forms
             _provider = provider;
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             _sendLogToCloudService = sendLogToCloudService;
+
+            //RoundAllButtons(this, 4);
 
             FormBorderStyle = FormBorderStyle.None;
             ControlBox = false;
@@ -158,9 +161,92 @@ namespace POSPRA_WinFormsUI.Forms
             _fileRecordService = fileRecordService;
             _posService = posService;
 
-            // ✅ Enable Virtual Mode
+            // Enable Virtual Mode
             EnableVirtualMode();
+
         }
+
+        public void MakeRoundedControl(Control control, int radius)
+        {
+            if (control == null || control.Width <= 0 || control.Height <= 0)
+                return;
+
+            using (GraphicsPath path = new GraphicsPath())
+            {
+                int diameter = radius * 2;
+                path.AddArc(0, 0, diameter, diameter, 180, 90);
+                path.AddArc(control.Width - diameter, 0, diameter, diameter, 270, 90);
+                path.AddArc(control.Width - diameter, control.Height - diameter, diameter, diameter, 0, 90);
+                path.AddArc(0, control.Height - diameter, diameter, diameter, 90, 90);
+                path.CloseFigure();
+
+                // set the region for click & focus area
+                control.Region = new Region(path);
+            }
+        }
+
+        public void StyleButton(Button btn, int radius = 10)
+        {
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.FlatAppearance.MouseOverBackColor = ControlPaint.Light(btn.BackColor, 0.15f);
+            btn.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(btn.BackColor, 0.15f);
+
+            // Reapply rounded corners on resize
+            btn.Resize += (s, e) => MakeRoundedControl(btn, radius);
+
+            btn.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
+
+                Rectangle rect = new Rectangle(0, 0, btn.Width - 1, btn.Height - 1);
+                int d = radius * 2;
+
+                using (GraphicsPath path = new GraphicsPath())
+                {
+                    path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+                    path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+                    path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+                    path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+                    path.CloseFigure();
+
+                    // --- smoother blended outline ---
+                    using (Pen smoothPen = new Pen(Color.FromArgb(60, 0, 0, 0), 3))
+                    {
+                        smoothPen.Alignment = PenAlignment.Outset;
+                        e.Graphics.DrawPath(smoothPen, path);
+                    }
+
+                    using (Pen borderPen = new Pen(ControlPaint.Dark(btn.BackColor, 0.3f), 1.5f))
+                    {
+                        borderPen.Alignment = PenAlignment.Center;
+                        e.Graphics.DrawPath(borderPen, path);
+                    }
+                }
+
+                // Let Windows draw the image & text (don't override)
+                // This prevents image disappearance and keeps text sharp
+                btn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            };
+        }
+
+        public void RoundAllButtons(Control parent, int radius = 10)
+        {
+            foreach (Control ctrl in parent.Controls)
+            {
+                if (ctrl is Button btn)
+                {
+                    MakeRoundedControl(btn, radius);
+                    StyleButton(btn, radius);
+                }
+
+                if (ctrl.HasChildren)
+                    RoundAllButtons(ctrl, radius);
+            }
+        }
+
 
         private void CacheImages()
         {
@@ -1396,7 +1482,7 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.MultiSelect = false;
 
-            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(48, 59, 78);
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
@@ -2013,14 +2099,6 @@ namespace POSPRA_WinFormsUI.Forms
         {
             base.OnResize(e);
             UpdateLogStatisticsLayout();
-        }
-
-        private void panelinvoicechart_Paint(object sender, PaintEventArgs e)
-        {
-        }
-
-        private void tableLayoutPanelLogStats_Paint(object sender, PaintEventArgs e)
-        {
         }
     }
 
