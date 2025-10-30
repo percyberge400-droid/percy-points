@@ -110,7 +110,7 @@ namespace POSPRA.SetupUI
                 ApplicationConfiguration.Initialize();
 
                 // Use Application.Run() instead of app.Run()
-                System.Windows.Forms.Application.Run(new ConfigForm(
+                System.Windows.Forms.Application.Run(new ConfigForm2(
                     configPath,
                     jsonWorkerPath,
                     jsonMainPath,
