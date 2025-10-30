@@ -12,8 +12,6 @@ using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
-using POSPRA.Application.Services.PosService;
-using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
 using POSPRA.Application.Services.UserService;
@@ -113,7 +111,6 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFileRecordService, FileRecordService>();
-            services.AddScoped<IPosService, PosService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
@@ -122,7 +119,6 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IProductCatalogueSQLiteRepository, ProductCatalogueSQLiteRepository>();
             services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
             services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
-            services.AddScoped<IPosService, PosService>();
             services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<IClientRepository, ClientRepository>();
 
@@ -143,7 +139,7 @@ namespace POSPRA_WinFormsUI
             services.AddTransient<LoginForm>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
-          
+
             services.AddTransient<ItemEntry>();
             services.AddTransient<ExportInvoiceForm>();
             services.AddTransient<CatalogView>();

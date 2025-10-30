@@ -94,7 +94,7 @@ namespace POSPRA.Application.Services.ClientService
                 }
 
                 // ✅ 6. Check configuration status
-                if (entity.IsConfigured == true)
+                if (entity.IsActive == true)
                 {
                     return new ApiResponse<PosClients>(
                         ApiStatusCode.NotFound,
@@ -124,7 +124,7 @@ namespace POSPRA.Application.Services.ClientService
                         string.Empty);
                 }
 
-                entity.IsConfigured = true;
+                entity.IsActive = true;
 
                 // ✅ 8. Return success
                 return new ApiResponse<PosClients>(
@@ -165,7 +165,7 @@ namespace POSPRA.Application.Services.ClientService
                 return ApiStatusCode.NotFound;
             }
 
-            entity.IsConnected = isConfiguration;
+            entity.IsActive = isConfiguration;
 
             await _clientRepository.UpdateAsync(entity);
             await _sqlServerUnitOfWork.SaveChangesAsync();

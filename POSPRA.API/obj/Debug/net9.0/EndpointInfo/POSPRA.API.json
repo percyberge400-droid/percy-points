@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "POSPRA.Api",
+    "title": "POSPRA.API",
     "version": "1.0"
   },
   "paths": {
@@ -348,18 +348,6 @@
             }
           }
         },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/Pos/HeartBeat1": {
-      "post": {
-        "tags": [
-          "Pos"
-        ],
         "responses": {
           "200": {
             "description": "OK"

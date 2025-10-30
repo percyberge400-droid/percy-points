@@ -3,7 +3,6 @@ using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.InvoiceService;
 using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.ClientDtos;
@@ -25,7 +24,6 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly ILogService _logService;
         private readonly IInvoiceService _invoiceService;
         private readonly ISendLogToCloudService _sendLogToCloudService;
-        private readonly IPosService _posService;
         private readonly string _baseUrl;
 
         private readonly HttpClient _httpClient;
@@ -78,8 +76,7 @@ namespace POSPRA_WinFormsUI.Forms
             ILogService logService,
             IInvoiceService invoiceService,
             IFileRecordService fileRecordService,
-            ISendLogToCloudService sendLogToCloudService,
-            IPosService posService
+            ISendLogToCloudService sendLogToCloudService
             )
         {
 
@@ -173,7 +170,6 @@ namespace POSPRA_WinFormsUI.Forms
             InitializeAutoRefreshTimer();
             _invoiceService = invoiceService;
             _fileRecordService = fileRecordService;
-            _posService = posService;
 
             // Enable Virtual Mode
             EnableVirtualMode();

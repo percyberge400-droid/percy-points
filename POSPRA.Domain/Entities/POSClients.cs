@@ -38,7 +38,6 @@ namespace POSPRA.Domain.Entities
         public long? POSBranchID { get; set; }
         public string? MacAddressInput { get; set; }
         public bool? IsConnected { get; set; }
-        public bool? IsConfigured { get; set; }
         public DateTime? HeartbeatUpdatedOn { get; set; }
         public string? Token { get; set; }
         public string? PASSWORD { get; set; }
