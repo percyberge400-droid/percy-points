@@ -103,7 +103,7 @@
             // btnNext
             // 
             btnNext.Anchor = AnchorStyles.Right;
-            btnNext.Location = new Point(1495, 3);
+            btnNext.Location = new Point(1477, 3);
             btnNext.Name = "btnNext";
             btnNext.Size = new Size(99, 30);
             btnNext.TabIndex = 5;
@@ -113,7 +113,7 @@
             // btnPrev
             // 
             btnPrev.Anchor = AnchorStyles.Right;
-            btnPrev.Location = new Point(1306, 2);
+            btnPrev.Location = new Point(1288, 2);
             btnPrev.Name = "btnPrev";
             btnPrev.Size = new Size(99, 30);
             btnPrev.TabIndex = 4;
@@ -124,7 +124,7 @@
             // 
             lblPageNumber.Anchor = AnchorStyles.Right;
             lblPageNumber.AutoSize = true;
-            lblPageNumber.Location = new Point(1425, 8);
+            lblPageNumber.Location = new Point(1407, 8);
             lblPageNumber.Name = "lblPageNumber";
             lblPageNumber.Size = new Size(53, 20);
             lblPageNumber.TabIndex = 7;
@@ -139,9 +139,9 @@
             panel2.Controls.Add(btnNext);
             panel2.Controls.Add(btnPrev);
             panel2.Dock = DockStyle.Bottom;
-            panel2.Location = new Point(0, 737);
+            panel2.Location = new Point(0, 690);
             panel2.Name = "panel2";
-            panel2.Size = new Size(1599, 83);
+            panel2.Size = new Size(1581, 83);
             panel2.TabIndex = 79;
             // 
             // btnLoad
@@ -152,7 +152,7 @@
             btnLoad.FlatStyle = FlatStyle.Flat;
             btnLoad.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLoad.ForeColor = Color.White;
-            btnLoad.Location = new Point(1306, 38);
+            btnLoad.Location = new Point(1288, 38);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(288, 40);
             btnLoad.TabIndex = 3;
@@ -170,7 +170,7 @@
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1599, 46);
+            panel1.Size = new Size(1581, 46);
             panel1.TabIndex = 80;
             // 
             // lblCustomerRegType
@@ -178,7 +178,7 @@
             lblCustomerRegType.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblCustomerRegType.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             lblCustomerRegType.ForeColor = Color.FromArgb(75, 85, 99);
-            lblCustomerRegType.Location = new Point(1272, 15);
+            lblCustomerRegType.Location = new Point(1254, 15);
             lblCustomerRegType.Name = "lblCustomerRegType";
             lblCustomerRegType.Size = new Size(62, 20);
             lblCustomerRegType.TabIndex = 41;
@@ -202,7 +202,7 @@
             SearchBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             SearchBox.Font = new Font("Microsoft Sans Serif", 9F);
             SearchBox.ForeColor = SystemColors.InfoText;
-            SearchBox.Location = new Point(1340, 10);
+            SearchBox.Location = new Point(1322, 10);
             SearchBox.Name = "SearchBox";
             SearchBox.PlaceholderText = "Search";
             SearchBox.Size = new Size(252, 24);
@@ -212,7 +212,7 @@
             // 
             label1.Anchor = AnchorStyles.Right;
             label1.AutoSize = true;
-            label1.Location = new Point(2837, -18);
+            label1.Location = new Point(2819, -18);
             label1.Name = "label1";
             label1.Size = new Size(53, 20);
             label1.TabIndex = 3;
@@ -228,13 +228,12 @@
             // CatalogView
             // 
             BackColor = Color.WhiteSmoke;
-            ClientSize = new Size(1599, 820);
+            ClientSize = new Size(1581, 773);
             Controls.Add(progressBar);
             Controls.Add(panel1);
             Controls.Add(panel2);
             Controls.Add(ProductCatalogueDataGridView);
             Name = "CatalogView";
-            Text = "Product Catalogue";
             ((System.ComponentModel.ISupportInitialize)ProductCatalogueDataGridView).EndInit();
             panel2.ResumeLayout(false);
             panel2.PerformLayout();

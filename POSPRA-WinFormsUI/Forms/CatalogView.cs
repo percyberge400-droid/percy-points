@@ -7,21 +7,7 @@ using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms
 {
-    public static class ControlExtensions
-    {
-        public static void InvokeIfRequired(this Control control, Action action)
-        {
-            if (control.InvokeRequired)
-            {
-                try { control.Invoke(action); }
-                catch (ObjectDisposedException) { }
-            }
-            else
-            {
-                action();
-            }
-        }
-    }
+
     public partial class CatalogView : Form
     {
         private readonly ILogService _logService;
@@ -173,7 +159,7 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     _isLoading = true;
 
-                    // ✅ STEP 0: Perform hard reset BEFORE starting
+                    // STEP 0: Perform hard reset BEFORE starting
                     await PerformHardReset();
 
                     _ = CreateLog("Starting data refresh from API", AlertType.Info);
@@ -710,5 +696,20 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         #endregion
+    }
+    public static class ControlExtensions
+    {
+        public static void InvokeIfRequired(this Control control, Action action)
+        {
+            if (control.InvokeRequired)
+            {
+                try { control.Invoke(action); }
+                catch (ObjectDisposedException) { }
+            }
+            else
+            {
+                action();
+            }
+        }
     }
 }
