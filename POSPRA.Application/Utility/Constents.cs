@@ -38,7 +38,7 @@
         public const string BackupCompleted = "Backup completed successfully.";
         public const string RecordFound = "Record Found.";
         public const string AlreadyConfigured = "PosId already configured.";
-        public const string InternetNotAvailable = "PosId already configured.";
+        public const string InternetNotAvailable = "Internet unavailable.";
 
         // ===== Generic Error =====
         public const string UnknownError = "An unexpected error occurred. Please try again.";

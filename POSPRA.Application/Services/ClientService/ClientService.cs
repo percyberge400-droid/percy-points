@@ -106,15 +106,6 @@ namespace POSPRA.Application.Services.ClientService
                 // ✅ 7. Update flag (reuse your existing helper)
                 var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
 
-                if (statusCode == ApiStatusCode.ServiceUnavailable)
-                {
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.ServiceUnavailable,
-                        ResponseMessages.InternetNotAvailable,
-                        null!,
-                        string.Empty);
-                }
-
                 if (statusCode == ApiStatusCode.NotFound)
                 {
                     return new ApiResponse<PosClients>(
@@ -145,13 +136,6 @@ namespace POSPRA.Application.Services.ClientService
 
         public async Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId)
         {
-            bool internetAvailable = await _networkService.IsInternetAvailableAsync();
-
-            if (!internetAvailable)
-            {
-                return ApiStatusCode.ServiceUnavailable;
-            }
-
             // ✅ Use _settings.PosId if posId is null, 0, or not provided
             long effectivePosId = (posId.HasValue && posId.Value > 0)
                 ? posId.Value
