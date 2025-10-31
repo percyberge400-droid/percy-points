@@ -1051,10 +1051,73 @@
         // Event handler for form load
         private void item_entry_Load(object sender, EventArgs e)
         {
-            //InitializeDataGridViewColumns();
             InitializeComboBoxes();
-            //ImproveLayoutFormatting();
+            SetButtonShortcutTexts();
+            AddButtonTooltips();
+        }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // Check for keyboard shortcuts
+            switch (keyData)
+            {
+                case Keys.Control | Keys.A:  // Add Item
+                    btnProceed.PerformClick();
+                    return true;
+
+                case Keys.Control | Keys.R:  // Remove Item
+                    btn_remove.PerformClick();
+                    return true;
+
+                case Keys.Control | Keys.E:  // Edit
+                    btnEdit.PerformClick();
+                    return true;
+
+                case Keys.Control | Keys.L:  // Clear Form
+                    btnclear.PerformClick();
+                    return true;
+
+                case Keys.Control | Keys.F:  // Search
+                    btnsearch.PerformClick();
+                    return true;
+
+                case Keys.Control | Keys.S:  // Save and Print
+                    btnSave.PerformClick();
+                    return true;
+
+                case Keys.F5:  // Search (alternative)
+                    btnsearch.PerformClick();
+                    return true;
+
+                case Keys.Escape:  // Clear Form (alternative)
+                    btnclear.PerformClick();
+                    return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        // Update button text to show shortcuts (call this in InitializeComponent or form load)
+        private void SetButtonShortcutTexts()
+        {
+            btnProceed.Text = "➕ Add Item (Ctrl+A)";
+            btn_remove.Text = "➖ Remove Item (Ctrl+R)";
+            btnEdit.Text = "🖊️ Edit (Ctrl+E)";
+            btnclear.Text = "🧹 Clear Form (Ctrl+L)";
+            btnsearch.Text = "🔍 Search (Ctrl+F)";
+            btnSave.Text = "🖨️ Save and Print (Ctrl+S)";
+        }
+
+        // Optional: Add tooltips for better user experience
+        private void AddButtonTooltips()
+        {
+            ToolTip tooltip = new ToolTip();
+            tooltip.SetToolTip(btnProceed, "Add item to invoice (Ctrl+A)");
+            tooltip.SetToolTip(btn_remove, "Remove selected item (Ctrl+R)");
+            tooltip.SetToolTip(btnEdit, "Edit selected item (Ctrl+E)");
+            tooltip.SetToolTip(btnclear, "Clear all form fields (Ctrl+L or Esc)");
+            tooltip.SetToolTip(btnsearch, "Search for items (Ctrl+F or F5)");
+            tooltip.SetToolTip(btnSave, "Save and print invoice (Ctrl+S)");
         }
 
         // Field declarations
@@ -1065,7 +1128,6 @@
         private Label itemDiscountlbl;
         private Label label8;
         private TextBox totalamount;
-        public TextBox PCTCode { get; private set; }
         private Label label7;
         private TextBox rate;
         private Label label5;

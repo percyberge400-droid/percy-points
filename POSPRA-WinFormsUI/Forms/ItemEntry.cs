@@ -1442,9 +1442,9 @@ namespace POSPRA_WinFormsUI
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
         {
-            row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";         // PCT Code
+            row.Cells["colProductCode"].Value = inputData.PCTCode ?? "";         // PCT Code
             row.Cells["colProductDescription"].Value = inputData.ItemName ?? "";
-            row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";               // HS Code
+            row.Cells["colHSCode"].Value = inputData.ItemCode ?? "";               // HS Code
             row.Cells["colQuantity"].Value = (inputData.Quantity ?? 0m).ToString("0.00");
             row.Cells["colRate"].Value = (inputData.SaleValue ?? 0m).ToString("0.00");
             row.Cells["colDiscount"].Value = (inputData.Discount ?? 0m).ToString("0.00");  // Discount amount
@@ -1605,7 +1605,7 @@ namespace POSPRA_WinFormsUI
                 1 => "New",
                 2 => "Debit",
                 3 => "Credit",
-                _ => "Unknown"
+                _ => "New"
             };
         }
 
@@ -2026,10 +2026,10 @@ namespace POSPRA_WinFormsUI
             var row = dataGridView1.Rows[rowIndex];
 
             row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
-            row.Cells["colFutureTax"].Value = GetSaleTypeName(GetSelectedSaleType());
-            row.Cells["colProductCode"].Value = item.ItemCode ?? "";
+            row.Cells["colSaleType"].Value = GetSaleTypeName(GetSelectedSaleType());
+            row.Cells["colProductCode"].Value = item.PCTCode ?? "";
             row.Cells["colProductDescription"].Value = item.ItemName ?? "";
-            row.Cells["colHSCode"].Value = item.PCTCode ?? "";
+            row.Cells["colHSCode"].Value = item.ItemCode ?? "";
 
             row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
 
@@ -2043,7 +2043,6 @@ namespace POSPRA_WinFormsUI
             row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");
             row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
         }
-
         private void StyleDataGridView(DataGridView dgv)
         {
             // General settings
@@ -2093,64 +2092,77 @@ namespace POSPRA_WinFormsUI
         private void StyleProductDataGridView()
         {
             dataGridView1.Columns.Clear();
+
             StyleDataGridView(dataGridView1);
+
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             var colSrNo = new DataGridViewTextBoxColumn
             {
                 Name = "colSrNo",
                 HeaderText = "Sr. No.",
-                Width = 70,
+                FillWeight = 5,  // 5% of space
+                MinimumWidth = 50,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
             };
 
-            var colFutureTax = new DataGridViewTextBoxColumn
+            var colSaleType = new DataGridViewTextBoxColumn
             {
-                Name = "colFutureTax",
+                Name = "colSaleType",
                 HeaderText = "Sale Type",
-                Width = 120,
+                FillWeight = 10,
+                MinimumWidth = 80,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
             };
 
             var colProductCode = new DataGridViewTextBoxColumn
             {
                 Name = "colProductCode",
                 HeaderText = "Product Code",
-                Width = 140,
+                FillWeight = 12,
+                MinimumWidth = 100,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
             };
 
             var colProductDescription = new DataGridViewTextBoxColumn
             {
                 Name = "colProductDescription",
                 HeaderText = "Product Description",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                FillWeight = 20,
+                MinimumWidth = 150,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
             };
 
             var colHSCode = new DataGridViewTextBoxColumn
             {
                 Name = "colHSCode",
                 HeaderText = "HS Code",
-                Width = 120,
+                FillWeight = 10,
+                MinimumWidth = 90,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
             };
 
             var colQuantity = new DataGridViewTextBoxColumn
             {
                 Name = "colQuantity",
                 HeaderText = "Quantity",
-                Width = 100,
+                FillWeight = 8,
+                MinimumWidth = 70,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
                     Format = "0.00"
                 }
             };
@@ -2159,12 +2171,13 @@ namespace POSPRA_WinFormsUI
             {
                 Name = "colSalesValueExcST",
                 HeaderText = "Sales Value (Excl. ST)",
-                Width = 160,
+                FillWeight = 13,
+                MinimumWidth = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
                     Format = "0.00"
                 }
             };
@@ -2173,12 +2186,13 @@ namespace POSPRA_WinFormsUI
             {
                 Name = "colSalesTax",
                 HeaderText = "Sales Tax (%)",
-                Width = 120,
+                FillWeight = 10,
+                MinimumWidth = 90,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
                     Format = "0.00"
                 }
             };
@@ -2187,12 +2201,13 @@ namespace POSPRA_WinFormsUI
             {
                 Name = "colExtraTax",
                 HeaderText = "Extra Tax",
-                Width = 120,
+                FillWeight = 10,
+                MinimumWidth = 80,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
                     Format = "0.00"
                 }
             };
@@ -2201,69 +2216,38 @@ namespace POSPRA_WinFormsUI
             {
                 Name = "colTotalValue",
                 HeaderText = "Total Value",
-                Width = 140,
+                FillWeight = 12,
+                MinimumWidth = 100,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
                     Format = "0.00"
                 }
             };
-            // Add in the correct order (as you specified)
+
+            // Add columns in correct order
             dataGridView1.Columns.AddRange(new DataGridViewColumn[]
             {
-        colSrNo, colFutureTax, colProductCode, colProductDescription, colHSCode,
-        colQuantity, colSalesValueExcST, colSalesTax, colExtraTax, colTotalValue
+        colSrNo,
+        colSaleType,
+        colProductCode,
+        colProductDescription,
+        colHSCode,
+        colQuantity,
+        colSalesValueExcST,
+        colSalesTax,
+        colExtraTax,
+        colTotalValue
             });
-        }
 
-
-        #endregion
-
-        #region Control Helper
-        private void SetButtonImage(Button btn, Image img, Color bgColor)
-        {
-            if (btn == null) return;
-
-            // Set background color
-            btn.BackColor = bgColor;
-
-            if (img == null)
+            // ✅ Center-align all column headers
+            foreach (DataGridViewColumn col in dataGridView1.Columns)
             {
-                btn.Image = null;
-                return;
+                col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
             }
-
-            // Dispose previous image to prevent memory leaks
-            if (btn.Image != null)
-            {
-                btn.Image.Dispose();
-                btn.Image = null;
-            }
-
-            // Calculate maximum size to fit inside button, leaving some padding
-            int padding = 8;
-            int maxWidth = btn.Width - padding;
-            int maxHeight = btn.Height - padding;
-
-            // Calculate scaled size while keeping aspect ratio
-            double ratioX = (double)maxWidth / img.Width;
-            double ratioY = (double)maxHeight / img.Height;
-            double ratio = Math.Min(ratioX, ratioY);
-
-            int newWidth = (int)(img.Width * ratio);
-            int newHeight = (int)(img.Height * ratio);
-
-            // Resize the image
-            Image resized = new Bitmap(img, new Size(newWidth, newHeight));
-
-            // Apply image to button
-            btn.Image = resized;
-            btn.ImageAlign = ContentAlignment.MiddleCenter; // center
-            btn.Text = ""; // remove text if needed
-            btn.FlatStyle = FlatStyle.Flat;
-            btn.BackgroundImageLayout = ImageLayout.None;
         }
 
         #endregion

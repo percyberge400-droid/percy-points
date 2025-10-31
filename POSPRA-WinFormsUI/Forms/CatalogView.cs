@@ -348,7 +348,7 @@ namespace POSPRA_WinFormsUI.Forms
                     PopulateGrid(pageData);
 
                     // ✅ Update pagination controls
-                    lblPageNumber.Text = $"Page {_currentPage} of {totalPages} (Total: {totalRecords})";
+                    lblPageNumber.Text = $"Page {_currentPage} of {totalPages}";
                     btnNext.Enabled = _currentPage < totalPages;
                     btnPrev.Enabled = _currentPage > 1;
                 }
