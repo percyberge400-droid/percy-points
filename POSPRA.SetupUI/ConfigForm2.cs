@@ -365,13 +365,6 @@ namespace POSPRA.SetupUI
                 if (!VerifyAuthentication(json))
                     return;
 
-                if (IsActive == "True")
-                {
-                    ShowMessage("POSID already configured!", false, true);
-                    MessageBox.Show("POSID already configured!");
-                    return;
-                }
-
                 SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName);
                 UpdateSetupConfig(dbPath);
 
