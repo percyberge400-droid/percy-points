@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
@@ -19,12 +20,13 @@ namespace POSPRA.Worker
         private readonly AppSettings _appSettings = options.Value;
         private readonly INetworkService _networkService = networkService;
 
+
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var workerInstanceId = Guid.NewGuid().ToString();
             var workerName = nameof(Worker);
 
-            // ✅ Startup log
+            // Startup log
             using (var startupScope = _serviceScopeFactory.CreateScope())
             {
                 var logService = startupScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
@@ -33,8 +35,26 @@ namespace POSPRA.Worker
 
             try
             {
+                //int serviceDisbaledLogCount = 0;
                 while (!cancellationToken.IsCancellationRequested)
                 {
+
+                    using (var workerScope = _serviceScopeFactory.CreateScope())
+                    {
+                        var clientService = workerScope.ServiceProvider.GetRequiredService<IClientService>();
+                        bool EnabledWorker = await clientService.IsServiceEnabled(_appSettings.POS);
+                        if (!EnabledWorker)
+                        {
+                            //if (serviceDisbaledLogCount == 0)
+                            //{
+                            //    await LogErrorAsync($"POS Service has been deactivated, Contact FBR office!", workerName, workerInstanceId);
+                            //    serviceDisbaledLogCount = 1;
+                            //}
+                            await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
+                            continue;
+                        }
+                    }
+                    //serviceDisbaledLogCount = 0;
                     bool internetAvailable = await _networkService.IsInternetAvailableAsync();
 
                     if (!internetAvailable)
@@ -51,10 +71,11 @@ namespace POSPRA.Worker
                             );
                         }
 
-                        // ❌ Don't kill worker, just wait and retry
+                        // Don't kill worker, just wait and retry
                         await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                         continue;
                     }
+
 
                     using (var workerScope = _serviceScopeFactory.CreateScope())
                     {
@@ -62,7 +83,7 @@ namespace POSPRA.Worker
                         var invoiceCloudSyncService = workerScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
                         var logCloudSyncService = workerScope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
 
-                        // ✅ Check if Cloud Sync is enabled
+                        // Check if Cloud Sync is enabled
                         bool isCloudSyncEnabled = false;
 
                         try
@@ -104,13 +125,13 @@ namespace POSPRA.Worker
                             }
                         }
                     }
-                    // ⏳ delay before next iteration
+                    // delay before next iteration
                     await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                 }
             }
             finally
             {
-                // ✅ Shutdown log
+                // Shutdown log
                 using (var shutdownScope = _serviceScopeFactory.CreateScope())
                 {
                     var logService = shutdownScope.ServiceProvider.GetRequiredService<IWorkerLogService>();

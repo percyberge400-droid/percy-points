@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
+using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Drawing.Drawing2D;
@@ -14,6 +16,7 @@ namespace POSPRA_WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly ILogService _logService;
+        private readonly IClientService _ClientService;
         private CancellationTokenSource _internetCheckCts;
         private CancellationTokenSource _workerServiceCts;
         private readonly List<Form> _independentForms = new();
@@ -22,15 +25,18 @@ namespace POSPRA_WinFormsUI.Forms
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private bool _workerServiceAlertShown = false;
 
+
         // 🎨 Animation tracking for status badges
         private int _internetPulseFrame = 0;
         private int _posPulseFrame = 0;
         private System.Windows.Forms.Timer _animationTimer;
+        private int decryptedPosId;
 
-        public Main(IServiceProvider provider, ILogService logService)
+        public Main(IServiceProvider provider, ILogService logService, IClientService clientService)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+            _ClientService = clientService;
             InitializeComponent();
 
             this.IsMdiContainer = true;
@@ -56,6 +62,11 @@ namespace POSPRA_WinFormsUI.Forms
                     pictureBox2.Image = img;
                 }
             }
+
+            var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+            decryptedPosId = Convert.ToInt32(AesEncryptionHelper.Decrypt(encryptedPosId));
+
+
         }
 
         private void InitializeStatusSystem()
@@ -308,7 +319,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // 🌐 CATCHY INTERNET STATUS CHECKER
+        // CATCHY INTERNET STATUS CHECKER
         private void StartInternetStatusChecker()
         {
             _internetCheckCts = new();
@@ -381,25 +392,53 @@ namespace POSPRA_WinFormsUI.Forms
             _internetCheckCts?.Dispose();
         }
 
-        // 🔧 CATCHY POS SERVICE STATUS CHECKER
+        // CATCHY POS SERVICE STATUS CHECKER
         private void StartWorkerServiceStatusChecker()
         {
             _workerServiceCts = new();
-            CancellationToken ct = _workerServiceCts.Token;
+            var ct = _workerServiceCts.Token;
 
             _ = Task.Run(async () =>
             {
                 bool wasRunning = true;
+                bool wasWorkerDisabled = false;
                 int consecutiveChecks = 0;
 
                 while (!ct.IsCancellationRequested)
                 {
                     try
                     {
+                        // --- Check Worker Service Status ---
                         bool isRunning = await IsWorkerServiceRunningAsync();
-
                         UpdateStatusBadge(posStatus, isRunning, isRunning ? "Active" : "Inactive");
 
+                        // --- Check FBR Service Enabled/Disabled ---
+                        bool isServiceEnabled = await _ClientService.IsServiceEnabled(decryptedPosId);
+                        UpdateStatusBadge(posStatus, isServiceEnabled, isServiceEnabled ? "Active" : "Inactive");
+
+                        // --- Handle Disabled Service ---
+                        if (!isServiceEnabled)
+                        {
+                            if (!wasWorkerDisabled)
+                            {
+                                _ = CreateLog("POS Service has been deactivated, Contact FBR office!", AlertType.Error);
+                                ShowAlert("POS Service disabled, Contact FBR office!", nameof(AlertType.Error), false, "POS Service Alert");
+                                wasWorkerDisabled = true;
+                            }
+
+                            await Task.Delay(5000, ct);
+                            continue;
+                        }
+
+                        // --- Handle Service Re-enabled ---
+                        if (wasWorkerDisabled)
+                        {
+                            _ = CreateLog("POS Service Enabled.", AlertType.Info);
+                            ShowAlert("POS Service Enabled.", nameof(AlertType.Info), false, "POS Service Alert");
+                            wasWorkerDisabled = false;
+                        }
+
+                        // --- Handle Worker Running State Changes ---
                         if (!isRunning && wasRunning)
                         {
                             WindowsLocalAppNotification.Show("POS Service Alert", "Service stopped unexpectedly!");
@@ -417,20 +456,31 @@ namespace POSPRA_WinFormsUI.Forms
                         else if (!isRunning)
                         {
                             consecutiveChecks++;
-                            // Remind every 5 checks (25 seconds) if still down
+
+                            // Remind every 25 seconds (5 checks)
                             if (consecutiveChecks % 5 == 0)
                             {
-                                ShowAlert($"POS Service still inactive ({consecutiveChecks * 5}s)", nameof(AlertType.Warning), false, "Service Monitor");
+                                ShowAlert($"POS Service still inactive ({consecutiveChecks * 5}s)",
+                                          nameof(AlertType.Warning), false, "Service Monitor");
                             }
                         }
 
                         wasRunning = isRunning;
                         await Task.Delay(5000, ct);
                     }
-                    catch (TaskCanceledException) { break; }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _ = CreateLog($"Error checking POS Service status: {ex.Message}", AlertType.Error);
+                        await Task.Delay(5000, ct);
+                    }
                 }
             }, ct);
         }
+
 
         private Task<bool> IsWorkerServiceRunningAsync()
         {
