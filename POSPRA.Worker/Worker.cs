@@ -39,21 +39,7 @@ namespace POSPRA.Worker
                 while (!cancellationToken.IsCancellationRequested)
                 {
 
-                    using (var workerScope = _serviceScopeFactory.CreateScope())
-                    {
-                        var clientService = workerScope.ServiceProvider.GetRequiredService<IClientService>();
-                        bool EnabledWorker = await clientService.IsServiceEnabled(_appSettings.POS);
-                        if (!EnabledWorker)
-                        {
-                            //if (serviceDisbaledLogCount == 0)
-                            //{
-                            //    await LogErrorAsync($"POS Service has been deactivated, Contact FBR office!", workerName, workerInstanceId);
-                            //    serviceDisbaledLogCount = 1;
-                            //}
-                            await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
-                            continue;
-                        }
-                    }
+
                     //serviceDisbaledLogCount = 0;
                     bool internetAvailable = await _networkService.IsInternetAvailableAsync();
 
@@ -76,6 +62,38 @@ namespace POSPRA.Worker
                         continue;
                     }
 
+                    using (var workerScope = _serviceScopeFactory.CreateScope())
+                    {
+                        var clientService = workerScope.ServiceProvider.GetRequiredService<IClientService>();
+                        bool EnabledWorker = false;
+
+
+                        var fullUrl = $"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}?posId={_appSettings.POS}";
+
+                        using (var httpClient = new HttpClient())
+                        {
+                            try
+                            {
+                                var response = await httpClient.GetAsync(fullUrl);
+                                response.EnsureSuccessStatusCode();
+
+                                string result = await response.Content.ReadAsStringAsync();
+
+                                // Parse string "true"/"false" to bool
+                                EnabledWorker = bool.TryParse(result, out bool parsedValue) && parsedValue;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error calling API: {ex.Message}");
+                            }
+                        }
+
+                        if (!EnabledWorker)
+                        {
+                            await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
+                            continue;
+                        }
+                    }
 
                     using (var workerScope = _serviceScopeFactory.CreateScope())
                     {

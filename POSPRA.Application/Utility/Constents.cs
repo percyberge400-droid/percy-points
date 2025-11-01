@@ -16,6 +16,7 @@
         public const string DecryptSave = "api/live/decrypt-save";
         public const string ExportCSV = "api/live/export-csv";
         public const string Authenticate = "api/Live/authenticate-by-mac";
+        public const string IsServiceEnabled = "api/Live/get-isservice-enable";
 
         // Configuration API
         public const string SetEnvironment = "api/Configuration/set-environment";

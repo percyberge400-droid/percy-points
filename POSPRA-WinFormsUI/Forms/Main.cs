@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
@@ -21,6 +22,7 @@ namespace POSPRA_WinFormsUI.Forms
         private bool? wasOnline = null;
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private bool _workerServiceAlertShown = false;
+        private readonly string _baseUrl;
 
         // 🎨 Animation tracking for status badges
         private int _internetPulseFrame = 0;
@@ -43,6 +45,7 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
             this.Resize += Main_Resize;
+            _baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
 
             // 🚀 Initialize catchy status system
             InitializeStatusSystem();
