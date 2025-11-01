@@ -117,6 +117,14 @@ namespace POSPRA.SetupUI
 
             rdoSandbox.Click += rdoSandbox_Click;
             rdoProduction.Click += rdoProduction_Click;
+
+            toolTip1.SetToolTip(btnupdateLOGO,
+                "Logo Upload Guidelines:\n" +
+                "• Allowed formats: PNG, jpg\n" +
+                "• Size: 2448×2448 pixels\n" +
+                "• File size < 2 MB\n" +
+                "• The logo will appear across all forms after upload.");
+
         }
 
         private void InitializeMessageTimer()
@@ -344,7 +352,7 @@ namespace POSPRA.SetupUI
             {
                 using var ofd = new OpenFileDialog
                 {
-                    Filter = "Image Files|*.png;*.jpg;*.bmp;*.tiff",
+                    Filter = "Image Files|*.png;*.jpg",
                     Title = "Select Company Logo"
                 };
 
@@ -358,9 +366,9 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                if (fileInfo.Length > 1024 * 1024) // 1 MB limit
+                if (fileInfo.Length > 2048 * 2048) // 2,048 KB KB limit
                 {
-                    MessageBox.Show(" Logo size too large. Please select an image under 1 MB.",
+                    MessageBox.Show(" Logo size too large. Please select an image under 2 MB.",
                         "Size Limit", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
