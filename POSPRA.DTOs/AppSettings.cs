@@ -24,6 +24,10 @@
         public bool IsProduction { get; set; }
         public int IMSUpdateInterval { get; set; }
         public int WorkerDelayTime { get; set; }
-        public string DefaultDBFilePath { get; set; }
+        public string? DefaultDBFilePath { get; set; }
+        public bool IsBackupTestMode { get; set; }      
+        public string? BackupDirectoryPath { get; set; }          // e.g., "C:\\POS_Backups"
+    
+
     }
 }

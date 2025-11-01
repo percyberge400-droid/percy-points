@@ -123,6 +123,7 @@ var builder = Host.CreateDefaultBuilder(args)
         // 🔧 Hosted Worker
         //----------------------------------------------------
         services.AddHostedService<Worker>();
+        services.AddHostedService<SqliteBackupService>();
     });
 
 var host = builder.Build();
