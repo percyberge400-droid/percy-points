@@ -17,6 +17,7 @@ using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.BaseRepository.Repository;
+using POSPRA.Repositories.ClientRepository;
 using POSPRA.Repositories.ConfigurationRepository;
 using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
@@ -105,6 +106,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddScoped<IConfigurationService, ConfigurationService>();
         services.AddScoped<IWorkerLogService, WorkerLogService>();
         services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
+        services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
         services.AddScoped<IScriptService, ScriptService>();
         services.AddHttpContextAccessor();

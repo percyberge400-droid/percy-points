@@ -156,5 +156,11 @@ namespace POSPRA.Application.Services.ClientService
 
             return ApiStatusCode.Success;
         }
+
+        public async Task<bool> IsServiceEnabled()
+        {
+            var client = await _clientRepository.FirstOrDefaultAsync(x => x.POSRegistrationNumber == _settings.POS);
+            return client?.IsServiceEnabled ?? false;
+        }
     }
 }

@@ -43,6 +43,9 @@ namespace POSPRA.Domain.Entities
         public string? PASSWORD { get; set; }
         public byte? Province_Id { get; set; }
         public long? FileSize { get; set; }
+        public string? ClientType { get; set; }
+        public bool? IsLogSynced { get; set; }
+        public bool? IsServiceEnabled { get; set; }
 
     }
 }

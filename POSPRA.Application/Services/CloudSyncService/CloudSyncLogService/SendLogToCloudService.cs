@@ -7,6 +7,8 @@ using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.LogDTOs;
+using POSPRA.Repositories.ClientRepository;
+using POSPRA.Repositories.UnitOfWork;
 using System.Text;
 using System.Text.Json;
 
@@ -19,23 +21,46 @@ namespace POSPRA.Application.Services.CloudSyncService.CloudSyncLogService
         private readonly ILogService _logService;
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
         private readonly IMapper _mapper;
+        private readonly IClientRepository _clientRepository;
+        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
+        private readonly AppSettings _settings;
 
         public SendLogToCloudService(
             HttpService http,
             IOptions<AppSettings> options
 ,
             ILogService logService,
-            IMapper mapper)
+            IMapper mapper,
+            IClientRepository clientRepository,
+            ISqlServerUnitOfWork sqlServerUnitOfWork)
         {
             _http = http;
             _baseUrl = options.Value.BaseUrl;
             _logService = logService;
             _mapper = mapper;
+            _clientRepository = clientRepository;
+            _sqlServerUnitOfWork = sqlServerUnitOfWork;
+            _settings = options.Value;
         }
 
         public async Task SyncLogAsync()
         {
             await ProcessHealthCheck();
+        }
+
+        public async Task IsLogSyncEnable()
+        {
+            var entity = await _clientRepository.FirstOrDefaultAsync(m =>
+                            m.POSRegistrationNumber == _settings.POS);
+
+            if (entity is not null && entity.IsLogSynced == true)
+            {
+                await SyncLogAsync();
+
+                entity.IsLogSynced = false;
+                await _clientRepository.UpdateAsync(entity);
+                await _sqlServerUnitOfWork.SaveChangesAsync();
+            }
         }
 
         private async Task ProcessHealthCheck()
