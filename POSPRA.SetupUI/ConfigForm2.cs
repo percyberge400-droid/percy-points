@@ -113,9 +113,18 @@ namespace POSPRA.SetupUI
             btnBrowseOLD.Click += btnBrowseOld_Click;
             btnOk.Click += btnOk_Click;
             btnCancel.Click += btnCancel_Click;
+            btnupdateLOGO.Click += btnupdateLOGO_Click;
 
             rdoSandbox.Click += rdoSandbox_Click;
             rdoProduction.Click += rdoProduction_Click;
+
+            toolTip1.SetToolTip(btnupdateLOGO,
+                "Logo Upload Guidelines:\n" +
+                "• Allowed formats: PNG, jpg\n" +
+                "• Size: 2448×2448 pixels\n" +
+                "• File size < 2 MB\n" +
+                "• The logo will appear across all forms after upload.");
+
         }
 
         private void InitializeMessageTimer()
@@ -336,6 +345,87 @@ namespace POSPRA.SetupUI
             }
         }
 
+        //Upload Logo
+        private void btnupdateLOGO_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using var ofd = new OpenFileDialog
+                {
+                    Filter = "Image Files|*.png;*.jpg",
+                    Title = "Select Company Logo"
+                };
+
+                if (ofd.ShowDialog() != DialogResult.OK)
+                    return;
+
+                var fileInfo = new FileInfo(ofd.FileName);
+                if (!fileInfo.Exists)
+                {
+                    MessageBox.Show(" File not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (fileInfo.Length > 2048 * 2048) // 2,048 KB KB limit
+                {
+                    MessageBox.Show(" Logo size too large. Please select an image under 2 MB.",
+                        "Size Limit", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Convert image → Base64
+                string base64;
+                using (var img = Image.FromFile(ofd.FileName))
+                using (var ms = new MemoryStream())
+                {
+                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    base64 = Convert.ToBase64String(ms.ToArray());
+                }
+
+                // Define shared config path
+                string dir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                    "POSPRA"
+                );
+                Directory.CreateDirectory(dir);
+
+                string configFile = Path.Combine(dir, "AppSettings.config");
+
+                // Load or create XML config
+                var xml = new XmlDocument();
+                if (File.Exists(configFile))
+                    xml.Load(configFile);
+                else
+                {
+                    xml.AppendChild(xml.CreateXmlDeclaration("1.0", "utf-8", null));
+                    xml.AppendChild(xml.CreateElement("appSettings"));
+                }
+
+                var appSettings = xml.SelectSingleNode("//appSettings");
+                if (appSettings == null)
+                {
+                    appSettings = xml.CreateElement("appSettings");
+                    xml.AppendChild(appSettings);
+                }
+
+                // Update or create logo entry
+                var node = appSettings.SelectSingleNode("add[@key='CompLogobase64']") as XmlElement;
+                if (node == null)
+                {
+                    node = xml.CreateElement("add");
+                    node.SetAttribute("key", "CompLogobase64");
+                    appSettings.AppendChild(node);
+                }
+
+                node.SetAttribute("value", base64);
+                xml.Save(configFile);
+                MessageBox.Show($" Logo saved successfully!","Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($" Failed to update logo: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         #endregion
 
         #region Main Setup Process

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Reporting.WinForms;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
+using POSPRA_WinFormsUI.Forms.Logo;
 using QRCoder;
 using System.Configuration;
 using System.Data;
@@ -198,20 +199,35 @@ namespace POSPRA_WinFormsUI.Forms
 
         private byte[] LoadCompanyLogo()
         {
-            string logoKey = ConfigurationManager.AppSettings["LOGO-new"];
-            if (!string.IsNullOrEmpty(logoKey))
+            try
             {
-                var res = Resources.ResourceManager.GetObject(logoKey);
-                if (res is Image img)
+                var logo = AppResources.BusinessLogo;
+                if (logo == null)
+                    return Array.Empty<byte>();
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        img.Save(ms, ImageFormat.Png);
-                        return ms.ToArray();
-                    }
+                    logo.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    return ms.ToArray();
                 }
             }
-            return SafeReadImage(logoKey);
+            catch 
+            {
+                return Array.Empty<byte>();
+            }   
+            //string logoKey = ConfigurationManager.AppSettings["LOGO-new"];
+            //if (!string.IsNullOrEmpty(logoKey))
+            //{
+            //    var res = Resources.ResourceManager.GetObject(logoKey);
+            //    if (res is Image img)
+            //    {
+            //        using (MemoryStream ms = new MemoryStream())
+            //        {
+            //            img.Save(ms, ImageFormat.Png);
+            //            return ms.ToArray();
+            //        }
+            //    }
+            //}
+            //return SafeReadImage(logo);
         }
 
 
