@@ -312,6 +312,45 @@
         }
       }
     },
+    "/api/Live/get-isservice-enable": {
+      "get": {
+        "tags": [
+          "Live"
+        ],
+        "parameters": [
+          {
+            "name": "posId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooleanApiResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooleanApiResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooleanApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Log/GetAll": {
       "get": {
         "tags": [
@@ -552,6 +591,26 @@
   },
   "components": {
     "schemas": {
+      "BooleanApiResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "boolean"
+          },
+          "errors": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ClientValidationDto": {
         "type": "object",
         "properties": {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
@@ -24,7 +25,7 @@ namespace POSPRA_WinFormsUI.Forms
         private bool? wasOnline = null;
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private bool _workerServiceAlertShown = false;
-
+        private readonly string _baseUrl;
 
         // 🎨 Animation tracking for status badges
         private int _internetPulseFrame = 0;
@@ -49,6 +50,7 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
             this.Resize += Main_Resize;
+            _baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
 
             // 🚀 Initialize catchy status system
             InitializeStatusSystem();
@@ -413,21 +415,46 @@ namespace POSPRA_WinFormsUI.Forms
                         UpdateStatusBadge(posStatus, isRunning, isRunning ? "Active" : "Inactive");
 
                         // --- Check FBR Service Enabled/Disabled ---
-                        bool isServiceEnabled = await _ClientService.IsServiceEnabled(decryptedPosId);
-                        UpdateStatusBadge(posStatus, isServiceEnabled, isServiceEnabled ? "Active" : "Inactive");
+                        bool isServiceEnabled = false;
+                        bool net = await CheckInternetConnectivityAsync();
 
-                        // --- Handle Disabled Service ---
-                        if (!isServiceEnabled)
+
+                        if (isRunning && net)
                         {
-                            if (!wasWorkerDisabled)
-                            {
-                                _ = CreateLog("POS Service has been deactivated, Contact FBR office!", AlertType.Error);
-                                ShowAlert("POS Service disabled, Contact FBR office!", nameof(AlertType.Error), false, "POS Service Alert");
-                                wasWorkerDisabled = true;
-                            }
+                            var fullUrl = $"{_baseUrl}{Endpoints.IsServiceEnabled}?posId={decryptedPosId}";
 
-                            await Task.Delay(5000, ct);
-                            continue;
+                            using (var httpClient = new HttpClient())
+                            {
+                                try
+                                {
+                                    var response = await httpClient.GetAsync(fullUrl);
+                                    response.EnsureSuccessStatusCode();
+
+                                    string result = await response.Content.ReadAsStringAsync();
+
+                                    // Parse string "true"/"false" to bool
+                                    isServiceEnabled = bool.TryParse(result, out bool parsedValue) && parsedValue;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Error calling API: {ex.Message}");
+                                }
+                            }
+                            UpdateStatusBadge(posStatus, isServiceEnabled, isServiceEnabled ? "Active" : "Inactive");
+
+                            // --- Handle Disabled Service ---
+                            if (!isServiceEnabled)
+                            {
+                                if (!wasWorkerDisabled)
+                                {
+                                    _ = CreateLog("POS Service has been deactivated, Contact FBR office!", AlertType.Error);
+                                    ShowAlert("POS Service disabled, Contact FBR office!", nameof(AlertType.Error), false, "POS Service Alert");
+                                    wasWorkerDisabled = true;
+                                }
+
+                                await Task.Delay(5000, ct);
+                                continue;
+                            }
                         }
 
                         // --- Handle Service Re-enabled ---
