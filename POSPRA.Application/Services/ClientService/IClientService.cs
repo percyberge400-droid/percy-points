@@ -8,5 +8,6 @@ namespace POSPRA.Application.Services.ClientService
     {
         Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto);
         Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId);
+        Task<bool> IsServiceEnabled(long posId);
     }
 }
