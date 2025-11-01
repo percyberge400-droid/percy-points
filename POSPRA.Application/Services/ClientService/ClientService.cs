@@ -77,7 +77,7 @@ namespace POSPRA.Application.Services.ClientService
                 // ✅ 5. Validate MAC and Token
                 var errors = new List<string>();
 
-                if (entity.MAC_Address != dto.MacAddress)
+                if (entity.MacAddressInput != dto.MacAddress)
                     errors.Add(ResponseMessages.InvalidMacAddress);
 
                 if (entity.Token != dto.Token)
