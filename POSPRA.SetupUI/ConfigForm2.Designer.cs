@@ -48,6 +48,7 @@ namespace POSPRA.SetupUI
             txtPassword = new TextBox();
             label2 = new Label();
             txtUsername = new TextBox();
+            btnupdateLOGO = new RoundedButton();
             mainPanel.SuspendLayout();
             panel1.SuspendLayout();
             headerPanel.SuspendLayout();
@@ -84,6 +85,7 @@ namespace POSPRA.SetupUI
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(243, 243, 243);
+            panel1.Controls.Add(btnupdateLOGO);
             panel1.Controls.Add(btnOk);
             panel1.Controls.Add(btnCancel);
             panel1.Location = new Point(0, 547);
@@ -99,7 +101,7 @@ namespace POSPRA.SetupUI
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnOk.ForeColor = Color.White;
-            btnOk.Location = new Point(524, 20);
+            btnOk.Location = new Point(502, 20);
             btnOk.Name = "btnOk";
             btnOk.Radius = 10;
             btnOk.Size = new Size(170, 45);
@@ -116,7 +118,7 @@ namespace POSPRA.SetupUI
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(325, 20);
+            btnCancel.Location = new Point(278, 20);
             btnCancel.Name = "btnCancel";
             btnCancel.Radius = 10;
             btnCancel.Size = new Size(182, 45);
@@ -410,6 +412,23 @@ namespace POSPRA.SetupUI
             txtUsername.Size = new Size(369, 32);
             txtUsername.TabIndex = 25;
             // 
+            // btnupdateLOGO
+            // 
+            btnupdateLOGO.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnupdateLOGO.BackColor = Color.FromArgb(46, 49, 146);
+            btnupdateLOGO.Cursor = Cursors.Hand;
+            btnupdateLOGO.FlatAppearance.BorderSize = 0;
+            btnupdateLOGO.FlatStyle = FlatStyle.Flat;
+            btnupdateLOGO.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            btnupdateLOGO.ForeColor = Color.Transparent;
+            btnupdateLOGO.Location = new Point(43, 20);
+            btnupdateLOGO.Name = "btnupdateLOGO";
+            btnupdateLOGO.Radius = 10;
+            btnupdateLOGO.Size = new Size(182, 45);
+            btnupdateLOGO.TabIndex = 26;
+            btnupdateLOGO.Text = "Upload Logo";
+            btnupdateLOGO.UseVisualStyleBackColor = false;
+            // 
             // ConfigForm2
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -475,6 +494,7 @@ namespace POSPRA.SetupUI
         private Label label10;
         private Label label9;
         private Label label8;
+        private RoundedButton btnupdateLOGO;
     }
 
     // Rounded Button (Smooth 10px corners, anti-aliased)
