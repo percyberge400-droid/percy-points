@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.Services.LogService;
+using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
+using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Drawing.Drawing2D;
@@ -21,11 +23,13 @@ namespace POSPRA_WinFormsUI.Forms
         private bool? wasOnline = null;
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private bool _workerServiceAlertShown = false;
+        private readonly string _baseUrl;
 
         // 🎨 Animation tracking for status badges
         private int _internetPulseFrame = 0;
         private int _posPulseFrame = 0;
         private System.Windows.Forms.Timer _animationTimer;
+        private long decryptedPosId;
 
         public Main(IServiceProvider provider, ILogService logService)
         {
@@ -43,6 +47,7 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
             this.Resize += Main_Resize;
+            _baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
 
             // 🚀 Initialize catchy status system
             InitializeStatusSystem();
@@ -56,6 +61,8 @@ namespace POSPRA_WinFormsUI.Forms
                     pictureBox2.Image = img;
                 }
             }
+            var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+            decryptedPosId = Convert.ToInt64(AesEncryptionHelper.Decrypt(encryptedPosId));
         }
 
         private void InitializeStatusSystem()
@@ -390,14 +397,53 @@ namespace POSPRA_WinFormsUI.Forms
             _ = Task.Run(async () =>
             {
                 bool wasRunning = true;
+                bool wasEnabled = true; // initially assume enabled
                 int consecutiveChecks = 0;
+                bool internetStatus = false;
 
                 while (!ct.IsCancellationRequested)
                 {
                     try
                     {
-                        bool isRunning = await IsWorkerServiceRunningAsync();
+                        internetStatus = await CheckInternetConnectivityAsync();
+                        if (internetStatus)
+                        {
+                            var fullUrl = $"{_baseUrl}{Endpoints.IsServiceEnabled}?posId={decryptedPosId}";
+                            bool isEnabled = true;
 
+                            using (var httpClient = new HttpClient())
+                            {
+                                try
+                                {
+                                    var response = await httpClient.GetAsync(fullUrl);
+                                    response.EnsureSuccessStatusCode();
+
+                                    string result = await response.Content.ReadAsStringAsync();
+                                    isEnabled = bool.TryParse(result, out bool parsedValue) && parsedValue;
+
+                                    // Trigger only when status changes from enabled → disabled
+                                    if (wasEnabled && !isEnabled)
+                                    {
+                                        MessageBox.Show("Worker Service Disabled, Contact FBR!");
+                                        _ = CreateLog("Worker Service Disabled, Contact FBR!", AlertType.Warning);
+                                    }
+                                    // Trigger when service comes back online
+                                    else if (!wasEnabled && isEnabled)
+                                    {
+                                        _ = CreateLog("Worker Service Enabled.", AlertType.Info);
+                                    }
+
+                                    wasEnabled = isEnabled;
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Error calling API: {ex.Message}");
+                                }
+                            }
+                        }
+
+                        // --- Worker Service state handling ---
+                        bool isRunning = await IsWorkerServiceRunningAsync();
                         UpdateStatusBadge(posStatus, isRunning, isRunning ? "Active" : "Inactive");
 
                         if (!isRunning && wasRunning)
@@ -417,17 +463,27 @@ namespace POSPRA_WinFormsUI.Forms
                         else if (!isRunning)
                         {
                             consecutiveChecks++;
-                            // Remind every 5 checks (25 seconds) if still down
+
+                            // Remind every 5 checks (25 seconds)
                             if (consecutiveChecks % 5 == 0)
                             {
-                                ShowAlert($"POS Service still inactive ({consecutiveChecks * 5}s)", nameof(AlertType.Warning), false, "Service Monitor");
+                                ShowAlert($"POS Service still inactive ({consecutiveChecks * 5}s)",
+                                          nameof(AlertType.Warning), false, "Service Monitor");
                             }
                         }
 
                         wasRunning = isRunning;
                         await Task.Delay(5000, ct);
                     }
-                    catch (TaskCanceledException) { break; }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _ = CreateLog($"Error checking POS Service status: {ex.Message}", AlertType.Error);
+                        await Task.Delay(5000, ct);
+                    }
                 }
             }, ct);
         }

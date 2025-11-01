@@ -164,22 +164,22 @@ namespace POSPRA.API
             //----------------------------------------------------
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+            //if (app.Environment.IsDevelopment())
+            //{
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
-                // Redirect root to Swagger UI
-                app.Use(async (context, next) =>
+            // Redirect root to Swagger UI
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/")
                 {
-                    if (context.Request.Path == "/")
-                    {
-                        context.Response.Redirect("/swagger");
-                        return;
-                    }
-                    await next();
-                });
-            }
+                    context.Response.Redirect("/swagger");
+                    return;
+                }
+                await next();
+            });
+            //}
 
             app.UseHttpsRedirection();
             app.UseAuthorization();

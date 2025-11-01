@@ -43,5 +43,9 @@ namespace POSPRA.API.Controllers
         public async Task<ActionResult<ApiResponse<string>>> CreateCloudLog(List<SyncLogDto> logDtos) =>
             Ok(await _logService.CreateCloudLog(logDtos));
 
+        [HttpGet("get-isservice-enable")]
+        public async Task<ActionResult<ApiResponse<bool>>> CreateCloudLog(long posId) =>
+            Ok(await _clientService.IsServiceEnabled(posId));
+
     }
 }

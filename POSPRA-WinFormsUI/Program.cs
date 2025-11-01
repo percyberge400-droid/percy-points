@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.ConfigurationService;
 using POSPRA.Application.Services.FileRecordService;
@@ -129,6 +130,8 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddSingleton<IConfiguration>(configuration);
             services.AddHttpClient<HttpService>();
+            services.AddScoped<IClientService, ClientService>();
+
 
             services.AddHttpContextAccessor();
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
