@@ -31,7 +31,7 @@ namespace POSPRA_WinFormsUI.Forms
         private int _internetPulseFrame = 0;
         private int _posPulseFrame = 0;
         private System.Windows.Forms.Timer _animationTimer;
-        private int decryptedPosId;
+        private long decryptedPosId;
 
         public Main(IServiceProvider provider, ILogService logService, IClientService clientService)
         {
@@ -66,9 +66,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
 
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
-            decryptedPosId = Convert.ToInt32(AesEncryptionHelper.Decrypt(encryptedPosId));
-
-
+            decryptedPosId = Convert.ToInt64(AesEncryptionHelper.Decrypt(encryptedPosId));
         }
 
         private void InitializeStatusSystem()
@@ -410,9 +408,14 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     try
                     {
-                        // --- Check Worker Service Status ---
                         bool isRunning = await IsWorkerServiceRunningAsync();
-                        UpdateStatusBadge(posStatus, isRunning, isRunning ? "Active" : "Inactive");
+
+                        bool isServiceEnabled;
+                        using (var scope = _provider.CreateScope())
+                        {
+                            var clientService = scope.ServiceProvider.GetRequiredService<IClientService>();
+                            isServiceEnabled = await clientService.IsServiceEnabled(decryptedPosId);
+                        }
 
                         // --- Check FBR Service Enabled/Disabled ---
                         bool isServiceEnabled = false;
