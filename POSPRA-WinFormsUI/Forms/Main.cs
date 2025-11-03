@@ -315,7 +315,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // 🌐 CATCHY INTERNET STATUS CHECKER
+        // CATCHY INTERNET STATUS CHECKER
         private void StartInternetStatusChecker()
         {
             _internetCheckCts = new();
@@ -388,7 +388,7 @@ namespace POSPRA_WinFormsUI.Forms
             _internetCheckCts?.Dispose();
         }
 
-        // 🔧 CATCHY POS SERVICE STATUS CHECKER
+        // CATCHY POS SERVICE STATUS CHECKER
         private void StartWorkerServiceStatusChecker()
         {
             _workerServiceCts = new();
@@ -425,8 +425,8 @@ namespace POSPRA_WinFormsUI.Forms
                                     if (wasEnabled && !isEnabled)
                                     {
 
-                                        ShowAlert("Worker Service Disabled, Contact FBR!", AlertType.Warning, false);
-                                        _ = CreateLog("Worker Service Disabled, Contact FBR!", AlertType.Warning);
+                                        ShowAlert("POS Service Disabled, Contact FBR!", AlertType.Warning, true);
+                                        _ = CreateLog("POS Service Disabled, Contact FBR!", AlertType.Warning);
 
                                         if (await IsWorkerServiceRunningAsync())
                                         {
@@ -437,7 +437,13 @@ namespace POSPRA_WinFormsUI.Forms
                                     // Trigger when service comes back online
                                     else if (!wasEnabled && isEnabled)
                                     {
-                                        _ = CreateLog("Worker Service Enabled.", AlertType.Info);
+                                        _ = CreateLog("POS Service Enabled.", AlertType.Info);
+                                        ShowAlert("POS Service Enabled.", AlertType.Info, true);
+
+                                        if (!await IsWorkerServiceRunningAsync())
+                                        {
+                                            bool started = await StartWorkerServiceAsync();
+                                        }
                                     }
 
                                     wasEnabled = isEnabled;
@@ -455,19 +461,13 @@ namespace POSPRA_WinFormsUI.Forms
 
                         if (!isRunning && wasRunning)
                         {
-                            WindowsLocalAppNotification.Show("POS Service Alert", "Service stopped unexpectedly!");
                             _ = CreateLog("POS service is inactive!", AlertType.Warning);
                             _workerServiceAlertShown = true;
                             consecutiveChecks = 0;
                         }
                         else if (isRunning && !wasRunning)
                         {
-                            ShowAlert("POS Service Restored, Service is back online!", AlertType.Warning, false);
                             _ = CreateLog("POS service restored!", AlertType.Success);
-                            if (!await IsWorkerServiceRunningAsync())
-                            {
-                                bool started = await StartWorkerServiceAsync();
-                            }
                             _workerServiceAlertShown = false;
                             consecutiveChecks = 0;
                         }
