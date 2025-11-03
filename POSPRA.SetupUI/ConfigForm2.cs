@@ -13,12 +13,12 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Xml;
-<<<<<<< HEAD
+
 using System.Diagnostics;
 using System.Reflection;
-=======
+
 using WinFormsApp = System.Windows.Forms.Application;
->>>>>>> a04b39227984538d722eaf867d705ae48120c99d
+
 
 namespace POSPRA.SetupUI
 {
