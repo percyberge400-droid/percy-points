@@ -139,7 +139,7 @@ namespace POSPRA_WinFormsUI
 
             // WinForms UI forms
             services.AddTransient<LoginForm2>();
-            services.AddTransient<LoginForm>();
+            
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
 

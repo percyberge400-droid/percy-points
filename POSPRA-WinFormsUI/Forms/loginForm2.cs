@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.SecurityEncryption;
 using System.Configuration;
+using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.ServiceProcess;
 
@@ -76,14 +77,19 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
+                // ✅ Add this new line — it will run your Updater.exe
+                await CheckAndApplyUpdatesAsync();
+
+                // Existing code: restart your worker service
                 await RestartServiceAlwaysAsync(SERVICE_NAME);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Service restart failed: {ex.Message}",
-                    "Service Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Startup routine failed: {ex.Message}",
+                    "Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
 
         /// <summary>
         /// Restarts the given service whether it is running or stopped.
@@ -301,5 +307,50 @@ namespace POSPRA_WinFormsUI.Forms
             path.CloseFigure();
             return path;
         }
+        private async Task CheckAndApplyUpdatesAsync()
+        {
+            string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "POSPRA.Updater.exe");
+            string versionFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.txt");
+            string serverPath = @"\\10.16.68.231\Shared\Talha Arif\Update_Installer";
+
+            if (!File.Exists(updaterPath))
+                return;
+
+            try
+            {
+                string localVersion = File.Exists(versionFile) ? File.ReadAllText(versionFile).Trim() : "0.0.0";
+                string latestFile = Path.Combine(serverPath, "latest.txt");
+                if (!File.Exists(latestFile)) return;
+
+                string latestVersion = File.ReadAllText(latestFile).Trim();
+
+                if (latestVersion != localVersion)
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = updaterPath,
+                        Arguments = $"--update --version {localVersion}",
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        WindowStyle = ProcessWindowStyle.Normal
+                    };
+                    Process.Start(psi);
+
+                    Application.Exit();
+                }
+                else
+                {
+                    MessageBox.Show($"No updates found. (Local: {localVersion}, Server: {latestVersion})",
+                        "Updater", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Update check failed: {ex.Message}",
+                    "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
     }
 }
