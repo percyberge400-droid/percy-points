@@ -108,7 +108,7 @@ namespace POSPRA.SetupUI
             btnupdateLOGO.Name = "btnupdateLOGO";
             btnupdateLOGO.Radius = 10;
             btnupdateLOGO.Size = new Size(182, 45);
-            btnupdateLOGO.TabIndex = 26;
+            btnupdateLOGO.TabIndex = 9;
             btnupdateLOGO.Text = "Upload Logo";
             btnupdateLOGO.UseVisualStyleBackColor = false;
             // 
@@ -124,7 +124,7 @@ namespace POSPRA.SetupUI
             btnOk.Name = "btnOk";
             btnOk.Radius = 10;
             btnOk.Size = new Size(170, 45);
-            btnOk.TabIndex = 4;
+            btnOk.TabIndex = 11;
             btnOk.Text = "Okay";
             btnOk.UseVisualStyleBackColor = false;
             // 
@@ -141,7 +141,7 @@ namespace POSPRA.SetupUI
             btnCancel.Name = "btnCancel";
             btnCancel.Radius = 10;
             btnCancel.Size = new Size(182, 45);
-            btnCancel.TabIndex = 11;
+            btnCancel.TabIndex = 10;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = false;
             // 
@@ -154,7 +154,6 @@ namespace POSPRA.SetupUI
             lblWelcome.Location = new Point(325, 42);
             lblWelcome.Name = "lblWelcome";
             lblWelcome.Size = new Size(153, 38);
-            lblWelcome.TabIndex = 1;
             lblWelcome.Text = "WELCOME!";
             lblWelcome.TextAlign = ContentAlignment.MiddleCenter;
             // 
@@ -186,7 +185,7 @@ namespace POSPRA.SetupUI
             btnBrowseOLD.Name = "btnBrowseOLD";
             btnBrowseOLD.Radius = 10;
             btnBrowseOLD.Size = new Size(50, 32);
-            btnBrowseOLD.TabIndex = 17;
+            btnBrowseOLD.TabIndex = 8;
             btnBrowseOLD.Text = "...";
             btnBrowseOLD.UseVisualStyleBackColor = false;
             // 
@@ -199,7 +198,7 @@ namespace POSPRA.SetupUI
             txtOldDB.Name = "txtOldDB";
             txtOldDB.ReadOnly = true;
             txtOldDB.Size = new Size(313, 32);
-            txtOldDB.TabIndex = 19;
+            txtOldDB.TabIndex = 7;
             // 
             // label4
             // 
@@ -219,7 +218,7 @@ namespace POSPRA.SetupUI
             rdoProduction.Location = new Point(579, 107);
             rdoProduction.Name = "rdoProduction";
             rdoProduction.Size = new Size(115, 27);
-            rdoProduction.TabIndex = 16;
+            rdoProduction.TabIndex = 2;
             rdoProduction.Text = "Production";
             rdoProduction.UseVisualStyleBackColor = true;
             // 
@@ -231,7 +230,7 @@ namespace POSPRA.SetupUI
             rdoSandbox.Location = new Point(442, 107);
             rdoSandbox.Name = "rdoSandbox";
             rdoSandbox.Size = new Size(97, 27);
-            rdoSandbox.TabIndex = 15;
+            rdoSandbox.TabIndex = 1;
             rdoSandbox.TabStop = true;
             rdoSandbox.Text = "SandBox";
             rdoSandbox.UseVisualStyleBackColor = true;
@@ -253,7 +252,6 @@ namespace POSPRA.SetupUI
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(369, 21);
             progressBar.Style = ProgressBarStyle.Continuous;
-            progressBar.TabIndex = 9;
             // 
             // headerPanel
             // 
@@ -346,7 +344,6 @@ namespace POSPRA.SetupUI
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(132, 106);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox1.TabIndex = 1;
             pictureBox1.TabStop = false;
             // 
             // LOGO_img
@@ -357,7 +354,6 @@ namespace POSPRA.SetupUI
             LOGO_img.Name = "LOGO_img";
             LOGO_img.Size = new Size(271, 100);
             LOGO_img.SizeMode = PictureBoxSizeMode.Zoom;
-            LOGO_img.TabIndex = 2;
             LOGO_img.TabStop = false;
             // 
             // btnBrowse
@@ -373,7 +369,7 @@ namespace POSPRA.SetupUI
             btnBrowse.Name = "btnBrowse";
             btnBrowse.Radius = 10;
             btnBrowse.Size = new Size(50, 32);
-            btnBrowse.TabIndex = 3;
+            btnBrowse.TabIndex = 6;
             btnBrowse.Text = "...";
             btnBrowse.UseVisualStyleBackColor = false;
             // 
@@ -386,7 +382,7 @@ namespace POSPRA.SetupUI
             txtFilePath.Name = "txtFilePath";
             txtFilePath.ReadOnly = true;
             txtFilePath.Size = new Size(313, 32);
-            txtFilePath.TabIndex = 8;
+            txtFilePath.TabIndex = 5;
             // 
             // label3
             // 
@@ -408,7 +404,7 @@ namespace POSPRA.SetupUI
             txtPassword.Name = "txtPassword";
             txtPassword.PasswordChar = '•';
             txtPassword.Size = new Size(369, 32);
-            txtPassword.TabIndex = 23;
+            txtPassword.TabIndex = 4;
             // 
             // label2
             // 
@@ -429,7 +425,7 @@ namespace POSPRA.SetupUI
             txtUsername.Location = new Point(325, 142);
             txtUsername.Name = "txtUsername";
             txtUsername.Size = new Size(369, 32);
-            txtUsername.TabIndex = 25;
+            txtUsername.TabIndex = 3;
             // 
             // ConfigForm2
             // 

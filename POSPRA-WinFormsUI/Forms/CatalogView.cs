@@ -645,7 +645,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             var colPosUOM = new DataGridViewTextBoxColumn
             {
-                Name = "PosUOM",
+                Name = "colPosUOM",
                 HeaderText = "POS UOM",
                 Width = 100,
                 ReadOnly = true,

@@ -424,8 +424,15 @@ namespace POSPRA_WinFormsUI.Forms
                                     // Trigger only when status changes from enabled → disabled
                                     if (wasEnabled && !isEnabled)
                                     {
-                                        MessageBox.Show("Worker Service Disabled, Contact FBR!");
+
+                                        ShowAlert("Worker Service Disabled, Contact FBR!", AlertType.Warning, false);
                                         _ = CreateLog("Worker Service Disabled, Contact FBR!", AlertType.Warning);
+
+                                        if (await IsWorkerServiceRunningAsync())
+                                        {
+                                            bool stopped = await StopWorkerServiceAsync();
+                                        }
+
                                     }
                                     // Trigger when service comes back online
                                     else if (!wasEnabled && isEnabled)
@@ -437,7 +444,7 @@ namespace POSPRA_WinFormsUI.Forms
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine($"Error calling API: {ex.Message}");
+                                    _ = CreateLog($"Error calling API", AlertType.Error);
                                 }
                             }
                         }
@@ -455,8 +462,12 @@ namespace POSPRA_WinFormsUI.Forms
                         }
                         else if (isRunning && !wasRunning)
                         {
-                            WindowsLocalAppNotification.Show("POS Service Restored", "Service is back online!");
+                            ShowAlert("POS Service Restored, Service is back online!", AlertType.Warning, false);
                             _ = CreateLog("POS service restored!", AlertType.Success);
+                            if (!await IsWorkerServiceRunningAsync())
+                            {
+                                bool started = await StartWorkerServiceAsync();
+                            }
                             _workerServiceAlertShown = false;
                             consecutiveChecks = 0;
                         }
@@ -500,6 +511,59 @@ namespace POSPRA_WinFormsUI.Forms
                 catch { return false; }
             });
         }
+
+        private async Task<bool> StopWorkerServiceAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using var sc = new ServiceController("POSPRAWorker");
+
+                    if (sc.Status == ServiceControllerStatus.Running)
+                    {
+                        sc.Stop(); // Request stop
+                        sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30)); // Wait up to 30s
+                    }
+
+                    return sc.Status == ServiceControllerStatus.Stopped;
+                }
+                catch (Exception ex)
+                {
+                    // Optionally log the exception
+                    Console.WriteLine($"Error stopping service: {ex.Message}");
+                    return false;
+                }
+            });
+        }
+
+        private async Task<bool> StartWorkerServiceAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using var sc = new ServiceController("POSPRAWorker");
+
+                    // Start only if not already running
+                    if (sc.Status != ServiceControllerStatus.Running)
+                    {
+                        sc.Start();
+                        sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30)); // wait up to 30 seconds
+                    }
+
+                    return sc.Status == ServiceControllerStatus.Running;
+                }
+                catch (Exception ex)
+                {
+                    // Optionally log or show error
+                    Console.WriteLine($"Error starting service: {ex.Message}");
+                    return false;
+                }
+            });
+        }
+
+
 
         private void StopWorkerServiceStatusChecker()
         {
