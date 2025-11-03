@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Xml;
+using WinFormsApp = System.Windows.Forms.Application;
 
 namespace POSPRA.SetupUI
 {
@@ -117,6 +118,7 @@ namespace POSPRA.SetupUI
 
             rdoSandbox.Click += rdoSandbox_Click;
             rdoProduction.Click += rdoProduction_Click;
+
 
             toolTip1.SetToolTip(btnupdateLOGO,
                 "Logo Upload Guidelines:\n" +
@@ -419,7 +421,7 @@ namespace POSPRA.SetupUI
 
                 node.SetAttribute("value", base64);
                 xml.Save(configFile);
-                MessageBox.Show($" Logo saved successfully!","Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($" Logo saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -437,50 +439,77 @@ namespace POSPRA.SetupUI
                 if (!ValidateInputs(out string username, out string password, out string dbPath, out string oldDbPath))
                     return;
 
+                // Show progress bar at the start
+                ShowProgressBar(true);
+
+                ShowMessage("Starting setup process...", true, false);
+                await Task.Delay(500); // Brief pause for UI update
+
                 CreateDatabaseDirectory(dbPath);
 
+                ShowMessage("Retrieving system information...", true, false);
                 var mac = TryGetMacAddress();
-                //var environment = await SetEnvironmentAsync(username,selectedEnvironment);
-                //if (environment==null)
-                //{
-                //    return;
+                await Task.Delay(300);
 
-                //}
+                ShowMessage("Authenticating with server...", true, false);
                 var json = await AuthenticateAsync(username, password, mac, selectedEnvironment);
                 if (json == null)
+                {
+                    ShowProgressBar(false);
                     return;
+                }
 
                 var (branchName, branchAddress, businessName, IsActive) = ExtractBranchDetails(json);
 
                 if (!VerifyAuthentication(json))
+                {
+                    ShowProgressBar(false);
                     return;
+                }
 
+                ShowMessage("Saving configurations...", true, false);
                 SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName);
                 UpdateSetupConfig(dbPath);
+                await Task.Delay(300);
 
+                ShowMessage("Initializing database...", true, false);
                 if (!InitializeDatabase(dbPath))
+                {
+                    ShowProgressBar(false);
                     return;
+                }
+                await Task.Delay(300);
 
                 // Migrate old data if service is available and old DB path is provided
                 if (_isServiceAvailable && !string.IsNullOrWhiteSpace(oldDbPath))
                 {
+                    ShowMessage("Migrating old database...", true, false);
                     await MigrateOldDatabaseAsync(oldDbPath, username, password);
                 }
 
                 // Only validate and backup old database if service is available
                 if (_isServiceAvailable)
                 {
+                    ShowMessage("Validating old database...", true, false);
                     if (!ValidateOldDatabase(oldDbPath))
+                    {
+                        ShowProgressBar(false);
                         return;
+                    }
 
+                    ShowMessage("Creating backup...", true, false);
                     CreateSafeBackup(oldDbPath);
+                    await Task.Delay(300);
                 }
+
+                ShowProgressBar(false);
                 ShowMessage("Setup completed successfully!", true, false);
                 await Task.Delay(2000);
                 Environment.Exit(0);
             }
             catch (Exception ex)
             {
+                ShowProgressBar(false);
                 ShowMessage($"Fatal error: {ex.Message}", false, false);
             }
         }
@@ -489,7 +518,29 @@ namespace POSPRA.SetupUI
 
         }
         #endregion
+        #region Helper Method for Progress Bar
 
+        private void ShowProgressBar(bool show)
+        {
+            if (progressBar == null) return;
+
+            if (show)
+            {
+                progressBar.Style = ProgressBarStyle.Marquee;
+                progressBar.MarqueeAnimationSpeed = 30;
+                progressBar.Visible = true;
+                progressBar.BringToFront();
+                progressBar.Refresh();
+                WinFormsApp.DoEvents();
+            }
+            else
+            {
+                progressBar.Visible = false;
+                progressBar.Style = ProgressBarStyle.Continuous;
+            }
+        }
+
+        #endregion
         #region Validation Methods
 
         private bool ValidateDatabasePath(string dbPath)
@@ -798,20 +849,21 @@ namespace POSPRA.SetupUI
         {
             try
             {
-                ShowMessage("Starting data migration...", true, false);
+                ShowMessage("Loading data from old database...", true, false);
 
-                await RunSingleLoad(async () =>
-                {
-                    // Load data from IMS file
-                    var fileRecords = LoadFileRecordsFromIms(oldDbPath);
-                    var logs = LoadLogsFromIms(oldDbPath);
+                // Load data from IMS file
+                var fileRecords = await Task.Run(() => LoadFileRecordsFromIms(oldDbPath));
+                var logs = await Task.Run(() => LoadLogsFromIms(oldDbPath));
 
-                    // Show summary in MessageBox
-                    ShowMigrationSummary(fileRecords, logs);
+                ShowMessage($"Loaded {fileRecords.Count} file records and {logs.Count} logs", true, false);
+                await Task.Delay(500);
 
-                    // Prepare data for API (ready for when you implement the API call)
-                    await PrepareDataForApiAsync(fileRecords, logs, username, password);
-                });
+                // Show summary in MessageBox
+                ShowMigrationSummary(fileRecords, logs);
+
+                ShowMessage("Sending data to server...", true, false);
+                // Prepare data for API
+                await PrepareDataForApiAsync(fileRecords, logs, username, password);
             }
             catch (Exception ex)
             {
@@ -1648,30 +1700,53 @@ namespace POSPRA.SetupUI
 
         private async Task RunSingleLoad(Func<Task> work)
         {
-            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1)
+            // Check if already loading
+            if (Interlocked.CompareExchange(ref _isLoadingFlag, 1, 0) == 1)
+            {
+                ShowMessage("An operation is already in progress...", false, true);
                 return;
+            }
 
             try
             {
+                // Show progress bar
                 if (progressBar != null)
                 {
                     progressBar.Style = ProgressBarStyle.Marquee;
                     progressBar.MarqueeAnimationSpeed = 30;
                     progressBar.Visible = true;
                     progressBar.BringToFront();
-                    progressBar.Update();
+
+                    // Force UI update
+                    progressBar.Refresh();
+                    WinFormsApp.DoEvents();
                 }
 
+                // Disable buttons during operation
+                if (btnOk != null) btnOk.Enabled = false;
+                if (btnCancel != null) btnCancel.Enabled = false;
+
+                // Execute the work
                 await work();
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error: {ex.Message}", false, true);
             }
             finally
             {
+                // Hide progress bar
                 if (progressBar != null)
                 {
                     progressBar.Visible = false;
                     progressBar.Style = ProgressBarStyle.Continuous;
                 }
 
+                // Re-enable buttons
+                if (btnOk != null) btnOk.Enabled = true;
+                if (btnCancel != null) btnCancel.Enabled = true;
+
+                // Reset flag
                 Interlocked.Exchange(ref _isLoadingFlag, 0);
             }
         }
@@ -1686,7 +1761,14 @@ namespace POSPRA.SetupUI
             txtPassword.Clear();
         }
 
-        private void txtUsername_KeyPress(object sender, KeyPressEventArgs e) { }
+        private void txtUsername_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Allow control keys like Backspace
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true; // Block the input
+            }
+        }
 
         private void txtPassword_KeyPress(object sender, KeyPressEventArgs e) { }
 

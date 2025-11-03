@@ -1343,6 +1343,7 @@ namespace POSPRA_WinFormsUI.Forms
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
             ResetSortToDefault();
+            await DisableButtonsTemporarilyAsync(btnRefresh);
 
             bool wasAutoRefreshEnabled = _autoRefreshEnabled;
             if (wasAutoRefreshEnabled)
@@ -1379,6 +1380,28 @@ namespace POSPRA_WinFormsUI.Forms
                     _autoRefreshTimer.Start();
             }
         }
+
+        private async Task DisableButtonsTemporarilyAsync(params Button[] buttons)
+        {
+            try
+            {
+                // Disable all given buttons
+                foreach (var btn in buttons)
+                    btn.Enabled = false;
+
+                // Wait for 5 seconds
+                await Task.Delay(5000);
+
+                // Re-enable them
+                foreach (var btn in buttons)
+                    btn.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disabling buttons: {ex.Message}");
+            }
+        }
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
