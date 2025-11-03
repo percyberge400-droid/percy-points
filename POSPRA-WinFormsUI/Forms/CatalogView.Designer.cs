@@ -49,7 +49,7 @@
             ProductCatalogueDataGridView.ReadOnly = true;
             ProductCatalogueDataGridView.RowHeadersVisible = false;
             ProductCatalogueDataGridView.RowHeadersWidth = 51;
-            ProductCatalogueDataGridView.Size = new Size(1599, 685);
+            ProductCatalogueDataGridView.Size = new Size(1587, 646);
             ProductCatalogueDataGridView.TabIndex = 9;
             // 
             // colItemSrno
@@ -103,9 +103,9 @@
             // btnNext
             // 
             btnNext.Anchor = AnchorStyles.Right;
-            btnNext.Location = new Point(1477, 3);
+            btnNext.Location = new Point(1494, 3);
             btnNext.Name = "btnNext";
-            btnNext.Size = new Size(99, 30);
+            btnNext.Size = new Size(82, 30);
             btnNext.TabIndex = 5;
             btnNext.Text = "Next";
             btnNext.UseVisualStyleBackColor = true;
@@ -115,7 +115,7 @@
             btnPrev.Anchor = AnchorStyles.Right;
             btnPrev.Location = new Point(1288, 2);
             btnPrev.Name = "btnPrev";
-            btnPrev.Size = new Size(99, 30);
+            btnPrev.Size = new Size(82, 30);
             btnPrev.TabIndex = 4;
             btnPrev.Text = "Previous";
             btnPrev.UseVisualStyleBackColor = true;
@@ -124,7 +124,7 @@
             // 
             lblPageNumber.Anchor = AnchorStyles.Right;
             lblPageNumber.AutoSize = true;
-            lblPageNumber.Location = new Point(1407, 8);
+            lblPageNumber.Location = new Point(1376, 8);
             lblPageNumber.Name = "lblPageNumber";
             lblPageNumber.Size = new Size(53, 20);
             lblPageNumber.TabIndex = 7;
