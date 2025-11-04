@@ -171,8 +171,24 @@ namespace POSPRA.SetupUI
             try
             {
                 _isServiceAvailable = IsWorkerServiceInstalled();
+
                 if (_isServiceAvailable)
                 {
+                    StopWorkerService();
+
+                    // ✅ Ask user if they want to uninstall
+                    var result = MessageBox.Show(
+                        "The Fiscal service was detected and stopped.\nDo you want to uninstall the existing service?",
+                        "Uninstall Service",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question
+                    );
+
+                    if (result == DialogResult.Yes)
+                    {
+                        //UninstallWorkerService();
+                    }
+
                     ShowMessage("Fiscal service detected. Old database migration enabled.", true, true);
                 }
                 else
@@ -187,6 +203,7 @@ namespace POSPRA.SetupUI
                 DisableOldDatabaseControls();
             }
         }
+
 
         private void DisableOldDatabaseControls()
         {
@@ -240,6 +257,81 @@ namespace POSPRA.SetupUI
             catch (Exception)
             {
                 return false;
+            }
+        }
+        private void StopWorkerService()
+        {
+            try
+            {
+                using (var controller = new ServiceController(_workerServiceName))
+                {
+                    if (controller.Status != ServiceControllerStatus.Stopped &&
+                        controller.Status != ServiceControllerStatus.StopPending)
+                    {
+                        controller.Stop();
+                        controller.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30));
+                        ShowMessage("Fiscal service stopped successfully.", true, true);
+                    }
+                    else
+                    {
+                        ShowMessage("Fiscal service is already stopped.", true, true);
+                    }
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                ShowMessage("Service not found when trying to stop.", false, true);
+            }
+            catch (System.ServiceProcess.TimeoutException)
+            {
+                ShowMessage("Timeout occurred while stopping the service.", false, true);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error stopping service: {ex.Message}", false, true);
+            }
+        }
+        private void UninstallWorkerService()
+        {
+            try
+            {
+                // Path to service EXE (adjust if needed)
+                string serviceExePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _workerServiceName);
+
+                // Unregister the Windows service
+                Process process = new Process();
+                process.StartInfo.FileName = "sc.exe";
+                process.StartInfo.Arguments = $"delete \"{_workerServiceName}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+                process.StartInfo.CreateNoWindow = true;
+                process.Start();
+                process.WaitForExit();
+
+                ShowMessage("Service uninstalled successfully.", true, true);
+
+                // ✅ Delete EXE file after uninstall
+                if (File.Exists(serviceExePath))
+                {
+                    try
+                    {
+                        File.Delete(serviceExePath);
+                        ShowMessage("Service executable deleted successfully.", true, true);
+                    }
+                    catch (IOException)
+                    {
+                        ShowMessage("Unable to delete EXE file (it may still be in use).", false, true);
+                    }
+                }
+                else
+                {
+                    ShowMessage("Service executable not found on disk.", false, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error uninstalling service: {ex.Message}", false, true);
             }
         }
 
