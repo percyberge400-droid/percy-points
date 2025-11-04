@@ -202,7 +202,7 @@
             pctCode.ImeMode = ImeMode.Disable;
             pctCode.Location = new Point(238, 42);
             pctCode.Name = "pctCode";
-            pctCode.PlaceholderText = "PCT Code";
+            pctCode.PlaceholderText = "HS Code";
             pctCode.Size = new Size(197, 24);
             pctCode.TabIndex = 10;
             // 
@@ -1058,38 +1058,45 @@
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            // Check for keyboard shortcuts
             switch (keyData)
             {
-                case Keys.Control | Keys.A:  // Add Item
+                //ALT + N - > Add Item
+                case Keys.Alt | Keys.N:
                     btnProceed.PerformClick();
                     return true;
 
-                case Keys.Control | Keys.R:  // Remove Item
+                //ALT + R -> Remove Item
+                case Keys.Alt | Keys.R:  
                     btn_remove.PerformClick();
                     return true;
 
-                case Keys.Control | Keys.E:  // Edit
+                //ALT + E -> Edit Item
+                case Keys.Alt | Keys.E:  
                     btnEdit.PerformClick();
                     return true;
 
-                case Keys.Control | Keys.L:  // Clear Form
+                //ALT + C -> Clear Form
+                case Keys.Alt | Keys.C:
                     btnclear.PerformClick();
                     return true;
 
-                case Keys.Control | Keys.F:  // Search
+                //ALT + S -> Search
+                case Keys.Alt | Keys.S:  
                     btnsearch.PerformClick();
                     return true;
 
-                case Keys.Control | Keys.S:  // Save and Print
+                //ALT + P -> Save and Print
+                case Keys.Alt | Keys.P:  
                     btnSave.PerformClick();
                     return true;
 
-                case Keys.F5:  // Search (alternative)
+                //ALT + F -> Search Catalogue 
+                case Keys.Alt | Keys.F: 
                     btnsearch.PerformClick();
                     return true;
 
-                case Keys.Escape:  // Clear Form (alternative)
+                //ESC -> Clear Form
+                case Keys.Escape:  
                     btnclear.PerformClick();
                     return true;
             }
@@ -1100,24 +1107,24 @@
         // Update button text to show shortcuts (call this in InitializeComponent or form load)
         private void SetButtonShortcutTexts()
         {
-            btnProceed.Text = "➕ Add Item (Ctrl+A)";
-            btn_remove.Text = "➖ Remove Item (Ctrl+R)";
-            btnEdit.Text = "🖊️ Edit (Ctrl+E)";
-            btnclear.Text = "🧹 Clear Form (Ctrl+L)";
-            btnsearch.Text = "🔍 Search (Ctrl+F)";
-            btnSave.Text = "🖨️ Save and Print (Ctrl+S)";
+            btnProceed.Text = "➕ Add Item (ALT+A)";
+            btn_remove.Text = "➖ Remove Item (ALT+R)";
+            btnEdit.Text = "🖊️ Edit (ALT+E)";
+            btnclear.Text = "🧹 Clear Form (ALT+L)";
+            btnsearch.Text = "🔍 Search (ALT+F)";
+            btnSave.Text = "🖨️ Save and Print (ALT+S)";
         }
 
         // Optional: Add tooltips for better user experience
         private void AddButtonTooltips()
         {
             ToolTip tooltip = new ToolTip();
-            tooltip.SetToolTip(btnProceed, "Add item to invoice (Ctrl+A)");
-            tooltip.SetToolTip(btn_remove, "Remove selected item (Ctrl+R)");
-            tooltip.SetToolTip(btnEdit, "Edit selected item (Ctrl+E)");
-            tooltip.SetToolTip(btnclear, "Clear all form fields (Ctrl+L or Esc)");
-            tooltip.SetToolTip(btnsearch, "Search for items (Ctrl+F or F5)");
-            tooltip.SetToolTip(btnSave, "Save and print invoice (Ctrl+S)");
+            tooltip.SetToolTip(btnProceed, "Add item to invoice (ALT+A)");
+            tooltip.SetToolTip(btn_remove, "Remove selected item (ALT+R)");
+            tooltip.SetToolTip(btnEdit, "Edit selected item (ALT+E)");
+            tooltip.SetToolTip(btnclear, "Clear all form fields (ALT+L or Esc)");
+            tooltip.SetToolTip(btnsearch, "Search for items (ALT+F or F5)");
+            tooltip.SetToolTip(btnSave, "Save and print invoice (ALT+S)");
         }
 
         // Field declarations

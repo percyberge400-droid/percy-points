@@ -51,24 +51,6 @@ namespace POSPRA_WinFormsUI.Forms
 
         #endregion
 
-        /// <summary> 
-        /// Clean up any resources being used.
-        /// </summary>
-        protected override void Dispose(bool disposing)
-        {
-            try
-            {
-
-                if (disposing && (components != null))
-                {
-                    components.Dispose();
-                }
-                base.Dispose(disposing);
-
-            }
-            catch { }
-        }
-
         #region Windows Form Designer generated code
 
         private void InitializeComponent()
@@ -835,6 +817,31 @@ namespace POSPRA_WinFormsUI.Forms
         }
 
         #endregion
+
+        private void AddButtonTooltips()
+        {
+            ToolTip tooltip = new ToolTip();
+            tooltip.SetToolTip(btnClearFilter, "Clear Flter");
+            tooltip.SetToolTip(btnRefresh, "Refresh");
+            tooltip.SetToolTip(btnFilterSynced, "Filter Synced/ Unsynced");
+            tooltip.SetToolTip(btnExportLogs, "Export Logs");
+            tooltip.SetToolTip(btnFilter, "Filter");
+            tooltip.SetToolTip(btnExportInvoice, "Export Invoices");
+            tooltip.SetToolTip(btnSyncLogs, "Sync Logs");
+            tooltip.SetToolTip(btnToday, "Filter Today");
+            tooltip.SetToolTip(panelTotalLogs, "Filter Success Logs");
+            tooltip.SetToolTip(lblTotalLogsCount, "Filter Success Logs");
+            tooltip.SetToolTip(lblTotalLogsTitle, "Filter Success Logs");
+            tooltip.SetToolTip(panelErrorLogs, "Filter Error Logs");
+            tooltip.SetToolTip(lblErrorLogsCount, "Filter Error Logs");
+            tooltip.SetToolTip(lblErrorLogsTitle, "Filter Error Logs");
+            tooltip.SetToolTip(panelInfoLogs, "Filter Info Logs");
+            tooltip.SetToolTip(lblInfoLogsCount, "Filter Info Logs");
+            tooltip.SetToolTip(lblInfoLogsTitle, "Filter Info Logs");
+            tooltip.SetToolTip(panelWarningLogs, "Filter Warning Logs");
+            tooltip.SetToolTip(lblWarningLogsTitle, "Filter Warning Logs");
+            tooltip.SetToolTip(lblWarningLogsCount, "Filter Warning Logs");
+        }
 
         private Button btnClearFilter;
         private Button btnRefresh;
