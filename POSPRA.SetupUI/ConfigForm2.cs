@@ -453,7 +453,7 @@ namespace POSPRA.SetupUI
 
                 node.SetAttribute("value", base64);
                 xml.Save(configFile);
-                ShowMessage(" Logo saved successfully!", false, true);
+                ShowMessage(" Logo saved successfully!", true, true);
             }
             catch (Exception ex)
             {
