@@ -61,13 +61,5 @@ namespace POSPRA.Application.Services.EnvironmentConfigService
                     ex.Message);
             }
         }
-
-        public string GetConnectionString()
-        {
-            var settings = _options.CurrentValue;
-            return settings.IsProduction
-                ? settings.ConnectionStrings.SqlServerConnectionProduction
-                : settings.ConnectionStrings.SqlServerConnectionSandbox;
-        }
     }
 }

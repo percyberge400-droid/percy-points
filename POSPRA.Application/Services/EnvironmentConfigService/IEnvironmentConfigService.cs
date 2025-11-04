@@ -6,6 +6,5 @@ namespace POSPRA.Application.Services.EnvironmentConfigService
     {
         bool IsProduction { get; }
         ApiResponse<string> SetEnvironment(bool isProduction);
-        string GetConnectionString();
     }
 }

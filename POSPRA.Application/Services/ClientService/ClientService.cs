@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.NetworkService;
@@ -8,7 +6,6 @@ using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.ClientDtos;
-using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.ClientRepository;
 using POSPRA.Repositories.UnitOfWork;
 
@@ -51,72 +48,63 @@ namespace POSPRA.Application.Services.ClientService
             var entity = await _clientRepository.FirstOrDefaultAsync(m =>
                                 m.POSRegistrationNumber == dto.PosId);
 
-                if (entity == null)
-                {
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.NotFound,
-                        ResponseMessages.InvalidPosId,
-                        null!,
-                        string.Empty);
-                }
-
-                // ✅ 5. Validate MAC and Token
-                var errors = new List<string>();
-
-                if (entity.MacAddressInput != dto.MacAddress)
-                    errors.Add(ResponseMessages.InvalidMacAddress);
-
-                if (entity.Token != dto.Token)
-                    errors.Add(ResponseMessages.InvalidToken);
-
-                if (errors.Any())
-                {
-                    var errorMessage = string.Join(" | ", errors);
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.NotFound,
-                        errorMessage,
-                        null!,
-                        string.Empty);
-                }
-
-                // ✅ 6. Check configuration status
-                if (entity.IsActive == true)
-                {
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.NotFound,
-                        ResponseMessages.AlreadyConfigured,
-                        null!,
-                        string.Empty);
-                }
-
-            var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
-
-                if (statusCode == ApiStatusCode.NotFound)
-                {
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.NotFound,
-                        ResponseMessages.DataNotFound,
-                        null!,
-                        string.Empty);
-                }
-
-                entity.IsActive = true;
-
-                // ✅ 8. Return success
-                return new ApiResponse<PosClients>(
-                    ApiStatusCode.Success,
-                    ResponseMessages.RecordFound,
-                    entity,
-                    string.Empty);
-            }
-            catch (Exception ex)
+            if (entity == null)
             {
                 return new ApiResponse<PosClients>(
-                    ApiStatusCode.ServiceUnavailable,
-                    $"Error: {ex.Message}",
+                    ApiStatusCode.NotFound,
+                    ResponseMessages.InvalidPosId,
                     null!,
                     string.Empty);
             }
+
+            // ✅ 5. Validate MAC and Token
+            var errors = new List<string>();
+
+            if (entity.MacAddressInput != dto.MacAddress)
+                errors.Add(ResponseMessages.InvalidMacAddress);
+
+            if (entity.Token != dto.Token)
+                errors.Add(ResponseMessages.InvalidToken);
+
+            if (errors.Any())
+            {
+                var errorMessage = string.Join(" | ", errors);
+                return new ApiResponse<PosClients>(
+                    ApiStatusCode.NotFound,
+                    errorMessage,
+                    null!,
+                    string.Empty);
+            }
+
+            // ✅ 6. Check configuration status
+            if (entity.IsActive == true)
+            {
+                return new ApiResponse<PosClients>(
+                    ApiStatusCode.NotFound,
+                    ResponseMessages.AlreadyConfigured,
+                    null!,
+                    string.Empty);
+            }
+
+            var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
+
+            if (statusCode == ApiStatusCode.NotFound)
+            {
+                return new ApiResponse<PosClients>(
+                    ApiStatusCode.NotFound,
+                    ResponseMessages.DataNotFound,
+                    null!,
+                    string.Empty);
+            }
+
+            entity.IsActive = true;
+
+            // ✅ 8. Return success
+            return new ApiResponse<PosClients>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordFound,
+                entity,
+                string.Empty);
         }
 
         public async Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId)
