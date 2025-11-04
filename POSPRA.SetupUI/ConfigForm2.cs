@@ -26,20 +26,16 @@ namespace POSPRA.SetupUI
         #region Win32 API Imports
 
         [DllImport("user32.dll")]
-        private static extern bool SetWindowPos(
-            IntPtr hWnd,
-            IntPtr hWndInsertAfter,
-            int X,
-            int Y,
-            int cx,
-            int cy,
-            uint uFlags);
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+        int X, int Y, int cx, int cy, uint uFlags);
 
         private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
+
 
         #endregion
 
@@ -126,10 +122,6 @@ namespace POSPRA.SetupUI
 
             rdoSandbox.Click += rdoSandbox_Click;
             rdoProduction.Click += rdoProduction_Click;
-
-
-
-
 
             toolTip1.SetToolTip(btnupdateLOGO,
                 "Logo Upload Guidelines:\n" +
@@ -305,6 +297,37 @@ namespace POSPRA.SetupUI
                 }
             });
         }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+
+            // Center and show above everything once
+            this.CenterToScreen();
+            this.TopMost = true;
+            this.BringToFront();
+            this.Activate();
+
+            // Force top-most window Z-order once
+            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+            // After a short delay, remove TopMost flag
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(800); // short & smooth
+                if (!this.IsDisposed && this.IsHandleCreated)
+                {
+                    this.Invoke(() =>
+                    {
+                        this.TopMost = false;
+                        SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
+                            SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                    });
+                }
+            });
+        }
+
 
 
         private async void btnOk_Click(object sender, EventArgs e)
