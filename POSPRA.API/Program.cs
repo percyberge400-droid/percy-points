@@ -7,7 +7,6 @@ using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
-using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -57,8 +56,6 @@ namespace POSPRA.API
         {
             var builder = WebApplication.CreateBuilder(args ?? Array.Empty<string>());
 
-            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            
             //----------------------------------------------------
             // ✅ Ensure appsettings.json from API directory is loaded
             //----------------------------------------------------
@@ -101,32 +98,33 @@ namespace POSPRA.API
             //----------------------------------------------------
             // 🔧 Database configuration
             //----------------------------------------------------
-            builder.Services.AddDbContext<SqliteDbContext>((sp, options) =>
+            string? dbPath = builder.Configuration.GetSection("AppSettings:DefaultDBFilePath")?.Value;
+
+            // fallback if not found
+            if (string.IsNullOrWhiteSpace(dbPath))
             {
-                var config = sp.GetRequiredService<IConfiguration>();
-                var dbPath = config["AppSettings:DefaultDBFilePath"];
+                dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            }
 
-                if (string.IsNullOrWhiteSpace(dbPath))
-                    dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            // ✅ Ensure SqliteDbContext uses this path
+            SqliteDbContext.SetDatabasePath(dbPath);
 
-                // Optional: ensure directory exists
-                var dir = Path.GetDirectoryName(dbPath);
-                if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
+            builder.Services.AddDbContext<SqliteDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
 
-                SqliteDbContext.SetDatabasePath(dbPath);
-                options.UseSqlite($"Data Source={dbPath}");
-            });
+            // Read the isProduction flag from AppSettings
+            var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
+            bool isProduction = appSettings!.IsProduction;
 
-            builder.Services.AddSingleton<IEnvironmentConfigService, EnvironmentConfigService>();
+            // Choose the SQL Server connection string based on the flag
+            string sqlConnectionString = builder.Configuration.GetConnectionString(
+                isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
+            ) ?? throw new InvalidOperationException("Missing SQL Server connection string for the selected environment for api.");
+
             // Register SQL Server DbContext with the selected connection string
-            builder.Services.AddDbContext<SqlServerDbContext>((sp, options) =>
-            {
-                var configService = sp.GetRequiredService<IEnvironmentConfigService>();
-                var connectionString = configService.GetConnectionString();
-                options.UseSqlServer(connectionString);
-            });
-
+            builder.Services.AddDbContext<SqlServerDbContext>(options =>
+                options.UseSqlServer(sqlConnectionString),
+                ServiceLifetime.Scoped);
 
             //----------------------------------------------------
             // 🔧 AutoMapper
