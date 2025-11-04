@@ -60,11 +60,11 @@ namespace POSPRA_WinFormsUI.Forms
 
         private readonly SemaphoreSlim _checkSemaphore = new SemaphoreSlim(1, 1);
 
-        // ✅ NEW: Virtual Mode Cache
+        // NEW: Virtual Mode Cache
         private List<InvoiceDisplayModel> _invoiceCache;
         private List<LogDisplayModel> _logCache;
 
-        // ✅ NEW: Cached images for performance
+        // NEW: Cached images for performance
         private static Image _greenTickCached;
         private static Image _redCrossCached;
 
@@ -97,11 +97,11 @@ namespace POSPRA_WinFormsUI.Forms
             ShowIcon = false;
             Text = string.Empty;
 
-            // ✅ Initialize caches
+            // Initialize caches
             _invoiceCache = new List<InvoiceDisplayModel>();
             _logCache = new List<LogDisplayModel>();
 
-            // ✅ Cache images
+            // Cache images
             CacheImages();
 
             StyleDateRangeLabel();
@@ -333,15 +333,23 @@ namespace POSPRA_WinFormsUI.Forms
                 return;
             }
 
-            if (_heartbeatTimer == null)
+            _heartbeatTimer = new System.Timers.Timer(100000);
+            _heartbeatTimer.Elapsed += async (s, e) =>
             {
-                _heartbeatTimer = new System.Timers.Timer(100000);
-                _heartbeatTimer.Elapsed += async (s, e) => await UpdateHeartbeatAsync(decryptedPosId);
-                _heartbeatTimer.AutoReset = true;
-                _heartbeatTimer.Enabled = true;
+                try
+                {
+                    await UpdateHeartbeatAsync(decryptedPosId);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Form was disposed, stop timer
+                    _heartbeatTimer?.Stop();
+                }
+            };
+            _heartbeatTimer.AutoReset = true;
+            _heartbeatTimer.Start();
 
-                Task.Run(() => UpdateHeartbeatAsync(decryptedPosId));
-            }
+            _ = Task.Run(() => UpdateHeartbeatAsync(decryptedPosId));
         }
 
         private async Task UpdateHeartbeatAsync(string decryptedPosId)
@@ -362,7 +370,7 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                // ✅ Combine BaseUrl + Endpoint
+                // Combine BaseUrl + Endpoint
                 var fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
                 var requestBody = new { PosId = posId };
                 var json = JsonContent.Create(requestBody);
@@ -501,30 +509,33 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void AutoRefreshTimer_Tick(object sender, EventArgs e)
         {
-            // ✅ Check if already loading
-            if (_isLoadingFlag == 1) return;
-
-            // ✅ Check user interaction
-            if (IsUserInteracting()) return;
+            // Stop timer during refresh
+            _autoRefreshTimer.Stop();
 
             try
             {
-                bool hasChanges = await QuickCheckForChangesAsync();
+                if (_isLoadingFlag == 1) return;
+                if (IsUserInteracting()) return;
 
+                bool hasChanges = await QuickCheckForChangesAsync();
                 if (hasChanges)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[AutoRefresh] Changes detected - refreshing data");
-                    await BackgroundRefreshAsync();
-                    _lastRefreshTime = DateTime.Now;
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"[AutoRefresh] No changes detected");
+                    // Use Invoke to marshal back to UI thread
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(async () => await BackgroundRefreshAsync()));
+                    }
+                    else
+                    {
+                        await BackgroundRefreshAsync();
+                    }
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                System.Diagnostics.Debug.WriteLine($"Auto-refresh error: {ex.Message}");
+                // Restart timer
+                if (_autoRefreshEnabled && !IsDisposed)
+                    _autoRefreshTimer.Start();
             }
         }
 
@@ -716,6 +727,65 @@ namespace POSPRA_WinFormsUI.Forms
                 progressBar.BringToFront();
             }
         }
+        private void ShowProgressBar()
+        {
+            if (progressBar.InvokeRequired)
+            {
+                progressBar.Invoke(new Action(ShowProgressBar));
+                return;
+            }
+
+            progressBar.Style = ProgressBarStyle.Marquee;
+            progressBar.MarqueeAnimationSpeed = 30;
+            progressBar.Visible = true;
+            progressBar.BringToFront();
+        }
+        private void HideProgressBar()
+        {
+            if (progressBar.InvokeRequired)
+            {
+                progressBar.Invoke(new Action(HideProgressBar));
+                return;
+            }
+
+            progressBar.Visible = false;
+            progressBar.Style = ProgressBarStyle.Continuous;
+            progressBar.MarqueeAnimationSpeed = 0; // Stop animation
+        }
+        private async Task RunSingleLoad(Func<Task> work)
+        {
+            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
+
+            try
+            {
+                ShowProgressBar();
+                await work();
+            }
+            finally
+            {
+                HideProgressBar();
+                Interlocked.Exchange(ref _isLoadingFlag, 0);
+            }
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _autoRefreshTimer?.Stop();
+                _autoRefreshTimer?.Dispose();
+                _heartbeatTimer?.Stop();
+                _heartbeatTimer?.Dispose();
+                _checkSemaphore?.Dispose();
+                _httpClient?.Dispose();
+
+                // Dispose cached images
+                _cachedPieChart?.Dispose();
+                _cachedPieChart = null;
+
+                components?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
         private void LblDateRange_Click(object sender, EventArgs e)
         {
@@ -793,6 +863,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
+                AddButtonTooltips();
                 var encryptedPosId = System.Configuration.ConfigurationManager.AppSettings["Username"] ?? "0";
                 var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
                 StartHeartbeatTimer(decryptedPosId);
@@ -833,35 +904,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        private async Task RunSingleLoad(Func<Task> work)
-        {
-            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
-
-            try
-            {
-                if (progressBar != null)
-                {
-                    progressBar.Visible = true;
-                    progressBar.BringToFront();
-                    progressBar.Style = ProgressBarStyle.Marquee; // ✅ Smooth animation
-                    progressBar.MarqueeAnimationSpeed = 30;
-                }
-
-                await work();
-            }
-            finally
-            {
-                if (progressBar != null)
-                {
-                    progressBar.Visible = false;
-                    progressBar.Style = ProgressBarStyle.Continuous;
-                }
-
-                Interlocked.Exchange(ref _isLoadingFlag, 0);
-            }
-        }
-
-        // ✅ OPTIMIZED: Load Invoices with Virtual Mode
+        // Load Invoices with Virtual Mode
         private async Task LoadAndShowInvoicesAsync(bool skipDateFilter = false)
         {
             try
@@ -892,7 +935,7 @@ namespace POSPRA_WinFormsUI.Forms
                 if (_filterSyncedOnly)
                     filteredInvoices = filteredInvoices.Where(i => i.IsSynced == 1);
 
-                // ✅ Build cache for virtual mode
+                // Build cache for virtual mode
                 _invoiceCache = filteredInvoices
                     .OrderByDescending(i => i.DateCreated)
                     .Select((inv, index) => new InvoiceDisplayModel
@@ -1056,7 +1099,7 @@ namespace POSPRA_WinFormsUI.Forms
                 LogsDataGridView.ResumeLayout(false);
                 LogsDataGridView.Invalidate();
                 LogsDataGridView.Refresh();
-                Application.DoEvents();
+                await Task.Yield();
 
                 LogsDataGridView.ClearSelection();
                 LogsDataGridView.CurrentCell = null;
@@ -1340,10 +1383,14 @@ namespace POSPRA_WinFormsUI.Forms
             Application.DoEvents();
         }
 
+
+        // Disables the button for 3 seconds but doesn't block the UI.
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
+            // Disable the button right away (no delay)
+            btnRefresh.Enabled = false;
+
             ResetSortToDefault();
-            await DisableButtonsTemporarilyAsync(btnRefresh);
 
             bool wasAutoRefreshEnabled = _autoRefreshEnabled;
             if (wasAutoRefreshEnabled)
@@ -1359,13 +1406,13 @@ namespace POSPRA_WinFormsUI.Forms
                 bool skipDateFilter = false;
                 _filterSyncedOnly = false;
 
+                // Refresh the data immediately
                 await RunSingleLoad(async () =>
                 {
                     await LoadAndShowInvoicesAsync(skipDateFilter);
                     await LoadAndShowLogsAsync(skipDateFilter: skipDateFilter);
                 });
 
-                // ✅ Use cache instead of Rows
                 _lastInvoiceCount = _invoiceCache?.Count ?? 0;
                 _lastSyncedInvoiceCount = _invoiceCache?.Count(i => i.IsSynced == "Yes") ?? 0;
                 _lastLogCount = _logCache?.Count ?? 0;
@@ -1378,27 +1425,16 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 if (wasAutoRefreshEnabled)
                     _autoRefreshTimer.Start();
-            }
-        }
 
-        private async Task DisableButtonsTemporarilyAsync(params Button[] buttons)
-        {
-            try
-            {
-                // Disable all given buttons
-                foreach (var btn in buttons)
-                    btn.Enabled = false;
-
-                // Wait for 5 seconds
-                await Task.Delay(5000);
-
-                // Re-enable them
-                foreach (var btn in buttons)
-                    btn.Enabled = true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error disabling buttons: {ex.Message}");
+                // Re-enable the button after 3 seconds
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(3000);
+                    if (btnRefresh.IsHandleCreated)
+                    {
+                        btnRefresh.Invoke(() => btnRefresh.Enabled = true);
+                    }
+                });
             }
         }
 
@@ -1684,7 +1720,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async void InvoicesDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            // ✅ 1. Validate the click
+            // 1. Validate the click
             if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index)
                 return;
 
@@ -1702,7 +1738,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             try
             {
-                // ✅ 2. UI setup
+                // 2. UI setup
                 InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
                 InvoicesDataGridView.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
@@ -1716,7 +1752,7 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.BringToFront();
                 }
 
-                // ✅ 3. Load invoice data from API/service
+                // 3. Load invoice data from API/service
                 var response = await Task.Run(() =>
                     _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
 
@@ -1727,7 +1763,7 @@ namespace POSPRA_WinFormsUI.Forms
                     return;
                 }
 
-                // ✅ 4. Print thread setup
+                // 4. Print thread setup
                 var tcs = new TaskCompletionSource<object?>();
 
                 Thread printThread = new Thread(() =>
@@ -1736,7 +1772,7 @@ namespace POSPRA_WinFormsUI.Forms
                     {
                         using (var printForm = new InvoiceReport(response.Data))
                         {
-                            // 🔹 Hide progress bar only after RDLC finishes rendering
+                            // Hide progress bar only after RDLC finishes rendering
                             printForm.ReportLoaded += (s, args) =>
                             {
                                 this.Invoke(new Action(() =>
@@ -1772,7 +1808,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
             finally
             {
-                // ✅ 5. UI cleanup
+                // 5. UI cleanup
                 _printingRowIndex = -1;
                 InvoicesDataGridView.Enabled = true;
                 this.Cursor = Cursors.Default;
@@ -1796,7 +1832,7 @@ namespace POSPRA_WinFormsUI.Forms
 
                 string value = e.Value?.ToString() ?? "";
 
-                // ✅ Use cached images
+                // Use cached images
                 Image icon = value.Equals("Yes", StringComparison.OrdinalIgnoreCase)
                     ? _greenTickCached
                     : _redCrossCached;

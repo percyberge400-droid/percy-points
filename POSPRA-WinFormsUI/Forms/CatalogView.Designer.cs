@@ -25,6 +25,7 @@
             btnPrev = new Button();
             lblPageNumber = new Label();
             panel2 = new Panel();
+            lblTotalRecords = new Label();
             btnLoad = new Button();
             panel1 = new Panel();
             lblCustomerRegType = new Label();
@@ -134,6 +135,7 @@
             // 
             panel2.BackColor = Color.White;
             panel2.BorderStyle = BorderStyle.FixedSingle;
+            panel2.Controls.Add(lblTotalRecords);
             panel2.Controls.Add(btnLoad);
             panel2.Controls.Add(lblPageNumber);
             panel2.Controls.Add(btnNext);
@@ -143,6 +145,16 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(1581, 83);
             panel2.TabIndex = 79;
+            // 
+            // lblTotalRecords
+            // 
+            lblTotalRecords.AutoSize = true;
+            lblTotalRecords.Dock = DockStyle.Left;
+            lblTotalRecords.Location = new Point(0, 0);
+            lblTotalRecords.Name = "lblTotalRecords";
+            lblTotalRecords.Size = new Size(111, 20);
+            lblTotalRecords.TabIndex = 8;
+            lblTotalRecords.Text = "10000 products";
             // 
             // btnLoad
             // 
@@ -261,5 +273,6 @@
         private TextBox SearchBox;
         private Label label1;
         private ProgressBar progressBar;
+        private Label lblTotalRecords;
     }
 }

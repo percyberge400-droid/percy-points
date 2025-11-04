@@ -1107,24 +1107,24 @@
         // Update button text to show shortcuts (call this in InitializeComponent or form load)
         private void SetButtonShortcutTexts()
         {
-            btnProceed.Text = "➕ Add Item (Ctrl+A)";
-            btn_remove.Text = "➖ Remove Item (Ctrl+R)";
-            btnEdit.Text = "🖊️ Edit (Ctrl+E)";
-            btnclear.Text = "🧹 Clear Form (Ctrl+L)";
-            btnsearch.Text = "🔍 Search (Ctrl+F)";
-            btnSave.Text = "🖨️ Save and Print (Ctrl+S)";
+            btnProceed.Text = "➕ Add Item (ALT+A)";
+            btn_remove.Text = "➖ Remove Item (ALT+R)";
+            btnEdit.Text = "🖊️ Edit (ALT+E)";
+            btnclear.Text = "🧹 Clear Form (ALT+L)";
+            btnsearch.Text = "🔍 Search (ALT+F)";
+            btnSave.Text = "🖨️ Save and Print (ALT+S)";
         }
 
         // Optional: Add tooltips for better user experience
         private void AddButtonTooltips()
         {
             ToolTip tooltip = new ToolTip();
-            tooltip.SetToolTip(btnProceed, "Add item to invoice (Ctrl+A)");
-            tooltip.SetToolTip(btn_remove, "Remove selected item (Ctrl+R)");
-            tooltip.SetToolTip(btnEdit, "Edit selected item (Ctrl+E)");
-            tooltip.SetToolTip(btnclear, "Clear all form fields (Ctrl+L or Esc)");
-            tooltip.SetToolTip(btnsearch, "Search for items (Ctrl+F or F5)");
-            tooltip.SetToolTip(btnSave, "Save and print invoice (Ctrl+S)");
+            tooltip.SetToolTip(btnProceed, "Add item to invoice (ALT+A)");
+            tooltip.SetToolTip(btn_remove, "Remove selected item (ALT+R)");
+            tooltip.SetToolTip(btnEdit, "Edit selected item (ALT+E)");
+            tooltip.SetToolTip(btnclear, "Clear all form fields (ALT+L or Esc)");
+            tooltip.SetToolTip(btnsearch, "Search for items (ALT+F or F5)");
+            tooltip.SetToolTip(btnSave, "Save and print invoice (ALT+S)");
         }
 
         // Field declarations

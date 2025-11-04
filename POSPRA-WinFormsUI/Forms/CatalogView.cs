@@ -321,6 +321,7 @@ namespace POSPRA_WinFormsUI.Forms
                     // ✅ Compute total pages
                     int totalRecords = allItems.Count;
                     int totalPages = (int)Math.Ceiling((double)totalRecords / _pageSize);
+                    lblTotalRecords.Text = $"Total {Convert.ToString(totalRecords)} Products";
                     if (_currentPage > totalPages && totalPages > 0)
                         _currentPage = totalPages;
 
