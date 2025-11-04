@@ -5,6 +5,7 @@ using POSPRA.Domain.Entities;
 using POSPRA.Domain.ValueObjects;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.UnitOfWork;
 
@@ -120,7 +121,7 @@ namespace POSPRA.Application.Services.FileRecordService
                 var errorMessage =
                     $"{GlobalVariables.DATE} InsertInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
 
-                await _logService.CreateLogAsync(new Logs(errorMessage, AlertType.Exception, false));
+                await _logService.CreateLogAsync(new CreateLogDto(errorMessage, AlertType.Exception, false));
                 return 0;
             }
         }
@@ -135,7 +136,31 @@ namespace POSPRA.Application.Services.FileRecordService
         /// An <see cref="ApiResponse{T}"/> containing a list of updated <see cref="FileRecordDto"/> 
         /// objects when successful, or an error response if validation fails or no records exist.
         /// </returns>
-        public async Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos, bool isSingle)
+        public async Task<ApiResponse<FileRecordDto>> UpdateFileRecordAsync(FileRecordDto fileRecordDto)
+        {
+            if (fileRecordDto == null)
+            {
+                return new ApiResponse<FileRecordDto>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null!,
+                    string.Empty);
+            }
+
+            var entity = _mapper.Map<FileRecord>(fileRecordDto);
+            await _fileRecordRepository.UpdateAsync(entity);
+            await _sqliteUnitOfWork.SaveChangesAsync();
+
+            var updatedDto = _mapper.Map<FileRecordDto>(entity);
+
+            return new ApiResponse<FileRecordDto>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordSaved,
+                updatedDto,
+                string.Empty);
+        }
+
+        public async Task<ApiResponse<List<FileRecordDto>>> UpdateFileRecordsAsync(List<FileRecordDto> fileRecordDtos)
         {
             if (fileRecordDtos == null || fileRecordDtos.Count == 0)
             {
@@ -146,23 +171,11 @@ namespace POSPRA.Application.Services.FileRecordService
                     string.Empty);
             }
 
-            List<FileRecordDto> updatedDtos = new();
-
-            if (!isSingle)
-            {
-                var entities = _mapper.Map<List<FileRecord>>(fileRecordDtos);
-                _fileRecordRepository.UpdateRange(entities);
-                updatedDtos = _mapper.Map<List<FileRecordDto>>(entities);
-            }
-            else
-            {
-                var entity = _mapper.Map<FileRecord>(fileRecordDtos.FirstOrDefault());
-                await _fileRecordRepository.UpdateAsync(entity);
-                updatedDtos = new List<FileRecordDto> { _mapper.Map<FileRecordDto>(entity) };
-            }
-
+            var entities = _mapper.Map<List<FileRecord>>(fileRecordDtos);
+            _fileRecordRepository.UpdateRange(entities);
             await _sqliteUnitOfWork.SaveChangesAsync();
 
+            var updatedDtos = _mapper.Map<List<FileRecordDto>>(entities);
 
             return new ApiResponse<List<FileRecordDto>>(
                 ApiStatusCode.Success,
@@ -170,43 +183,5 @@ namespace POSPRA.Application.Services.FileRecordService
                 updatedDtos,
                 string.Empty);
         }
-
-        /// <summary>
-        /// Updates a single <see cref="FileRecordDto"/> in the database.
-        /// </summary>
-        /// <param name="fileRecordDto">
-        /// The <see cref="FileRecordDto"/> object to update.
-        /// </param>
-        /// <returns>
-        /// An <see cref="ApiResponse{T}"/> containing the updated <see cref="FileRecordDto"/> 
-        /// when successful, or an error response if validation fails or the update does not succeed.
-        /// </returns>
-        public async Task<ApiResponse<FileRecordDto>> UpdateFileRecordAsync(FileRecordDto fileRecordDto)
-        {
-            if (fileRecordDto == null)
-            {
-                return new ApiResponse<FileRecordDto>(
-                    ApiStatusCode.Error,
-                    ResponseMessages.DataNotFound,
-                    null,
-                    string.Empty);
-            }
-
-            var result = await UpdateFileRecordsAsync(new List<FileRecordDto> { fileRecordDto }, true);
-
-            // Return a single item if update succeeded, otherwise an error response
-            return result.StatusCode == ApiStatusCode.Success && result.Data?.Count > 0
-                ? new ApiResponse<FileRecordDto>(
-                    ApiStatusCode.Success,
-                    ResponseMessages.RecordSaved,
-                    result.Data[0],
-                    string.Empty)
-                : new ApiResponse<FileRecordDto>(
-                    ApiStatusCode.Error,
-                    ResponseMessages.DataNotFound,
-                    null,
-                    string.Empty);
-        }
-
     }
 }

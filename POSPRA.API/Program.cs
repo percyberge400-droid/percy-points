@@ -7,6 +7,7 @@ using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -19,7 +20,6 @@ using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
-using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -30,7 +30,6 @@ using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
-using POSPRA.Repositories.UserRepository;
 
 namespace POSPRA.API
 {
@@ -58,6 +57,8 @@ namespace POSPRA.API
         {
             var builder = WebApplication.CreateBuilder(args ?? Array.Empty<string>());
 
+            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            
             //----------------------------------------------------
             // ✅ Ensure appsettings.json from API directory is loaded
             //----------------------------------------------------
@@ -100,40 +101,38 @@ namespace POSPRA.API
             //----------------------------------------------------
             // 🔧 Database configuration
             //----------------------------------------------------
-            string? dbPath = builder.Configuration.GetSection("AppSettings:DefaultDBFilePath")?.Value;
-
-            // fallback if not found
-            if (string.IsNullOrWhiteSpace(dbPath))
+            builder.Services.AddDbContext<SqliteDbContext>((sp, options) =>
             {
-                dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
-            }
+                var config = sp.GetRequiredService<IConfiguration>();
+                var dbPath = config["AppSettings:DefaultDBFilePath"];
 
-            // ✅ Ensure SqliteDbContext uses this path
-            SqliteDbContext.SetDatabasePath(dbPath);
+                if (string.IsNullOrWhiteSpace(dbPath))
+                    dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
 
-            builder.Services.AddDbContext<SqliteDbContext>(options =>
-                options.UseSqlite($"Data Source={dbPath}"));
+                // Optional: ensure directory exists
+                var dir = Path.GetDirectoryName(dbPath);
+                if (!string.IsNullOrWhiteSpace(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
 
-            // Read the isProduction flag from AppSettings
-            var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
-            bool isProduction = appSettings!.IsProduction;
+                SqliteDbContext.SetDatabasePath(dbPath);
+                options.UseSqlite($"Data Source={dbPath}");
+            });
 
-            // Choose the SQL Server connection string based on the flag
-            string sqlConnectionString = builder.Configuration.GetConnectionString(
-                isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
-            ) ?? throw new InvalidOperationException("Missing SQL Server connection string for the selected environment for api.");
-
+            builder.Services.AddSingleton<IEnvironmentConfigService, EnvironmentConfigService>();
             // Register SQL Server DbContext with the selected connection string
-            builder.Services.AddDbContext<SqlServerDbContext>(options =>
-                options.UseSqlServer(sqlConnectionString),
-                ServiceLifetime.Scoped);
+            builder.Services.AddDbContext<SqlServerDbContext>((sp, options) =>
+            {
+                var configService = sp.GetRequiredService<IEnvironmentConfigService>();
+                var connectionString = configService.GetConnectionString();
+                options.UseSqlServer(connectionString);
+            });
+
 
             //----------------------------------------------------
             // 🔧 AutoMapper
             //----------------------------------------------------
             builder.Services.AddAutoMapper(cfg =>
             {
-                cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<PosProfile>();
             });
 
@@ -144,7 +143,6 @@ namespace POSPRA.API
             builder.Services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped(typeof(SqlServerRepository<>));
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             builder.Services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             builder.Services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
@@ -156,7 +154,6 @@ namespace POSPRA.API
             //----------------------------------------------------
             // 🔧 Application Services
             //----------------------------------------------------
-            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ILogService, LogService>();
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();

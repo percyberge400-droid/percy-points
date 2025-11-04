@@ -573,7 +573,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async Task CreateLog(string message, string type)
         {
-            var log = new Logs { Message = message, Type = type };
+            var log = new CreateLogDto { Message = message, Type = type };
             await _logService.CreateLogAsync(log);
         }
 

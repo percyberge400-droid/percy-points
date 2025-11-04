@@ -58,19 +58,20 @@ namespace POSPRA.Worker
                     }
                     else
                     {
-                        var now = DateTime.Now;
-                        var nextRun = DateTime.Today.Add(_backupTime);
-                        if (now > nextRun)
+                    var now = DateTime.Now;
+                    var nextRun = DateTime.Today.Add(_backupTime);
+
+                    if (now > nextRun)
                             nextRun = nextRun.AddDays(1);
 
-                        var delay = nextRun - now;
+                    var delay = nextRun - now;
                         LogToFile($"Next backup scheduled at {nextRun}");
-                        await Task.Delay(delay, stoppingToken);
+                    await Task.Delay(delay, stoppingToken);
 
                         EnsureDirectoriesExist();
-                        await CreateBackupAsync(stoppingToken);
+                    await CreateBackupAsync(stoppingToken);
                         CleanupOldBackups();
-                    }
+                }
                 }
                 catch (TaskCanceledException)
                 {
@@ -280,10 +281,10 @@ namespace POSPRA.Worker
                 }
             }
             catch (Exception ex)
-            {
+                {
                 LogToFile($"❌ Cleanup failed: {ex}");
             }
-        }
+                }
 
         private void SimulateCorruption()
         {

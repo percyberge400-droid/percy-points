@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
@@ -20,50 +21,35 @@ namespace POSPRA.Application.Services.ClientService
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         private readonly INetworkService _networkService;
         private readonly AppSettings _settings;
-        private readonly IConfiguration _configuration;
-        public ClientService(IClientRepository clientRepository, IMapper mapper, ISqlServerUnitOfWork sqlServerUnitOfWork, INetworkService networkService,
-            IOptions<AppSettings> options, IConfiguration configuration)
+        private readonly IEnvironmentConfigService _environmentConfigService;
+        public ClientService(IClientRepository clientRepository,
+            IMapper mapper,
+            ISqlServerUnitOfWork sqlServerUnitOfWork,
+            INetworkService networkService,
+            IOptions<AppSettings> options,
+            IEnvironmentConfigService environmentConfigService)
         {
             _clientRepository = clientRepository;
             _mapper = mapper;
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
             _networkService = networkService;
             _settings = options.Value;
-            _configuration = configuration;
+            _environmentConfigService = environmentConfigService;
         }
 
         public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
         {
-            try
-            {
-                // ✅ 1. Select environment
-                string environment = dto.Environment?.Trim().ToLower() ?? "sandbox";
+            var output = _environmentConfigService.SetEnvironment(dto.Environment == "Production" ? true : false);
+            if (output.StatusCode != ApiStatusCode.Success)
+                return new ApiResponse<PosClients>(
+                    ApiStatusCode.Error,
+                    ResponseMessages.DataNotFound,
+                    null,
+                    string.Empty);
 
-                // ✅ 2. Choose connection string from configuration
-                string connectionStringKey = environment == "production"
-                    ? "SqlServerConnectionProduction"
-                    : "SqlServerConnectionSandbox";
-
-                string? connectionString = _configuration.GetConnectionString(connectionStringKey);
-
-                if (string.IsNullOrWhiteSpace(connectionString))
-                {
-                    return new ApiResponse<PosClients>(
-                        ApiStatusCode.NotFound,
-                        $"Connection string not found for environment: {environment}",
-                        null!,
-                        string.Empty);
-                }
-
-                // ✅ 3. Create new DbContext with selected connection
-                var optionsBuilder = new DbContextOptionsBuilder<SqlServerDbContext>();
-                optionsBuilder.UseSqlServer(connectionString);
-
-                using var sqlServerContext = new SqlServerDbContext(optionsBuilder.Options);
-
-                // ✅ 4. Query PosClients table
-                var entity = await sqlServerContext.Set<PosClients>()
-                    .FirstOrDefaultAsync(m => m.POSRegistrationNumber == dto.PosId);
+            // Check POS ID
+            var entity = await _clientRepository.FirstOrDefaultAsync(m =>
+                                m.POSRegistrationNumber == dto.PosId);
 
                 if (entity == null)
                 {
@@ -103,8 +89,7 @@ namespace POSPRA.Application.Services.ClientService
                         string.Empty);
                 }
 
-                // ✅ 7. Update flag (reuse your existing helper)
-                var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
+            var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
 
                 if (statusCode == ApiStatusCode.NotFound)
                 {

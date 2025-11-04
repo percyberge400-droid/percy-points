@@ -5,6 +5,7 @@ using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -15,7 +16,6 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
-using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -26,8 +26,8 @@ using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
-using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
+using System;
 using System.Drawing.Text;
 
 namespace POSPRA_WinFormsUI
@@ -57,7 +57,7 @@ namespace POSPRA_WinFormsUI
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                //Directory.CreateDirectory(dbDirectory); // ✅ This line must be active
+                Directory.CreateDirectory(dbDirectory); // ✅ This line must be active
             }
 
             // ✅ Initialize SQLite database if needed
@@ -67,7 +67,7 @@ namespace POSPRA_WinFormsUI
 
             using (var context = new SqliteDbContext(sqliteOptions))
             {
-                //context.Database.EnsureCreated(); // Creates the DB file & schema if not present
+                context.Database.EnsureCreated(); // Creates the DB file & schema if not present
             }
 
             // ✅ Load JSON config (for any additional modern config)
@@ -82,22 +82,16 @@ namespace POSPRA_WinFormsUI
             // Register DbContexts
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
 
-            // ✅ Read AppSettings (just like API)
-            var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
-            bool isProduction = appSettings?.IsProduction ?? false;
-
-            // ✅ Choose the SQL Server connection string based on Production/Sandbox flag
-            string sqlServerConnString = configuration.GetConnectionString(
-                isProduction ? "SqlServerConnectionProduction" : "SqlServerConnectionSandbox"
-            ) ?? throw new InvalidOperationException("No valid SQL Server connection string found in appsettings.json");
-
-            // ✅ Register SQL Server using dynamic connection string
-            services.AddDbContext<SqlServerDbContext>(opt => opt.UseSqlServer(sqlServerConnString));
+            services.AddDbContext<SqlServerDbContext>((sp, options) =>
+            {
+                var configService = sp.GetRequiredService<IEnvironmentConfigService>();
+                var connectionString = configService.GetConnectionString();
+                options.UseSqlServer(connectionString);
+            });
 
             // AutoMapper
             services.AddAutoMapper(cfg =>
             {
-                cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<PosProfile>();
             });
 
@@ -106,11 +100,9 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
             services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
-            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFileRecordService, FileRecordService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
@@ -129,6 +121,7 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddSingleton<IConfiguration>(configuration);
+            services.AddSingleton<IEnvironmentConfigService, EnvironmentConfigService>();
             services.AddHttpClient<HttpService>();
             services.AddScoped<IClientService, ClientService>();
 

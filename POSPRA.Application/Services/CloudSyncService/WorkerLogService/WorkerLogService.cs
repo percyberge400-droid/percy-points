@@ -1,40 +1,65 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.DependencyInjection;
-using POSPRA.Application.Services.LogService;
+﻿using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.Options;
+using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Utility;
-using POSPRA.Domain.Entities;
-using POSPRA.DTOs.LogDtos;
+using POSPRA.DTOs;
+using POSPRA.DTOs.LogDTOs;
 
 namespace POSPRA.Application.Services.CloudSyncService.WorkerLogService
 {
     public class WorkerLogService : IWorkerLogService
     {
-        private readonly IServiceProvider _services;
-        private readonly IMapper _mapper;
+        private readonly HttpService _http;
+        private readonly string _baseUrl;
+        private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public WorkerLogService(IServiceProvider services, IMapper mapper)
+        public WorkerLogService(HttpService http, IOptions<AppSettings> options)
         {
-            _services = services;
-            _mapper = mapper;
+            _http = http;
+            _baseUrl = options.Value.BaseUrl;
         }
 
-        public async Task LogAsync(string type, string message, string workerName, string workerId, string evt, int? statusCode = null, string? stackTrace = null)
+        public async Task LogAsync(
+            string type,
+            string message,
+            string workerName,
+            string workerId,
+            string evt,
+            int? statusCode = null,
+            string? stackTrace = null)
         {
-            using var scope = _services.CreateScope();
-            var logSvc = scope.ServiceProvider.GetRequiredService<ILogService>();
-
-            var log = new WorkerLogDto
+            try
             {
-                Message = message,
-                Type = type,
-                WorkerName = workerName,
-                WorkerInstanceId = workerId,
-                WorkerEvent = evt,
-                ResponseStatusCode = statusCode,
-                StackTrace = stackTrace
-            };
+                var log = new CreateLogDto
+                {
+                    Message = message,
+                    Type = type,
+                    WorkerName = workerName,
+                    WorkerInstanceId = workerId,
+                    WorkerEvent = evt,
+                    ResponseStatusCode = statusCode,
+                    StackTrace = stackTrace
+                };
 
-            await logSvc.CreateLogAsync(_mapper.Map<Logs>(log));
+                var jsonBody = JsonSerializer.Serialize(log, _jsonOptions);
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                // ✅ your API endpoint for logs
+                var url = $"{_baseUrl}{Endpoints.CreateLog}";
+
+                var response = await _http.PostAsync(url, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"⚠️ [WorkerLogService] Failed to send log ({response.StatusCode}): {error}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ [WorkerLogService] Exception while logging: {ex.Message}\n{ex.StackTrace}");
+            }
         }
 
         public async Task LogStartup(string workerName, string workerId)
