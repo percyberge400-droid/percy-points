@@ -32,8 +32,8 @@ namespace POSPRA.Application.Services.FiscalService
             // -------- BPOSID --------
             if (invoice.POSID == 0)
                 AddError("Invalid POSID!");
-            else if (invoice.POSID.ToString().Length != 6)
-                AddError("Invalid POSID should be of 6 digits!");
+            else if (invoice.POSID.ToString().Length != 6 && invoice.POSID.ToString().Length != 9)
+                AddError("Invalid POSID should be of 6 or 9 digits!");
 
             // -------- InvoiceType ---
             if (invoice.InvoiceType < 1 || invoice.InvoiceType > 4)

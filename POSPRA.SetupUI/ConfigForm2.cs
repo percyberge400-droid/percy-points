@@ -350,7 +350,7 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                // 🟢 Pass the selected environment to your setup method
+                // Pass the selected environment to your setup method
                 await ProcessSetupAsync(selectedEnvironment);
             }
             catch (Exception ex)
@@ -363,8 +363,6 @@ namespace POSPRA.SetupUI
                 btnOk.Text = "OK";
             }
         }
-
-
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
@@ -1902,8 +1900,8 @@ namespace POSPRA.SetupUI
                 return;
             }
 
-            // Limit to 6 digits
-            if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 6)
+            // Limit to maximum 9 digits
+            if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 9)
             {
                 e.Handled = true;
             }
@@ -1911,8 +1909,7 @@ namespace POSPRA.SetupUI
 
         private void txtUsername_KeyDown(object sender, KeyEventArgs e)
         {
-            // Allow paste — we'll handle it safely in TextChanged instead
-            // So remove paste-blocking logic here
+            // Allow paste — will be sanitized in TextChanged
         }
 
         private void txtUsername_TextChanged(object sender, EventArgs e)
@@ -1922,9 +1919,9 @@ namespace POSPRA.SetupUI
             // Keep only digits
             string digitsOnly = new string(tb.Text.Where(char.IsDigit).ToArray());
 
-            // Trim to 6 digits maximum
-            if (digitsOnly.Length > 6)
-                digitsOnly = digitsOnly.Substring(0, 6);
+            // Trim to 9 digits maximum
+            if (digitsOnly.Length > 9)
+                digitsOnly = digitsOnly.Substring(0, 9);
 
             // Apply correction if needed
             if (tb.Text != digitsOnly)
@@ -1934,6 +1931,7 @@ namespace POSPRA.SetupUI
                 tb.SelectionStart = Math.Max(0, Math.Min(cursorPos, tb.Text.Length));
             }
         }
+
 
         private void txtPassword_KeyPress(object sender, KeyPressEventArgs e) { }
 
