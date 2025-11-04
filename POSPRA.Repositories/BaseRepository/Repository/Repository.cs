@@ -132,8 +132,15 @@ namespace POSPRA.Repositories.BaseRepository.Repository
             await _dbSet.AnyAsync(predicate);
 
         /// <inheritdoc/>
-        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate) =>
-           await _dbSet.FirstOrDefaultAsync(predicate);
+        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+            var entity = await _dbSet.FirstOrDefaultAsync(predicate);
+            if (entity != null)
+            {
+                await _dbSet.Entry(entity).ReloadAsync();
+            }
+            return entity;
+        }
 
         /// <summary>
         /// Updates a collection of entities in a single call.
