@@ -511,6 +511,48 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
+        #region mandatory fields
+
+        private bool HighlightEmptyTextBoxes(params TextBox[] textBoxes)
+        {
+            bool hasEmpty = false;
+
+            foreach (var tb in textBoxes)
+            {
+                if (string.IsNullOrWhiteSpace(tb.Text))
+                {
+                    hasEmpty = true;
+                    tb.BackColor = Color.MistyRose;
+
+                    tb.Paint += (s, e) =>
+                    {
+                        ControlPaint.DrawBorder(e.Graphics, tb.ClientRectangle,
+                            Color.Red, 2, ButtonBorderStyle.Solid,
+                            Color.Red, 2, ButtonBorderStyle.Solid,
+                            Color.Red, 2, ButtonBorderStyle.Solid,
+                            Color.Red, 2, ButtonBorderStyle.Solid);
+                    };
+                }
+                else
+                {
+                    tb.BackColor = Color.White;
+                }
+
+                tb.Invalidate();
+            }
+
+            return hasEmpty;
+        }
+        private void ResetTextBoxHighlights(params TextBox[] textBoxes)
+        {
+            foreach (var tb in textBoxes)
+            {
+                tb.BackColor = Color.White;
+            }
+        }
+
+        #endregion
+
         #region NumericOnly_KeyPress
         private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -630,7 +672,8 @@ namespace POSPRA_WinFormsUI
                     break;
 
                 case "pctcode":
-                    maxLength = 35;
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    maxLength = 8;
                     break;
 
                 case "totalamount":
@@ -773,7 +816,10 @@ namespace POSPRA_WinFormsUI
                 InvoiceItems inputData = GetTextboxData();
 
                 if (!ValidateItemEntry(inputData))
+                {
+                    HighlightEmptyTextBoxes(pctCode, ItemCode, ItemName, qty, salevalue);
                     return;
+                }
 
                 var existingRow = dataGridView1.Rows
                     .Cast<DataGridViewRow>()
@@ -806,6 +852,7 @@ namespace POSPRA_WinFormsUI
 
                 ClearFormFields();
                 AlertManager.ShowSuccess($"Item '{inputData.ItemCode}' added/updated successfully.");
+                ResetTextBoxHighlights(pctCode, ItemCode, ItemName, qty, salevalue);
                 ItemCode.Focus();
                 UpdateInvoiceTotals();
             }
@@ -1223,7 +1270,7 @@ namespace POSPRA_WinFormsUI
             listView.Columns.Add("Tax Rate", 80, HorizontalAlignment.Center);
 
             // Product detail panel (shown when item selected)
-            // ✅ Product detail panel (fixed footer-style)
+            // Product detail panel (fixed footer-style)
             var detailPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
@@ -1457,6 +1504,7 @@ namespace POSPRA_WinFormsUI
 
             // Focus on textbox when shown
             dialog.Shown += (s, e) => txtSearch.Focus();
+            ResetTextBoxHighlights(pctCode, ItemCode, ItemName, qty, salevalue);
 
             return dialog;
         }
@@ -2064,7 +2112,7 @@ namespace POSPRA_WinFormsUI
                     catch { }
                 }
             }
-            // ✅ When not maximized, don't restore - let WinForms Anchor/Dock handle it
+            // When not maximized, don't restore - let WinForms Anchor/Dock handle it
         }
         #endregion
 
@@ -2151,7 +2199,7 @@ namespace POSPRA_WinFormsUI
                 Name = "colSrNo",
                 HeaderText = "Sr. No.",
                 FillWeight = 5,  // 5% of space
-                MinimumWidth = 50,
+                MinimumWidth = 70,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
@@ -2241,7 +2289,7 @@ namespace POSPRA_WinFormsUI
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
                     Format = "0.00"
                 }
             };
@@ -2256,7 +2304,7 @@ namespace POSPRA_WinFormsUI
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
                     Format = "0.00"
                 }
             };
@@ -2271,7 +2319,7 @@ namespace POSPRA_WinFormsUI
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
                     Format = "0.00"
                 }
             };
@@ -2279,24 +2327,34 @@ namespace POSPRA_WinFormsUI
             // Add columns in correct order
             dataGridView1.Columns.AddRange(new DataGridViewColumn[]
             {
-        colSrNo,
-        colSaleType,
-        colProductCode,
-        colProductDescription,
-        colHSCode,
-        colQuantity,
-        colSalesValueExcST,
-        colSalesTax,
-        colExtraTax,
-        colTotalValue
+                colSrNo,
+                colSaleType,
+                colProductCode,
+                colProductDescription,
+                colHSCode,
+                colQuantity,
+                colSalesValueExcST,
+                colSalesTax,
+                colExtraTax,
+                colTotalValue
             });
 
-            // ✅ Center-align all column headers
+            // Center-align all headers
             foreach (DataGridViewColumn col in dataGridView1.Columns)
             {
                 col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
+                // Skip numeric/right-aligned columns
+                if (col.Name == "colSalesTax" || col.Name == "colExtraTax" || col.Name == "colTotalValue")
+                    continue;
+
+                // Center-align data in all other columns
+                col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             }
+            colSalesTax.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colExtraTax.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colTotalValue.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+
         }
 
         #endregion
