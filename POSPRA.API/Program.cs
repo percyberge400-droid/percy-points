@@ -59,9 +59,34 @@ namespace POSPRA.API
             var builder = WebApplication.CreateBuilder(args ?? Array.Empty<string>());
 
             //----------------------------------------------------
+            // ✅ Ensure appsettings.json from API directory is loaded
+            //----------------------------------------------------
+            var apiBasePath = AppContext.BaseDirectory;
+
+            // If running from Worker, BaseDirectory points to Worker folder.
+            // Try to detect API folder path relative to it.
+            if (!File.Exists(Path.Combine(apiBasePath, "appsettings.json")))
+            {
+                var parent = Directory.GetParent(apiBasePath);
+                if (parent != null)
+                {
+                    var possibleApiPath = Path.Combine(parent.FullName, "POSPRA.API");
+                    if (Directory.Exists(possibleApiPath))
+                        apiBasePath = possibleApiPath;
+                }
+            }
+
+            // Explicitly load API configuration files
+            builder.Configuration
+                .SetBasePath(apiBasePath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+
+            Console.WriteLine($"✅ API configuration loaded from: {apiBasePath}");
+
+            //----------------------------------------------------
             // 🔧 Kestrel URL binding
-            // IIS hosting will ignore this and use web.config instead,
-            // self-hosting will respect it.
             //----------------------------------------------------
             builder.WebHost.UseUrls("http://localhost:5010");
 

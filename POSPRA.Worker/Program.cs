@@ -49,12 +49,6 @@ var builder = Host.CreateDefaultBuilder(args)
         var dbPath = appSettings!.DefaultDBFilePath;
         bool isProduction = appSettings.IsProduction;
 
-        //if (string.IsNullOrWhiteSpace(dbPath))
-        //    throw new Exception("❌ DefaultDBFilePath is missing in appsettings.worker.json");
-
-        //if (!File.Exists(dbPath))
-        //    throw new FileNotFoundException($"❌ SQLite database not found at path: {dbPath}");
-
         //----------------------------------------------------
         // 🔧 Database configuration
         //----------------------------------------------------
@@ -69,7 +63,6 @@ var builder = Host.CreateDefaultBuilder(args)
             options.UseSqlite($"Data Source={dbPath}"));
 
         // SQL Server
-        // ✅ Register SQL Server dynamically
         services.AddDbContext<SqlServerDbContext>(opt =>
             opt.UseSqlServer(sqlConnectionString));
 
@@ -130,16 +123,33 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddHostedService<SqliteBackupService>();
     });
 
-var host = builder.Build();
+    var host = builder.Build();
 
-// ✅ Log database path (for diagnostics)
-using (var scope = host.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-    var dbPath = db.Database.GetDbConnection().DataSource;
+    // ✅ 1. Start the API self-host (runs alongside worker)
+    _ = Task.Run(async () =>
+    {
+        try
+        {
+            var apiHost = POSPRA.API.Program.BuildApiHost(args);
+            await apiHost.StartAsync();
+            Console.WriteLine("API self-hosted successfully at http://localhost:5010");
+        }
+        catch (Exception ex)
+        {
+            var logPath = Path.Combine(AppContext.BaseDirectory, "api-start-error.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n");
+        }
+    });
 
-    //File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
-    //    $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
-}
+    // ✅ 2. Log database path (for diagnostics)
+    using (var scope = host.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
+        var dbPath = db.Database.GetDbConnection().DataSource;
 
-await host.RunAsync();
+        //File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
+        //    $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
+    }
+
+    // ✅ 3. Run the worker service
+    await host.RunAsync();
