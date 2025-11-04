@@ -10,6 +10,7 @@ using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms;
 using System.Configuration;
 using System.Drawing.Drawing2D;
+using System.Text.RegularExpressions;
 using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI
@@ -91,20 +92,43 @@ namespace POSPRA_WinFormsUI
             TaxRatebox.TextChanged += RecalculateTotals;
 
             buyercnic.KeyPress += NumericOnlyWithLength_KeyPress;
-            buyerntn.KeyPress += NumericOnlyWithLength_KeyPress;
-            BuyerBname.KeyPress += NumericOnlyWithLength_KeyPress;
-            buyerphone.KeyPress += NumericOnlyWithLength_KeyPress;
+            buyercnic.TextChanged += NumericOnlyWithLength_TextChanged;
 
-            // invoice item fields
+            buyerntn.KeyPress += NumericOnlyWithLength_KeyPress;
+            buyerntn.TextChanged += NumericOnlyWithLength_TextChanged;
+
+            BuyerBname.KeyPress += NumericOnlyWithLength_KeyPress;
+            BuyerBname.TextChanged += NumericOnlyWithLength_TextChanged;
+
+            buyerphone.KeyPress += NumericOnlyWithLength_KeyPress;
+            buyerphone.TextChanged += NumericOnlyWithLength_TextChanged;
+
             ItemCode.KeyPress += NumericOnlyWithLength_KeyPress;
+            ItemCode.TextChanged += NumericOnlyWithLength_TextChanged;
+
             pctCode.KeyPress += NumericOnlyWithLength_KeyPress;
+            pctCode.TextChanged += NumericOnlyWithLength_TextChanged;
+
             totalamount.KeyPress += NumericOnlyWithLength_KeyPress;
+            totalamount.TextChanged += NumericOnlyWithLength_TextChanged;
+
             TaxRatebox.KeyPress += NumericOnlyWithLength_KeyPress;
+            TaxRatebox.TextChanged += NumericOnlyWithLength_TextChanged;
+
             qty.KeyPress += NumericOnlyWithLength_KeyPress;
+            qty.TextChanged += NumericOnlyWithLength_TextChanged;
+
             salevalue.KeyPress += NumericOnlyWithLength_KeyPress;
+            salevalue.TextChanged += NumericOnlyWithLength_TextChanged;
+
             TaxCharged.KeyPress += NumericOnlyWithLength_KeyPress;
-            itemDiscountPercent.TextChanged += RecalculateTotals;
+            TaxCharged.TextChanged += NumericOnlyWithLength_TextChanged;
+
             itemDiscountPercent.KeyPress += NumericOnlyWithLength_KeyPress;
+            itemDiscountPercent.TextChanged += NumericOnlyWithLength_TextChanged;
+
+
+            itemDiscountPercent.TextChanged += RecalculateTotals;
 
             invoicetype.SelectedIndexChanged += Invoicetype_SelectedIndexChanged;
 
@@ -492,125 +516,157 @@ namespace POSPRA_WinFormsUI
         {
             if (sender is not TextBox tb) return;
 
-            switch (tb.Name)
+            switch (tb.Name.ToLower()) // use lowercase for consistency
             {
                 case "buyerntn":
-                    // Alphanumeric only
                     if (!char.IsControl(e.KeyChar) && !char.IsLetterOrDigit(e.KeyChar))
-                    {
                         e.Handled = true;
-                        return;
-                    }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 7)
+                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 7)
                         e.Handled = true;
                     break;
 
                 case "buyercnic":
                     if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                    {
                         e.Handled = true;
-                        return;
-                    }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
+                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
                         e.Handled = true;
                     break;
 
-                case "BuyerBname":
-                    if (tb.Text.Length >= 350)
+                case "buyerbname":
+                    if (tb.Text.Length >= 350 && !char.IsControl(e.KeyChar))
                         e.Handled = true;
                     break;
 
                 case "buyerphone":
                     if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                    {
                         e.Handled = true;
-                        return;
-                    }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
+                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
                         e.Handled = true;
                     break;
 
                 case "itemcode":
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 35)
-                        e.Handled = true;
-                    break;
-
                 case "pctcode":
                     if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 35)
                         e.Handled = true;
                     break;
 
                 case "quantity":
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
-                    {
-                        e.Handled = true;
-                        return;
-                    }
-                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
-                    {
-                        e.Handled = true;
-                        return;
-                    }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 10)
-                        e.Handled = true;
-                    break;
-
                 case "totalamount":
                 case "salevalue":
                 case "taxrate":
                 case "discount":
                 case "furthertax":
                 case "taxcharged":
-                    // Allow only digits, one dot, and control keys
                     if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
-                    {
                         e.Handled = true;
-                        return;
-                    }
-                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
-                    {
+                    else if (e.KeyChar == '.' && tb.Text.Contains('.'))
                         e.Handled = true;
-                        return;
-                    }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
+                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
                         e.Handled = true;
                     break;
-                default:
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                    {
-                        e.Handled = true;
-                        return;
-                    }
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
-                        e.Handled = true;
-                    break;
+
                 case "itemdiscountpercent":
-                    // Allow digits, decimal point, and control characters
                     if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
-                    {
                         e.Handled = true;
-                        return;
-                    }
-                    // Only one decimal point allowed
-                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
-                    {
+                    else if (e.KeyChar == '.' && tb.Text.Contains('.'))
                         e.Handled = true;
-                        return;
-                    }
-                    // Limit percentage to 100
-                    if (!char.IsControl(e.KeyChar))
+                    else if (!char.IsControl(e.KeyChar))
                     {
                         string futureText = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
                         if (decimal.TryParse(futureText, out decimal val) && val > 100)
-                        {
                             e.Handled = true;
-                            return;
-                        }
                     }
-                    // Max 6 characters (e.g., "100.00")
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 6)
+                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 6)
                         e.Handled = true;
                     break;
+
+                default:
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                        e.Handled = true;
+                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
+                        e.Handled = true;
+                    break;
+            }
+        }
+
+        private void NumericOnlyWithLength_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            string original = tb.Text;
+            string clean = original;
+            int maxLength = 15;
+
+            switch (tb.Name.ToLower())
+            {
+                case "buyerntn":
+                    clean = new string(original.Where(char.IsLetterOrDigit).ToArray());
+                    maxLength = 7;
+                    break;
+
+                case "buyercnic":
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    maxLength = 13;
+                    break;
+
+                case "buyerbname":
+                    maxLength = 350;
+                    break;
+
+                case "buyerphone":
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    maxLength = 13;
+                    break;
+
+                // Only numeric allowed for these — including paste
+                case "qty":
+                case "itemcode":
+                case "unitprice":
+                    clean = Regex.Replace(original, @"[^0-9.]", ""); // Remove non-numeric
+                    int dotIndexNumeric = clean.IndexOf('.');
+                    if (dotIndexNumeric != -1)
+                        clean = clean.Substring(0, dotIndexNumeric + 1) + clean[(dotIndexNumeric + 1)..].Replace(".", "");
+                    maxLength = 15;
+                    break;
+
+                case "pctcode":
+                    maxLength = 35;
+                    break;
+
+                case "totalamount":
+                case "salevalue":
+                case "discount":
+                case "furthertax":
+                case "taxcharged":
+                    clean = Regex.Replace(original, @"[^0-9.]", "");
+                    int dotIndex = clean.IndexOf('.');
+                    if (dotIndex != -1)
+                        clean = clean.Substring(0, dotIndex + 1) + clean.Substring(dotIndex + 1).Replace(".", "");
+                    maxLength = 15;
+                    break;
+
+                case "taxratebox":
+                case "itemdiscountpercent":
+                    clean = Regex.Replace(original, @"[^0-9.]", "");
+                    dotIndex = clean.IndexOf('.');
+                    if (dotIndex != -1)
+                        clean = clean.Substring(0, dotIndex + 1) + clean.Substring(dotIndex + 1).Replace(".", "");
+                    if (decimal.TryParse(clean, out decimal val) && val > 100)
+                        clean = "100";
+                    maxLength = 6;
+                    break;
+            }
+
+            // Enforce max length
+            if (clean.Length > maxLength)
+                clean = clean.Substring(0, maxLength);
+
+            // Update text if needed
+            if (tb.Text != clean)
+            {
+                int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
+                tb.Text = clean;
+                tb.SelectionStart = Math.Max(0, Math.Min(pos, tb.Text.Length));
             }
         }
 
@@ -778,7 +834,7 @@ namespace POSPRA_WinFormsUI
 
             try
             {
-                // 🔹 Smooth progress animation while save + print run
+                // Smooth progress animation while save + print run
                 var progressTask = Task.Run(async () =>
                 {
                     while (!progressTaskCts.Token.IsCancellationRequested)
@@ -791,7 +847,7 @@ namespace POSPRA_WinFormsUI
                     }
                 }, progressTaskCts.Token);
 
-                // 🔹 Validate
+                // Validate
                 if (addedItems == null || !addedItems.Any())
                 {
                     AlertManager.ShowError("Please add at least one item before saving the invoice.");
@@ -806,7 +862,7 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                // 🔹 Build DTOs
+                // Build DTOs
                 var itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
                     ItemCode = item.ItemCode,
@@ -843,23 +899,23 @@ namespace POSPRA_WinFormsUI
                     InvoiceItemDto = itemDtos
                 };
 
-                // 🔹 Save + print coordination
+                // Save + print coordination
                 try
                 {
                     var result = await _invoiceService.CreateAsync(invoiceDto);
 
                     if (result.StatusCode == ApiStatusCode.Success)
                     {
-                        // ✅ Update invoice DTO with FBR invoice number
+                        // Update invoice DTO with FBR invoice number
                         invoiceDto.FBRInvoiceNumber = invoiceDto.FBRInvoiceNumber;
 
-                        // 🔹 Reset after both save & print complete
+                        // Reset after both save & print complete
                         progressTaskCts.Cancel();
                         await Task.Delay(300);
 
                         progressBar.Visible = false;
                         progressBar.Value = 0;
-                        // 🔹 Clear UI early
+                        // Clear UI early
                         addedItems.Clear();
                         dataGridView1.Rows.Clear();
                         ClearInvoiceFields();
@@ -875,7 +931,7 @@ namespace POSPRA_WinFormsUI
                     }
                     try
                     {
-                        // 🔹 Print configuration
+                        // Print configuration
                         string printerName = InvoiceReport.FindThermalPrinter();
                         bool showDialog = string.IsNullOrWhiteSpace(printerName);
                         //bool showDialog = false; // Or set based on config/user choice
@@ -888,7 +944,7 @@ namespace POSPRA_WinFormsUI
                         }
                         else
                         {
-                            // 🚀 Complete background printing - zero UI blocking
+                            // Complete background printing - zero UI blocking
                             _ = Task.Run(() =>
                             {
                                 try
@@ -947,13 +1003,6 @@ namespace POSPRA_WinFormsUI
             btnSave.Text = "🖨️ Save and Print";
             _isSaving = false;
         }
-
-
-        private void BtnSave_MouseEnter(object? sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
 
         private void btnEdit_Click(object sender, EventArgs e)
         {
@@ -1760,7 +1809,7 @@ namespace POSPRA_WinFormsUI
             // Item Code (comes from pctCode textbox - PCT Code)
             if (string.IsNullOrWhiteSpace(inputData.ItemCode))
             {
-                AlertManager.ShowError("Please enter a PCT Code.");
+                AlertManager.ShowError("Please enter a HS Code.");
                 this.BeginInvoke(new Action(() => pctCode.Focus()));
                 return false;
             }

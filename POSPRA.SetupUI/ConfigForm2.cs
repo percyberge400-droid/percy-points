@@ -8,15 +8,14 @@ using POSPRA.DTOs.LogDTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.SecurityEncryption;
 using System.Configuration;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Xml;
-
-using System.Diagnostics;
-using System.Reflection;
-
 using WinFormsApp = System.Windows.Forms.Application;
 
 
@@ -112,7 +111,11 @@ namespace POSPRA.SetupUI
         private void InitializeEventHandlers()
         {
             txtUsername.KeyPress += txtUsername_KeyPress;
+            txtUsername.KeyDown += txtUsername_KeyDown;
+            txtUsername.TextChanged += txtUsername_TextChanged;
+
             txtPassword.KeyPress += txtPassword_KeyPress;
+
             txtUsername.TextChanged += ValidateForm;
             txtPassword.TextChanged += ValidateForm;
             btnBrowse.Click += btnBrowseMain_Click;
@@ -123,6 +126,9 @@ namespace POSPRA.SetupUI
 
             rdoSandbox.Click += rdoSandbox_Click;
             rdoProduction.Click += rdoProduction_Click;
+
+
+
 
 
             toolTip1.SetToolTip(btnupdateLOGO,
@@ -1264,7 +1270,6 @@ namespace POSPRA.SetupUI
         #endregion
 
         #region Authentication
-
         private string TryGetMacAddress()
         {
             try
@@ -1363,9 +1368,24 @@ namespace POSPRA.SetupUI
 
                 return ParseAuthResponse(responseBody);
             }
+            catch (HttpRequestException ex) when (ex.InnerException is SocketException se && se.SocketErrorCode == SocketError.HostUnreachable)
+            {
+                ShowMessage("Unable to reach the host. Please check your network connection or server address.", false, true);
+                return null;
+            }
+            catch (HttpRequestException ex)
+            {
+                ShowMessage($"Network error: {ex.Message}", false, true);
+                return null;
+            }
+            catch (TaskCanceledException)
+            {
+                ShowMessage("Request timed out. Please try again later.", false, true);
+                return null;
+            }
             catch (Exception ex)
             {
-                ShowMessage($"API error: {ex.Message}", false, false);
+                ShowMessage($"Unexpected error: {ex.Message}", false, true);
                 return null;
             }
         }
@@ -1783,7 +1803,6 @@ namespace POSPRA.SetupUI
 
         #endregion
 
-
         #region Progress Bar Helper
 
         private async Task RunSingleLoad(Func<Task> work)
@@ -1851,10 +1870,45 @@ namespace POSPRA.SetupUI
 
         private void txtUsername_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Allow control keys like Backspace
+            TextBox tb = (TextBox)sender;
+
+            // Allow only digits and control keys (like Backspace)
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
             {
-                e.Handled = true; // Block the input
+                e.Handled = true;
+                return;
+            }
+
+            // Limit to 6 digits
+            if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 6)
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void txtUsername_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Allow paste — we'll handle it safely in TextChanged instead
+            // So remove paste-blocking logic here
+        }
+
+        private void txtUsername_TextChanged(object sender, EventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+
+            // Keep only digits
+            string digitsOnly = new string(tb.Text.Where(char.IsDigit).ToArray());
+
+            // Trim to 6 digits maximum
+            if (digitsOnly.Length > 6)
+                digitsOnly = digitsOnly.Substring(0, 6);
+
+            // Apply correction if needed
+            if (tb.Text != digitsOnly)
+            {
+                int cursorPos = tb.SelectionStart - (tb.Text.Length - digitsOnly.Length);
+                tb.Text = digitsOnly;
+                tb.SelectionStart = Math.Max(0, Math.Min(cursorPos, tb.Text.Length));
             }
         }
 
