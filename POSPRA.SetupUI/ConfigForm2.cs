@@ -398,14 +398,14 @@ namespace POSPRA.SetupUI
                 var fileInfo = new FileInfo(ofd.FileName);
                 if (!fileInfo.Exists)
                 {
-                    MessageBox.Show(" File not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowMessage(" File not found.", false, true);
                     return;
                 }
 
-                if (fileInfo.Length > 2048 * 2048) // 2,048 KB KB limit
+                if (fileInfo.Length > 1024 * 1024) // 2,048 KB KB limit
                 {
-                    MessageBox.Show(" Logo size too large. Please select an image under 2 MB.",
-                        "Size Limit", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    ShowMessage(" Logo size too large. Please select an image under 2 MB.",
+                        false, true);
                     return;
                 }
 
@@ -455,11 +455,11 @@ namespace POSPRA.SetupUI
 
                 node.SetAttribute("value", base64);
                 xml.Save(configFile);
-                MessageBox.Show($" Logo saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowMessage(" Logo saved successfully!", false, true);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($" Failed to update logo: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowMessage($" Failed to update logo: {ex.Message}", false, true);
             }
         }
         #endregion
