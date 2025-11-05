@@ -149,7 +149,7 @@
             label2.Name = "label2";
             label2.Size = new Size(35, 20);
             label2.TabIndex = 2;
-            label2.Text = "v1.1";
+            label2.Text = "v1.0";
             label2.Click += label2_Click;
             // 
             // ExportInvoiceForm

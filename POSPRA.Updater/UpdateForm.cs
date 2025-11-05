@@ -153,10 +153,8 @@ namespace POSPRA.Updater
                 lblStatus.Text = "Restarting worker service...";
                 StartService(WorkerServiceName);
 
-                lblStatus.Text = "Launching application...";
-                string appPath = Path.Combine(LocalFolder, $"{AppProcessName}.exe");
-                if (File.Exists(appPath))
-                    Process.Start(appPath, "/updated");
+                // ❌ Removed launching the WinForms UI EXE
+                Log("Update completed. Worker service restarted");
 
                 lblStatus.Text = "Update completed successfully!";
                 progressBar.Value = 100;
@@ -172,6 +170,7 @@ namespace POSPRA.Updater
                 Close();
             }
         }
+
 
         private void StopService(string name)
         {
@@ -219,16 +218,26 @@ namespace POSPRA.Updater
             int copiedCount = 0;
             int totalFiles = files.Length;
 
+            // Files to exclude (case-insensitive)
+            string[] excludedFiles = new[]
+            {
+        "POSPRA-WinFormsUI.dll.config",
+        "POSPRA.SetupUI.dll.config",
+        "appsettings.json",
+        "appsettings.worker.json"
+    };
+
             foreach (string file in files)
             {
                 string relPath = file.Substring(src.Length).TrimStart('\\');
                 string destFile = Path.Combine(dst, relPath);
-                string ext = Path.GetExtension(file).ToLowerInvariant();
+                string fileName = Path.GetFileName(file);
 
-                // 🧠 Skip user configuration files
-                if (ext == ".config" || ext == ".json" || ext == ".settings")
+                // ✅ Skip only the specific excluded files
+                if (excludedFiles.Any(ex =>
+                    string.Equals(ex, fileName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    Log($"Skipped config file: {relPath}");
+                    Log($"Skipped file: {relPath}");
                     continue;
                 }
 
@@ -249,8 +258,9 @@ namespace POSPRA.Updater
                 Invoke((Action)(() => progressBar.Value = Math.Min(percent, 100)));
             }
 
-            Log($"✅ Copy complete. {copiedCount}/{totalFiles} files processed (configs skipped).");
+            Log($"✅ Copy complete. {copiedCount}/{totalFiles} files processed (excluded configs skipped).");
         }
+
 
 
         private void Log(string msg)
