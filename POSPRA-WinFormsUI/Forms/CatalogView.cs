@@ -55,7 +55,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             this.Load += async (s, e) => await LoadFromLocalDB();
 
-            // ✅ Use named event handler for easy removal
+            // Use named event handler for easy removal
             SearchBox.TextChanged += SearchBox_TextChanged;
 
             btnNext.Click += async (s, e) => await NextPage();
@@ -179,7 +179,7 @@ namespace POSPRA_WinFormsUI.Forms
                         AlertManager.ShowWarning("No products found on the server.");
                         _ = CreateLog("No products returned from API", AlertType.Warning);
 
-                        // ✅ Hard reset after failure
+                        // Hard reset after failure
                         await PerformHardReset();
                         return;
                     }
@@ -195,7 +195,7 @@ namespace POSPRA_WinFormsUI.Forms
                         AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
                         _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
 
-                        // ✅ Hard reset after failure
+                        // Hard reset after failure
                         await PerformHardReset();
                         return;
                     }
@@ -275,14 +275,14 @@ namespace POSPRA_WinFormsUI.Forms
                         _ = CreateLog($"Load completed successfully: {successCount} products saved to local DB", AlertType.Success);
                     }
 
-                    // ✅ STEP 4: Perform hard reset AFTER loading
+                    // STEP 4: Perform hard reset AFTER loading
                     await PerformHardReset();
 
-                    // ✅ STEP 5: Reload fresh data from local DB
+                    // STEP 5: Reload fresh data from local DB
                     _currentPage = 1;
                     await LoadFromLocalDB();
 
-                    // ✅ STEP 6: Final UI update
+                    // STEP 6: Final UI update
                     AlertManager.ShowSuccess("Data refresh completed! All filters and states have been reset.");
                 }
                 catch (Exception ex)
@@ -290,7 +290,7 @@ namespace POSPRA_WinFormsUI.Forms
                     AlertManager.ShowError($"Error loading catalogue: {ex.Message}");
                     _ = CreateLog($"Critical error loading catalogue: {ex.Message}", AlertType.Error);
 
-                    // ✅ Hard reset after exception
+                    // Hard reset after exception
                     await PerformHardReset();
                 }
                 finally
@@ -318,23 +318,23 @@ namespace POSPRA_WinFormsUI.Forms
                     var response = await _productCatalogueService.GetProductCatalogue();
                     var allItems = response?.Data?.OrderBy(p => p.ItemSerialNumber).ToList() ?? new List<ProductCatalogueDto>();
 
-                    // ✅ Compute total pages
+                    // Compute total pages
                     int totalRecords = allItems.Count;
                     int totalPages = (int)Math.Ceiling((double)totalRecords / _pageSize);
                     lblTotalRecords.Text = $"Total {Convert.ToString(totalRecords)} Products";
                     if (_currentPage > totalPages && totalPages > 0)
                         _currentPage = totalPages;
 
-                    // ✅ Apply pagination
+                    // Apply pagination
                     var pageData = allItems
                         .Skip((_currentPage - 1) * _pageSize)
                         .Take(_pageSize)
                         .ToList();
 
-                    // ✅ Bind data to grid
+                    // Bind data to grid
                     PopulateGrid(pageData);
 
-                    // ✅ Update pagination controls
+                    // Update pagination controls
                     lblPageNumber.Text = $"Page {_currentPage} of {totalPages}";
                     btnNext.Enabled = _currentPage < totalPages;
                     btnPrev.Enabled = _currentPage > 1;
@@ -576,124 +576,128 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void StyleProductDataGridView()
         {
-            // Clear existing columns
             ProductCatalogueDataGridView.Columns.Clear();
-
-            // Apply base style
             StyleDataGridView(ProductCatalogueDataGridView);
 
-            // Define product catalogue columns
+            // Responsive settings
+            ProductCatalogueDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            ProductCatalogueDataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+            ProductCatalogueDataGridView.AllowUserToResizeColumns = true;
+            ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
+
+            // Sr. No. -> Center align
             var colItemSrno = new DataGridViewTextBoxColumn
             {
                 Name = "colItemSrno",
                 HeaderText = "Sr. No.",
-                Width = 80,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    ForeColor = Color.FromArgb(107, 114, 128),
-                    Font = new Font("Segoe UI", 9F)
-                }
+                FillWeight = 6
             };
+            colItemSrno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colItemSrno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
+            // Product Code -> Right align (ensure header also right)
             var colProductCode = new DataGridViewTextBoxColumn
             {
                 Name = "colProductCode",
                 HeaderText = "Product Code",
-                Width = 150,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
-                    ForeColor = Color.FromArgb(30, 58, 138)
-                }
+                FillWeight = 8
             };
+            colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            // IMPORTANT: explicitly set header alignment to right
+            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
+            // Product Description -> Left align (increase width)
             var colProductDesc = new DataGridViewTextBoxColumn
             {
                 Name = "colProductDesc",
                 HeaderText = "Product Description",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                MinimumWidth = 240,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic
+                FillWeight = 30  // increased to give more space
             };
+            colProductDesc.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colProductDesc.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
 
+            // HS Code -> Right align
             var colHScode = new DataGridViewTextBoxColumn
             {
                 Name = "colHScode",
                 HeaderText = "HS Code",
-                Width = 130,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Font = new Font("Consolas", 9.5F),
-                    ForeColor = Color.FromArgb(55, 65, 81)
-                }
+                FillWeight = 8
             };
+            colHScode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colHScode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
+            // Sale Type -> Center align
             var colSaleType = new DataGridViewTextBoxColumn
             {
                 Name = "colSaleType",
                 HeaderText = "Sale Type",
-                Width = 120,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic
+                FillWeight = 12
             };
+            colSaleType.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colSaleType.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
+            // POS UOM -> Center align
             var colPosUOM = new DataGridViewTextBoxColumn
             {
                 Name = "colPosUOM",
                 HeaderText = "POS UOM",
-                Width = 100,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter
-                }
+                FillWeight = 8
             };
+            colPosUOM.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colPosUOM.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
+            // Tax Rate (%) -> Center align
             var colTaxRate = new DataGridViewTextBoxColumn
             {
                 Name = "colTaxRate",
                 HeaderText = "Tax Rate (%)",
-                Width = 110,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00",
-                    ForeColor = Color.FromArgb(5, 150, 105),
-                    Font = new Font("Segoe UI", 9.5F, FontStyle.Bold)
-                }
+                FillWeight = 8
             };
+            colTaxRate.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colTaxRate.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
+            // SRO Schedule No. -> Left align (reduced width)
             var colSROno = new DataGridViewTextBoxColumn
             {
                 Name = "colSROno",
                 HeaderText = "SRO Schedule No.",
-                Width = 150,
                 ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.Automatic
+                FillWeight = 10 // reduced from before
             };
+            colSROno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colSROno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
 
-            // Add all columns
             ProductCatalogueDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
-                colItemSrno,
-                colProductCode,
-                colProductDesc,
-                colHScode,
-                colSaleType,
-                colPosUOM,
-                colTaxRate,
-                colSROno
+        colItemSrno,
+        colProductCode,
+        colProductDesc,
+        colHScode,
+        colSaleType,
+        colPosUOM,
+        colTaxRate,
+        colSROno
             });
+
+            // Polish header appearance (keeps per-column header alignments)
+            ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
+            ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            ProductCatalogueDataGridView.EnableHeadersVisualStyles = false;
+            ProductCatalogueDataGridView.ColumnAdded += (s, e) =>
+            {
+                if (e.Column.Name == "colProductCode")
+                {
+                    e.Column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+                }
+            };
         }
 
         #endregion

@@ -913,6 +913,10 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
                 return;
             }
+            if (!AreInvoiceFieldsValid())
+            {
+                return;
+            }
 
             _isSaving = true;
             btnSave.Enabled = false;
@@ -1918,7 +1922,7 @@ namespace POSPRA_WinFormsUI
             // Item Name
             if (string.IsNullOrWhiteSpace(inputData.ItemName))
             {
-                AlertManager.ShowError("Please enter an Item Name.");
+                AlertManager.ShowError("Please enter an Item Description.");
                 this.BeginInvoke(new Action(() => ItemName.Focus()));
                 return false;
             }
@@ -1954,32 +1958,32 @@ namespace POSPRA_WinFormsUI
 
         private bool AreInvoiceFieldsValid()
         {
+            // POS ID: Required, Numeric
             if (string.IsNullOrWhiteSpace(posid.Text))
             {
                 AlertManager.ShowError("POS ID is required.");
                 this.BeginInvoke(new Action(() => posid.Focus()));
                 return false;
             }
+            if (!posid.Text.All(char.IsDigit))
+            {
+                AlertManager.ShowError("POS ID must contain only numbers.");
+                this.BeginInvoke(new Action(() => posid.Focus()));
+                return false;
+            }
 
-            // ✅ Buyer NTN is now optional - only validate if provided
+            // Buyer NTN: Optional, 7 Alphanumeric (Validated if filled)
             if (!string.IsNullOrWhiteSpace(buyerntn.Text))
             {
                 if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length != 7)
                 {
-                    AlertManager.ShowError("Buyer NTN must be exactly 7 alphanumeric characters.");
+                    AlertManager.ShowError("Buyer NTN must be exactly 7 only digits.");
                     this.BeginInvoke(new Action(() => buyerntn.Focus()));
                     return false;
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(BuyerBname.Text))
-            {
-                AlertManager.ShowError("Buyer Name is required.");
-                this.BeginInvoke(new Action(() => BuyerBname.Focus()));
-                return false;
-            }
-
-            // ✅ Buyer CNIC is now optional - only validate if provided
+            // Buyer CNIC: Optional, 13 Digits (Validated if filled)
             if (!string.IsNullOrWhiteSpace(buyercnic.Text))
             {
                 if (!buyercnic.Text.All(char.IsDigit) || buyercnic.Text.Length != 13)
@@ -1989,29 +1993,51 @@ namespace POSPRA_WinFormsUI
                     return false;
                 }
             }
+
+            // Buyer Name: Optional, up to 350 characters
+            if (!string.IsNullOrWhiteSpace(BuyerBname.Text) && BuyerBname.Text.Length > 350)
+            {
+                AlertManager.ShowError("Buyer Name cannot exceed 350 characters.");
+                this.BeginInvoke(new Action(() => BuyerBname.Focus()));
+                return false;
+            }
+
+            // Buyer Phone: Optional, Numeric, 11 or 13 digits (Validated if filled)
             if (!string.IsNullOrWhiteSpace(buyerphone.Text))
             {
                 if (!buyerphone.Text.All(char.IsDigit) || !(buyerphone.Text.Length == 11 || buyerphone.Text.Length == 13))
                 {
-                    AlertManager.ShowError("Buyer Phone Number must be 11 or 13 digits long.");
+                    AlertManager.ShowError("Buyer Phone must be 11 or 13 digits long.");
                     this.BeginInvoke(new Action(() => buyerphone.Focus()));
                     return false;
                 }
             }
 
-            // RefUSIN (if visible → must be numeric and 7 digits)
+            // Ref USIN: Conditional, Numeric only (Validated if visible and filled)
             if (refUSIN.Visible && !string.IsNullOrWhiteSpace(refUSIN.Text))
             {
-                if (!refUSIN.Text.All(char.IsDigit) || refUSIN.Text.Length != 7)
+                if (!refUSIN.Text.All(char.IsDigit))
                 {
-                    AlertManager.ShowError("Ref USIN must be exactly 7 digits.");
+                    AlertManager.ShowError("Ref USIN must contain only digits.");
                     this.BeginInvoke(new Action(() => refUSIN.Focus()));
+                    return false;
+                }
+            }
+
+            // USIN No: Numeric only (Validated if filled)
+            if (!string.IsNullOrWhiteSpace(USIN.Text))
+            {
+                if (!USIN.Text.All(char.IsDigit))
+                {
+                    AlertManager.ShowError("USIN No must contain only digits.");
+                    this.BeginInvoke(new Action(() => USIN.Focus()));
                     return false;
                 }
             }
 
             return true;
         }
+
         #endregion
 
         #region Responsive / Rounded Corners
@@ -2242,8 +2268,8 @@ namespace POSPRA_WinFormsUI
             {
                 Name = "colSrNo",
                 HeaderText = "Sr. No.",
-                FillWeight = 5,  // 5% of space
-                MinimumWidth = 70,
+                FillWeight = 7,
+                MinimumWidth = 80,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
@@ -2383,21 +2409,32 @@ namespace POSPRA_WinFormsUI
                 colTotalValue
             });
 
-            // Center-align all headers
-            foreach (DataGridViewColumn col in dataGridView1.Columns)
-            {
-                col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            // Header alignment settings
+            colSrNo.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colProductDescription.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colHSCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colSaleType.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                // Skip numeric/right-aligned columns
-                if (col.Name == "colSalesTax" || col.Name == "colExtraTax" || col.Name == "colTotalValue")
-                    continue;
+            // Cell alignment settings
+            colSrNo.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colProductDescription.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colHSCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colSaleType.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                // Center-align data in all other columns
-                col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            colSalesTax.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            // Right-align these numeric columns (both headers and data)
+            colSalesValueExcST.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colSalesValueExcST.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+
             colExtraTax.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colExtraTax.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+
+            colSalesTax.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colSalesTax.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+
             colTotalValue.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colTotalValue.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 
         }
 

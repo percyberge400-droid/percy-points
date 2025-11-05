@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using POSPRA.SecurityEncryption;
+using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.ServiceProcess;
+using System.Text.RegularExpressions;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -63,6 +65,10 @@ namespace POSPRA_WinFormsUI.Forms
             string inquiryNo = ConfigurationManager.AppSettings["generalinquiryNo"];
             string servicesNo = ConfigurationManager.AppSettings["eServicesNo"];
             string website = ConfigurationManager.AppSettings["website"];
+
+            txtUsername.TextChanged += NumericOnlyWithLength_TextChanged;
+            txtUsername.KeyPress += NumericOnlyWithLength_KeyPress;
+
 
             if (!string.IsNullOrEmpty(inquiryNo))
                 generalinquiryNo.Text = inquiryNo;
@@ -128,15 +134,164 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             });
         }
+
+        #region validations
+
+        private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            switch (tb.Name.ToLower())
+            {
+                case "txtusername":
+                    // Allow only digits (0–9)
+                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    {
+                        e.Handled = true;
+                    }
+                    // Limit to 6 digits
+                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 6)
+                    {
+                        e.Handled = true;
+                    }
+                    break;
+            }
+        }
+
+        private void NumericOnlyWithLength_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            string original = tb.Text;
+            string clean = original;
+
+            switch (tb.Name.ToLower())
+            {
+                case "txtusername":
+                    // Remove everything except digits
+                    clean = Regex.Replace(original, @"[^0-9]", "");
+                    // Limit to 6 digits
+                    if (clean.Length > 6)
+                        clean = clean.Substring(0, 6);
+                    break;
+            }
+
+            // Update text if needed (fix pasted invalid text)
+            if (tb.Text != clean)
+            {
+                int cursorPos = tb.SelectionStart - (tb.Text.Length - clean.Length);
+                tb.Text = clean;
+                tb.SelectionStart = Math.Max(0, Math.Min(cursorPos, tb.Text.Length));
+            }
+        }
+        private void HighlightInvalidTextBox(TextBox tb)
+        {
+            tb.BackColor = Color.MistyRose;
+
+            tb.Paint += (s, e) =>
+            {
+                ControlPaint.DrawBorder(e.Graphics, tb.ClientRectangle,
+                    Color.Red, 2, ButtonBorderStyle.Solid,
+                    Color.Red, 2, ButtonBorderStyle.Solid,
+                    Color.Red, 2, ButtonBorderStyle.Solid,
+                    Color.Red, 2, ButtonBorderStyle.Solid);
+            };
+
+            tb.Invalidate();
+        }
+
+        private bool HighlightEmptyTextBoxes(params TextBox[] textBoxes)
+        {
+            bool hasEmpty = false;
+
+            foreach (var tb in textBoxes)
+            {
+                if (string.IsNullOrWhiteSpace(tb.Text))
+                {
+                    hasEmpty = true;
+                    tb.BackColor = Color.MistyRose;
+
+                    tb.Paint += (s, e) =>
+                    {
+                        ControlPaint.DrawBorder(e.Graphics, tb.ClientRectangle,
+                            Color.Red, 2, ButtonBorderStyle.Solid,
+                            Color.Red, 2, ButtonBorderStyle.Solid,
+                            Color.Red, 2, ButtonBorderStyle.Solid,
+                            Color.Red, 2, ButtonBorderStyle.Solid);
+                    };
+                }
+                else
+                {
+                    tb.BackColor = Color.White;
+                }
+
+                tb.Invalidate();
+            }
+
+            return hasEmpty;
+        }
+        private void ResetTextBoxHighlights(params TextBox[] textBoxes)
+        {
+            foreach (var tb in textBoxes)
+            {
+                tb.BackColor = Color.White;
+            }
+        }
+
+        private bool ValidateLoginFields()
+        {
+            // Check for empty POS ID or Token
+            if (string.IsNullOrWhiteSpace(txtUsername.Text) || string.IsNullOrWhiteSpace(txtPassword.Text))
+            {
+                if (string.IsNullOrWhiteSpace(txtUsername.Text) && string.IsNullOrWhiteSpace(txtPassword.Text))
+                {
+                    AlertManager.ShowError("POS ID and Token cannot be empty.");
+                    this.BeginInvoke(new Action(() => txtUsername.Focus()));
+                }
+                else if (string.IsNullOrWhiteSpace(txtUsername.Text))
+                {
+                    AlertManager.ShowError("POS ID is required.");
+                    this.BeginInvoke(new Action(() => txtUsername.Focus()));
+                }
+                else if (string.IsNullOrWhiteSpace(txtPassword.Text))
+                {
+                    AlertManager.ShowError("Token is required.");
+                    this.BeginInvoke(new Action(() => txtPassword.Focus()));
+                }
+
+                HighlightEmptyTextBoxes(txtUsername, txtPassword);
+                return false;
+            }
+
+            // Validate POS ID: must be numeric and exactly 6 digits
+            if (!txtUsername.Text.All(char.IsDigit) || txtUsername.Text.Length != 6)
+            {
+                AlertManager.ShowError("POS ID must be exactly 6 digits.");
+                this.BeginInvoke(new Action(() => txtUsername.Focus()));
+
+                HighlightInvalidTextBox(txtUsername);
+                ResetTextBoxHighlights(txtPassword);
+                return false;
+            }
+
+            ResetTextBoxHighlights(txtUsername, txtPassword);
+            return true;
+        }
+
+        #endregion
+
         private void btnLogin_Click(object sender, EventArgs e)
         {
             try
             {
+                if (!ValidateLoginFields())
+                    return;
+
                 // Get AES-encrypted values from config
                 string encUsername = ConfigurationManager.AppSettings["Username"];
                 string encPassword = ConfigurationManager.AppSettings["Password"];
 
-                // 🔑 Decrypt values before using
+                // Decrypt values before using
                 string configUsername = AesEncryptionHelper.Decrypt(encUsername);
                 string configPassword = AesEncryptionHelper.Decrypt(encPassword);
 

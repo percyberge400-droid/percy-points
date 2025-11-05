@@ -52,54 +52,7 @@
             ProductCatalogueDataGridView.RowHeadersWidth = 51;
             ProductCatalogueDataGridView.Size = new Size(1587, 646);
             ProductCatalogueDataGridView.TabIndex = 9;
-            // 
-            // colItemSrno
-            // 
-            colItemSrno.MinimumWidth = 6;
-            colItemSrno.Name = "colItemSrno";
-            colItemSrno.Width = 125;
-            // 
-            // colProductCode
-            // 
-            colProductCode.MinimumWidth = 6;
-            colProductCode.Name = "colProductCode";
-            colProductCode.Width = 125;
-            // 
-            // colProductDesc
-            // 
-            colProductDesc.MinimumWidth = 6;
-            colProductDesc.Name = "colProductDesc";
-            colProductDesc.Width = 125;
-            // 
-            // colHScode
-            // 
-            colHScode.MinimumWidth = 6;
-            colHScode.Name = "colHScode";
-            colHScode.Width = 125;
-            // 
-            // colSaleType
-            // 
-            colSaleType.MinimumWidth = 6;
-            colSaleType.Name = "colSaleType";
-            colSaleType.Width = 125;
-            // 
-            // PosUOM
-            // 
-            PosUOM.MinimumWidth = 6;
-            PosUOM.Name = "PosUOM";
-            PosUOM.Width = 125;
-            // 
-            // colTaxRate
-            // 
-            colTaxRate.MinimumWidth = 6;
-            colTaxRate.Name = "colTaxRate";
-            colTaxRate.Width = 125;
-            // 
-            // colSROno
-            // 
-            colSROno.MinimumWidth = 6;
-            colSROno.Name = "colSROno";
-            colSROno.Width = 125;
+            
             // 
             // btnNext
             // 
