@@ -6,6 +6,7 @@ namespace POSPRA.DTOs.InvoiceDtos
     {
         public long POSID { get; set; }
 
+        [JsonPropertyName("InvoiceNumber")]
         public string FBRInvoiceNumber { get; set; } = string.Empty;
 
         public string USIN { get; set; } = string.Empty;
