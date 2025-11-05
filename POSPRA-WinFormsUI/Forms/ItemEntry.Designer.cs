@@ -215,7 +215,7 @@
             TaxRatelbl.Name = "TaxRatelbl";
             TaxRatelbl.Size = new Size(102, 20);
             TaxRatelbl.TabIndex = 19;
-            TaxRatelbl.Text = "Tax Rate (%)";
+            TaxRatelbl.Text = "Tax Rate (%) *";
             // 
             // salevalue
             // 
@@ -234,7 +234,7 @@
             salevaluelbl.Name = "salevaluelbl";
             salevaluelbl.Size = new Size(95, 20);
             salevaluelbl.TabIndex = 44;
-            salevaluelbl.Text = "Unit Price";
+            salevaluelbl.Text = "Unit Price *";
             // 
             // TaxRatebox
             // 
@@ -285,9 +285,9 @@
             ItemNamelbl.ForeColor = Color.FromArgb(75, 85, 99);
             ItemNamelbl.Location = new Point(20, 90);
             ItemNamelbl.Name = "ItemNamelbl";
-            ItemNamelbl.Size = new Size(120, 20);
+            ItemNamelbl.Size = new Size(143, 20);
             ItemNamelbl.TabIndex = 27;
-            ItemNamelbl.Text = "Item Description";
+            ItemNamelbl.Text = "Item Description *";
             // 
             // FurtureTaxlbl
             // 
@@ -315,7 +315,7 @@
             ItemName.Font = new Font("Microsoft Sans Serif", 9F);
             ItemName.Location = new Point(20, 113);
             ItemName.Name = "ItemName";
-            ItemName.PlaceholderText = "Item Name";
+            ItemName.PlaceholderText = "Item Description";
             ItemName.Size = new Size(197, 24);
             ItemName.TabIndex = 14;
             // 
@@ -327,7 +327,7 @@
             ItemCodelbl.Name = "ItemCodelbl";
             ItemCodelbl.Size = new Size(120, 20);
             ItemCodelbl.TabIndex = 34;
-            ItemCodelbl.Text = "Item Code";
+            ItemCodelbl.Text = "Item Code *";
             // 
             // lblSellerAddress
             // 
@@ -337,7 +337,7 @@
             lblSellerAddress.Name = "lblSellerAddress";
             lblSellerAddress.Size = new Size(74, 20);
             lblSellerAddress.TabIndex = 35;
-            lblSellerAddress.Text = "Quantity";
+            lblSellerAddress.Text = "Quantity *";
             // 
             // qty
             // 
@@ -356,7 +356,7 @@
             lblCustomerRegType.Name = "lblCustomerRegType";
             lblCustomerRegType.Size = new Size(164, 20);
             lblCustomerRegType.TabIndex = 37;
-            lblCustomerRegType.Text = "HS Code (8 digits)";
+            lblCustomerRegType.Text = "HS Code (8 digits) *";
             // 
             // totalamountlbl
             // 

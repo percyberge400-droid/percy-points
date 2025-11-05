@@ -3,7 +3,7 @@ using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
-using POSPRA.DTOs.LogDTOs;
+using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Runtime.InteropServices;
@@ -101,10 +101,13 @@ namespace POSPRA_WinFormsUI.Forms
                 await Task.Delay(100); // small delay for smooth UI
 
                 int.TryParse(ConfigurationManager.AppSettings["Username"], out var posId);
+                var DecriptedPOSID = ConfigurationManager.AppSettings["Username"];
+                int EncriptedPOSID = Convert.ToInt32(AesEncryptionHelper.Decrypt(DecriptedPOSID));
+
 
                 var filter = new InvoiceFilterDto
                 {
-                    PosId = posId,
+                    PosId = EncriptedPOSID,
                     FromDate = dateTimePickerFrom.Value.Date,
                     ToDate = dateTimePickerTo.Value.Date
                 };
@@ -152,26 +155,40 @@ namespace POSPRA_WinFormsUI.Forms
                             using var workbook = new XLWorkbook();
                             var sheet = workbook.Worksheets.Add("Invoices");
 
+                            // Define which CSV column indexes to export (0-based)
+                            // Adjust this to limit the columns being shown
+                            int[] selectedColumns = Enumerable.Range(0, 26).ToArray();
+
                             for (int i = 0; i < lines.Length; i++)
                             {
                                 var cols = lines[i].Split(',');
-                                for (int j = 0; j < cols.Length; j++)
-                                    sheet.Cell(i + 1, j + 1).Value = cols[j].Trim();
+
+                                // Create a counter for Excel column index
+                                int excelCol = 1;
+
+                                // Write only selected columns
+                                foreach (int colIndex in selectedColumns)
+                                {
+                                    if (colIndex < cols.Length)
+                                    {
+                                        sheet.Cell(i + 1, excelCol).Value = cols[colIndex].Trim();
+                                        excelCol++;
+                                    }
+                                }
                             }
 
                             workbook.SaveAs(sfd.FileName);
 
                             await CreateLog("Invoices exported successfully", AlertType.Success);
                             AlertManager.ShowSuccess("Invoices exported successfully!");
-
                             lblExportStatus.Text = $"✅ Exported successfully:\n{sfd.FileName}";
                             lblExportStatus.ForeColor = Color.Green;
                         }
                         catch (Exception ex)
                         {
-                            await CreateLog($"Error saving file: {ex.Message}", AlertType.Error);
-                            AlertManager.ShowError($"Error saving file: {ex.Message}");
-                            lblExportStatus.Text = $"❌ Error saving file: {ex.Message}";
+                            await CreateLog($"Export failed: {ex.Message}", AlertType.Error);
+                            AlertManager.ShowError("Export failed!");
+                            lblExportStatus.Text = "❌ Export failed.";
                             lblExportStatus.ForeColor = Color.Red;
                         }
                     }
