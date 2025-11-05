@@ -97,8 +97,6 @@ namespace POSPRA_WinFormsUI
             buyerntn.KeyPress += NumericOnlyWithLength_KeyPress;
             buyerntn.TextChanged += NumericOnlyWithLength_TextChanged;
 
-            BuyerBname.KeyPress += NumericOnlyWithLength_KeyPress;
-            BuyerBname.TextChanged += NumericOnlyWithLength_TextChanged;
 
             buyerphone.KeyPress += NumericOnlyWithLength_KeyPress;
             buyerphone.TextChanged += NumericOnlyWithLength_TextChanged;
@@ -127,6 +125,8 @@ namespace POSPRA_WinFormsUI
             itemDiscountPercent.KeyPress += NumericOnlyWithLength_KeyPress;
             itemDiscountPercent.TextChanged += NumericOnlyWithLength_TextChanged;
 
+            BuyerBname.KeyPress += StringOnlyWithLength_KeyPress;
+            BuyerBname.TextChanged += StringOnlyWithLength_TextChanged;
 
             itemDiscountPercent.TextChanged += RecalculateTotals;
 
@@ -553,7 +553,7 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
-        #region NumericOnly_KeyPress
+        #region numeric and string only data entry
         private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (sender is not TextBox tb) return;
@@ -571,11 +571,6 @@ namespace POSPRA_WinFormsUI
                     if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
                         e.Handled = true;
                     else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
-                        e.Handled = true;
-                    break;
-
-                case "buyerbname":
-                    if (tb.Text.Length >= 350 && !char.IsControl(e.KeyChar))
                         e.Handled = true;
                     break;
 
@@ -651,10 +646,6 @@ namespace POSPRA_WinFormsUI
                     maxLength = 13;
                     break;
 
-                case "buyerbname":
-                    maxLength = 350;
-                    break;
-
                 case "buyerphone":
                     clean = new string(original.Where(char.IsDigit).ToArray());
                     maxLength = 13;
@@ -712,6 +703,59 @@ namespace POSPRA_WinFormsUI
                 tb.SelectionStart = Math.Max(0, Math.Min(pos, tb.Text.Length));
             }
         }
+
+        private void StringOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            // Allow control keys (Backspace, Delete, etc.)
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            // Allow letters and space only
+            if (!char.IsLetter(e.KeyChar) && e.KeyChar != ' ')
+            {
+                e.Handled = true;
+                return;
+            }
+
+            switch (tb.Name.ToLower())
+            {
+                case "buyerbname":
+                    if (tb.Text.Length >= 100)
+                        e.Handled = true;
+                    break;
+            }
+        }
+        private void StringOnlyWithLength_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            string original = tb.Text;
+            string clean = new string(original.Where(c => char.IsLetter(c) || char.IsWhiteSpace(c)).ToArray());
+            int maxLength = 100;
+
+            // Per-field custom max length
+            switch (tb.Name.ToLower())
+            {
+                case "buyerbname":
+                    maxLength = 100;
+                    break;
+            }
+
+            // Enforce length
+            if (clean.Length > maxLength)
+                clean = clean.Substring(0, maxLength);
+
+            // Apply correction if changed
+            if (tb.Text != clean)
+            {
+                int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
+                tb.Text = clean;
+                tb.SelectionStart = Math.Max(0, Math.Min(pos, tb.Text.Length));
+            }
+        }
+
 
         #endregion
 
