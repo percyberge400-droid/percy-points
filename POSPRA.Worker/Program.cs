@@ -1,10 +1,12 @@
-﻿using POSPRA.Application.AutoMapperProfile;
+﻿using Microsoft.EntityFrameworkCore;
+using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.ClientService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.DTOs;
+using POSPRA.Infrastructure.Context;
 using POSPRA.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)

@@ -1,14 +1,12 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
-using Microsoft.Extensions.Options;
-using POSPRA.Application.Services.ClientService;
+﻿using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
-using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.CommanDtos;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace POSPRA.Worker
 {
