@@ -117,9 +117,9 @@
             label2.ForeColor = Color.White;
             label2.Location = new Point(45, 338);
             label2.Name = "label2";
-            label2.Size = new Size(57, 23);
+            label2.Size = new Size(70, 23);
             label2.TabIndex = 0;
-            label2.Text = "Token";
+            label2.Text = "Token *";
             // 
             // label1
             // 
@@ -128,9 +128,9 @@
             label1.ForeColor = Color.White;
             label1.Location = new Point(45, 261);
             label1.Name = "label1";
-            label1.Size = new Size(66, 23);
+            label1.Size = new Size(79, 23);
             label1.TabIndex = 1;
-            label1.Text = "POS ID";
+            label1.Text = "POS ID *";
             // 
             // btnLogin
             // 
@@ -152,7 +152,7 @@
             txtPassword.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtPassword.Location = new Point(45, 364);
             txtPassword.Name = "txtPassword";
-            txtPassword.PlaceholderText = "********";
+            txtPassword.PlaceholderText = "Enter the token";
             txtPassword.Size = new Size(309, 27);
             txtPassword.TabIndex = 1;
             txtPassword.UseSystemPasswordChar = true;
@@ -163,7 +163,7 @@
             txtUsername.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtUsername.Location = new Point(45, 287);
             txtUsername.Name = "txtUsername";
-            txtUsername.PlaceholderText = "123456";
+            txtUsername.PlaceholderText = "Enter the 6 digit POSID";
             txtUsername.Size = new Size(309, 27);
             txtUsername.TabIndex = 0;
             // 

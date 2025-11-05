@@ -1576,8 +1576,8 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(48, 59, 78);
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
-            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(0, 10, 0, 10);
+            //dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dgv.ColumnHeadersHeight = 52;
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dgv.EnableHeadersVisualStyles = false;
@@ -1587,7 +1587,7 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.DefaultCellStyle.BackColor = Color.White;
             dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
             dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
-            dgv.DefaultCellStyle.Padding = new Padding(8, 4, 8, 4);
+            dgv.DefaultCellStyle.Padding = new Padding(0, 4, 0, 4);
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
@@ -1603,7 +1603,7 @@ namespace POSPRA_WinFormsUI.Forms
             var colId = new DataGridViewTextBoxColumn
             {
                 Name = "colId",
-                HeaderText = "Sr. No.",
+                HeaderText = "  Sr No",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -1613,15 +1613,19 @@ namespace POSPRA_WinFormsUI.Forms
                     Font = new Font("Segoe UI", 9F)
                 }
             };
+            colId.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colId.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colPosId = new DataGridViewTextBoxColumn
             {
                 Name = "colPosId",
-                HeaderText = "POS ID",
+                HeaderText = "    POS ID",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colPosId.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colPosId.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colInvoiceNumber = new DataGridViewTextBoxColumn
             {
@@ -1939,15 +1943,26 @@ namespace POSPRA_WinFormsUI.Forms
             var colLogID = new DataGridViewTextBoxColumn
             {
                 Name = "colLogID",
-                HeaderText = "Sr. No.",
+                HeaderText = "   Sr No",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
                     ForeColor = Color.FromArgb(107, 114, 128),
-                    Font = new Font("Segoe UI", 9F)
+                    Font = new Font("Segoe UI", 9F),
+                    Alignment = DataGridViewContentAlignment.MiddleCenter // Ensure cell content is centered
                 }
+            };
+
+            // Force header alignment more explicitly
+            colLogID.HeaderCell.Style = new DataGridViewCellStyle
+            {
+                Alignment = DataGridViewContentAlignment.MiddleCenter,
+                BackColor = Color.FromArgb(48, 59, 78),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                Padding = new Padding(0, 10, 0, 10)
             };
 
             var colMessage = new DataGridViewTextBoxColumn
@@ -1966,10 +1981,20 @@ namespace POSPRA_WinFormsUI.Forms
                 Width = 170,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
-
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleCenter
+                }
             };
-            colException.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colException.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+            colException.HeaderCell.Style = new DataGridViewCellStyle
+            {
+                Alignment = DataGridViewContentAlignment.MiddleCenter,
+                BackColor = Color.FromArgb(48, 59, 78),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                Padding = new Padding(0, 10, 0, 10)
+            };
 
             var colDateTime = new DataGridViewTextBoxColumn
             {
@@ -1978,17 +2003,36 @@ namespace POSPRA_WinFormsUI.Forms
                 Width = 220,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleCenter
+                }
             };
-            colDateTime.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+            colDateTime.HeaderCell.Style = new DataGridViewCellStyle
+            {
+                Alignment = DataGridViewContentAlignment.MiddleCenter,
+                BackColor = Color.FromArgb(48, 59, 78),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                Padding = new Padding(0, 10, 0, 10)
+            };
 
             LogsDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
-                colLogID, colMessage, colException, colDateTime
+        colLogID, colMessage, colException, colDateTime
             });
 
             LogsDataGridView.CellPainting += LogsDataGridView_CellPainting;
-        }
 
+            foreach (DataGridViewColumn column in LogsDataGridView.Columns)
+            {
+                if (column.Name == "colLogID" || column.Name == "colException" || column.Name == "logdatetime")
+                {
+                    column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                }
+            }
+        }
         private void LogsDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
             if (e.ColumnIndex == 2 && e.RowIndex >= 0)

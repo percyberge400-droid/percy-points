@@ -85,49 +85,43 @@
             // 
             // posStatus
             // 
-            posStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            posStatus.AutoSize = true;
+            posStatus.Anchor = AnchorStyles.Right;
             posStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            posStatus.Location = new Point(369, 30);
-            posStatus.Name = "posStatus";
-            posStatus.Size = new Size(86, 23);
-            posStatus.TabIndex = 12;
+            posStatus.ForeColor = Color.Black;
+            posStatus.Location = new Point(369, 15); // same Y
+            posStatus.Size = new Size(86, 30);
             posStatus.Text = "INACTIVE";
+            posStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lblWorkerService
             // 
-            lblWorkerService.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            lblWorkerService.AutoSize = true;
-            lblWorkerService.Font = new Font("Segoe UI", 12F);
+            lblWorkerService.Anchor = AnchorStyles.Right;
+            lblWorkerService.Font = new Font("Segoe UI", 11F, FontStyle.Regular);
             lblWorkerService.ForeColor = Color.Black;
-            lblWorkerService.Location = new Point(244, 26);
-            lblWorkerService.Name = "lblWorkerService";
-            lblWorkerService.Size = new Size(116, 28);
-            lblWorkerService.TabIndex = 11;
+            lblWorkerService.Location = new Point(244, 15); // same Y
+            lblWorkerService.Size = new Size(116, 30);
             lblWorkerService.Text = "POS Service";
+            lblWorkerService.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // internetStatus
             // 
-            internetStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            internetStatus.AutoSize = true;
+            internetStatus.Anchor = AnchorStyles.Right;
             internetStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            internetStatus.Location = new Point(147, 30);
-            internetStatus.Name = "internetStatus";
-            internetStatus.Size = new Size(86, 23);
-            internetStatus.TabIndex = 10;
+            internetStatus.ForeColor = Color.Black;
+            internetStatus.Location = new Point(147, 15); // vertically centered
+            internetStatus.Size = new Size(90, 30);
             internetStatus.Text = "INACTIVE";
+            internetStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lblNetworkStatus
             // 
-            lblNetworkStatus.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            lblNetworkStatus.AutoSize = true;
-            lblNetworkStatus.Font = new Font("Segoe UI", 12F);
+            lblNetworkStatus.Anchor = AnchorStyles.Right;
+            lblNetworkStatus.Font = new Font("Segoe UI", 11F, FontStyle.Regular);
             lblNetworkStatus.ForeColor = Color.Black;
-            lblNetworkStatus.Location = new Point(3, 26);
-            lblNetworkStatus.Name = "lblNetworkStatus";
-            lblNetworkStatus.Size = new Size(138, 28);
-            lblNetworkStatus.TabIndex = 9;
+            lblNetworkStatus.Location = new Point(3, 15); // adjusted Y
+            lblNetworkStatus.Size = new Size(138, 30);
             lblNetworkStatus.Text = "Internet Status";
+            lblNetworkStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // pictureBox2
             // 

@@ -6,18 +6,18 @@ using POSPRA.DTOs.LogDTOs;
 
 namespace POSPRA.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/IMSFiscal")]
     [ApiController]
     public class InvoiceController(IInvoiceService invoiceService, ISendInvoiceToCloudService sendInvoiceToCloudService) : ControllerBase
     {
         private readonly IInvoiceService _invoiceService = invoiceService;
         private readonly ISendInvoiceToCloudService _sendInvoiceToCloudService = sendInvoiceToCloudService;
 
-        [HttpGet("getInvoiceWithItems")]
+        [HttpGet("GetInvoiceWithItems")]
         public async Task<IActionResult> GetInvoice(string invoiceNumber) =>
             Ok(await _invoiceService.GetInvoiceWithItems(invoiceNumber));
 
-        [HttpPost("create")]
+        [HttpPost("GetInvoiceNumberByModel")]
         public async Task<IActionResult> Create([FromBody] InvoiceDto dto) =>
             Ok(await _invoiceService.CreateAsync(dto));
 

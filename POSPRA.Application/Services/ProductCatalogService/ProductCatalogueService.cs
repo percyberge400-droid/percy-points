@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs;
 using POSPRA.DTOs.ProductCatalogDtos;
+using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
@@ -16,24 +18,33 @@ namespace POSPRA.Application.Services.ProductCatalogService
         private readonly IMapper _mapper;
         private readonly IProductCatalogueSQLiteRepository _productCatalogueSQLiteRepository;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
+        private readonly IConfiguration _configuration;
 
         public ProductCatalogueService(IProductCatalogueSQLServerRepository productCatalogueRepository,
             IMapper mapper,
             SqlServerRepository<ProductCatalogue> sqlServerRepository,
             IProductCatalogueSQLiteRepository productCatalogueSQLiteRepository,
-            ISqliteUnitOfWork sqliteUnitOfWork)
+            ISqliteUnitOfWork sqliteUnitOfWork,
+            IConfiguration configuration)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _productCatalogueRepository = sqlServerRepository;
             _productCatalogueSQLiteRepository = productCatalogueSQLiteRepository;
             _sqliteUnitOfWork = sqliteUnitOfWork;
+            _configuration = configuration;
         }
 
         public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(ProductCatalogueQueryDto dto)
         {
             try
             {
-                IQueryable<ProductCatalogue> query = _productCatalogueRepository.Query();
+                var connectionString = _configuration.GetConnectionString("SqlServerConnectionProduction");
+
+                var optionsBuilder = new DbContextOptionsBuilder<SqlServerDbContext>();
+                optionsBuilder.UseSqlServer(connectionString);
+
+                using var dbContext = new SqlServerDbContext(optionsBuilder.Options);
+                var query = dbContext.ProductCatalogue.AsQueryable();
 
                 // Only filter HSCode if given
                 if (!string.IsNullOrEmpty(dto.HSCode) && dto.HSCode is not null)
