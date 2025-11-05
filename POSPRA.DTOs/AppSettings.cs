@@ -22,6 +22,7 @@
         public string Token { get; set; } = string.Empty;
         public string IMSServicePath { get; set; } = string.Empty;
         public bool IsProduction { get; set; }
+        public bool IsProductionWorker { get; set; }
         public int IMSUpdateInterval { get; set; }
         public int WorkerDelayTime { get; set; }
         public string? DefaultDBFilePath { get; set; }

@@ -1789,7 +1789,7 @@ namespace POSPRA.SetupUI
 
                     // Set isProduction based on environment
                     bool isProd = environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
-                    config["AppSettings"]["isProduction"] = isProd;
+                    config["AppSettings"]["IsProduction"] = isProd;
 
                     // Save the updated JSON
                     File.WriteAllText(path, JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented));
