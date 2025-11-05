@@ -47,7 +47,7 @@ var builder = Host.CreateDefaultBuilder(args)
         //----------------------------------------------------
         var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
         var dbPath = appSettings!.DefaultDBFilePath;
-        bool isProduction = appSettings.IsProduction;
+        bool isProduction = appSettings.IsProductionWorker;
 
         //----------------------------------------------------
         // 🔧 Database configuration
