@@ -190,7 +190,7 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else
                 {
-                    bgColor = Color.FromArgb(220, 53, 69); // Red for offline/inactive
+                    bgColor = Color.FromArgb(220, 53, 69);
                     glowColor = Color.FromArgb(248, 215, 218);
                     dotColor = Color.White;
                 }
@@ -205,19 +205,32 @@ namespace POSPRA_WinFormsUI.Forms
                     e.Graphics.FillRoundedRectangle(bgBrush, rect, 6);
                 }
 
-                // Animated pulse effect for both states
+                // Animated pulse effect
                 float pulseAlpha = (float)(Math.Sin(currentPulseFrame * 0.1) * 0.3 + 0.7);
                 using (Pen pulsePen = new Pen(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
                 {
                     e.Graphics.DrawRoundedRectangle(pulsePen, rect, 12);
                 }
 
-                // Animated status dot with glow (both states get glow)
-                int dotSize = isActive ? 8 : 8;
-                int dotX = 8;
-                int dotY = lbl.Height / 2 - dotSize / 2;
+                // Get status text
+                string statusText = lbl.Text.Replace("●", "").Trim();
 
-                // Glow effect for both active and inactive states
+                // Measure text to calculate proper centering
+                Size textSize = TextRenderer.MeasureText(statusText, lbl.Font);
+                int dotSize = 8;
+                int spacing = 6; // Space between dot and text
+
+                // Calculate total width of dot + spacing + text
+                int totalContentWidth = dotSize + spacing + textSize.Width;
+
+                // Center the entire content (dot + text) in the badge
+                int startX = (lbl.Width - totalContentWidth) / 2;
+
+                // Position dot
+                int dotX = startX;
+                int dotY = (lbl.Height - dotSize) / 2;
+
+                // Glow effect for dot
                 float glowIntensity = (float)(Math.Sin(currentPulseFrame * 0.15) * 0.4 + 0.6);
                 using (var glowBrush = new SolidBrush(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
                 {
@@ -234,27 +247,28 @@ namespace POSPRA_WinFormsUI.Forms
                     e.Graphics.FillEllipse(dotBrush, dotX, dotY, dotSize, dotSize);
                 }
 
-                // Text with subtle shadow
-                string statusText = lbl.Text.Replace("●", "").Trim();
-                using (var shadowBrush = new SolidBrush(Color.FromArgb(40, 0, 0, 0)))
-                {
-                    TextRenderer.DrawText(
-                        e.Graphics,
-                        statusText,
-                        lbl.Font,
-                        new Rectangle(21, 1, lbl.Width - 25, lbl.Height),
-                        Color.FromArgb(40, 0, 0, 0),
-                        TextFormatFlags.VerticalCenter | TextFormatFlags.Left
-                    );
-                }
+                // Position text after the dot
+                int textX = dotX + dotSize + spacing;
+                int textY = (lbl.Height - textSize.Height) / 2;
 
+                // Shadow text
                 TextRenderer.DrawText(
                     e.Graphics,
                     statusText,
                     lbl.Font,
-                    new Rectangle(20, 0, lbl.Width - 24, lbl.Height),
+                    new Point(textX + 1, textY + 1),
+                    Color.FromArgb(40, 0, 0, 0),
+                    TextFormatFlags.Left | TextFormatFlags.NoPadding
+                );
+
+                // Main text
+                TextRenderer.DrawText(
+                    e.Graphics,
+                    statusText,
+                    lbl.Font,
+                    new Point(textX, textY),
                     Color.White,
-                    TextFormatFlags.VerticalCenter | TextFormatFlags.Left
+                    TextFormatFlags.Left | TextFormatFlags.NoPadding
                 );
             };
         }

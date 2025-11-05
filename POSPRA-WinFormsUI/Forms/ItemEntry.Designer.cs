@@ -398,6 +398,7 @@
             // btnSave
             // 
             btnSave.Anchor = AnchorStyles.Bottom;
+            btnSave.AutoSize = true;
             btnSave.BackColor = Color.SeaGreen;
             btnSave.FlatAppearance.BorderSize = 0;
             btnSave.FlatStyle = FlatStyle.Flat;
@@ -454,9 +455,9 @@
             lblInvoicesListing.ForeColor = Color.FromArgb(17, 24, 39);
             lblInvoicesListing.Location = new Point(30, 390);
             lblInvoicesListing.Name = "lblInvoicesListing";
-            lblInvoicesListing.Size = new Size(177, 22);
+            lblInvoicesListing.Size = new Size(147, 22);
             lblInvoicesListing.TabIndex = 0;
-            lblInvoicesListing.Text = "📊PRODUCTS LIST";
+            lblInvoicesListing.Text = "📊INVOICE LIST";
             // 
             // btn_remove
             // 
