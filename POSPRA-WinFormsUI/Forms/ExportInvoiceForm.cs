@@ -171,8 +171,8 @@ namespace POSPRA_WinFormsUI.Forms
                                 (10, "Discount"),           // Discount
                                 (11, "Total Bill Amount"),  // TotalBillAmount
                                 (12, "Payment Mode"),       // PaymentMode
-                                (4, "Synced DateTime"),     // DateTime
-                                (13, "Invoice Entry DateTime"), // EntryDate
+                                (4, "Invoice Entry DateTime"), // EntryDate
+                                (13, "Synced DateTime"),       // DateTime
                                 (16, "Invoice Type"),       // InvoiceType
                                 (17, "RefUSIN"),            // RefUSIN
                                 (21, "Further Tax"),        // FurtherTax
