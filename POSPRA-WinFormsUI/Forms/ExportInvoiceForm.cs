@@ -156,24 +156,74 @@ namespace POSPRA_WinFormsUI.Forms
                             using var workbook = new XLWorkbook();
                             var sheet = workbook.Worksheets.Add("Invoices");
 
-                            // Define which CSV column indexes to export (0-based)
-                            // Adjust this to limit the columns being shown
-                            int[] selectedColumns = Enumerable.Range(0, 26).ToArray();
+                            // Map CSV column indexes (0-based) to custom headers
+                            var columnMap = new (int Index, string Header)[]
+                            {
+                                (1, "Invoice Number"),      // FBRInvoiceNumber
+                                (3, "USIN"),                // USIN
+                                (2, "POSID"),               // POSID
+                                (20, "Buyer NTN"),          // BuyerNTN
+                                (22, "Buyer CNIC"),         // BuyerCNIC
+                                (5, "Buyer Name"),          // BuyerName
+                                (6, "Buyer Phone Number"),  // BuyerPhoneNumber
+                                (7, "Total Sale Value"),    // TotalSaleValue
+                                (8, "Total Quantity"),      // TotalQuantity
+                                (9, "Total Tax Charged"),   // TotalTaxCharged
+                                (10, "Discount"),           // Discount
+                                (11, "Total Bill Amount"),  // TotalBillAmount
+                                (12, "Payment Mode"),       // PaymentMode
+                                (4, "Invoice Entry DateTime"), // EntryDate
+                                (13, "Synced DateTime"),       // DateTime
+                                (16, "Invoice Type"),       // InvoiceType
+                                (17, "RefUSIN"),            // RefUSIN
+                                (21, "Further Tax"),        // FurtherTax
+                            };
 
                             for (int i = 0; i < lines.Length; i++)
                             {
                                 var cols = lines[i].Split(',');
 
-                                // Create a counter for Excel column index
-                                int excelCol = 1;
-
-                                // Write only selected columns
-                                foreach (int colIndex in selectedColumns)
+                                if (i == 0)
                                 {
-                                    if (colIndex < cols.Length)
+                                    // Write custom headers
+                                    for (int j = 0; j < columnMap.Length; j++)
+                                        sheet.Cell(1, j + 1).Value = columnMap[j].Header;
+                                }
+                                else
+                                {
+                                    for (int j = 0; j < columnMap.Length; j++)
                                     {
-                                        sheet.Cell(i + 1, excelCol).Value = cols[colIndex].Trim();
-                                        excelCol++;
+                                        int index = columnMap[j].Index;
+                                        if (index < cols.Length)
+                                        {
+                                            string value = cols[index].Trim();
+
+                                            // --- Replace Payment Mode values ---
+                                            if (columnMap[j].Header == "Payment Mode")
+                                            {
+                                                value = value switch
+                                                {
+                                                    "1" => "Card",
+                                                    "2" => "Cash",
+                                                    "3" => "Online",
+                                                    _ => value
+                                                };
+                                            }
+
+                                            // --- Replace Invoice Type values ---
+                                            if (columnMap[j].Header == "Invoice Type")
+                                            {
+                                                value = value switch
+                                                {
+                                                    "1" => "New",
+                                                    "2" => "Debit Invoice",
+                                                    "3" => "Credit Invoice",
+                                                    _ => value
+                                                };
+                                            }
+
+                                            sheet.Cell(i + 1, j + 1).Value = value;
+                                        }
                                     }
                                 }
                             }

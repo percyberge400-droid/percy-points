@@ -437,7 +437,6 @@
       </Tablix>
       <Textbox Name="BusinessName">
         <CanGrow>true</CanGrow>
-        <CanShrink>true</CanShrink>
         <KeepTogether>true</KeepTogether>
         <Paragraphs>
           <Paragraph>
@@ -445,7 +444,6 @@
               <TextRun>
                 <Value>=First(Fields!BusinessName.Value, "HeaderDataSet")</Value>
                 <Style>
-                  <FontSize>12pt</FontSize>
                   <FontWeight>Bold</FontWeight>
                 </Style>
               </TextRun>
@@ -456,9 +454,9 @@
           </Paragraph>
         </Paragraphs>
         <Top>0.90279in</Top>
-        <Left>0.59022cm</Left>
-        <Height>0.26666in</Height>
-        <Width>5.87727cm</Width>
+        <Left>0.35271cm</Left>
+        <Height>0.24444in</Height>
+        <Width>6.43219cm</Width>
         <ZIndex>1</ZIndex>
         <Style>
           <Border>
@@ -590,9 +588,9 @@
           </Paragraph>
         </Paragraphs>
         <Top>1.16112in</Top>
-        <Left>0.59022cm</Left>
+        <Left>0.35271cm</Left>
         <Height>0.18055in</Height>
-        <Width>5.87727cm</Width>
+        <Width>6.43219cm</Width>
         <ZIndex>4</ZIndex>
         <Style>
           <Border>
