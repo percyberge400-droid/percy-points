@@ -583,7 +583,7 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                var (branchName, branchAddress, businessName, IsActive) = ExtractBranchDetails(json);
+                var (branchName, branchAddress, businessName, IsActive, AccessCode) = ExtractBranchDetails(json);
 
                 if (!VerifyAuthentication(json))
                 {
@@ -592,7 +592,7 @@ namespace POSPRA.SetupUI
                 }
 
                 ShowMessage("Saving configurations...", true, false);
-                SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName);
+                SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName, AccessCode);
                 UpdateSetupConfig(dbPath);
                 await Task.Delay(300);
 
@@ -1628,7 +1628,7 @@ namespace POSPRA.SetupUI
 
         #region Configuration Save Methods
 
-        private (string branchName, string branchAddress, string businessName, string IsActive) ExtractBranchDetails(JObject json)
+        private (string branchName, string branchAddress, string businessName, string IsActive, string AccessCode) ExtractBranchDetails(JObject json)
         {
             try
             {
@@ -1639,7 +1639,8 @@ namespace POSPRA.SetupUI
                         data["branchName"]?.ToString() ?? "N/A",
                         data["branchAddress"]?.ToString() ?? "N/A",
                         data["businessName"]?.ToString() ?? "N/A",
-                        data["isActive"]?.ToString() ?? "N/A"
+                        data["isActive"]?.ToString() ?? "N/A",
+                        data["password"].ToString() ?? "N/A"
                     );
                 }
             }
@@ -1647,25 +1648,25 @@ namespace POSPRA.SetupUI
             {
                 ShowMessage($"Error extracting branch details: {ex.Message}", false, true);
             }
-            return ("N/A", "N/A", "N/A", "N/A");
+            return ("N/A", "N/A", "N/A", "N/A", "N/A");
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string dbPath,
-            string branchName, string branchAddress, string businessName)
+            string branchName, string branchAddress, string businessName, string AccessCode)
         {
-            SaveXmlConfig(username, password, mac);
+            SaveXmlConfig(username, password, mac, AccessCode);
             SaveJsonConfigs(dbPath, username);
             SaveWinFormsConfig(dbPath, branchName, branchAddress, businessName);
         }
 
-        private void SaveXmlConfig(string username, string password, string mac)
+        private void SaveXmlConfig(string username, string password, string mac, string AccessCode)
         {
             try
             {
                 var xmlDoc = new XmlDocument();
                 xmlDoc.Load(_xmlConfigPath);
                 UpdateOrCreateNode(xmlDoc, "Username", AesEncryptionHelper.Encrypt(username));
-                UpdateOrCreateNode(xmlDoc, "Password", AesEncryptionHelper.Encrypt(password));
+                UpdateOrCreateNode(xmlDoc, "Password", AesEncryptionHelper.Encrypt(AccessCode));
                 UpdateOrCreateNode(xmlDoc, "MacAddress", mac);
                 xmlDoc.Save(_xmlConfigPath);
             }

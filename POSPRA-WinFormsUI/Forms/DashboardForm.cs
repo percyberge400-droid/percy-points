@@ -294,7 +294,7 @@ namespace POSPRA_WinFormsUI.Forms
                     e.Value = item.IsSynced;
                     break;
                 case "colPrint":
-                    e.Value = "Print";
+                    e.Value = "View";
                     break;
                 case "colDateCreated":
                     e.Value = item.DateCreated;
@@ -796,15 +796,60 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void DtpStartDate_ValueChanged(object sender, EventArgs e)
         {
+            // Prevent selecting a start date after the end date
+            if (dtpStartDate.Value > dtpEndDate.Value)
+            {
+                MessageBox.Show(
+                    "Start date cannot be after the end date.",
+                    "Invalid Date Range",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                // Reset to the previous valid value
+                dtpStartDate.Value = _startDate;
+                return;
+            }
+
             _startDate = dtpStartDate.Value.Date;
             UpdateDateRangeLabel();
         }
 
         private void DtpEndDate_ValueChanged(object sender, EventArgs e)
         {
+            // Prevent selecting an end date before the start date
+            if (dtpEndDate.Value < dtpStartDate.Value)
+            {
+                MessageBox.Show(
+                    "End date cannot be before the start date.",
+                    "Invalid Date Range",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                // Reset to the previous valid value
+                dtpEndDate.Value = _endDate;
+                return;
+            }
+
+            // Optional: Prevent selecting future dates
+            if (dtpEndDate.Value > DateTime.Today)
+            {
+                MessageBox.Show(
+                    "End date cannot be in the future.",
+                    "Invalid Date",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                dtpEndDate.Value = DateTime.Today;
+                return;
+            }
+
             _endDate = dtpEndDate.Value.Date;
             UpdateDateRangeLabel();
         }
+
 
         private void DtpStartDate_CloseUp(object sender, EventArgs e)
         {
@@ -1650,7 +1695,7 @@ namespace POSPRA_WinFormsUI.Forms
             var colPrint = new DataGridViewTextBoxColumn
             {
                 Name = "colPrint",
-                HeaderText = "     Print",
+                HeaderText = "     View",
                 Width = 180,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -1807,8 +1852,8 @@ namespace POSPRA_WinFormsUI.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error printing invoice: {ex.Message}",
-                    "Print Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error viewing invoice: {ex.Message}",
+                    "View Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1865,7 +1910,7 @@ namespace POSPRA_WinFormsUI.Forms
                 bool isSelected = InvoicesDataGridView.Rows[e.RowIndex].Selected;
                 bool isPrinting = _printingRowIndex == e.RowIndex;
 
-                string linkText = isPrinting ? "Printing..." : "Print";
+                string linkText = isPrinting ? "Viewing..." : "View";
 
                 Color linkColor;
                 if (isSelected)

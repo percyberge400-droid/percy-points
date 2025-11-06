@@ -117,9 +117,9 @@
             label2.ForeColor = Color.White;
             label2.Location = new Point(45, 338);
             label2.Name = "label2";
-            label2.Size = new Size(70, 23);
+            label2.Size = new Size(120, 23);
             label2.TabIndex = 0;
-            label2.Text = "Token *";
+            label2.Text = "Access Code *";
             // 
             // label1
             // 
@@ -152,7 +152,7 @@
             txtPassword.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtPassword.Location = new Point(45, 364);
             txtPassword.Name = "txtPassword";
-            txtPassword.PlaceholderText = "Enter the token";
+            txtPassword.PlaceholderText = "Enter the access code";
             txtPassword.Size = new Size(309, 27);
             txtPassword.TabIndex = 1;
             txtPassword.UseSystemPasswordChar = true;
