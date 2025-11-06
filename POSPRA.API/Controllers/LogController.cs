@@ -15,7 +15,7 @@ namespace POSPRA.API.Controllers
         public async Task<IActionResult> GetAll() =>
             Ok(await _logService.GetAllAsync());
 
-        [HttpGet("create-logAsync")]
+        [HttpPost("create-logAsync")]
         public async Task<IActionResult> CreateLogAsync(CreateLogDto dto) =>
             Ok(await _logService.CreateLogAsync(dto));
     }

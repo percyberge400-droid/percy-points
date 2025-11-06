@@ -1,9 +1,11 @@
-﻿using POSPRA.Application.AutoMapperProfile;
+﻿using Microsoft.EntityFrameworkCore;
+using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.DTOs;
+using POSPRA.Infrastructure.Context;
 using POSPRA.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)
@@ -25,6 +27,13 @@ var builder = Host.CreateDefaultBuilder(args)
         //----------------------------------------------------
         services.Configure<AppSettings>(context.Configuration.GetSection("AppSettings"));
         var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
+
+        //----------------------------------------------------
+        // 🔧 SQLite Database
+        //----------------------------------------------------
+        var dbPath = appSettings!.DefaultDBFilePath;
+        services.AddDbContext<SqliteDbContext>(options =>
+            options.UseSqlite($"Data Source={dbPath}"));
 
         //----------------------------------------------------
         // 🔧 Core Utility Services
@@ -52,4 +61,35 @@ var builder = Host.CreateDefaultBuilder(args)
     });
 
 var host = builder.Build();
+
+
+// ✅ 1. Start the API self-host (runs alongside worker)
+_ = Task.Run(async () =>
+{
+    try
+    {
+        var apiHost = POSPRA.API.Program.BuildApiHost(args);
+        await apiHost.StartAsync();
+        Console.WriteLine("API self-hosted successfully at http://localhost:5010");
+    }
+    catch (Exception ex)
+    {
+        var logPath = Path.Combine(AppContext.BaseDirectory, "api-start-error.log");
+        File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n");
+    }
+});
+
+
+// ✅ 2. Log database path (for diagnostics)
+using (var scope = host.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
+    var dbPath = db.Database.GetDbConnection().DataSource;
+
+    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
+        $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
+}
+
+
+// ✅ 3. Run the worker service
 await host.RunAsync();

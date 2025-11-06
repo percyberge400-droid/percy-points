@@ -5,6 +5,8 @@
         public const string POSStatus = "api/POS/Status";
         public const string Configuration = "api/POS/Configuration";
         public const string HeartBeat = "api/POS/HeartBeat";
+        public const string SyncInvoicesAsync = "api/CloudSync/sync-invoices-async";
+        public const string IsLogSyncEnable = "api/CloudSync/is-log-sync-enable";
 
         // Fiscal API
         public const string GetAllUnsyncedAsync = "api/fileRecord/getallunsynced";

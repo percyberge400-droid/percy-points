@@ -50,6 +50,37 @@ namespace POSPRA.Worker
                         continue;
                     }
 
+                    using (var workerScope = _serviceScopeFactory.CreateScope())
+                    {
+                        bool EnabledWorker = false;
+
+                        var fullUrl = $"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}?posId={_appSettings.POS}";
+
+                        using (var httpClient = new HttpClient())
+                        {
+                            try
+                            {
+                                var response = await httpClient.GetAsync(fullUrl);
+                                response.EnsureSuccessStatusCode();
+
+                                string result = await response.Content.ReadAsStringAsync();
+
+                                // Parse string "true"/"false" to bool
+                                EnabledWorker = bool.TryParse(result, out bool parsedValue) && parsedValue;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error calling API: {ex.Message}");
+                            }
+                        }
+
+                        if (!EnabledWorker)
+                        {
+                            await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
+                            continue;
+                        }
+                    }
+
                     bool isCloudSyncEnabled = false;
 
                     try
@@ -86,10 +117,19 @@ namespace POSPRA.Worker
                     {
                         using var scope = _serviceScopeFactory.CreateScope();
                         var invoiceCloudSyncService = scope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
+                        //var logCloudSyncService = scope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
+                        var apiUrlSyncInvoicesAsync = $"{_appSettings.BaseUrl}{Endpoints.SyncInvoicesAsync}?workerId={workerInstanceId}";
+                        var apiUrlIsLogSyncEnable = $"{_appSettings.BaseUrl}{Endpoints.IsLogSyncEnable}";
 
                         try
                         {
-                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
+                            //await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
+                            using var client = _httpClientFactory.CreateClient();
+
+                            var response = await client.PostAsync(apiUrlSyncInvoicesAsync, null, cancellationToken);
+                            var response2 = await client.GetAsync(apiUrlIsLogSyncEnable);
+
+                            //await logCloudSyncService.IsLogSyncEnable();
                         }
                         catch (Exception ex)
                         {
