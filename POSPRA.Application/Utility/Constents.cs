@@ -5,12 +5,17 @@
         public const string POSStatus = "api/POS/Status";
         public const string Configuration = "api/POS/Configuration";
         public const string HeartBeat = "api/POS/HeartBeat";
+        public const string SyncInvoicesAsync = "api/CloudSync/sync-invoices-async";
+        public const string IsLogSyncEnable = "api/CloudSync/is-log-sync-enable";
 
         // Fiscal API
         public const string GetAllUnsyncedAsync = "api/fileRecord/getallunsynced";
         public const string GetAll = "api/fileRecord/getall";
         public const string Create = "api/IMSFiscal/GetInvoiceNumberByModel";
         public const string GetInvoiceWithItems = "api/IMSFiscal/GetInvoiceWithItems";
+        public const string IsCloudSyncEnabledAsync = "api/configuration/iscloud-syncenabled";
+        public const string UpdateFileReacord = "api/fileRecord/update-filereacord";
+        public const string CreateLog = "api/log/create-logAsync";
 
         // Live API
         public const string CreateCloudLog = "api/live/create-cloud-log";

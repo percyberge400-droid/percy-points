@@ -2,6 +2,7 @@
 using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Utility;
 using POSPRA.Domain.Entities;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
@@ -587,7 +588,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async Task CreateLog(string message, string type)
         {
-            var log = new Logs { Message = message, Type = type };
+            var log = new CreateLogDto { Message = message, Type = type };
             await _logService.CreateLogAsync(log);
         }
 

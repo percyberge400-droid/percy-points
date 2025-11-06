@@ -15,7 +15,6 @@ using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
-using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -26,7 +25,6 @@ using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
-using POSPRA.Repositories.UserRepository;
 using POSPRA_WinFormsUI.Forms;
 using System.Drawing.Text;
 
@@ -57,7 +55,7 @@ namespace POSPRA_WinFormsUI
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                //Directory.CreateDirectory(dbDirectory); // ✅ This line must be active
+                Directory.CreateDirectory(dbDirectory); // ✅ This line must be active
             }
 
             // ✅ Initialize SQLite database if needed
@@ -67,7 +65,7 @@ namespace POSPRA_WinFormsUI
 
             using (var context = new SqliteDbContext(sqliteOptions))
             {
-                //context.Database.EnsureCreated(); // Creates the DB file & schema if not present
+                context.Database.EnsureCreated(); // Creates the DB file & schema if not present
             }
 
             // ✅ Load JSON config (for any additional modern config)
@@ -97,7 +95,6 @@ namespace POSPRA_WinFormsUI
             // AutoMapper
             services.AddAutoMapper(cfg =>
             {
-                cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<PosProfile>();
             });
 
@@ -106,11 +103,9 @@ namespace POSPRA_WinFormsUI
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
             services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
-            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFileRecordService, FileRecordService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
@@ -139,7 +134,7 @@ namespace POSPRA_WinFormsUI
 
             // WinForms UI forms
             services.AddTransient<LoginForm2>();
-            
+
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
 

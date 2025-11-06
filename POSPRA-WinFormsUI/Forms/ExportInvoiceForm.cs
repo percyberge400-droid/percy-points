@@ -3,6 +3,7 @@ using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
 using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
@@ -47,7 +48,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async Task CreateLog(string message, string type)
         {
-            await _logService.CreateLogAsync(new Logs { Message = message, Type = type });
+            await _logService.CreateLogAsync(new CreateLogDto { Message = message, Type = type });
         }
 
         private bool ValidateDateRange()

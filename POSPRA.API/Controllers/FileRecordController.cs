@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.FileRecordService;
+using POSPRA.DTOs.FiscalDtos;
 
 namespace POSPRA.API.Controllers
 {
@@ -28,5 +29,16 @@ namespace POSPRA.API.Controllers
         [HttpGet("getallunsynced")]
         public async Task<IActionResult> GetUnSyncedAll() =>
             Ok(await _fileRecordService.GetAllUnsyncedAsync());
+
+
+        /// <summary>
+        /// Retrieves all fiscal invoices that have not yet been synced.
+        /// </summary>
+        /// <returns>
+        /// A list of unsynced invoices with their fiscal details.
+        /// </returns>
+        [HttpPost("update-filereacord")]
+        public async Task<IActionResult> UpdateFileRecordAsync(List<FileRecordDto> dtos) =>
+            Ok(await _fileRecordService.UpdateFileRecordsAsync(dtos));
     }
 }

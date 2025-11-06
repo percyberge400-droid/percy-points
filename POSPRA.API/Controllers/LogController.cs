@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using POSPRA.Application.Services.LogService;
+using POSPRA.DTOs.LogDTOs;
 
 namespace POSPRA.API.Controllers
 {
@@ -13,5 +14,9 @@ namespace POSPRA.API.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAll() =>
             Ok(await _logService.GetAllAsync());
+
+        [HttpPost("create-logAsync")]
+        public async Task<IActionResult> CreateLogAsync(CreateLogDto dto) =>
+            Ok(await _logService.CreateLogAsync(dto));
     }
 }

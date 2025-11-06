@@ -7,6 +7,7 @@ using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -19,7 +20,6 @@ using POSPRA.Application.Services.PosService;
 using POSPRA.Application.Services.POSService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Services.ScriptService;
-using POSPRA.Application.Services.UserService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
 using POSPRA.Repositories.BaseRepository;
@@ -30,7 +30,6 @@ using POSPRA.Repositories.FileRecordRepository;
 using POSPRA.Repositories.LogRepository;
 using POSPRA.Repositories.ProductCatalogueRepository;
 using POSPRA.Repositories.UnitOfWork;
-using POSPRA.Repositories.UserRepository;
 
 namespace POSPRA.API
 {
@@ -133,7 +132,6 @@ namespace POSPRA.API
             //----------------------------------------------------
             builder.Services.AddAutoMapper(cfg =>
             {
-                cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<PosProfile>();
             });
 
@@ -144,7 +142,6 @@ namespace POSPRA.API
             builder.Services.AddScoped<ISqlServerUnitOfWork, SqlServerUnitOfWork>();
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped(typeof(SqlServerRepository<>));
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IFileRecordRepository, FileRecordRepository>();
             builder.Services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             builder.Services.AddScoped<ILogSQLServerRepository, LogSQLServerRepository>();
@@ -156,7 +153,6 @@ namespace POSPRA.API
             //----------------------------------------------------
             // 🔧 Application Services
             //----------------------------------------------------
-            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ILogService, LogService>();
             builder.Services.AddScoped<InvoiceValidatorService>();
             builder.Services.AddScoped<IRequestHeaderService, RequestHeaderService>();
@@ -164,6 +160,7 @@ namespace POSPRA.API
             builder.Services.AddScoped<INetworkService, NetworkService>();
             builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             builder.Services.AddScoped<IClientService, ClientService>();
+            builder.Services.AddScoped<IEnvironmentConfigService, EnvironmentConfigService>();
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
             builder.Services.AddScoped<IFileRecordService, FileRecordService>();
             builder.Services.AddScoped<IConfigurationService, ConfigurationService>();

@@ -658,6 +658,108 @@
           },
           "attemptCount": {
             "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "responseBody": {
+            "type": "string",
+            "nullable": true
+          },
+          "clientIp": {
+            "type": "string",
+            "nullable": true
+          },
+          "clientHost": {
+            "type": "string",
+            "nullable": true
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true
+          },
+          "machineName": {
+            "type": "string",
+            "nullable": true
+          },
+          "applicationName": {
+            "type": "string",
+            "nullable": true
+          },
+          "environmentName": {
+            "type": "string",
+            "nullable": true
+          },
+          "assemblyVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "exceptionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "exceptionMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "stackTrace": {
+            "type": "string",
+            "nullable": true
+          },
+          "innerException": {
+            "type": "string",
+            "nullable": true
+          },
+          "module": {
+            "type": "string",
+            "nullable": true
+          },
+          "actionName": {
+            "type": "string",
+            "nullable": true
+          },
+          "additionalData": {
+            "type": "string",
+            "nullable": true
+          },
+          "workerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "workerInstanceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "workerEvent": {
+            "type": "string",
+            "nullable": true
+          },
+          "workerStartedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "workerStoppedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "workerUptimeSeconds": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "workerHostVersion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FileRecordDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
             "format": "int32"
           },
           "dateCreated": {
@@ -721,6 +823,28 @@
             "format": "int32"
           },
           "saleType": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "InvoiceDto": {
+        "type": "object",
+        "properties": {
+          "posid": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fbrInvoiceNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "usin": {
+            "type": "string",
+            "nullable": true
+          },
+          "invoiceType": {
             "type": "integer",
             "format": "int32"
           },
@@ -787,6 +911,57 @@
           "registrationNumber": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "buyerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "buyerPhoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "paymentMode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalBillAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "refUSIN": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalSaleValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalTaxCharged": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "furtherTax": {
+            "type": "number",
+            "format": "double"
+          },
+          "dateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "invoiceItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceItemDto"
+            },
             "nullable": true
           }
         },
