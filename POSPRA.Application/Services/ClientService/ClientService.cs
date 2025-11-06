@@ -36,13 +36,13 @@ namespace POSPRA.Application.Services.ClientService
 
         public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
         {
-            var output = _environmentConfigService.SetEnvironment(dto.Environment == "Production" ? true : false);
-            if (output.StatusCode != ApiStatusCode.Success)
-                return new ApiResponse<PosClients>(
-                    ApiStatusCode.Error,
-                    ResponseMessages.DataNotFound,
-                    null,
-                    string.Empty);
+            //var output = _environmentConfigService.SetEnvironment(dto.Environment == "Production" ? true : false);
+            //if (output.StatusCode != ApiStatusCode.Success)
+            //    return new ApiResponse<PosClients>(
+            //        ApiStatusCode.Error,
+            //        ResponseMessages.DataNotFound,
+            //        null,
+            //        string.Empty);
 
             // Check POS ID
             var entity = await _clientRepository.FirstOrDefaultAsync(m =>
