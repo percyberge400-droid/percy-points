@@ -7,6 +7,7 @@ using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncLogService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
 using POSPRA.Application.Services.ConfigurationService;
+using POSPRA.Application.Services.EnvironmentConfigService;
 using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.FiscalService;
 using POSPRA.Application.Services.HelperService;
@@ -159,6 +160,7 @@ namespace POSPRA.API
             builder.Services.AddScoped<INetworkService, NetworkService>();
             builder.Services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
             builder.Services.AddScoped<IClientService, ClientService>();
+            builder.Services.AddScoped<IEnvironmentConfigService, EnvironmentConfigService>();
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
             builder.Services.AddScoped<IFileRecordService, FileRecordService>();
             builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
