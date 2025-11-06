@@ -59,7 +59,7 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 
             if (unsyncedFiles.Count == 0)
             {
-                await _workerLogService.LogAsync(AlertType.Info, "No unsynced invoices found.", nameof(SendInvoiceToCloudService), id, "NoData");
+                //await _workerLogService.LogAsync(AlertType.Info, "No unsynced invoices found.", nameof(SendInvoiceToCloudService), id, "NoData");
                 return;
             }
 
