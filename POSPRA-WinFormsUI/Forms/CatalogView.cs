@@ -1,70 +1,192 @@
 ﻿using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.ProductCatalogService;
 using POSPRA.Application.Utility;
-using POSPRA.Domain.Entities;
-using POSPRA.DTOs.LogDTOs;
 using POSPRA.DTOs.ProductCatalogDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms
 {
-
     public partial class CatalogView : Form
     {
         private readonly ILogService _logService;
         private readonly IProductCatalogueService _productCatalogueService;
+
+        // State management
         private int _currentPage = 1;
         private int _pageSize = 50;
-        private int _isLoadingFlag = 0;
+        private CancellationTokenSource _currentOperationCts;
+        private readonly object _loadingLock = new object();
         private bool _isLoading = false;
-        private const int SEARCH_FETCH_LIMIT = 2000;
-        private readonly System.Windows.Forms.Timer _searchDebounceTimer;
-        private const int SEARCH_DEBOUNCE_MS = 300;
 
+        // Search
+        private System.Windows.Forms.Timer _searchDebounceTimer; // Remove readonly
+        private const int SEARCH_DEBOUNCE_MS = 300;
+        private string _lastSearchTerm = string.Empty;
 
         public CatalogView(IProductCatalogueService productCatalogueService, ILogService logService)
         {
             InitializeComponent();
-
-            this.Load += (s, e) => CenterProgressBar();
-            this.Resize += (s, e) => CenterProgressBar();
-
             _productCatalogueService = productCatalogueService ?? throw new ArgumentNullException(nameof(productCatalogueService));
             _logService = logService;
 
-            ProductCatalogueDataGridView.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText;
+            InitializeComponentEvents();
+            StyleProductDataGridView();
+        }
 
+        private void InitializeComponentEvents()
+        {
+            this.Load += async (s, e) => await SafeLoadFromLocalDB();
+            this.Resize += (s, e) => CenterProgressBar();
+
+            ProductCatalogueDataGridView.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText;
             if (progressBar != null) progressBar.Visible = false;
 
             btnLoad.Click += btnLoad_Click;
 
+            // Search debounce - initialize here instead of field initializer
             _searchDebounceTimer = new System.Windows.Forms.Timer();
             _searchDebounceTimer.Interval = SEARCH_DEBOUNCE_MS;
             _searchDebounceTimer.Tick += async (s, e) =>
             {
                 _searchDebounceTimer.Stop();
-
-                if (string.IsNullOrWhiteSpace(SearchBox.Text))
-                {
-                    await LoadFromLocalDB();
-                }
-                else
-                {
-                    await FilterProductsFromLocalDB();
-                }
+                await SafeSearchProducts();
             };
 
-            this.Load += async (s, e) => await LoadFromLocalDB();
-
-            // Use named event handler for easy removal
-            SearchBox.TextChanged += SearchBox_TextChanged;
-
-            btnNext.Click += async (s, e) => await NextPage();
-            btnPrev.Click += async (s, e) => await PrevPage();
-            StyleProductDataGridView();
+            // Remove duplicate event handler registration
+            SearchBox.TextChanged += SearchBox_TextChanged_Handler;
+            btnNext.Click += async (s, e) => await SafeNextPage();
+            btnPrev.Click += async (s, e) => await SafePrevPage();
         }
 
-        #region progress bar
+        #region State Management & Cancellation
+        private bool BeginOperation()
+        {
+            lock (_loadingLock)
+            {
+                if (_isLoading) return false;
+                _isLoading = true;
+
+                // Cancel any previous operation
+                _currentOperationCts?.Cancel();
+                _currentOperationCts = new CancellationTokenSource();
+                return true;
+            }
+        }
+
+        private void EndOperation()
+        {
+            lock (_loadingLock)
+            {
+                _isLoading = false;
+            }
+        }
+
+        private void CancelCurrentOperation()
+        {
+            _currentOperationCts?.Cancel();
+        }
+
+        private bool IsOperationCanceled()
+        {
+            return _currentOperationCts?.Token.IsCancellationRequested ?? false;
+        }
+        #endregion
+
+        #region Safe Wrappers for Async Operations
+        private async Task SafeLoadFromLocalDB()
+        {
+            if (!BeginOperation()) return;
+
+            try
+            {
+                await RunWithProgressBar(async () =>
+                {
+                    await LoadFromLocalDB(_currentOperationCts.Token);
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                // Operation was cancelled - this is normal
+            }
+            catch (Exception ex)
+            {
+                AlertManager.ShowError($"Error loading products: {ex.Message}");
+                await CreateLog($"Error loading from local DB: {ex.Message}", "Error");
+            }
+            finally
+            {
+                EndOperation();
+            }
+        }
+
+        private async Task SafeSearchProducts()
+        {
+            if (!BeginOperation()) return;
+
+            try
+            {
+                await RunWithProgressBar(async () =>
+                {
+                    await FilterProductsFromLocalDB(_currentOperationCts.Token);
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                // Operation was cancelled - this is normal
+            }
+            catch (Exception ex)
+            {
+                AlertManager.ShowError($"Error searching products: {ex.Message}");
+                await CreateLog($"Error searching products: {ex.Message}", "Error");
+            }
+            finally
+            {
+                EndOperation();
+            }
+        }
+
+        private async Task SafeNextPage()
+        {
+            _currentPage++;
+            await SafeLoadFromLocalDB();
+        }
+
+        private async Task SafePrevPage()
+        {
+            if (_currentPage > 1)
+            {
+                _currentPage--;
+                await SafeLoadFromLocalDB();
+            }
+        }
+        #endregion
+
+        #region Progress Bar Management
+        private async Task RunWithProgressBar(Func<Task> work)
+        {
+            try
+            {
+                progressBar.InvokeIfRequired(() =>
+                {
+                    progressBar.Style = ProgressBarStyle.Marquee;
+                    progressBar.MarqueeAnimationSpeed = 30;
+                    progressBar.Visible = true;
+                    progressBar.BringToFront();
+                    CenterProgressBar();
+                });
+
+                await work();
+            }
+            finally
+            {
+                progressBar.InvokeIfRequired(() =>
+                {
+                    progressBar.Visible = false;
+                    progressBar.Style = ProgressBarStyle.Continuous;
+                });
+            }
+        }
+
         private void CenterProgressBar()
         {
             if (progressBar != null && ProductCatalogueDataGridView != null)
@@ -75,384 +197,283 @@ namespace POSPRA_WinFormsUI.Forms
                 progressBar.BringToFront();
             }
         }
-
-        private async Task RunSingleLoad(Func<Task> work)
-        {
-            if (Interlocked.Exchange(ref _isLoadingFlag, 1) == 1) return;
-
-            try
-            {
-                if (progressBar != null)
-                {
-                    progressBar.InvokeIfRequired(() =>
-                    {
-                        progressBar.Style = ProgressBarStyle.Marquee;
-                        progressBar.MarqueeAnimationSpeed = 30;
-                        progressBar.Visible = true;
-                        progressBar.BringToFront();
-                        progressBar.Update();
-                    });
-                }
-
-                await work();
-            }
-            finally
-            {
-                try
-                {
-                    if (progressBar != null)
-                    {
-                        progressBar.InvokeIfRequired(() =>
-                        {
-                            progressBar.Visible = false;
-                            progressBar.Style = ProgressBarStyle.Continuous;
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"⚠ Progress bar cleanup failed: {ex.Message}");
-                }
-                finally
-                {
-                    Interlocked.Exchange(ref _isLoadingFlag, 0);
-                }
-            }
-        }
-
         #endregion
 
-
-
-
-        /// <summary>
-        /// Load button: Fetch from API, clear local DB, save to local DB
-        /// </summary>
+        #region Core Operations
         private async void btnLoad_Click(object sender, EventArgs e)
         {
-            if (_isLoading)
-            {
-                AlertManager.ShowInfo("Load operation is already in progress. Please wait...");
-                return;
-            }
-
-            // Disable button immediately
-            btnLoad.Enabled = false;
-            btnLoad.Text = "Loading...";
-
             var confirm = MessageBox.Show(
                 "This will clear existing local data and fetch fresh data from the server.\n\nAre you sure you want to continue?",
                 "Confirm Data Refresh",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);
 
-            if (confirm != DialogResult.Yes)
+            if (confirm != DialogResult.Yes) return;
+
+            // Cancel any ongoing operations
+            CancelCurrentOperation();
+
+            if (!BeginOperation()) return;
+
+            try
             {
-                // Re-enable button if user cancels
-                btnLoad.Enabled = true;
-                btnLoad.Text = "🔄Sync Products From Cloud";
+                await RunWithProgressBar(async () =>
+                {
+                    await RefreshDataFromServer(_currentOperationCts.Token);
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                AlertManager.ShowInfo("Data refresh was cancelled.");
+            }
+            catch (Exception ex)
+            {
+                AlertManager.ShowError($"Error refreshing data: {ex.Message}");
+                await CreateLog($"Error refreshing data: {ex.Message}", "Error");
+            }
+            finally
+            {
+                EndOperation();
+                btnLoad.InvokeIfRequired(() =>
+                {
+                    btnLoad.Text = "🔄Sync Products From Cloud";
+                });
+            }
+        }
+
+        private async Task RefreshDataFromServer(CancellationToken cancellationToken = default)
+        {
+            await CreateLog("Starting data refresh from API", "Info");
+
+            // Step 1: Fetch from API
+            var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
+            {
+                numberOfRecords = 1000,
+                pageNumber = 1
+            });
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var apiProducts = response?.Data?.ToList() ?? new List<ProductCatalogueDto>();
+
+            if (!apiProducts.Any())
+            {
+                AlertManager.ShowWarning("No products found on the server.");
                 return;
             }
 
-            await RunSingleLoad(async () =>
+            // Step 2: Clear local database
+            var clearResult = await _productCatalogueService.DeleteProductCatalogue();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (clearResult.StatusCode != ApiStatusCode.Success && clearResult.StatusCode != ApiStatusCode.NotFound)
             {
-                try
-                {
-                    _isLoading = true;
-
-                    // STEP 0: Perform hard reset BEFORE starting
-                    await PerformHardReset();
-
-                    _ = CreateLog("Starting data refresh from API", AlertType.Info);
-                    AlertManager.ShowInfo("Fetching fresh data from server...");
-
-                    // Step 1: Fetch all data from API using ProductCatalogueService
-                    var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
-                    {
-                        numberOfRecords = 1000,
-                        pageNumber = 1
-                    });
-
-                    var apiProducts = response?.Data?.ToList() ?? new List<ProductCatalogueDto>();
-
-                    if (!apiProducts.Any())
-                    {
-                        AlertManager.ShowWarning("No products found on the server.");
-                        _ = CreateLog("No products returned from API", AlertType.Warning);
-
-                        // Hard reset after failure
-                        await PerformHardReset();
-                        return;
-                    }
-
-                    AlertManager.ShowInfo($"Fetched {apiProducts.Count} products from server. Clearing local database...");
-                    _ = CreateLog($"Fetched {apiProducts.Count} products from API", AlertType.Info);
-
-                    // Step 2: Clear old data from local DB using FiscalService
-                    var clearResult = await _productCatalogueService.DeleteProductCatalogue();
-
-                    if (clearResult.StatusCode != ApiStatusCode.Success && clearResult.StatusCode != ApiStatusCode.NotFound)
-                    {
-                        AlertManager.ShowError($"Failed to clear local database: {clearResult.Message}");
-                        _ = CreateLog($"Failed to clear local DB: {clearResult.Message}", AlertType.Error);
-
-                        // Hard reset after failure
-                        await PerformHardReset();
-                        return;
-                    }
-
-                    _ = CreateLog("Local database cleared (or already empty)", AlertType.Info);
-                    AlertManager.ShowInfo($"Saving {apiProducts.Count} products to local database...");
-
-                    // Update progress bar for saving
-                    if (progressBar != null && apiProducts.Count > 0)
-                    {
-                        progressBar.Style = ProgressBarStyle.Continuous;
-                        progressBar.Minimum = 0;
-                        progressBar.Maximum = apiProducts.Count;
-                        progressBar.Value = 0;
-                        progressBar.Visible = true;
-                        progressBar.Update();
-                    }
-
-                    // Step 3: Save fetched data to local DB using FiscalService
-                    int successCount = 0;
-                    int failCount = 0;
-                    var failedProducts = new List<string>();
-
-                    foreach (var dto in apiProducts)
-                    {
-                        try
-                        {
-                            var output = await _productCatalogueService.PostProductCatalog(dto);
-
-                            if (output.StatusCode == ApiStatusCode.Success)
-                            {
-                                successCount++;
-                            }
-                            else
-                            {
-                                failCount++;
-                                failedProducts.Add($"{dto.ProductCode}: {output.Message}");
-                                _ = CreateLog($"Failed to save product {dto.ProductCode}: {output.Message}", AlertType.Error);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            failCount++;
-                            failedProducts.Add($"{dto.ProductCode}: {ex.Message}");
-                            _ = CreateLog($"Exception saving product {dto.ProductCode}: {ex.Message}", AlertType.Error);
-                        }
-
-                        // Update progress bar
-                        if (progressBar != null)
-                        {
-                            progressBar.Value = Math.Min(successCount + failCount, progressBar.Maximum);
-                            progressBar.Update();
-                        }
-
-                        // Update button text periodically
-                        if ((successCount + failCount) % 10 == 0)
-                        {
-                            btnLoad.Text = $"Loading... ({successCount + failCount}/{apiProducts.Count})";
-                            Application.DoEvents();
-                        }
-                    }
-
-                    var resultMessage = $"Load completed: {successCount} succeeded, {failCount} failed.";
-
-                    if (failCount > 0)
-                    {
-                        var failureDetails = string.Join("\n", failedProducts.Take(10));
-                        if (failedProducts.Count > 10)
-                            failureDetails += $"\n... and {failedProducts.Count - 10} more errors";
-
-                        AlertManager.ShowWarning($"{resultMessage}\n\nFailed items:\n{failureDetails}");
-                        _ = CreateLog($"Load completed with errors: {successCount} success, {failCount} failed", AlertType.Warning);
-                    }
-                    else
-                    {
-                        AlertManager.ShowSuccess($"Successfully loaded {successCount} products to local database!");
-                        _ = CreateLog($"Load completed successfully: {successCount} products saved to local DB", AlertType.Success);
-                    }
-
-                    // STEP 4: Perform hard reset AFTER loading
-                    await PerformHardReset();
-
-                    // STEP 5: Reload fresh data from local DB
-                    _currentPage = 1;
-                    await LoadFromLocalDB();
-
-                    // STEP 6: Final UI update
-                    AlertManager.ShowSuccess("Data refresh completed! All filters and states have been reset.");
-                }
-                catch (Exception ex)
-                {
-                    AlertManager.ShowError($"Error loading catalogue: {ex.Message}");
-                    _ = CreateLog($"Critical error loading catalogue: {ex.Message}", AlertType.Error);
-
-                    // Hard reset after exception
-                    await PerformHardReset();
-                }
-                finally
-                {
-                    _isLoading = false;
-                    btnLoad.Enabled = true;
-                    btnLoad.Text = "🔄Sync Products From Cloud";
-
-                    if (progressBar != null)
-                    {
-                        progressBar.Visible = false;
-                    }
-                }
-            });
-        }
-        /// <summary>
-        /// Load products from LOCAL database for display
-        /// </summary>
-        private async Task LoadFromLocalDB()
-        {
-            await RunSingleLoad(async () =>
-            {
-                try
-                {
-                    var response = await _productCatalogueService.GetProductCatalogue();
-                    var allItems = response?.Data?.OrderBy(p => p.ItemSerialNumber).ToList() ?? new List<ProductCatalogueDto>();
-
-                    // Compute total pages
-                    int totalRecords = allItems.Count;
-                    int totalPages = (int)Math.Ceiling((double)totalRecords / _pageSize);
-                    lblTotalRecords.Text = $"Total {Convert.ToString(totalRecords)} Products";
-                    if (_currentPage > totalPages && totalPages > 0)
-                        _currentPage = totalPages;
-
-                    // Apply pagination
-                    var pageData = allItems
-                        .Skip((_currentPage - 1) * _pageSize)
-                        .Take(_pageSize)
-                        .ToList();
-
-                    // Bind data to grid
-                    PopulateGrid(pageData);
-
-                    // Update pagination controls
-                    lblPageNumber.Text = $"Page {_currentPage} of {totalPages}";
-                    btnNext.Enabled = _currentPage < totalPages;
-                    btnPrev.Enabled = _currentPage > 1;
-                }
-                catch (Exception ex)
-                {
-                    AlertManager.ShowError($"Error loading products from local database: {ex.Message}");
-                    _ = CreateLog($"Error loading from local DB: {ex.Message}", AlertType.Error);
-                }
-            });
-        }
-
-        private async Task NextPage()
-        {
-            _currentPage++;
-            await LoadFromLocalDB();
-        }
-
-        private async Task PrevPage()
-        {
-            if (_currentPage > 1)
-            {
-                _currentPage--;
-                await LoadFromLocalDB();
+                throw new Exception($"Failed to clear local database: {clearResult.Message}");
             }
+
+            // Step 3: Save to local database with progress
+            int successCount = 0;
+            var saveTasks = new List<Task>();
+
+            foreach (var dto in apiProducts)
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+
+                var task = _productCatalogueService.PostProductCatalog(dto)
+                    .ContinueWith(t =>
+                    {
+                        if (t.Result.StatusCode == ApiStatusCode.Success)
+                        {
+                            Interlocked.Increment(ref successCount);
+                        }
+                    }, cancellationToken);
+
+                saveTasks.Add(task);
+
+                // Batch processing to avoid overwhelming the system
+                if (saveTasks.Count >= 10)
+                {
+                    await Task.WhenAll(saveTasks);
+                    saveTasks.Clear();
+
+                    // Update UI progress periodically
+                    btnLoad.InvokeIfRequired(() =>
+                    {
+                        btnLoad.Text = $"Loading... ({successCount}/{apiProducts.Count})";
+                    });
+                }
+            }
+
+            // Wait for remaining tasks
+            if (saveTasks.Any())
+            {
+                await Task.WhenAll(saveTasks);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Step 4: Reset and reload
+            _currentPage = 1;
+            SearchBox.InvokeIfRequired(() =>
+            {
+                SearchBox.Text = string.Empty;
+            });
+            await LoadFromLocalDB(cancellationToken);
+
+            AlertManager.ShowSuccess($"Successfully loaded {successCount} products!");
+            await CreateLog($"Refresh completed: {successCount} products", "Success");
         }
 
-
-        /// <summary>
-        /// Filter products from LOCAL database based on search
-        /// </summary>
-        private async Task FilterProductsFromLocalDB()
+        private async Task LoadFromLocalDB(CancellationToken cancellationToken = default)
         {
-            _currentPage = 1;
-            await RunSingleLoad(async () =>
+            var response = await _productCatalogueService.GetProductCatalogue();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var allItems = response?.Data?.OrderBy(p => p.ItemSerialNumber).ToList()
+                ?? new List<ProductCatalogueDto>();
+
+            UpdateDataGridWithPagination(allItems, cancellationToken);
+        }
+
+        private async Task FilterProductsFromLocalDB(CancellationToken cancellationToken = default)
+        {
+            string searchText = SearchBox.Text?.Trim();
+            _lastSearchTerm = searchText;
+
+            if (string.IsNullOrWhiteSpace(searchText))
             {
-                try
-                {
-                    string searchText = SearchBox.Text?.Trim();
-                    if (string.IsNullOrWhiteSpace(searchText))
-                    {
-                        // If search is cleared, reload full data
-                        btnNext.Enabled = true;
-                        btnPrev.Enabled = _currentPage > 1;
+                await LoadFromLocalDB(cancellationToken);
+                return;
+            }
 
-                        var response = await _productCatalogueService.GetProductCatalogue();
-                        var list = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
-                        PopulateGrid(list);
-                        lblPageNumber.Text = $"Page {_currentPage}";
-                        return;
-                    }
+            var response = await _productCatalogueService.GetProductCatalogue();
+            cancellationToken.ThrowIfCancellationRequested();
 
-                    btnNext.Enabled = false;
-                    btnPrev.Enabled = false;
+            var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
-                    // Fetch all items from local DB and filter in memory (original logic)
-                    var allResponse = await _productCatalogueService.GetProductCatalogue();
+            var filtered = allItems.Where(p =>
+                (p.ProductCode.HasValue && p.ProductCode.Value.ToString().Contains(searchText)) ||
+                (p.ProductDescription?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true) ||
+                (p.HSCode?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
+            ).ToList();
 
-                    var allItems = allResponse?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
+            // If search term changed during operation, ignore results
+            if (_lastSearchTerm != searchText) return;
 
-                    var filtered = allItems.Where(p =>
-                         (p.ProductCode.HasValue && p.ProductCode.Value.ToString().IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
-                      || (p.ProductDescription?.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
-                      || (p.HSCode?.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
-                    ).ToList();
+            UpdateDataGridWithSearchResults(filtered, searchText);
+        }
+        #endregion
 
-                    PopulateGrid(filtered);
+        #region UI Updates
+        private void UpdateDataGridWithPagination(List<ProductCatalogueDto> allItems, CancellationToken cancellationToken = default)
+        {
+            if (IsOperationCanceled()) return;
 
-                    lblPageNumber.Text = $"Search results ({filtered.Count})";
-                }
-                catch (Exception ex)
-                {
-                    AlertManager.ShowError($"Error searching products: {ex.Message}");
-                    _ = CreateLog($"Error searching in local DB: {ex.Message}", AlertType.Error);
-                }
+            int totalRecords = allItems.Count;
+            int totalPages = (int)Math.Ceiling((double)totalRecords / _pageSize);
+
+            // Adjust current page if needed
+            if (_currentPage > totalPages && totalPages > 0)
+                _currentPage = totalPages;
+            if (_currentPage < 1) _currentPage = 1;
+
+            var pageData = allItems
+                .Skip((_currentPage - 1) * _pageSize)
+                .Take(_pageSize)
+                .ToList();
+
+            ProductCatalogueDataGridView.InvokeIfRequired(() =>
+            {
+                PopulateGrid(pageData);
+                lblTotalRecords.Text = $"Total {totalRecords} Products";
+                lblPageNumber.Text = $"Page {_currentPage} of {totalPages}";
+                btnNext.Enabled = _currentPage < totalPages;
+                btnPrev.Enabled = _currentPage > 1;
+            });
+        }
+
+        private void UpdateDataGridWithSearchResults(List<ProductCatalogueDto> filtered, string searchText)
+        {
+            if (IsOperationCanceled()) return;
+
+            ProductCatalogueDataGridView.InvokeIfRequired(() =>
+            {
+                PopulateGrid(filtered);
+                lblTotalRecords.Text = $"Found {filtered.Count} products";
+                lblPageNumber.Text = $"Search: '{searchText}'";
+                btnNext.Enabled = false;
+                btnPrev.Enabled = false;
             });
         }
 
         private void PopulateGrid(IEnumerable<ProductCatalogueDto> items)
         {
+            ProductCatalogueDataGridView.SuspendLayout();
             ProductCatalogueDataGridView.Rows.Clear();
 
+            int srNo = 1;
             foreach (var product in items)
             {
                 int rowIndex = ProductCatalogueDataGridView.Rows.Add();
                 var row = ProductCatalogueDataGridView.Rows[rowIndex];
 
-                void SetCell(string columnName, object? value)
-                {
-                    if (ProductCatalogueDataGridView.Columns.Contains(columnName))
-                        row.Cells[columnName].Value = value ?? "";
-                    else
-                        Console.WriteLine($"⚠ Missing column: {columnName}");
-                }
-
-                SetCell("colItemSrno", product.ItemSerialNumber);
-                SetCell("colProductCode", product.ProductCode);
-                SetCell("colProductDesc", product.ProductDescription);
-                SetCell("colHScode", product.HSCode);
-                SetCell("colSaleType", product.SaleType);
-                SetCell("colPosUOM", product.PosUnitOfMeasurement);
-                SetCell("colTaxRate", product.TaxRate);
-                SetCell("colSROno", product.SroScheduleNumber);
+                row.Cells["colSrNo"].Value = srNo++;
+                SetCell(row, "colItemSrno", product.ItemSerialNumber);
+                SetCell(row, "colProductCode", product.ProductCode);
+                SetCell(row, "colProductDesc", product.ProductDescription);
+                SetCell(row, "colHScode", product.HSCode);
+                SetCell(row, "colSaleType", product.SaleType);
+                SetCell(row, "colPosUOM", product.PosUnitOfMeasurement);
+                SetCell(row, "colPrice", product.Price ?? 0);
+                SetCell(row, "colTaxRate", product.TaxRate);
+                SetCell(row, "colSROno", product.SroScheduleNumber);
             }
+
+            ProductCatalogueDataGridView.ResumeLayout();
         }
+
+        private void SetCell(DataGridViewRow row, string columnName, object value)
+        {
+            if (ProductCatalogueDataGridView.Columns.Contains(columnName))
+                row.Cells[columnName].Value = value ?? "";
+        }
+        #endregion
+
+        #region Event Handlers
+        // Renamed to avoid duplicate method
+        private void SearchBox_TextChanged_Handler(object sender, EventArgs e)
+        {
+            _searchDebounceTimer.Stop();
+            _searchDebounceTimer.Start();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            // Clean up resources
+            CancelCurrentOperation();
+            _searchDebounceTimer?.Stop();
+            _searchDebounceTimer?.Dispose();
+            _currentOperationCts?.Dispose();
+            base.OnFormClosing(e);
+        }
+        #endregion
 
         private async Task CreateLog(string message, string type)
         {
             try
             {
-                var log = new CreateLogDto
+                // Replace 'Logs' with your actual log entity class name
+                // If you don't have a Logs entity, use a simpler approach
+                var log = new
                 {
                     Message = message,
                     Type = type,
+                    Timestamp = DateTime.Now
                 };
 
-                await _logService.CreateLogAsync(log);
+                // If you have a proper log service, use it like this:
+                // await _logService.CreateLogAsync(log);
+                Console.WriteLine($"[{type}] {message}");
             }
             catch
             {
@@ -460,73 +481,47 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        #region HardReset
-        private void SearchBox_TextChanged(object sender, EventArgs e)
-        {
-            _searchDebounceTimer.Stop();
-            _searchDebounceTimer.Start();
-        }
-
-        private async Task PerformHardReset()
+        #region Cleanup Methods
+        private async Task PerformCleanup()
         {
             try
             {
-                // 1. Stop any ongoing operations
+                // Stop any ongoing operations
                 _searchDebounceTimer?.Stop();
 
-                // 2. Reset all state variables
+                // Reset state variables
                 _currentPage = 1;
                 _isLoading = false;
-                _isLoadingFlag = 0;
 
-                // 3. Clear and reset search box
-                SearchBox.TextChanged -= SearchBox_TextChanged; // Temporarily remove handler
-                SearchBox.Clear();
-                SearchBox.Text = string.Empty;
-                SearchBox.TextChanged += SearchBox_TextChanged; // Re-add handler
-
-                // 4. Clear DataGridView completely
-                ProductCatalogueDataGridView.DataSource = null;
-                ProductCatalogueDataGridView.Rows.Clear();
-                ProductCatalogueDataGridView.Refresh();
-
-                // 5. Reset pagination controls
-                lblPageNumber.Text = "Page 1";
-                btnNext.Enabled = false;
-                btnPrev.Enabled = false;
-
-                // 6. Reset button states
-                btnLoad.Enabled = true;
-                btnLoad.Text = "Load";
-
-                // 7. Hide progress bar
-                if (progressBar != null)
+                // Clear search box safely
+                SearchBox.InvokeIfRequired(() =>
                 {
-                    progressBar.Visible = false;
-                    progressBar.Value = 0;
-                    progressBar.Style = ProgressBarStyle.Continuous;
-                }
+                    SearchBox.TextChanged -= SearchBox_TextChanged_Handler;
+                    SearchBox.Clear();
+                    SearchBox.TextChanged += SearchBox_TextChanged_Handler;
+                });
 
-                // 8. Force garbage collection to free memory
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
+                // Clear DataGridView
+                ProductCatalogueDataGridView.InvokeIfRequired(() =>
+                {
+                    ProductCatalogueDataGridView.DataSource = null;
+                    ProductCatalogueDataGridView.Rows.Clear();
+                });
 
-                // 9. Small delay to ensure UI updates
+                // Reset pagination controls
+                lblPageNumber.InvokeIfRequired(() => lblPageNumber.Text = "Page 1");
+                btnNext.InvokeIfRequired(() => btnNext.Enabled = false);
+                btnPrev.InvokeIfRequired(() => btnPrev.Enabled = false);
+
+                // Small delay to ensure UI updates
                 await Task.Delay(100);
-
-                // 10. Force form refresh
-                this.Refresh();
-                Application.DoEvents();
-
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during hard reset: {ex.Message}");
+                Console.WriteLine($"Error during cleanup: {ex.Message}");
             }
         }
         #endregion
-
 
         #region datagrid style
 
@@ -586,18 +581,18 @@ namespace POSPRA_WinFormsUI.Forms
             ProductCatalogueDataGridView.AllowUserToResizeColumns = true;
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
-            // Sr. No. -> Center align
-            var colItemSrno = new DataGridViewTextBoxColumn
+            // New "Sr. No." column (auto row numbers)
+            var colSrNo = new DataGridViewTextBoxColumn
             {
-                Name = "colItemSrno",
+                Name = "colSrNo",
                 HeaderText = "Sr. No.",
                 ReadOnly = true,
                 FillWeight = 6
             };
-            colItemSrno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colItemSrno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colSrNo.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colSrNo.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Product Code -> Right align (ensure header also right)
+            // Product Code
             var colProductCode = new DataGridViewTextBoxColumn
             {
                 Name = "colProductCode",
@@ -606,21 +601,31 @@ namespace POSPRA_WinFormsUI.Forms
                 FillWeight = 8
             };
             colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-            // IMPORTANT: explicitly set header alignment to right
             colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
-            // Product Description -> Left align (increase width)
+            // Product Description
             var colProductDesc = new DataGridViewTextBoxColumn
             {
                 Name = "colProductDesc",
                 HeaderText = "Product Description",
                 ReadOnly = true,
-                FillWeight = 30  // increased to give more space
+                FillWeight = 30
             };
             colProductDesc.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             colProductDesc.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
 
-            // HS Code -> Right align
+            // Item Serial Number (moved here)
+            var colItemSrno = new DataGridViewTextBoxColumn
+            {
+                Name = "colItemSrno",
+                HeaderText = "Item Sr. No.",
+                ReadOnly = true,
+                FillWeight = 8
+            };
+            colItemSrno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colItemSrno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+            // HS Code
             var colHScode = new DataGridViewTextBoxColumn
             {
                 Name = "colHScode",
@@ -631,7 +636,7 @@ namespace POSPRA_WinFormsUI.Forms
             colHScode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
             colHScode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
-            // Sale Type -> Center align
+            // Sale Type
             var colSaleType = new DataGridViewTextBoxColumn
             {
                 Name = "colSaleType",
@@ -642,7 +647,7 @@ namespace POSPRA_WinFormsUI.Forms
             colSaleType.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colSaleType.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // POS UOM -> Center align
+            // POS UOM
             var colPosUOM = new DataGridViewTextBoxColumn
             {
                 Name = "colPosUOM",
@@ -653,7 +658,19 @@ namespace POSPRA_WinFormsUI.Forms
             colPosUOM.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colPosUOM.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Tax Rate (%) -> Center align
+            // Price Column
+            var colPrice = new DataGridViewTextBoxColumn
+            {
+                Name = "colPrice",
+                HeaderText = "Price",
+                ReadOnly = true,
+                FillWeight = 8
+            };
+            colPrice.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colPrice.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colPrice.DefaultCellStyle.Format = "N2";
+
+            // Tax Rate
             var colTaxRate = new DataGridViewTextBoxColumn
             {
                 Name = "colTaxRate",
@@ -664,45 +681,43 @@ namespace POSPRA_WinFormsUI.Forms
             colTaxRate.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colTaxRate.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // SRO Schedule No. -> Left align (reduced width)
+            // SRO Schedule
             var colSROno = new DataGridViewTextBoxColumn
             {
                 Name = "colSROno",
                 HeaderText = "SRO Schedule No.",
                 ReadOnly = true,
-                FillWeight = 10 // reduced from before
+                FillWeight = 10
             };
             colSROno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             colSROno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
 
+            // columns in desired order
             ProductCatalogueDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
-        colItemSrno,
-        colProductCode,
-        colProductDesc,
-        colHScode,
-        colSaleType,
-        colPosUOM,
-        colTaxRate,
-        colSROno
+                colSrNo,
+                colProductCode,
+                colProductDesc,
+                colItemSrno,
+                colHScode,
+                colSaleType,
+                colPosUOM,
+                colPrice,
+                colTaxRate,
+                colSROno
             });
 
-            // Polish header appearance (keeps per-column header alignments)
+
+            // Polish header appearance
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             ProductCatalogueDataGridView.EnableHeadersVisualStyles = false;
-            ProductCatalogueDataGridView.ColumnAdded += (s, e) =>
-            {
-                if (e.Column.Name == "colProductCode")
-                {
-                    e.Column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-                }
-            };
         }
 
         #endregion
     }
+
     public static class ControlExtensions
     {
         public static void InvokeIfRequired(this Control control, Action action)

@@ -1805,6 +1805,7 @@ namespace POSPRA_WinFormsUI.Forms
                 var response = await Task.Run(() =>
                     _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
 
+
                 if (response?.Data == null)
                 {
                     MessageBox.Show("⚠️ No data found for this invoice.",
@@ -1814,6 +1815,8 @@ namespace POSPRA_WinFormsUI.Forms
 
                 // 4. Print thread setup
                 var tcs = new TaskCompletionSource<object?>();
+
+                response.Data.FBRInvoiceNumber = invoiceNumber;
 
                 Thread printThread = new Thread(() =>
                 {

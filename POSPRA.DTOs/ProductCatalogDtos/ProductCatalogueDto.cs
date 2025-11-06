@@ -8,6 +8,7 @@
         public string? HSCode { get; set; }
         public string? SaleType { get; set; }
         public string? PosUnitOfMeasurement { get; set; }
+        public decimal? Price { get; set; }
         public string? TaxRate { get; set; }
         public string? SroScheduleNumber { get; set; }
     }

@@ -146,6 +146,7 @@ namespace POSPRA_WinFormsUI.Forms
             });
             byte[] logo = LoadCompanyLogo();
             byte[] praLogo = LoadPraLogo();
+
             byte[] qr = GenerateQRCode(dto.FBRInvoiceNumber);
 
             var headerRow = headerTable.NewRow();
@@ -210,10 +211,10 @@ namespace POSPRA_WinFormsUI.Forms
                     return ms.ToArray();
                 }
             }
-            catch 
+            catch
             {
                 return Array.Empty<byte>();
-            }   
+            }
             //string logoKey = ConfigurationManager.AppSettings["LOGO-new"];
             //if (!string.IsNullOrEmpty(logoKey))
             //{
