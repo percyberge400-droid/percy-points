@@ -1905,7 +1905,7 @@ namespace POSPRA_WinFormsUI
             // Item Code (comes from pctCode textbox - PCT Code)
             if (string.IsNullOrWhiteSpace(inputData.ItemCode))
             {
-                AlertManager.ShowError("Please enter a HS Code.");
+                AlertManager.ShowError("Please enter HS Code.");
                 this.BeginInvoke(new Action(() => pctCode.Focus()));
                 return false;
             }

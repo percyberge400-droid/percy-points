@@ -158,24 +158,24 @@ namespace POSPRA_WinFormsUI.Forms
                             // Map CSV column indexes (0-based) to custom headers
                             var columnMap = new (int Index, string Header)[]
                             {
-                                (1, "Invoice Number"),      // FBRInvoiceNumber
-                                (3, "USIN"),                // USIN
-                                (2, "POSID"),               // POSID
-                                (20, "Buyer NTN"),          // BuyerNTN
-                                (22, "Buyer CNIC"),         // BuyerCNIC
-                                (5, "Buyer Name"),          // BuyerName
-                                (6, "Buyer Phone Number"),  // BuyerPhoneNumber
-                                (7, "Total Sale Value"),    // TotalSaleValue
-                                (8, "Total Quantity"),      // TotalQuantity
-                                (9, "Total Tax Charged"),   // TotalTaxCharged
-                                (10, "Discount"),           // Discount
-                                (11, "Total Bill Amount"),  // TotalBillAmount
-                                (12, "Payment Mode"),       // PaymentMode
+                                (1, "Invoice Number"),         // FBRInvoiceNumber
+                                (3, "USIN"),                   // USIN
+                                (2, "POSID"),                  // POSID
+                                (20, "Buyer NTN"),             // BuyerNTN
+                                (22, "Buyer CNIC"),            // BuyerCNIC
+                                (5, "Buyer Name"),             // BuyerName
+                                (6, "Buyer Phone Number"),     // BuyerPhoneNumber
+                                (7, "Total Sale Value"),       // TotalSaleValue
+                                (8, "Total Quantity"),         // TotalQuantity
+                                (9, "Total Tax Charged"),      // TotalTaxCharged
+                                (10, "Discount"),              // Discount
+                                (11, "Total Bill Amount"),     // TotalBillAmount
+                                (12, "Payment Mode"),          // PaymentMode
                                 (4, "Invoice Entry DateTime"), // EntryDate
                                 (13, "Synced DateTime"),       // DateTime
-                                (16, "Invoice Type"),       // InvoiceType
-                                (17, "RefUSIN"),            // RefUSIN
-                                (21, "Further Tax"),        // FurtherTax
+                                (16, "Invoice Type"),          // InvoiceType
+                                (17, "RefUSIN"),               // RefUSIN
+                                (21, "Further Tax"),           // FurtherTax
                             };
 
                             for (int i = 0; i < lines.Length; i++)
