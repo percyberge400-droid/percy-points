@@ -598,10 +598,10 @@ namespace POSPRA_WinFormsUI.Forms
                 Name = "colProductCode",
                 HeaderText = "Product Code",
                 ReadOnly = true,
-                FillWeight = 8
+                FillWeight = 10
             };
-            colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // Product Description
             var colProductDesc = new DataGridViewTextBoxColumn
@@ -629,7 +629,7 @@ namespace POSPRA_WinFormsUI.Forms
             var colHScode = new DataGridViewTextBoxColumn
             {
                 Name = "colHScode",
-                HeaderText = "HS Code",
+                HeaderText = "   HS Code",
                 ReadOnly = true,
                 FillWeight = 8
             };
@@ -662,9 +662,9 @@ namespace POSPRA_WinFormsUI.Forms
             var colPrice = new DataGridViewTextBoxColumn
             {
                 Name = "colPrice",
-                HeaderText = "Price",
+                HeaderText = "   Price",
                 ReadOnly = true,
-                FillWeight = 8
+                FillWeight = 6
             };
             colPrice.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
             colPrice.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
