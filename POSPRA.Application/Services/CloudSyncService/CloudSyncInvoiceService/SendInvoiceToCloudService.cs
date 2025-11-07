@@ -56,13 +56,8 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 
             if (syncedFiles.Count > 0)
             {
-                var jsonBody = JsonSerializer.Serialize(syncedFiles);
-                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                var updateRecordUrl = $"{_baseUrl}{Endpoints.UpdateFileReacord}";
-
-                var updateResponse = await _http.PostAsync(updateRecordUrl, content, token);
-                if (updateResponse.IsSuccessStatusCode)
-                {
+                var updateResponse = await _fileRecordService.UpdateFileRecordsAsync(syncedFiles);
+                if (updateResponse.StatusCode == ApiStatusCode.Success)
                     foreach (var file in syncedFiles)
                     {
                         await _workerLogService.LogAsync(
@@ -72,7 +67,6 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
                             id,
                             "InvoiceSynced");
                     }
-                }
             }
         }
         catch (Exception ex)
