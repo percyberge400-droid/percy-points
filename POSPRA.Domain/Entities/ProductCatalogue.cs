@@ -28,6 +28,10 @@ namespace POSPRA.Domain.Entities
 
         [Required]
         [MaxLength(50)]
+        [Column("Price")]
+        public decimal? Price { get; set; }
+        [Required]
+        [MaxLength(50)]
         [Column("POSUnitOfMeasurement")]
         public string? PosUnitOfMeasurement { get; set; }
 

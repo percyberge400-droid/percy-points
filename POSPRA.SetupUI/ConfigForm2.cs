@@ -176,8 +176,8 @@ namespace POSPRA.SetupUI
                 {
                     StopWorkerService();
 
-                    // ✅ Ask user if they want to uninstall
-                    var result = MessageBox.Show(
+                    // Ask user if they want to uninstall
+                    var result = MessageBox.Show(this,
                         "The Fiscal service was detected and stopped.\nDo you want to uninstall the existing service?",
                         "Uninstall Service",
                         MessageBoxButtons.YesNo,
