@@ -118,16 +118,16 @@ namespace POSPRA.Worker
                         using var scope = _serviceScopeFactory.CreateScope();
                         var invoiceCloudSyncService = scope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
                         //var logCloudSyncService = scope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
-                        var apiUrlSyncInvoicesAsync = $"{_appSettings.BaseUrl}{Endpoints.SyncInvoicesAsync}?workerId={workerInstanceId}";
-                        var apiUrlIsLogSyncEnable = $"{_appSettings.BaseUrl}{Endpoints.IsLogSyncEnable}";
+                        //var apiUrlSyncInvoicesAsync = $"{_appSettings.BaseUrl}{Endpoints.SyncInvoicesAsync}?workerId={workerInstanceId}";
+                        //var apiUrlIsLogSyncEnable = $"{_appSettings.BaseUrl}{Endpoints.IsLogSyncEnable}";
 
                         try
                         {
-                            //await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
-                            using var client = _httpClientFactory.CreateClient();
+                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
+                            //using var client = _httpClientFactory.CreateClient();
 
-                            var response = await client.PostAsync(apiUrlSyncInvoicesAsync, null, cancellationToken);
-                            var response2 = await client.GetAsync(apiUrlIsLogSyncEnable);
+                            //var response = await client.PostAsync(apiUrlSyncInvoicesAsync, null, cancellationToken);
+                            //var response2 = await client.GetAsync(apiUrlIsLogSyncEnable);
 
                             //await logCloudSyncService.IsLogSyncEnable();
                         }
