@@ -491,7 +491,7 @@
               <TextRun>
                 <Value>=First(Fields!ModeOfPayment.Value, "HeaderDataSet")</Value>
                 <Style>
-                  <FontSize>6.2pt</FontSize>
+                  <FontSize>6.8pt</FontSize>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -503,7 +503,7 @@
         <Top>1.73612in</Top>
         <Left>3.65768cm</Left>
         <Height>0.2in</Height>
-        <Width>3.12722cm</Width>
+        <Width>3.14735cm</Width>
         <ZIndex>2</ZIndex>
         <Style>
           <Border>
@@ -1311,11 +1311,21 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>Powered by PRAL</Value>
+                <Value>Powered by</Value>
+                <Style>
+                  <FontStyle>Normal</FontStyle>
+                  <FontSize>6.5pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                  <TextDecoration>None</TextDecoration>
+                </Style>
+              </TextRun>
+              <TextRun>
+                <Value> PRAL</Value>
                 <Style>
                   <FontStyle>Normal</FontStyle>
                   <FontSize>6.5pt</FontSize>
                   <FontWeight>SemiBold</FontWeight>
+                  <TextDecoration>None</TextDecoration>
                 </Style>
               </TextRun>
             </TextRuns>
