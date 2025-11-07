@@ -240,12 +240,12 @@ namespace POSPRA_WinFormsUI.Forms
 
         private bool ValidateLoginFields()
         {
-            // Check for empty POS ID or Token
+            // Check for empty POS ID or Access Code
             if (string.IsNullOrWhiteSpace(txtUsername.Text) || string.IsNullOrWhiteSpace(txtPassword.Text))
             {
                 if (string.IsNullOrWhiteSpace(txtUsername.Text) && string.IsNullOrWhiteSpace(txtPassword.Text))
                 {
-                    AlertManager.ShowError("POS ID and Token cannot be empty.");
+                    AlertManager.ShowError("POS ID and Access Code cannot be empty.");
                     this.BeginInvoke(new Action(() => txtUsername.Focus()));
                 }
                 else if (string.IsNullOrWhiteSpace(txtUsername.Text))
@@ -255,7 +255,7 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else if (string.IsNullOrWhiteSpace(txtPassword.Text))
                 {
-                    AlertManager.ShowError("Token is required.");
+                    AlertManager.ShowError("Access Code is required.");
                     this.BeginInvoke(new Action(() => txtPassword.Focus()));
                 }
 

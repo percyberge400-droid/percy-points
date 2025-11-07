@@ -618,9 +618,9 @@ namespace POSPRA_WinFormsUI.Forms
             var colItemSrno = new DataGridViewTextBoxColumn
             {
                 Name = "colItemSrno",
-                HeaderText = "Item Sr. No.",
+                HeaderText = "Item Sr No",
                 ReadOnly = true,
-                FillWeight = 8
+                FillWeight = 7
             };
             colItemSrno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colItemSrno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -687,7 +687,7 @@ namespace POSPRA_WinFormsUI.Forms
                 Name = "colSROno",
                 HeaderText = "SRO Schedule No.",
                 ReadOnly = true,
-                FillWeight = 10
+                FillWeight = 11
             };
             colSROno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             colSROno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
@@ -698,13 +698,13 @@ namespace POSPRA_WinFormsUI.Forms
                 colSrNo,
                 colProductCode,
                 colProductDesc,
-                colItemSrno,
                 colHScode,
                 colSaleType,
                 colPosUOM,
                 colPrice,
                 colTaxRate,
-                colSROno
+                colSROno,
+                colItemSrno
             });
 
 

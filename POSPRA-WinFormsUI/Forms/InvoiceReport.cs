@@ -176,17 +176,17 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["Address"] = branchName + ",  " + branchAddress; //dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.USIN ?? string.Empty;
             headerRow["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
-            headerRow["Total"] = dto.TotalBillAmount;
+            headerRow["Total"] = Math.Round(dto.TotalBillAmount, 0, MidpointRounding.AwayFromZero);
             headerRow["POSID"] = dto.POSID.ToString();
-            headerRow["TotalTax"] = dto.TotalTaxCharged;
-            headerRow["Discount"] = dto.Discount;
+            headerRow["TotalTax"] = Math.Round(dto.TotalTaxCharged, 0, MidpointRounding.AwayFromZero);
+            headerRow["Discount"] = Math.Round(dto.Discount, 0, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
             headerTable.Rows.Add(headerRow);
             //int serial = 1;
             foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
-                row["Amount"] = item.TotalAmount + item.Discount;
+                row["Amount"] = Math.Round(item.TotalAmount + item.Discount, 0, MidpointRounding.AwayFromZero);
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
                 row["TaxRate"] = item.TaxRate;
@@ -215,20 +215,6 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 return Array.Empty<byte>();
             }
-            //string logoKey = ConfigurationManager.AppSettings["LOGO-new"];
-            //if (!string.IsNullOrEmpty(logoKey))
-            //{
-            //    var res = Resources.ResourceManager.GetObject(logoKey);
-            //    if (res is Image img)
-            //    {
-            //        using (MemoryStream ms = new MemoryStream())
-            //        {
-            //            img.Save(ms, ImageFormat.Png);
-            //            return ms.ToArray();
-            //        }
-            //    }
-            //}
-            //return SafeReadImage(logo);
         }
 
 
