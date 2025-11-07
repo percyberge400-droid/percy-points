@@ -169,6 +169,7 @@ namespace POSPRA.API
             builder.Services.AddScoped<ISendLogToCloudService, SendLogToCloudService>();
             builder.Services.AddScoped<IScriptService, ScriptService>();
             builder.Services.AddScoped<IPosService, PosService>();
+            builder.Services.AddScoped<ICloudLogService, CloudLogService>();
 
             builder.Services.AddHttpClient<HttpService>();
             builder.Services.AddHttpContextAccessor();

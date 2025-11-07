@@ -23,11 +23,11 @@ namespace POSPRA.API.Controllers
             return Ok();
         }
 
-        [HttpGet("is-log-sync-enable")]
-        public async Task<IActionResult> IsLogSyncEnable()
-        {
-            await _sendLogToCloudService.IsLogSyncEnable();
-            return Ok();
-        }
+        //[HttpGet("is-log-sync-enable")]
+        //public async Task<IActionResult> IsLogSyncEnable()
+        //{
+        //    await _sendLogToCloudService.IsLogSyncEnable();
+        //    return Ok();
+        //}
     }
 }

@@ -1,18 +1,20 @@
-﻿using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.HttpClientService;
 using POSPRA.Application.Utility;
 using POSPRA.DTOs;
 using POSPRA.DTOs.FiscalDtos;
+using System.Text;
+using System.Text.Json;
 
 public class SendInvoiceToCloudService : ISendInvoiceToCloudService
 {
     private readonly HttpService _http;
     private readonly string _baseUrl;
     private readonly IWorkerLogService _workerLogService;
+    private readonly IFileRecordService _fileRecordService;
 
     private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
@@ -20,11 +22,13 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
         IServiceProvider services,
         HttpService http,
         IOptions<AppSettings> options,
-        IWorkerLogService workerLogService)
+        IWorkerLogService workerLogService,
+        IFileRecordService fileRecordService)
     {
         _http = http;
         _baseUrl = options.Value.BaseUrl;
         _workerLogService = workerLogService;
+        _fileRecordService = fileRecordService;
     }
 
     public async Task SyncInvoicesAsync(CancellationToken token, string workerId)
@@ -36,35 +40,13 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
     {
         try
         {
-            var url = $"{_baseUrl}{Endpoints.GetAllUnsyncedAsync}";
-            var response = await _http.GetAsync(url, token);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var err = await response.Content.ReadAsStringAsync(token);
-                await _workerLogService.LogAsync(
-                    AlertType.Warning,
-                    $"GET failed {response.StatusCode}: {err}",
-                    nameof(SendInvoiceToCloudService),
-                    id,
-                    "GetFailed",
-                    (int)response.StatusCode);
+            var response = await _fileRecordService.GetAllUnsyncedAsync();
+            if (response.StatusCode != ApiStatusCode.Success)
                 return;
-            }
 
-            // ✅ Deserialize the response into a list
-            var json = await response.Content.ReadAsStringAsync(token);
-            var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(json, JsonOpts);
-            var unsyncedFiles = apiResponse?.Data ?? new List<FileRecordDto>();
-
-            if (unsyncedFiles.Count == 0)
-            {
-                //await _workerLogService.LogAsync(AlertType.Info, "No unsynced invoices found.", nameof(SendInvoiceToCloudService), id, "NoData");
-                return;
-            }
 
             // ✅ Send to cloud (now passing List<FileRecordDto>)
-            var resp = await PostEncryptedDataAsync(id, unsyncedFiles, token);
+            var resp = await PostEncryptedDataAsync(id, response.Data, token);
             if (resp is null || !resp.IsSuccessStatusCode)
                 return;
 

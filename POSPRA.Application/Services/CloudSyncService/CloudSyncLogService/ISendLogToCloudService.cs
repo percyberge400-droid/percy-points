@@ -3,6 +3,5 @@
     public interface ISendLogToCloudService
     {
         Task SyncLogAsync();
-        Task IsLogSyncEnable();
     }
 }

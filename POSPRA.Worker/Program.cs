@@ -2,10 +2,15 @@
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
+using POSPRA.Application.Services.FileRecordService;
 using POSPRA.Application.Services.HttpClientService;
+using POSPRA.Application.Services.LogService;
 using POSPRA.Application.Services.NetworkService;
 using POSPRA.DTOs;
 using POSPRA.Infrastructure.Context;
+using POSPRA.Repositories.FileRecordRepository;
+using POSPRA.Repositories.LogRepository;
+using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)
@@ -41,13 +46,21 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddSingleton<INetworkService, NetworkService>();
         services.AddHttpClient<HttpService>(); // For calling external APIs
         services.AddHttpContextAccessor();
+        //----------------------------------------------------
+        // 🔧 Repositories
+        //----------------------------------------------------
+        services.AddScoped<IFileRecordRepository, FileRecordRepository>();
+        services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
+        services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
 
         //----------------------------------------------------
         // 🔧 Cloud Sync & Logging Services
         //----------------------------------------------------
         services.AddScoped<IWorkerLogService, WorkerLogService>();
         services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
-
+        services.AddScoped<IWorkerLogService, WorkerLogService>();
+        services.AddScoped<ILogService, LogService>();
+        services.AddScoped<IFileRecordService, FileRecordService>();
         //----------------------------------------------------
         // 🔧 AutoMapper
         //----------------------------------------------------

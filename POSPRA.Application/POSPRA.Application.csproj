@@ -7,15 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Services\CloudSyncService\NewFolder\**" />
-    <Compile Remove="Services\FiscalService\**" />
-    <EmbeddedResource Remove="Services\CloudSyncService\NewFolder\**" />
-    <EmbeddedResource Remove="Services\FiscalService\**" />
-    <None Remove="Services\CloudSyncService\NewFolder\**" />
-    <None Remove="Services\FiscalService\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
