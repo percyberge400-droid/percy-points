@@ -86,6 +86,8 @@ namespace POSPRA.SetupUI
             LoadLogoImage();
             CheckServiceAvailability();
             LoadDefaultPaths();
+
+            DisableOldDatabaseControls();
         }
 
         #endregion
@@ -176,13 +178,15 @@ namespace POSPRA.SetupUI
                 {
                     StopWorkerService();
 
-                    // Ask user if they want to uninstall
-                    var result = MessageBox.Show(this,
+                    var result = MessageBox.Show(
                         "The Fiscal service was detected and stopped.\nDo you want to uninstall the existing service?",
                         "Uninstall Service",
                         MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question
+                        MessageBoxIcon.Question,
+                        MessageBoxDefaultButton.Button1,
+                        MessageBoxOptions.DefaultDesktopOnly
                     );
+
 
                     if (result == DialogResult.Yes)
                     {
@@ -207,18 +211,12 @@ namespace POSPRA.SetupUI
 
         private void DisableOldDatabaseControls()
         {
-            if (txtOldDB != null)
-            {
-                txtOldDB.Enabled = false;
-                txtOldDB.ReadOnly = true;
-                txtOldDB.BackColor = Color.FromArgb(240, 240, 240);
-            }
-
-            if (btnBrowseOLD != null)
-            {
-                btnBrowseOLD.Enabled = false;
-                btnBrowseOLD.BackColor = Color.FromArgb(51, 51, 51);
-            }
+            txtOldDB.Text = "";
+            txtOldDB.Enabled = false;
+            txtOldDB.ReadOnly = true;
+            txtOldDB.BackColor = Color.FromArgb(240, 240, 240);
+            btnBrowseOLD.Enabled = false;
+            btnBrowseOLD.BackColor = Color.FromArgb(51, 51, 51);
         }
 
         private void LoadDefaultPaths()

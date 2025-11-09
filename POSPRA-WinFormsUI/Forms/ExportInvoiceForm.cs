@@ -39,6 +39,7 @@ namespace POSPRA_WinFormsUI.Forms
             // --- Button hover styling ---
             ExportInvoiceBtn.MouseEnter += (s, e) => ExportInvoiceBtn.BackColor = Color.FromArgb(60, 179, 113);
             ExportInvoiceBtn.MouseLeave += (s, e) => ExportInvoiceBtn.BackColor = Color.MediumSeaGreen;
+            ExportInvoiceBtn.Click += async (s, e) => await ExportInvoiceBtn_ClickAsync(s, e);
 
             // --- Rounded panel ---
             panelPending.Region = Region.FromHrgn(
@@ -82,7 +83,7 @@ namespace POSPRA_WinFormsUI.Forms
         private void dateTimePickerFrom_ValueChanged(object sender, EventArgs e) => ValidateDateRange();
         private void dateTimePickerTo_ValueChanged(object sender, EventArgs e) => ValidateDateRange();
 
-        private async void ExportInvoiceBtn_Click(object sender, EventArgs e)
+        private async Task ExportInvoiceBtn_ClickAsync(object sender, EventArgs e)
         {
             if (!ValidateDateRange())
             {
@@ -162,7 +163,7 @@ namespace POSPRA_WinFormsUI.Forms
                                 (3, "USIN"),                   // USIN
                                 (2, "POSID"),                  // POSID
                                 (20, "Buyer NTN"),             // BuyerNTN
-                                (22, "Buyer CNIC"),            // BuyerCNIC
+                                (23, "Buyer CNIC"),            // BuyerCNIC
                                 (5, "Buyer Name"),             // BuyerName
                                 (6, "Buyer Phone Number"),     // BuyerPhoneNumber
                                 (7, "Total Sale Value"),       // TotalSaleValue
@@ -175,8 +176,10 @@ namespace POSPRA_WinFormsUI.Forms
                                 (13, "Synced DateTime"),       // DateTime
                                 (16, "Invoice Type"),          // InvoiceType
                                 (17, "RefUSIN"),               // RefUSIN
-                                (21, "Further Tax"),           // FurtherTax
+                                (22, "Further Tax"),           // FurtherTax
                             };
+
+                            int excelRow = 1; // Start at 1 for headers
 
                             for (int i = 0; i < lines.Length; i++)
                             {
@@ -186,10 +189,16 @@ namespace POSPRA_WinFormsUI.Forms
                                 {
                                     // Write custom headers
                                     for (int j = 0; j < columnMap.Length; j++)
-                                        sheet.Cell(1, j + 1).Value = columnMap[j].Header;
+                                        sheet.Cell(excelRow, j + 1).Value = columnMap[j].Header;
+
+                                    excelRow++; // Move to first data row
                                 }
                                 else
                                 {
+                                    // --- Skip rows without Invoice Number ---
+                                    if (cols.Length <= 1 || string.IsNullOrWhiteSpace(cols[1]))
+                                        continue;
+
                                     for (int j = 0; j < columnMap.Length; j++)
                                     {
                                         int index = columnMap[j].Index;
@@ -221,9 +230,11 @@ namespace POSPRA_WinFormsUI.Forms
                                                 };
                                             }
 
-                                            sheet.Cell(i + 1, j + 1).Value = value;
+                                            sheet.Cell(excelRow, j + 1).Value = value;
                                         }
                                     }
+
+                                    excelRow++; // Increment only after writing a row
                                 }
                             }
 
@@ -259,6 +270,7 @@ namespace POSPRA_WinFormsUI.Forms
             finally
             {
                 progressBarExport.Visible = false;
+                progressBarExport.Style = ProgressBarStyle.Blocks;
                 ExportInvoiceBtn.Enabled = true;
             }
         }

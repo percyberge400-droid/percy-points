@@ -949,7 +949,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // Load Invoices with Virtual Mode
+        // Load Invoices with Virtual Mode       
         private async Task LoadAndShowInvoicesAsync(bool skipDateFilter = false)
         {
             try
@@ -996,7 +996,7 @@ namespace POSPRA_WinFormsUI.Forms
                     })
                     .ToList();
 
-                // ✅ Set row count for virtual mode (instant)
+                // Set row count for virtual mode (instant)
                 InvoicesDataGridView.RowCount = _invoiceCache.Count;
                 InvoicesDataGridView.Invalidate();
                 InvoicesDataGridView.Refresh();

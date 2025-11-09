@@ -43,6 +43,6 @@ public class InvoiceItems
     public decimal? Discount { get; set; }
 
     public decimal? FurtherTax { get; set; }
-
     public Invoice? Invoice { get; set; }
+
 }
