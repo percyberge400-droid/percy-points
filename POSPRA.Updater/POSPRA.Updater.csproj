@@ -9,6 +9,16 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <None Remove="Updater-Version.config" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Updater-Version.config">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
 	<!-- ✅ Add this block -->
 	<ItemGroup>
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />

@@ -630,87 +630,74 @@ namespace POSPRA.SetupUI
                 ShowMessage("Setup completed successfully!", true, false);
                 await Task.Delay(2000);
                 // ------------------ BEGIN: Write install info for Updater ------------------
-                // Determine install folder: use _winformsConfigPath (path to WinForms config file) if available,
-                // otherwise fall back to directory of the main exe (if already copied).
-                string installFolder = null;
                 try
                 {
+                    string installFolder = null;
+
+                    // Prefer path from WinForms config if available
                     if (!string.IsNullOrWhiteSpace(_winformsConfigPath))
                     {
                         installFolder = Path.GetDirectoryName(_winformsConfigPath);
                     }
 
-                    // If not available, try to detect by name (useful if files were already copied)
+                    // Fallback: Program Files default
                     if (string.IsNullOrWhiteSpace(installFolder))
                     {
-                        // try common exe name in Program Files (best-effort)
-                        var probable = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PRAL", "POSComponent");
-                        if (Directory.Exists(probable)) installFolder = probable;
+                        var probable = Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                            "PRAL", "POSComponent"
+                        );
+                        if (Directory.Exists(probable))
+                            installFolder = probable;
                     }
 
-                    // Final fallback to current directory (rare)
+                    // Final fallback: current directory
                     if (string.IsNullOrWhiteSpace(installFolder))
                     {
                         installFolder = AppDomain.CurrentDomain.BaseDirectory;
                     }
 
-                    // Ensure trailing slash
+                    // Ensure trailing backslash
                     if (!installFolder.EndsWith(Path.DirectorySeparatorChar.ToString()))
                         installFolder += Path.DirectorySeparatorChar;
 
-                    // Try to read version from installed exe (if present), otherwise use a provided value or assembly version
-                    string version = "1.0.0"; // fallback default — replace if you want set programmatically
-                    string exePath = Path.Combine(installFolder, "POSPRA-WinFormsUI.exe");
-                    if (File.Exists(exePath))
-                    {
-                        var v = FileVersionInfo.GetVersionInfo(exePath).FileVersion;
-                        if (!string.IsNullOrWhiteSpace(v))
-                            version = v;
-                    }
-                    else
-                    {
-                        // Try assembly version of the setup UI assembly (fallback)
-                        try
-                        {
-                            var asmVersion = Assembly.GetExecutingAssembly().GetName().Version;
-                            if (asmVersion != null)
-                                version = asmVersion.ToString();
-                        }
-                        catch { /* ignore */ }
-                    }
+                    // ✅ Build minimal content — only install path
+                    string installInfoContent = $"InstallPath={installFolder}";
 
-                    // Build content
-                    string installInfoContent = $"InstallPath={installFolder}{Environment.NewLine}Version={version}";
-
-                    // 1) Write install_info.txt into the install folder
+                    // 1️⃣ Write to install folder
                     try
                     {
-                        Directory.CreateDirectory(installFolder); // no-op if exists
+                        Directory.CreateDirectory(installFolder);
                         File.WriteAllText(Path.Combine(installFolder, "install_info.txt"), installInfoContent);
-                        // Also keep the simple version.txt for the Updater
-                        File.WriteAllText(Path.Combine(installFolder, "version.txt"), version);
                     }
                     catch (Exception ex)
                     {
-                        // non-fatal: log and continue
-                        ShowMessage($"Warning: failed to write install files to install folder: {ex.Message}", false, true);
+                        ShowMessage($"Warning: failed to write install_info.txt to install folder: {ex.Message}", false, true);
                     }
 
-                    // 2) Also write install_info.txt to CommonApplicationData (ProgramData) for Updater to easily read
+                    // 2️⃣ Write to CommonApplicationData for Updater (C:\ProgramData\PRAL\install_info.txt)
                     try
                     {
-                        string commonDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "PRAL");
+                        string commonDir = Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                            "PRAL"
+                        );
                         Directory.CreateDirectory(commonDir);
                         File.WriteAllText(Path.Combine(commonDir, "install_info.txt"), installInfoContent);
                     }
-                    catch { /* ignore non-fatal */ }
+                    catch (Exception ex)
+                    {
+                        ShowMessage($"Warning: failed to write install_info.txt to ProgramData: {ex.Message}", false, true);
+                    }
+
+                    ShowMessage($"Installer recorded install path: {installFolder}", false, true);
                 }
-                // If anything went wrong above, we still continue the setup (non-fatal).
                 catch (Exception ex)
                 {
-                    ShowMessage($"Failed to persist install metadata: {ex.Message}", false, true);
+                    ShowMessage($"Failed to persist install path info: {ex.Message}", false, true);
                 }
                 // ------------------ END: Write install info for Updater ------------------
+
 
                 Environment.Exit(0);
             }
