@@ -466,113 +466,211 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
-                // 1️⃣ Detect install path from ProgramData\PRAL\install_info.txt
-                string commonInfo = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                    "PRAL", "install_info.txt");
-
-                string installPath = "";
-                if (File.Exists(commonInfo))
-                {
-                    foreach (var line in File.ReadAllLines(commonInfo))
-                    {
-                        if (line.StartsWith("InstallPath=", StringComparison.OrdinalIgnoreCase))
-                        {
-                            installPath = line.Substring("InstallPath=".Length).Trim();
-                            break;
-                        }
-                    }
-                }
-
-                // Fallback if missing or invalid
-                if (string.IsNullOrWhiteSpace(installPath) || !Directory.Exists(installPath))
-                {
-                    var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PRAL", "POSComponent");
-                    installPath = Directory.Exists(defaultPath) ? defaultPath : AppDomain.CurrentDomain.BaseDirectory;
-                }
-
+                // STEP 1️⃣: Detect install path
+                string installPath = GetInstallPath();
                 if (!installPath.EndsWith("\\")) installPath += "\\";
 
-                // 2️⃣ Read ServerPath from Updater-Version.config at install path
-                string configPath = Path.Combine(installPath, "Updater-Version.config");
-                if (!File.Exists(configPath))
-                {
-                    MessageBox.Show($"Updater-Version.config not found at:\n{configPath}",
-                        "Missing Config", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                var xml = System.Xml.Linq.XDocument.Load(configPath);
-                var serverPathElement = xml.Descendants("add")
-                                           .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
-
-                if (serverPathElement == null)
-                {
-                    MessageBox.Show("ServerPath key not found in Updater-Version.config.",
-                        "Invalid Config", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                string serverPath = (string)serverPathElement.Attribute("value") ?? "";
+                // STEP 2️⃣: Load server path
+                string serverPath = GetServerPath(installPath);
                 if (!serverPath.EndsWith("\\")) serverPath += "\\";
 
-                // 3️⃣ Compare versions
-                string localVersionFile = Path.Combine(installPath, "app-version.txt");
-                string localVersion = File.Exists(localVersionFile) ? File.ReadAllText(localVersionFile).Trim() : "0.0.0";
+                // STEP 3️⃣: Launcher update
+                await CheckLauncherUpdateAsync(installPath, serverPath);
 
-                string serverVersionFile = Path.Combine(serverPath, "app-version.txt");
-                if (!File.Exists(serverVersionFile))
-                {
-                    MessageBox.Show("Server version file not found. Please verify the update path.",
-                        "Update", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
+                // STEP 4️⃣: App update
+                await CheckAppUpdateAsync(installPath, serverPath);
 
-                string serverVersion = File.ReadAllText(serverVersionFile).Trim();
-
-                if (localVersion == serverVersion)
-                {
-                    // Already up-to-date
-                    return;
-                }
-
-                // 4️⃣ Ask user whether to update
-                var result = MessageBox.Show(
-                    $"A new update is available.\n\nYour version: {localVersion}\nLatest version: {serverVersion}\n\nDo you want to update now?",
-                    "Update Available",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question
-                );
-
-                if (result == DialogResult.No)
-                {
-                    // User declined update, do nothing
-                    return;
-                }
-
-                // 5️⃣ Launch updater from install path
-                string updaterPath = Path.Combine(installPath, "POSPRA.Updater.exe");
-                if (!File.Exists(updaterPath))
-                {
-                    MessageBox.Show("Updater tool not found at:\n" + updaterPath,
-                        "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                var psi = new ProcessStartInfo
-                {
-                    FileName = updaterPath,
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    WindowStyle = ProcessWindowStyle.Normal
-                };
-                Process.Start(psi);
-
+                // NOTE: LoginForm stays open throughout — never closes
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Update check failed:\n\n{ex.Message}",
                     "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private string GetInstallPath()
+        {
+            string commonInfo = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "PRAL", "install_info.txt");
+
+            string installPath = "";
+
+            if (File.Exists(commonInfo))
+            {
+                foreach (var line in File.ReadAllLines(commonInfo))
+                {
+                    if (line.StartsWith("InstallPath=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        installPath = line.Substring("InstallPath=".Length).Trim();
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(installPath) || !Directory.Exists(installPath))
+            {
+                var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "PRAL", "POSComponent");
+                installPath = Directory.Exists(defaultPath) ? defaultPath : AppDomain.CurrentDomain.BaseDirectory;
+            }
+
+            return installPath;
+        }
+
+        private string GetServerPath(string installPath)
+        {
+            string configPath = Path.Combine(installPath, "Updater-Version.config");
+            if (!File.Exists(configPath))
+            {
+                MessageBox.Show($"Missing Updater-Version.config at:\n{configPath}", "Config Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new FileNotFoundException("Updater-Version.config not found.");
+            }
+
+            var xml = System.Xml.Linq.XDocument.Load(configPath);
+            var serverPathElement = xml.Descendants("add")
+                .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
+
+            if (serverPathElement == null)
+            {
+                MessageBox.Show("ServerPath not found in Updater-Version.config.",
+                    "Invalid Config", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new Exception("ServerPath missing in Updater-Version.config.");
+            }
+
+            return (string)serverPathElement.Attribute("value") ?? "";
+        }
+
+        private async Task CheckLauncherUpdateAsync(string installPath, string serverPath)
+        {
+            string localLauncherVersionFile = Path.Combine(installPath, "launcher-version.txt");
+            string serverLauncherVersionFile = Path.Combine(serverPath, "Updater", "launcher-version.txt");
+
+            string localLauncherVersion = File.Exists(localLauncherVersionFile)
+                ? File.ReadAllText(localLauncherVersionFile).Trim()
+                : "0.0.0";
+
+            if (!File.Exists(serverLauncherVersionFile))
+            {
+                MessageBox.Show("Server launcher version file not found.", "Update",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string serverLauncherVersion = File.ReadAllText(serverLauncherVersionFile).Trim();
+
+            if (localLauncherVersion != serverLauncherVersion)
+            {
+                var result = MessageBox.Show(
+                    $"A new launcher update is available.\n\n" +
+                    $"Your version: {localLauncherVersion}\n" +
+                    $"Latest version: {serverLauncherVersion}\n\n" +
+                    $"Update now?",
+                    "Launcher Update",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    string flagFile = Path.Combine(installPath, "launcher_updated.flag");
+                    if (File.Exists(flagFile)) File.Delete(flagFile);
+
+                    string launcherExe = Path.Combine(installPath, "POSPRA.Launcher.exe");
+                    if (!File.Exists(launcherExe))
+                    {
+                        MessageBox.Show("POSPRA.Launcher.exe not found.",
+                            "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = launcherExe,
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        WindowStyle = ProcessWindowStyle.Normal
+                    };
+                    Process.Start(psi);
+
+                    // Wait up to 1 second for launcher flag
+                    bool flagCreated = false;
+                    int maxWaitMs = 1000;     // 1 second total
+                    int intervalMs = 100;     // check every 100ms
+                    int elapsed = 0;
+
+                    while (elapsed < maxWaitMs)
+                    {
+                        if (File.Exists(flagFile))
+                        {
+                            flagCreated = true;
+                            break;
+                        }
+                        await Task.Delay(intervalMs);
+                        elapsed += intervalMs;
+                    }
+
+                    // Only show timeout message if user actually launched the updater
+                    if (flagCreated)
+                    {
+                        File.Delete(flagFile); // cleanup flag
+                    }
+                   
+                }
+                // If user clicked No, do nothing — no error message, no flag check
+            }
+
+        }
+
+        private async Task CheckAppUpdateAsync(string installPath, string serverPath)
+        {
+            string localAppVersionFile = Path.Combine(installPath, "app-version.txt");
+            string serverAppVersionFile = Path.Combine(serverPath, "app-version.txt");
+
+            string localAppVersion = File.Exists(localAppVersionFile)
+                ? File.ReadAllText(localAppVersionFile).Trim()
+                : "0.0.0";
+
+            if (!File.Exists(serverAppVersionFile))
+            {
+                MessageBox.Show("Server app version file not found.", "Update",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string serverAppVersion = File.ReadAllText(serverAppVersionFile).Trim();
+
+            if (localAppVersion != serverAppVersion)
+            {
+                var result = MessageBox.Show(
+                    $"A new application update is available.\n\n" +
+                    $"Your version: {localAppVersion}\n" +
+                    $"Latest version: {serverAppVersion}\n\n" +
+                    $"Update now?",
+                    "Application Update",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    string updaterExe = Path.Combine(installPath, "POSPRA.Updater.exe");
+                    if (!File.Exists(updaterExe))
+                    {
+                        MessageBox.Show("POSPRA.Updater.exe not found.",
+                            "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = updaterExe,
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        WindowStyle = ProcessWindowStyle.Normal
+                    };
+                    Process.Start(psi);
+                }
             }
         }
 

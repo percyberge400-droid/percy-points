@@ -39,6 +39,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_6CF3D658FCB144F0BF8BF4850FCB48E0"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_6F25B2E1C6BE4DDF94A78A1BDFE8E007"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -369,7 +375,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:POS Component"
         "ProductCode" = "8:{6A2879D1-E93D-422F-978D-B231820AA62B}"
-        "PackageCode" = "8:{EE71C2F9-44CA-429F-9698-F379832F88E4}"
+        "PackageCode" = "8:{D5A30A5E-7CEE-4BA3-975B-064BB43EC940}"
         "UpgradeCode" = "8:{239EA055-E78F-4033-95C6-4DA1C9496960}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1093,6 +1099,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:PublishItems"
             "OutputProjectGuid" = "8:{9C374AC8-6E86-4AE3-A60E-4A1321FDDD20}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6CF3D658FCB144F0BF8BF4850FCB48E0"
+            {
+            "SourcePath" = "8:..\\POSPRA.Launcher\\obj\\Release\\net9.0-windows\\apphost.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_CEB95C845E0143318CB8EA67EA035F27"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{7702B1AD-2D89-4902-BE99-BEF197D40D30}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
