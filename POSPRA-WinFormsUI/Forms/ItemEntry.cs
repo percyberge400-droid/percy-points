@@ -1003,7 +1003,7 @@ namespace POSPRA_WinFormsUI
                     if (result.StatusCode == ApiStatusCode.Success)
                     {
                         // Update invoice DTO with FBR invoice number
-                        invoiceDto.FBRInvoiceNumber = invoiceDto.FBRInvoiceNumber;
+                        invoiceDto.InvoiceNumber = invoiceDto.InvoiceNumber;
 
                         // Reset after both save & print complete
                         progressTaskCts.Cancel();

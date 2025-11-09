@@ -147,7 +147,7 @@ namespace POSPRA_WinFormsUI.Forms
             byte[] logo = LoadCompanyLogo();
             byte[] praLogo = LoadPraLogo();
 
-            byte[] qr = GenerateQRCode(dto.FBRInvoiceNumber);
+            byte[] qr = GenerateQRCode(dto.InvoiceNumber);
 
             var headerRow = headerTable.NewRow();
             headerRow["BusinessName"] = businessname;
@@ -175,7 +175,7 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
             headerRow["Address"] = branchName + ",  " + branchAddress; //dto.BuyerName;// + ", City, Pakistan";
             headerRow["STRN"] = dto.USIN ?? string.Empty;
-            headerRow["InvoiceNo"] = dto.FBRInvoiceNumber ?? string.Empty;
+            headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;
             headerRow["Total"] = Math.Round(dto.TotalBillAmount, 0, MidpointRounding.AwayFromZero);
             headerRow["POSID"] = dto.POSID.ToString();
             headerRow["TotalTax"] = Math.Round(dto.TotalTaxCharged, 0, MidpointRounding.AwayFromZero);

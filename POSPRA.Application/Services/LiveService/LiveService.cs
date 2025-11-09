@@ -60,6 +60,7 @@ namespace POSPRA.Application.Services.LiveService
 
                 foreach (var item in dtos)
                 {
+                    if (string.IsNullOrEmpty(item.InvoiceNumber)) continue;
                     // Decrypt
                     var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _settings.EC);
                     if (string.IsNullOrWhiteSpace(decrypted)) continue;
@@ -68,6 +69,7 @@ namespace POSPRA.Application.Services.LiveService
                     var jsonPart = decrypted.Split('|')[0];
                     if (string.IsNullOrWhiteSpace(jsonPart)) continue;
 
+                    jsonPart = jsonPart.Replace("FBRInvoiceNumber", "InvoiceNumber");
                     // Deserialize
                     if (JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto) continue;
 
@@ -116,6 +118,7 @@ namespace POSPRA.Application.Services.LiveService
                 // Map & save invoice
                 var invoice = _mapper.Map<Invoice>(dto);
                 invoice.EntryDate = DateTime.Now;
+                invoice.FBRInvoiceNumber = dto.InvoiceNumber;
                 //invoice.FBRInvoiceNumber = GlobalMethods.InvoiceNumber(dto.POSID);
                 await _invoiceRepository.AddAsync(invoice);
                 await _sqlServerUnitOfWork.SaveChangesAsync();
