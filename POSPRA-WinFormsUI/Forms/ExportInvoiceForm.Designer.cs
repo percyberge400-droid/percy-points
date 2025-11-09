@@ -140,7 +140,6 @@
             ExportInvoiceBtn.TabIndex = 8;
             ExportInvoiceBtn.Text = "📤  Export Invoices";
             ExportInvoiceBtn.UseVisualStyleBackColor = false;
-            ExportInvoiceBtn.Click += ExportInvoiceBtn_Click;
             // 
             // label2
             // 

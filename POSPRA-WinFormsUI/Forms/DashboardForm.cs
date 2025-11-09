@@ -949,7 +949,7 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        // Load Invoices with Virtual Mode
+        // Load Invoices with Virtual Mode       
         private async Task LoadAndShowInvoicesAsync(bool skipDateFilter = false)
         {
             try
@@ -996,7 +996,7 @@ namespace POSPRA_WinFormsUI.Forms
                     })
                     .ToList();
 
-                // ✅ Set row count for virtual mode (instant)
+                // Set row count for virtual mode (instant)
                 InvoicesDataGridView.RowCount = _invoiceCache.Count;
                 InvoicesDataGridView.Invalidate();
                 InvoicesDataGridView.Refresh();
@@ -1816,7 +1816,7 @@ namespace POSPRA_WinFormsUI.Forms
                 // 4. Print thread setup
                 var tcs = new TaskCompletionSource<object?>();
 
-                response.Data.FBRInvoiceNumber = invoiceNumber;
+                response.Data.InvoiceNumber = invoiceNumber;
 
                 Thread printThread = new Thread(() =>
                 {

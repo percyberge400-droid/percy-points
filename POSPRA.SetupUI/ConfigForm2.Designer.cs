@@ -104,10 +104,10 @@ namespace POSPRA.SetupUI
             btnupdateLOGO.FlatStyle = FlatStyle.Flat;
             btnupdateLOGO.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnupdateLOGO.ForeColor = Color.Transparent;
-            btnupdateLOGO.Location = new Point(43, 20);
+            btnupdateLOGO.Location = new Point(58, 20);
             btnupdateLOGO.Name = "btnupdateLOGO";
             btnupdateLOGO.Radius = 10;
-            btnupdateLOGO.Size = new Size(182, 45);
+            btnupdateLOGO.Size = new Size(191, 45);
             btnupdateLOGO.TabIndex = 9;
             btnupdateLOGO.Text = "Upload Logo";
             btnupdateLOGO.UseVisualStyleBackColor = false;
@@ -120,7 +120,7 @@ namespace POSPRA.SetupUI
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnOk.ForeColor = Color.White;
-            btnOk.Location = new Point(502, 20);
+            btnOk.Location = new Point(524, 20);
             btnOk.Name = "btnOk";
             btnOk.Radius = 10;
             btnOk.Size = new Size(170, 45);
@@ -137,7 +137,7 @@ namespace POSPRA.SetupUI
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(278, 20);
+            btnCancel.Location = new Point(296, 20);
             btnCancel.Name = "btnCancel";
             btnCancel.Radius = 10;
             btnCancel.Size = new Size(182, 45);
@@ -154,6 +154,7 @@ namespace POSPRA.SetupUI
             lblWelcome.Location = new Point(325, 42);
             lblWelcome.Name = "lblWelcome";
             lblWelcome.Size = new Size(153, 38);
+            lblWelcome.TabIndex = 22;
             lblWelcome.Text = "WELCOME!";
             lblWelcome.TextAlign = ContentAlignment.MiddleCenter;
             // 
@@ -252,6 +253,7 @@ namespace POSPRA.SetupUI
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(369, 21);
             progressBar.Style = ProgressBarStyle.Continuous;
+            progressBar.TabIndex = 23;
             // 
             // headerPanel
             // 
@@ -344,6 +346,7 @@ namespace POSPRA.SetupUI
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(132, 106);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox1.TabIndex = 32;
             pictureBox1.TabStop = false;
             // 
             // LOGO_img
@@ -354,6 +357,7 @@ namespace POSPRA.SetupUI
             LOGO_img.Name = "LOGO_img";
             LOGO_img.Size = new Size(271, 100);
             LOGO_img.SizeMode = PictureBoxSizeMode.Zoom;
+            LOGO_img.TabIndex = 33;
             LOGO_img.TabStop = false;
             // 
             // btnBrowse

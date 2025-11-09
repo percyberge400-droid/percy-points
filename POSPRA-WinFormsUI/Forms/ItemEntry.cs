@@ -584,7 +584,7 @@ namespace POSPRA_WinFormsUI
 
                 case "itemcode":
                 case "pctcode":
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 35)
+                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 8)
                         e.Handled = true;
                     break;
 
@@ -835,9 +835,9 @@ namespace POSPRA_WinFormsUI
 
             return new InvoiceItems
             {
-                ItemCode = pctCode.Text.Trim(),        // PCT Code becomes Item Code
+                ItemCode = ItemCode.Text.Trim(),        // PCT Code becomes Item Code
                 ItemName = ItemName.Text.Trim(),
-                PCTCode = ItemCode.Text.Trim(),        // HS Code becomes PCT Code
+                PCTCode = pctCode.Text.Trim(),        // HS Code becomes PCT Code
                 Quantity = quantity,
                 SaleValue = saleValuePerUnit,
                 Discount = discountAmount,             // Store calculated amount
@@ -1003,7 +1003,7 @@ namespace POSPRA_WinFormsUI
                     if (result.StatusCode == ApiStatusCode.Success)
                     {
                         // Update invoice DTO with FBR invoice number
-                        invoiceDto.FBRInvoiceNumber = invoiceDto.FBRInvoiceNumber;
+                        invoiceDto.InvoiceNumber = invoiceDto.InvoiceNumber;
 
                         // Reset after both save & print complete
                         progressTaskCts.Cancel();
@@ -1588,23 +1588,21 @@ namespace POSPRA_WinFormsUI
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
         {
-            row.Cells["colProductCode"].Value = inputData.PCTCode ?? "";         // PCT Code
+            row.Cells["colSaleType"].Value = "";
+            row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";         // PCT Code
             row.Cells["colProductDescription"].Value = inputData.ItemName ?? "";
-            row.Cells["colHSCode"].Value = inputData.ItemCode ?? "";               // HS Code
+            row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";               // HS Code
             row.Cells["colQuantity"].Value = (inputData.Quantity ?? 0m).ToString("0.00");
-            row.Cells["colRate"].Value = (inputData.SaleValue ?? 0m).ToString("0.00");
-            row.Cells["colDiscount"].Value = (inputData.Discount ?? 0m).ToString("0.00");  // Discount amount
 
             // Sales value excluding sales tax: (quantity × rate) - discount
             decimal salesValueExcTax = (inputData.Quantity ?? 0) * (inputData.SaleValue ?? 0) - (inputData.Discount ?? 0);
             row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
 
-            row.Cells["colTotalValue"].Value = (inputData.TotalAmount ?? 0m).ToString("0.00");
             row.Cells["colSalesTax"].Value = inputData.TaxRate.ToString("0.00");      // Tax rate percentage
             row.Cells["colExtraTax"].Value = (inputData.TaxCharged ?? 0m).ToString("0.00");
-            row.Cells["colFutureTax"].Value = (inputData.FurtherTax ?? 0m).ToString("0.00");
-        }
+            row.Cells["colTotalValue"].Value = (inputData.TotalAmount ?? 0m).ToString("0.00");
 
+        }
         private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -1625,9 +1623,9 @@ namespace POSPRA_WinFormsUI
 
         private void LoadItemForEditing(InvoiceItems item)
         {
-            pctCode.Text = item.ItemCode ?? "";        // PCT Code
+            pctCode.Text = item.PCTCode ?? "";        // PCT Code
             ItemName.Text = item.ItemName ?? "";
-            ItemCode.Text = item.PCTCode ?? "";        // HS Code
+            ItemCode.Text = item.ItemCode ?? "";        // HS Code
             qty.Text = (item.Quantity ?? 0m).ToString();
             salevalue.Text = (item.SaleValue ?? 0m).ToString();
 
@@ -1906,8 +1904,8 @@ namespace POSPRA_WinFormsUI
             // Item Code (comes from pctCode textbox - PCT Code)
             if (string.IsNullOrWhiteSpace(inputData.ItemCode))
             {
-                AlertManager.ShowError("Please enter HS Code.");
-                this.BeginInvoke(new Action(() => pctCode.Focus()));
+                AlertManager.ShowError("Please enter the Item Code.");
+                this.BeginInvoke(new Action(() => ItemCode.Focus()));
                 return false;
             }
 
@@ -1915,7 +1913,7 @@ namespace POSPRA_WinFormsUI
             // You can make this required if needed
             if (string.IsNullOrWhiteSpace(inputData.PCTCode))
             {
-                AlertManager.ShowError("Please enter the Item Code.");
+                AlertManager.ShowError("Please enter the HSCode.");
                 this.BeginInvoke(new Action(() => ItemCode.Focus()));
                 return false;
             }
@@ -2195,9 +2193,9 @@ namespace POSPRA_WinFormsUI
 
             row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
             row.Cells["colSaleType"].Value = GetSaleTypeName(GetSelectedSaleType());
-            row.Cells["colProductCode"].Value = item.PCTCode ?? "";
+            row.Cells["colProductCode"].Value = item.ItemCode ?? "";
             row.Cells["colProductDescription"].Value = item.ItemName ?? "";
-            row.Cells["colHSCode"].Value = item.ItemCode ?? "";
+            row.Cells["colHSCode"].Value = item.PCTCode ?? "";
 
             row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
 
@@ -2290,7 +2288,7 @@ namespace POSPRA_WinFormsUI
             var colProductCode = new DataGridViewTextBoxColumn
             {
                 Name = "colProductCode",
-                HeaderText = "Product Code",
+                HeaderText = "Item Code",
                 FillWeight = 12,
                 MinimumWidth = 100,
                 ReadOnly = true,
@@ -2368,7 +2366,7 @@ namespace POSPRA_WinFormsUI
             var colExtraTax = new DataGridViewTextBoxColumn
             {
                 Name = "colExtraTax",
-                HeaderText = "Extra Tax",
+                HeaderText = "Tax Charged",
                 FillWeight = 10,
                 MinimumWidth = 80,
                 ReadOnly = true,
