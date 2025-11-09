@@ -1816,7 +1816,7 @@ namespace POSPRA_WinFormsUI.Forms
                 // 4. Print thread setup
                 var tcs = new TaskCompletionSource<object?>();
 
-                response.Data.FBRInvoiceNumber = invoiceNumber;
+                response.Data.InvoiceNumber = invoiceNumber;
 
                 Thread printThread = new Thread(() =>
                 {
