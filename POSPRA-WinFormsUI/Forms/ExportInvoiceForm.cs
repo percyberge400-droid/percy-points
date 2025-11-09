@@ -1,7 +1,6 @@
 ﻿using ClosedXML.Excel;
 using POSPRA.Application.Services.LiveService;
 using POSPRA.Application.Services.LogService;
-using POSPRA.Domain.Entities;
 using POSPRA.DTOs.InvoiceDtos;
 using POSPRA.DTOs.LogDTOs;
 using POSPRA.SecurityEncryption;
