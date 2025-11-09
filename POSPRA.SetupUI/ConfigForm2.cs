@@ -217,6 +217,7 @@ namespace POSPRA.SetupUI
             if (btnBrowseOLD != null)
             {
                 btnBrowseOLD.Enabled = false;
+                btnBrowseOLD.BackColor = Color.FromArgb(51, 51, 51);
             }
         }
 
