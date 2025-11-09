@@ -568,8 +568,6 @@ namespace POSPRA_WinFormsUI.Forms
                 };
                 Process.Start(psi);
 
-                // ⚠️ Do NOT close the login form
-                // Application.Exit(); <-- Removed on purpose
             }
             catch (Exception ex)
             {

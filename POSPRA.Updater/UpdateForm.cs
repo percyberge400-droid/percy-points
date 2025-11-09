@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.ServiceProcess;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -16,6 +17,14 @@ namespace POSPRA.Updater
         private readonly string AppProcessName = "POSPRA-WinFormsUI";
         private string LogFile => Path.Combine(LocalFolder, "update_log.txt");
 
+        private readonly string[] ExcludedFiles = new[]
+        {
+            "POSPRA-WinFormsUI.dll.config",
+            "POSPRA.SetupUI.dll.config",
+            "appsettings.json",
+            "appsettings.worker.json"
+        };
+
         public UpdateForm() => InitializeComponent();
 
         private async void UpdateForm_Load(object sender, EventArgs e)
@@ -26,67 +35,28 @@ namespace POSPRA.Updater
                 lblStatus.Text = "Loading configuration...";
                 await Task.Delay(200);
 
+                DetectInstallPath();
+
                 if (!LoadServerPathFromConfig())
                 {
-                    Log("Updater terminated: failed to load server path.");
-                    MessageBox.Show("Failed to load server path. Update aborted.", "Updater Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Close();
+                    ShowErrorAndClose("Failed to load server path. Update aborted.");
                     return;
                 }
 
-                DetectInstallPath();
-
-                lblStatus.Text = "Checking for updates...";
+                lblStatus.Text = "Checking for update availability...";
                 await Task.Delay(300);
+
+                if (!CheckInternetConnection())
+                {
+                    ShowErrorAndClose("No internet connection. Update aborted.");
+                    return;
+                }
 
                 await RunUpdateAsync();
             }
             catch (Exception ex)
             {
-                Log($"Updater Load Error: {ex.Message}");
-                MessageBox.Show($"Updater failed to start:\n{ex.Message}", "Updater Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Close();
-            }
-        }
-
-        private bool LoadServerPathFromConfig()
-        {
-            try
-            {
-                string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater-Version.config");
-                if (!File.Exists(configPath))
-                {
-                    Log($"Config missing: {configPath}");
-                    return false;
-                }
-
-                var xml = System.Xml.Linq.XDocument.Load(configPath);
-                var serverPathElement = xml.Descendants("add")
-                                           .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
-
-                if (serverPathElement == null)
-                {
-                    Log("Missing 'ServerPath' key in Updater-Version.config.");
-                    return false;
-                }
-
-                ServerRoot = (string)serverPathElement.Attribute("value") ?? "";
-                if (string.IsNullOrWhiteSpace(ServerRoot))
-                {
-                    Log("ServerPath value empty in config.");
-                    return false;
-                }
-
-                if (!ServerRoot.EndsWith("\\")) ServerRoot += "\\";
-                Log($"Loaded server path: {ServerRoot}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log($"Error reading Updater-Version.config: {ex.Message}");
-                return false;
+                ShowErrorAndClose($"Updater failed: {ex.Message}");
             }
         }
 
@@ -123,96 +93,119 @@ namespace POSPRA.Updater
             }
             catch (Exception ex)
             {
-                Log($"DetectInstallPath error: {ex.Message}");
                 LocalFolder = AppDomain.CurrentDomain.BaseDirectory;
+                Log($"DetectInstallPath error: {ex.Message}");
+            }
+        }
+
+        private bool LoadServerPathFromConfig()
+        {
+            try
+            {
+                string configPath = Path.Combine(LocalFolder, "Updater-Version.config");
+                if (!File.Exists(configPath))
+                {
+                    Log($"Config missing: {configPath}");
+                    return false;
+                }
+
+                var xml = System.Xml.Linq.XDocument.Load(configPath);
+                var serverPathElement = xml.Descendants("add")
+                                           .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
+
+                if (serverPathElement == null) return false;
+
+                ServerRoot = (string)serverPathElement.Attribute("value") ?? "";
+                if (string.IsNullOrWhiteSpace(ServerRoot)) return false;
+                if (!ServerRoot.EndsWith("\\")) ServerRoot += "\\";
+
+                Log($"Loaded server path: {ServerRoot}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log($"Error reading Updater-Version.config: {ex.Message}");
+                return false;
+            }
+        }
+
+        private bool CheckInternetConnection()
+        {
+            try
+            {
+                return NetworkInterface.GetIsNetworkAvailable();
+            }
+            catch
+            {
+                return false;
             }
         }
 
         private async Task RunUpdateAsync()
         {
+            string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
+            string serverVersionPath = Path.Combine(ServerRoot, "app-version.txt");
+
+            if (!File.Exists(serverVersionPath))
+            {
+                ShowErrorAndClose("Server version file missing. Update aborted.");
+                return;
+            }
+
+            string serverVersion = File.ReadAllText(serverVersionPath).Trim();
+            string localVersion = File.Exists(localVersionPath) ? File.ReadAllText(localVersionPath).Trim() : "0.0.0";
+
+            string serverVersionFolder = Path.Combine(ServerRoot, serverVersion);
+            if (!Directory.Exists(serverVersionFolder) || !Directory.EnumerateFileSystemEntries(serverVersionFolder).Any())
+            {
+                ShowErrorAndClose("Server version folder missing or empty. Update aborted.");
+                return;
+            }
+
+            Log($"Local version: {localVersion}, Server version: {serverVersion}");
+
             try
             {
-                string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
-                string serverVersionPath = Path.Combine(ServerRoot, "app-version.txt");
-
-                // ✅ Check server version file exists
-                if (!File.Exists(serverVersionPath))
-                {
-                    string msg = $"Server version file missing at {serverVersionPath}";
-                    Log(msg);
-                    MessageBox.Show(msg, "Updater Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                string serverVersion = File.ReadAllText(serverVersionPath).Trim();
-                string localVersion = File.Exists(localVersionPath) ? File.ReadAllText(localVersionPath).Trim() : "0.0.0";
-                string serverVersionFolder = Path.Combine(ServerRoot, serverVersion);
-
-                // ✅ Check server version folder exists
-                if (!Directory.Exists(serverVersionFolder) || !Directory.EnumerateFileSystemEntries(serverVersionFolder).Any())
-                {
-                    string msg = $"Server version folder missing or empty: {serverVersionFolder}";
-                    Log(msg);
-                    MessageBox.Show(msg, "Updater Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                Log($"Local version: {localVersion}, Server version: {serverVersion}");
-
-                if (serverVersion == localVersion)
-                {
-                    MessageBox.Show($"Already running the latest version ({localVersion}).", "No Update Needed",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    Log("No update required.");
-                    return;
-                }
-
-                // ✅ Ask user confirmation
-                var confirm = MessageBox.Show(
-                    $"A new update ({serverVersion}) is available.\nCurrent version: {localVersion}\nDo you want to update now?",
-                    "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (confirm == DialogResult.No)
-                {
-                    Log("User declined update.");
-                    return;
-                }
-
-                // ✅ Stop services/processes before update
-                lblStatus.Text = "Stopping services...";
+                // Stop worker service & running UI processes
+                lblStatus.Text = "Stopping worker service...";
                 StopService(WorkerServiceName);
+
+                lblStatus.Text = "Stopping running applications...";
                 StopProcess(AppProcessName);
 
-                // ✅ Copy files
+                // Wait briefly to ensure all file handles are released
+                await Task.Delay(1000);
+
+                // Copy update files
                 lblStatus.Text = "Applying updates...";
                 progressBar.Style = ProgressBarStyle.Continuous;
                 progressBar.Value = 0;
-
                 await Task.Run(() => CopyFilesRecursive(serverVersionFolder, LocalFolder));
 
-                // ✅ Update version file
+                // Update version file
                 File.WriteAllText(localVersionPath, serverVersion);
                 Log($"Version updated: {localVersion} → {serverVersion}");
 
-                // ✅ Restart service
+                // Restart service
                 lblStatus.Text = "Restarting worker service...";
                 StartService(WorkerServiceName);
 
-                // ✅ Relaunch UI
+                // Relaunch UI
                 string uiExe = Path.Combine(LocalFolder, "POSPRA-WinFormsUI.exe");
                 if (File.Exists(uiExe)) Process.Start(uiExe);
 
                 lblStatus.Text = "Update completed!";
                 progressBar.Value = 100;
-                MessageBox.Show($"Update completed successfully!\nPrevious version: {localVersion}\nNew version: {serverVersion}",
+                MessageBox.Show(new Form { TopMost = true },
+                    $"Update completed successfully!\nPrevious version: {localVersion}\nNew version: {serverVersion}",
                     "Update Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 Log("✅ Update completed successfully.");
+                Close();
             }
             catch (Exception ex)
             {
-                Log($"Update failed: {ex.Message}");
-                MessageBox.Show($"Update failed: {ex.Message}", "Updater Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorAndClose($"Unexpected error during update: {ex.Message}");
             }
         }
 
@@ -220,6 +213,13 @@ namespace POSPRA.Updater
         {
             try
             {
+                var service = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == name);
+                if (service == null)
+                {
+                    Log($"Service {name} does not exist, skipping stop.");
+                    return;
+                }
+
                 using var sc = new ServiceController(name);
                 if (sc.Status != ServiceControllerStatus.Stopped)
                 {
@@ -228,7 +228,10 @@ namespace POSPRA.Updater
                     sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(20));
                 }
             }
-            catch (Exception ex) { Log($"StopService: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                ShowErrorAndClose($"Failed to stop service {name}: {ex.Message}");
+            }
         }
 
         private void StartService(string name)
@@ -239,7 +242,10 @@ namespace POSPRA.Updater
                 sc.Start();
                 sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(20));
             }
-            catch (Exception ex) { Log($"StartService: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                ShowErrorAndClose($"Failed to start service {name}: {ex.Message}");
+            }
         }
 
         private void StopProcess(string name)
@@ -252,7 +258,10 @@ namespace POSPRA.Updater
                     p.Kill();
                     p.WaitForExit(3000);
                 }
-                catch (Exception ex) { Log($"StopProcess: {ex.Message}"); }
+                catch (Exception ex)
+                {
+                    ShowErrorAndClose($"Failed to stop process {name}: {ex.Message}");
+                }
             }
         }
 
@@ -262,23 +271,23 @@ namespace POSPRA.Updater
             int copiedCount = 0;
             int totalFiles = files.Length;
 
-            string[] excluded = new[]
-            {
-                "POSPRA-WinFormsUI.dll.config",
-                "POSPRA.SetupUI.dll.config",
-                "appsettings.json",
-                "appsettings.worker.json"
-            };
-
             foreach (string file in files)
             {
                 string relPath = file.Substring(src.Length).TrimStart('\\');
                 string destFile = Path.Combine(dst, relPath);
                 string fileName = Path.GetFileName(file);
 
-                if (excluded.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
+                // Skip excluded files
+                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
                 {
                     Log($"Skipped file: {relPath}");
+                    continue;
+                }
+
+                // Skip entire runtimes folder to avoid locking DLLs
+                if (relPath.StartsWith("runtimes\\", StringComparison.OrdinalIgnoreCase))
+                {
+                    Log($"Skipped folder: {relPath}");
                     continue;
                 }
 
@@ -290,7 +299,7 @@ namespace POSPRA.Updater
                 }
                 catch (Exception ex)
                 {
-                    Log($"Failed to copy {relPath}: {ex.Message}");
+                    ShowErrorAndClose($"Failed to copy {relPath}: {ex.Message}");
                 }
 
                 copiedCount++;
@@ -299,6 +308,13 @@ namespace POSPRA.Updater
             }
 
             Log($"Copy complete: {copiedCount}/{totalFiles} files processed.");
+        }
+
+        private void ShowErrorAndClose(string msg)
+        {
+            Log(msg);
+            MessageBox.Show(new Form { TopMost = true }, msg, "Updater Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Close();
         }
 
         private void Log(string msg)

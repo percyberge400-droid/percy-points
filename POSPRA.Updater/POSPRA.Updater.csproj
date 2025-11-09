@@ -10,6 +10,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <AdditionalFiles Remove="app1.manifest" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Remove="Updater-Version.config" />
 	</ItemGroup>
 
