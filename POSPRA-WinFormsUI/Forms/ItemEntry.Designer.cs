@@ -1053,7 +1053,7 @@
         private void item_entry_Load(object sender, EventArgs e)
         {
             InitializeComboBoxes();
-            SetButtonShortcutTexts();
+            //SetButtonShortcutTexts();
             AddButtonTooltips();
         }
 
@@ -1108,12 +1108,12 @@
         // Update button text to show shortcuts (call this in InitializeComponent or form load)
         private void SetButtonShortcutTexts()
         {
-            btnProceed.Text = "➕ Add Item (ALT+A)";
+            btnProceed.Text = "➕ Add Item (ALT+N)";
             btn_remove.Text = "➖ Remove Item (ALT+R)";
             btnEdit.Text = "🖊️ Edit (ALT+E)";
-            btnclear.Text = "🧹 Clear Form (ALT+L)";
-            btnsearch.Text = "🔍 Search (ALT+F)";
-            btnSave.Text = "🖨️ Save and Print (ALT+S)";
+            btnclear.Text = "🧹 Clear Form (ALT+C)";
+            btnsearch.Text = "🔍 Search (ALT+S)";
+            btnSave.Text = "🖨️ Save and Print (ALT+P)";
         }
 
         // Optional: Add tooltips for better user experience

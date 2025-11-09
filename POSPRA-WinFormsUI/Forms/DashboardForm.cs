@@ -1664,7 +1664,7 @@ namespace POSPRA_WinFormsUI.Forms
             var colPosId = new DataGridViewTextBoxColumn
             {
                 Name = "colPosId",
-                HeaderText = "    POS ID",
+                HeaderText = "     POS ID",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -1684,7 +1684,7 @@ namespace POSPRA_WinFormsUI.Forms
             var colIsSynced = new DataGridViewTextBoxColumn
             {
                 Name = "colIsSynced",
-                HeaderText = "Invoice Synced",
+                HeaderText = " Invoice Synced",
                 Width = 180,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
