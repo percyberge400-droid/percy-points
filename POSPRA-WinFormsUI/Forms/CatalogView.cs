@@ -600,8 +600,8 @@ namespace POSPRA_WinFormsUI.Forms
                 ReadOnly = true,
                 FillWeight = 10
             };
-            colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             // Product Description
             var colProductDesc = new DataGridViewTextBoxColumn
@@ -633,8 +633,8 @@ namespace POSPRA_WinFormsUI.Forms
                 ReadOnly = true,
                 FillWeight = 8
             };
-            colHScode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colHScode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colHScode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colHScode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // Sale Type
             var colSaleType = new DataGridViewTextBoxColumn
