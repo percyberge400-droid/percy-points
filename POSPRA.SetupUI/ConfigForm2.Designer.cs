@@ -104,12 +104,12 @@ namespace POSPRA.SetupUI
             btnupdateLOGO.FlatStyle = FlatStyle.Flat;
             btnupdateLOGO.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnupdateLOGO.ForeColor = Color.Transparent;
-            btnupdateLOGO.Location = new Point(58, 20);
+            btnupdateLOGO.Location = new Point(36, 20);
             btnupdateLOGO.Name = "btnupdateLOGO";
             btnupdateLOGO.Radius = 10;
-            btnupdateLOGO.Size = new Size(191, 45);
+            btnupdateLOGO.Size = new Size(213, 45);
             btnupdateLOGO.TabIndex = 9;
-            btnupdateLOGO.Text = "Upload Logo";
+            btnupdateLOGO.Text = "Update Business Logo";
             btnupdateLOGO.UseVisualStyleBackColor = false;
             // 
             // btnOk
@@ -120,10 +120,10 @@ namespace POSPRA.SetupUI
             btnOk.FlatStyle = FlatStyle.Flat;
             btnOk.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnOk.ForeColor = Color.White;
-            btnOk.Location = new Point(524, 20);
+            btnOk.Location = new Point(484, 20);
             btnOk.Name = "btnOk";
             btnOk.Radius = 10;
-            btnOk.Size = new Size(170, 45);
+            btnOk.Size = new Size(213, 45);
             btnOk.TabIndex = 11;
             btnOk.Text = "Okay";
             btnOk.UseVisualStyleBackColor = false;
@@ -137,7 +137,7 @@ namespace POSPRA.SetupUI
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
             btnCancel.ForeColor = Color.White;
-            btnCancel.Location = new Point(296, 20);
+            btnCancel.Location = new Point(278, 20);
             btnCancel.Name = "btnCancel";
             btnCancel.Radius = 10;
             btnCancel.Size = new Size(182, 45);

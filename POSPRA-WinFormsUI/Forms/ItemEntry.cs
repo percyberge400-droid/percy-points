@@ -1587,6 +1587,8 @@ namespace POSPRA_WinFormsUI
         #region Grid Edit / Remove Helpers
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
+
+
         {
             row.Cells["colSaleType"].Value = "";
             row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";         // PCT Code
@@ -1673,8 +1675,6 @@ namespace POSPRA_WinFormsUI
             {
                 if (c is TextBox textBox)
                     textBox.Clear();
-                else if (c is ComboBox comboBox)
-                    comboBox.SelectedIndex = -1;
                 else if (c is CheckBox checkBox)
                     checkBox.Checked = false;
                 else if (c is RadioButton radioButton)
@@ -1937,7 +1937,7 @@ namespace POSPRA_WinFormsUI
             // Sale Value
             if (inputData.SaleValue <= 0)
             {
-                AlertManager.ShowError("Please enter a valid Sale Value greater than 0.");
+                AlertManager.ShowError("Please enter a valid Unit Price greater than 0.");
                 this.BeginInvoke(new Action(() => salevalue.Focus()));
                 return false;
             }

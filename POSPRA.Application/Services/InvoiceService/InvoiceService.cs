@@ -152,6 +152,15 @@ namespace POSPRA.Application.Services.InvoiceService
                                     record.Data.IsSynced = (int)InvoiceStatus.Synced;
 
                                     await _fileRecordService.UpdateFileRecordAsync(record.Data);
+
+                                    var logDto = _logService.BuildLog(
+                                        $"Invoice number {record.Data.InvoiceNumber} synced successfully.",
+                                        AlertType.Info,
+                                        module: "InvoiceModule",
+                                        action: "InvoiceSynced");
+
+                                    await _logService.CreateLogAsync(logDto);
+
                                 }
                             }
                         }

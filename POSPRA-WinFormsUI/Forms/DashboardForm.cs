@@ -1675,7 +1675,7 @@ namespace POSPRA_WinFormsUI.Forms
             var colInvoiceNumber = new DataGridViewTextBoxColumn
             {
                 Name = "colInvoiceNumber",
-                HeaderText = "Invoice Number",
+                HeaderText = " Invoice Number",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -1788,7 +1788,7 @@ namespace POSPRA_WinFormsUI.Forms
             try
             {
                 // 2. UI setup
-                InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
+                SafeInvalidateCell(e.RowIndex, e.ColumnIndex);
                 InvoicesDataGridView.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
 
@@ -1871,9 +1871,24 @@ namespace POSPRA_WinFormsUI.Forms
                     progressBar.Style = ProgressBarStyle.Continuous;
                 }
 
-                InvoicesDataGridView.InvalidateCell(e.ColumnIndex, e.RowIndex);
+                SafeInvalidateCell(e.RowIndex, e.ColumnIndex);
             }
         }
+
+        private void SafeInvalidateCell(int rowIndex, int columnIndex)
+        {
+            if (InvoicesDataGridView == null || InvoicesDataGridView.IsDisposed)
+                return;
+
+            if (rowIndex < 0 || rowIndex >= InvoicesDataGridView.RowCount)
+                return;
+
+            if (columnIndex < 0 || columnIndex >= InvoicesDataGridView.ColumnCount)
+                return;
+
+            InvoicesDataGridView.InvalidateCell(columnIndex, rowIndex);
+        }
+
 
 
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)

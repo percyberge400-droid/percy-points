@@ -86,8 +86,6 @@ namespace POSPRA.SetupUI
             LoadLogoImage();
             CheckServiceAvailability();
             LoadDefaultPaths();
-
-            DisableOldDatabaseControls();
         }
 
         #endregion

@@ -49,7 +49,6 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
             var resp = await PostEncryptedDataAsync(id, response.Data, token);
             if (resp is null || !resp.IsSuccessStatusCode)
                 return;
-
             var postJson = await resp.Content.ReadAsStringAsync(token);
             var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
             var syncedFiles = apiResp?.Data ?? new();
@@ -62,7 +61,7 @@ public class SendInvoiceToCloudService : ISendInvoiceToCloudService
                     {
                         await _workerLogService.LogAsync(
                             AlertType.Info,
-                            $"Invoice '{file.InvoiceNumber}' synced successfully.",
+                            $"Invoice number {file.InvoiceNumber} synced successfully.",
                             nameof(SendInvoiceToCloudService),
                             id,
                             "InvoiceSynced");
