@@ -140,3 +140,92 @@
 2025-11-01T07:44:33.1592826Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
 2025-11-01T07:44:37.1960666Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
 2025-11-01T07:44:41.4068698Z: Failed to log -> An error occurred while saving the entity changes. See the inner exception for details.
+2025-11-10T06:08:49.6921619Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:08:51.7359648Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:09:12.4936912Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:09:33.2173281Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:09:53.8156948Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:10:14.3679279Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:10:34.9952231Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:10:55.6256757Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:11:16.2540566Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:11:36.9381036Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:11:57.5924731Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:12:18.1909153Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:12:38.8890025Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:12:59.5625335Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:13:20.1019729Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:13:40.5861198Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:14:01.0458922Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:14:21.7279561Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:14:42.2592670Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:15:02.8250137Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:15:23.3964561Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:15:44.1213201Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:16:04.6536274Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:16:25.2200555Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:17:07.9342613Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:17:10.1442549Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:17:30.8712172Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:17:51.5612793Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:18:12.1915181Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:18:32.6317317Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:18:53.2517882Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:19:13.8154422Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:19:34.4386015Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:19:55.0873879Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:20:15.5454726Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:20:36.0168625Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:20:56.4870846Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:21:16.9556188Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:21:37.4121161Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:21:57.9042346Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:22:18.3777139Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:22:39.0341575Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:23:04.5345451Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:25:06.0658188Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:25:08.5298470Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:25:29.3622010Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:25:50.0612889Z: Failed to log -> Cannot create a DbSet for 'Logs' because this type is not included in the model for the context.
+2025-11-10T06:45:47.6618700Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:45:49.3344611Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:46:10.5101759Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:46:31.3504910Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:46:51.9907287Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:47:12.7840779Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:47:33.3811862Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:47:54.0735438Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:48:14.7572725Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:48:35.5042302Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:48:56.2266033Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:49:16.9966663Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:49:37.7715635Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:49:58.5406608Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:50:19.2595641Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:50:40.0373438Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:51:00.6621894Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:51:21.5094125Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:51:42.1266946Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:52:03.0392302Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:52:23.9602729Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:52:44.5778169Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:53:05.1134821Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:53:25.6400429Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:53:46.2511511Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:54:06.8376213Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:54:27.4861053Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:54:48.1226419Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:55:08.7160170Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:55:29.3108877Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:55:50.0579099Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:56:10.8675618Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:56:31.5778444Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:56:52.3318877Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:57:12.9406033Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:57:33.5903316Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:57:54.2750950Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:58:14.9109488Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:59:08.7717645Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:59:10.2776614Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:59:30.9651147Z: Failed to log -> SQLite Error 14: 'unable to open database file'.
+2025-11-10T06:59:51.7003189Z: Failed to log -> SQLite Error 14: 'unable to open database file'.

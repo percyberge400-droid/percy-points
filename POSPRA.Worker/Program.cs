@@ -1,23 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Pos.Application.DTOs;
+using Pos.Infrastructure; // <-- for AddInfrastructure()
 using POSPRA.Application.AutoMapperProfile;
-using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
-using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
-using POSPRA.Application.Services.FileRecordService;
-using POSPRA.Application.Services.HttpClientService;
-using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.NetworkService;
-using POSPRA.DTOs;
-using POSPRA.Infrastructure.Context;
-using POSPRA.Repositories.FileRecordRepository;
-using POSPRA.Repositories.LogRepository;
-using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService() // ✅ Allow running as Windows Service
     .ConfigureAppConfiguration((hostingContext, config) =>
     {
-        // Only load worker-specific configs
+        // ✅ Load worker-specific configuration
         config.Sources.Clear();
 
         config.AddJsonFile("appsettings.worker.json", optional: false, reloadOnChange: true)
@@ -28,46 +18,37 @@ var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         //----------------------------------------------------
-        // 🔧 Load AppSettings section
+        // 🔧 Load AppSettings and inject SQLite connection dynamically
         //----------------------------------------------------
-        services.Configure<AppSettings>(context.Configuration.GetSection("AppSettings"));
-        var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
+        var configuration = context.Configuration;
+        var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
+
+        // Build SQLite connection path dynamically (if needed)
+        var dbPath = appSettings?.DefaultDBFilePath;
+        if (string.IsNullOrWhiteSpace(dbPath))
+            dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+
+        // Inject SQLite connection into configuration (for AddInfrastructure)
+        var configurationWithSqlite = new ConfigurationBuilder()
+            .AddConfiguration(configuration)
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:SqliteConnection"] = $"Data Source={dbPath}"
+            })
+            .Build();
 
         //----------------------------------------------------
-        // 🔧 SQLite Database
+        // ✅ Centralized Infrastructure Registration
         //----------------------------------------------------
-        var dbPath = appSettings!.DefaultDBFilePath;
-        services.AddDbContext<SqliteDbContext>(options =>
-            options.UseSqlite($"Data Source={dbPath}"));
+        services.AddInfrastructure(configurationWithSqlite);
 
         //----------------------------------------------------
-        // 🔧 Core Utility Services
+        // ✅ AutoMapper
         //----------------------------------------------------
-        services.AddSingleton<INetworkService, NetworkService>();
-        services.AddHttpClient<HttpService>(); // For calling external APIs
-        services.AddHttpContextAccessor();
-        //----------------------------------------------------
-        // 🔧 Repositories
-        //----------------------------------------------------
-        services.AddScoped<IFileRecordRepository, FileRecordRepository>();
-        services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
-        services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
+        services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
 
         //----------------------------------------------------
-        // 🔧 Cloud Sync & Logging Services
-        //----------------------------------------------------
-        services.AddScoped<IWorkerLogService, WorkerLogService>();
-        services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
-        services.AddScoped<IWorkerLogService, WorkerLogService>();
-        services.AddScoped<ILogService, LogService>();
-        services.AddScoped<IFileRecordService, FileRecordService>();
-        //----------------------------------------------------
-        // 🔧 AutoMapper
-        //----------------------------------------------------
-        services.AddAutoMapper(cfg => { }, typeof(Program).Assembly, typeof(PosProfile).Assembly);
-
-        //----------------------------------------------------
-        // 🔧 Hosted Workers
+        // ✅ Worker-specific Hosted Services
         //----------------------------------------------------
         services.AddHostedService<Worker>();
         services.AddHostedService<SqliteBackupService>();
@@ -76,12 +57,12 @@ var builder = Host.CreateDefaultBuilder(args)
 var host = builder.Build();
 
 
-// ✅ 1. Start the API self-host (runs alongside worker)
+// ✅ 1. Start API self-host (optional, runs alongside worker)
 _ = Task.Run(async () =>
 {
     try
     {
-        var apiHost = POSPRA.API.Program.BuildApiHost(args);
+        var apiHost = Pos.Api.Program.BuildApiHost(args);
         await apiHost.StartAsync();
         Console.WriteLine("API self-hosted successfully at http://localhost:5010");
     }
@@ -93,16 +74,16 @@ _ = Task.Run(async () =>
 });
 
 
-// ✅ 2. Log database path (for diagnostics)
-using (var scope = host.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-    var dbPath = db.Database.GetDbConnection().DataSource;
+// ✅ 2. Log SQLite database path (for diagnostics)
+//using (var scope = host.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
+//    var dbPath = db.Database.GetDbConnection().DataSource;
 
-    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
-        $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
-}
+//    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
+//        $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
+//}
 
 
-// ✅ 3. Run the worker service
+// ✅ 3. Run Worker Service
 await host.RunAsync();

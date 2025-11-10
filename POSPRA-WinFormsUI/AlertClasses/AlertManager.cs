@@ -1,4 +1,4 @@
-﻿using POSPRA.Application.Utility;
+﻿using Pos.Application.Utility;
 using System.Drawing.Drawing2D;
 
 namespace POSPRA_WinFormsUI.AlertClasses

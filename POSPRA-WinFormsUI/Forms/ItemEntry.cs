@@ -1,18 +1,19 @@
-﻿using POSPRA.Application.Services.InvoiceService;
-using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.ProductCatalogService;
-using POSPRA.Application.Utility;
-using POSPRA.Domain.Entities;
-using POSPRA.DTOs.InvoiceDtos;
-using POSPRA.DTOs.LogDTOs;
-using POSPRA.DTOs.ProductCatalogDtos;
+﻿using Pos.Application.DTOs;
+using Pos.Application.DTOs.InvoiceDtos;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.DTOs.ProductCatalogDtos;
+using Pos.Application.Services.InvoiceService;
+using Pos.Application.Services.LogService;
+using Pos.Application.Services.ProductCatalogService;
+using Pos.Application.Utility;
+using Pos.Domain.Entities;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms;
 using System.Configuration;
 using System.Drawing.Drawing2D;
+using System.Net.Http.Json;
 using System.Text.RegularExpressions;
-using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI
 {
@@ -35,6 +36,7 @@ namespace POSPRA_WinFormsUI
         private readonly ILogService _logService;
         private readonly IInvoiceService _invoiceService;
         private readonly IProductCatalogueService _productCatalogueService;
+        private readonly HttpClient _httpClient;
 
         private ProgressBar progressBar;
         private int _isLoadingFlag = 0;
@@ -144,6 +146,7 @@ namespace POSPRA_WinFormsUI
             _logService = logService;
             _productCatalogueService = productCatalogueService;
             _invoiceService = invoiceService;
+            _httpClient = new HttpClient();
         }
 
         #endregion
@@ -998,7 +1001,20 @@ namespace POSPRA_WinFormsUI
                 // Save + print coordination
                 try
                 {
-                    var result = await _invoiceService.CreateAsync(invoiceDto);
+                    var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+
+                    var url = $"{_baseUrl}{Endpoints.Create}";
+
+                    HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, invoiceDto);
+
+                    // Throw if status is not success (4xx or 5xx)
+                    response.EnsureSuccessStatusCode();
+
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
+                    if (result == null)
+                        throw new Exception("Empty or invalid API response.");
+
+                    //var result = await _invoiceService.CreateAsync(invoiceDto);
 
                     if (result.StatusCode == ApiStatusCode.Success)
                     {

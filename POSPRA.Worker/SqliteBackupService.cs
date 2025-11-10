@@ -1,9 +1,7 @@
-﻿using System.IO.Compression;
-using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
-using POSPRA.DTOs;
+using Pos.Application.DTOs;
+using System.IO.Compression;
 
 namespace POSPRA.Worker
 {

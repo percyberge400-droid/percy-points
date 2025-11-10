@@ -1,7 +1,7 @@
-﻿using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.ProductCatalogService;
-using POSPRA.Application.Utility;
-using POSPRA.DTOs.ProductCatalogDtos;
+﻿using Pos.Application.DTOs.ProductCatalogDtos;
+using Pos.Application.Services.LogService;
+using Pos.Application.Services.ProductCatalogService;
+using Pos.Application.Utility;
 using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms

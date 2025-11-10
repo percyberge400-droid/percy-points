@@ -1,5 +1,5 @@
 ﻿using Microsoft.Reporting.WinForms;
-using POSPRA.DTOs.InvoiceDtos;
+using Pos.Application.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms.Logo;
 using QRCoder;

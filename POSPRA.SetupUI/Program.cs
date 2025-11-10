@@ -1,19 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
-using POSPRA.Application.Services.ScriptService;
-using POSPRA.Infrastructure.Context;
-using POSPRA.Repositories.FileRecordRepository;
-using POSPRA.Repositories.LogRepository;
-using POSPRA.Repositories.UnitOfWork;
+using Pos.Application.Interfaces;
+using Pos.Application.Services.ScriptService;
+using Pos.Infrastructure.Persistence.Repositories;
 using System.Configuration;
 
 namespace POSPRA.SetupUI
 {
-    internal static class Program
+    public static class Program
     {
+
         [STAThread]
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             // 🔹 Step 1: Resolve config paths
             string configPath = string.Empty;
@@ -94,9 +93,7 @@ namespace POSPRA.SetupUI
             var services = new ServiceCollection();
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
             services.AddScoped<IScriptService, ScriptService>();
-            services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
-            services.AddScoped<IFileRecordRepository, FileRecordRepository>();
 
 
             // ✅ Build the provider to resolve services
