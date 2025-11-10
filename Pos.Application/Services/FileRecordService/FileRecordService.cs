@@ -43,7 +43,6 @@ namespace Pos.Application.Services.FileRecordService
         {
             var output = await _sqliteFileRecordRepository.GetAllAsync();
             var fileRecrodDTO = _mapper.Map<List<FileRecordDto>>(output);
-
             return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, fileRecrodDTO, string.Empty);
         }
 

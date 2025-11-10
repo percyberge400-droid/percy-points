@@ -60,8 +60,13 @@ namespace Pos.Infrastructure
             services.AddHttpContextAccessor();
 
             // ✅ SQLite DbContext
+            // Read the DB file path from configuration
+            var dbFilePath = configuration["AppSettings:DefaultDBFilePath"];
+            var sqliteConnectionString = $"Data Source={dbFilePath}";
+
+            // Register DbContext
             services.AddDbContext<SqliteDbContext>(options =>
-                options.UseSqlite(configuration.GetConnectionString("SqliteConnection")));
+                options.UseSqlite(sqliteConnectionString));
 
             // ✅ SQL Server Repository Factory
             services.AddScoped<ISqlServerRepositoryFactory, SqlServerRepositoryFactory>(provider =>
