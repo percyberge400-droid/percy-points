@@ -545,83 +545,109 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async Task CheckLauncherUpdateAsync(string installPath, string serverPath)
         {
-            string localLauncherVersionFile = Path.Combine(installPath, "launcher-version.txt");
-            string serverLauncherVersionFile = Path.Combine(serverPath, "Updater", "launcher-version.txt");
+            string logFile = Path.Combine(installPath, "launcher_update_log.txt");
 
-            string localLauncherVersion = File.Exists(localLauncherVersionFile)
-                ? File.ReadAllText(localLauncherVersionFile).Trim()
-                : "0.0.0";
-
-            if (!File.Exists(serverLauncherVersionFile))
+            void Log(string msg)
             {
-                MessageBox.Show("Server launcher version file not found.", "Update",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                try
+                {
+                    File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
+                }
+                catch { /* ignore logging errors */ }
             }
 
-            string serverLauncherVersion = File.ReadAllText(serverLauncherVersionFile).Trim();
-
-            if (localLauncherVersion != serverLauncherVersion)
+            try
             {
-                var result = MessageBox.Show(
-                    $"A new launcher update is available.\n\n" +
-                    $"Your version: {localLauncherVersion}\n" +
-                    $"Latest version: {serverLauncherVersion}\n\n" +
-                    $"Update now?",
-                    "Launcher Update",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                Log("---- Checking launcher update ----");
 
-                if (result == DialogResult.Yes)
+                string localLauncherVersionFile = Path.Combine(installPath, "launcher-version.txt");
+                string serverLauncherVersionFile = Path.Combine(serverPath, "Updater", "launcher-version.txt");
+
+                string localLauncherVersion = File.Exists(localLauncherVersionFile)
+                    ? File.ReadAllText(localLauncherVersionFile).Trim()
+                    : "0.0.0";
+
+                if (!File.Exists(serverLauncherVersionFile))
                 {
-                    string flagFile = Path.Combine(installPath, "launcher_updated.flag");
-                    if (File.Exists(flagFile)) File.Delete(flagFile);
+                    Log("Server launcher-version.txt not found. Skipping update.");
+                    return;
+                }
 
+                string serverLauncherVersion = File.ReadAllText(serverLauncherVersionFile).Trim();
+                Log($"Local version: {localLauncherVersion}, Server version: {serverLauncherVersion}");
+
+                if (localLauncherVersion != serverLauncherVersion)
+                {
                     string launcherExe = Path.Combine(installPath, "POSPRA.Launcher.exe");
+
                     if (!File.Exists(launcherExe))
                     {
-                        MessageBox.Show("POSPRA.Launcher.exe not found.",
-                            "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Log("Launcher executable missing. Aborting update.");
                         return;
                     }
 
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = launcherExe,
-                        UseShellExecute = true,
-                        Verb = "runas",
-                        WindowStyle = ProcessWindowStyle.Normal
-                    };
-                    Process.Start(psi);
+                    Log("New launcher version detected. Launching silent update...");
 
-                    // Wait up to 1 second for launcher flag
-                    bool flagCreated = false;
-                    int maxWaitMs = 1000;     // 1 second total
-                    int intervalMs = 100;     // check every 100ms
-                    int elapsed = 0;
-
-                    while (elapsed < maxWaitMs)
+                    using (var launcherEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "POSPRA_LauncherDone"))
                     {
-                        if (File.Exists(flagFile))
+                        try
                         {
-                            flagCreated = true;
-                            break;
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = launcherExe,
+                                UseShellExecute = true,
+                                Verb = "runas",
+                                WindowStyle = ProcessWindowStyle.Hidden,
+                                CreateNoWindow = true
+                            });
+
+                            bool completed = await WaitForEventAsync(launcherEvent, TimeSpan.FromSeconds(10));
+
+                            Log(completed
+                                ? "Launcher update completed successfully."
+                                : "Launcher update timed out after 10 seconds.");
                         }
-                        await Task.Delay(intervalMs);
-                        elapsed += intervalMs;
+                        catch (Exception ex)
+                        {
+                            Log($"Failed to launch or wait for launcher update: {ex.Message}");
+                        }
                     }
-
-                    // Only show timeout message if user actually launched the updater
-                    if (flagCreated)
-                    {
-                        File.Delete(flagFile); // cleanup flag
-                    }
-                   
                 }
-                // If user clicked No, do nothing — no error message, no flag check
-            }
+                else
+                {
+                    Log("Launcher already up-to-date.");
+                }
 
+                Log("---- Launcher update check completed ----");
+            }
+            catch (Exception ex)
+            {
+                Log($"Unhandled error during launcher update check: {ex.Message}");
+            }
         }
+
+
+        /// <summary>
+        /// Asynchronously waits for a WaitHandle to be signaled.
+        /// </summary>
+        private Task<bool> WaitForEventAsync(WaitHandle handle, TimeSpan timeout)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            var registration = ThreadPool.RegisterWaitForSingleObject(
+                handle,
+                (state, timedOut) => tcs.TrySetResult(!timedOut),
+                null,
+                timeout,
+                executeOnlyOnce: true);
+
+            return tcs.Task.ContinueWith(t =>
+            {
+                registration.Unregister(null);
+                return t.Result;
+            });
+        }
+
 
         private async Task CheckAppUpdateAsync(string installPath, string serverPath)
         {

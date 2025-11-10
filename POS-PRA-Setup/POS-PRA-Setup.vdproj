@@ -375,7 +375,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:POS Component"
         "ProductCode" = "8:{6A2879D1-E93D-422F-978D-B231820AA62B}"
-        "PackageCode" = "8:{D5A30A5E-7CEE-4BA3-975B-064BB43EC940}"
+        "PackageCode" = "8:{762A9730-C2B8-422D-AB07-940E1B6EBAE6}"
         "UpgradeCode" = "8:{239EA055-E78F-4033-95C6-4DA1C9496960}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"

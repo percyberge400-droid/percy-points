@@ -2,22 +2,21 @@
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace POSPRA.Launcher
 {
-    public partial class LauncherForm : Form
+    internal static class LauncherSilent
     {
-        private string LocalFolder = "";
-        private string ServerRoot = "";
-        private string LogFile => Path.Combine(LocalFolder, "launcher_log.txt");
-        private readonly string[] ExcludedFiles = { "System.ServiceProcess.ServiceController.dll" };
-        private readonly string RuntimesFolder = "runtimes";
+        private static string LocalFolder = "";
+        private static string ServerRoot = "";
+        private static string LogFile => Path.Combine(LocalFolder, "launcher_log.txt");
+        private static readonly string[] ExcludedFiles = { "System.ServiceProcess.ServiceController.dll" };
+        private static readonly string RuntimesFolder = "runtimes";
 
-        public LauncherForm() => InitializeComponent();
-
-        private async void LauncherForm_Load(object sender, EventArgs e)
+        public static async Task RunAsync()
         {
             try
             {
@@ -27,7 +26,7 @@ namespace POSPRA.Launcher
                 // STEP 2️⃣ Load server path from Updater-Version.config
                 if (!LoadServerPathFromConfig())
                 {
-                    ShowErrorAndExit("❌ Failed to load server path from Updater-Version.config.");
+                    Log("❌ Failed to load server path from Updater-Version.config.");
                     return;
                 }
 
@@ -38,13 +37,8 @@ namespace POSPRA.Launcher
                 // STEP 3️⃣ Check required version files exist
                 if (!File.Exists(serverVersionPath))
                 {
-                    ShowErrorAndExit($"❌ Server version file missing at:\n{serverVersionPath}");
+                    Log($"❌ Server version file missing at: {serverVersionPath}");
                     return;
-                }
-
-                if (!File.Exists(localVersionPath))
-                {
-                    Log("⚠ No local launcher-version.txt found, treating as fresh install.");
                 }
 
                 string localVersion = File.Exists(localVersionPath)
@@ -52,65 +46,63 @@ namespace POSPRA.Launcher
                     : "0.0.0";
                 string serverVersion = File.ReadAllText(serverVersionPath).Trim();
 
-                // STEP 4️⃣ Compare versions — if same, exit silently
-                if (localVersion == serverVersion)
+                // STEP 4️⃣ Compare versions
+                bool updateNeeded = localVersion != serverVersion;
+
+                if (updateNeeded)
                 {
-                    Log($"Launcher already up to date (v{localVersion}). Exiting silently.");
-                    Application.Exit();
-                    return;
+                    // STEP 5️⃣ Pre-update safety checks
+                    if (!CheckInternetConnection())
+                    {
+                        Log("❌ No internet connection. Skipping update.");
+                        return;
+                    }
+
+                    string versionFolderPath = Path.Combine(serverUpdaterPath, serverVersion);
+                    if (!Directory.Exists(versionFolderPath) || !Directory.EnumerateFileSystemEntries(versionFolderPath).Any())
+                    {
+                        Log($"❌ Update folder not found or empty on server: {versionFolderPath}");
+                        return;
+                    }
+
+                    // STEP 6️⃣ Apply update
+                    Log($"Starting update from: {versionFolderPath}");
+                    await Task.Run(() => CopyFilesRecursive(versionFolderPath, LocalFolder));
+                    Log($"✅ Update completed successfully (local: {localVersion} → server: {serverVersion})");
+
+                    try
+                    {
+                        File.WriteAllText(localVersionPath, serverVersion);
+                        Log($"✅ Updated local launcher-version.txt to {serverVersion}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"⚠ Failed to update launcher-version.txt: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Log($"Launcher already up to date (v{localVersion}).");
                 }
 
-                // STEP 5️⃣ Pre-update safety checks
-                if (!CheckInternetConnection())
+                // STEP 7️⃣ Signal completion to parent app
+                using (EventWaitHandle launcherEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "POSPRA_LauncherDone"))
                 {
-                    ShowErrorAndExit("❌ No internet connection. Please check your network and try again.");
-                    return;
+                    launcherEvent.Set();
+                    Log("✅ Launcher signaled completion to parent process.");
                 }
 
-                string versionFolderPath = Path.Combine(serverUpdaterPath, serverVersion);
-                if (!Directory.Exists(versionFolderPath))
-                {
-                    ShowErrorAndExit($"❌ Update folder not found on server:\n{versionFolderPath}");
-                    return;
-                }
-
-                if (!Directory.EnumerateFileSystemEntries(versionFolderPath).Any())
-                {
-                    ShowErrorAndExit($"❌ The update folder on the server is empty:\n{versionFolderPath}");
-                    return;
-                }
-
-                // STEP 6️⃣ Apply update
-                Log($"Starting update from: {versionFolderPath}");
-                await Task.Run(() => CopyFilesRecursive(versionFolderPath, LocalFolder));
-
-                Log($"✅ Update completed successfully (local: {localVersion} → server: {serverVersion})");
-
-                // STEP 7️⃣ Signal login form and exit
-                string flagFile = Path.Combine(LocalFolder, "launcher_updated.flag");
-                try
-                {
-                    if (File.Exists(flagFile)) File.Delete(flagFile);
-                    File.WriteAllText(flagFile, "true");
-                }
-                catch (Exception ex)
-                {
-                    Log($"⚠ Could not create flag file: {ex.Message}");
-                }
-
-                Log("Exiting after successful update.");
-                Application.Exit();
+                Log("Exiting silent launcher.");
             }
             catch (Exception ex)
             {
                 Log("❌ Unexpected error: " + ex);
-                ShowErrorAndExit($"❌ Launcher failed:\n\n{ex.Message}");
             }
         }
 
         // -------------------- Helper Methods --------------------
 
-        private void DetectInstallPath()
+        private static void DetectInstallPath()
         {
             try
             {
@@ -151,7 +143,7 @@ namespace POSPRA.Launcher
             }
         }
 
-        private bool LoadServerPathFromConfig()
+        private static bool LoadServerPathFromConfig()
         {
             try
             {
@@ -162,7 +154,7 @@ namespace POSPRA.Launcher
                     return false;
                 }
 
-                var xml = System.Xml.Linq.XDocument.Load(configPath);
+                var xml = XDocument.Load(configPath);
                 var serverPathElement = xml.Descendants("add")
                     .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
 
@@ -185,7 +177,7 @@ namespace POSPRA.Launcher
             }
         }
 
-        private bool CheckInternetConnection()
+        private static bool CheckInternetConnection()
         {
             try
             {
@@ -197,7 +189,7 @@ namespace POSPRA.Launcher
             }
         }
 
-        private void CopyFilesRecursive(string src, string dst)
+        private static void CopyFilesRecursive(string src, string dst)
         {
             var files = Directory.GetFiles(src, "*", SearchOption.AllDirectories);
             foreach (string file in files)
@@ -206,17 +198,11 @@ namespace POSPRA.Launcher
                 string destFile = Path.Combine(dst, relPath);
                 string fileName = Path.GetFileName(file);
 
-                // Skip excluded files
-                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
+                // Skip excluded and runtime files
+                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)) ||
+                    relPath.StartsWith(RuntimesFolder + "\\", StringComparison.OrdinalIgnoreCase))
                 {
-                    Log($"Skipped excluded file: {relPath}");
-                    continue;
-                }
-
-                // Skip runtimes folder
-                if (relPath.StartsWith(RuntimesFolder + "\\", StringComparison.OrdinalIgnoreCase))
-                {
-                    Log($"Skipped folder: {relPath}");
+                    Log($"Skipped: {relPath}");
                     continue;
                 }
 
@@ -228,36 +214,12 @@ namespace POSPRA.Launcher
                 }
                 catch (Exception ex)
                 {
-                    ShowErrorAndExit($"❌ Failed to copy file:\n{relPath}\n\n{ex.Message}");
+                    Log($"❌ Failed to copy file {relPath}: {ex.Message}");
                 }
             }
         }
 
-        private void ShowErrorAndExit(string msg)
-        {
-            try
-            {
-                Log(msg);
-
-                // Ensure message box is visible above all windows
-                this.Invoke((MethodInvoker)(() =>
-                {
-                    this.TopMost = true;
-                    this.BringToFront();
-                    MessageBox.Show(this, msg, "Launcher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }));
-
-                Application.DoEvents();
-                System.Threading.Thread.Sleep(500);
-                Application.Exit();
-            }
-            catch
-            {
-                Environment.Exit(1);
-            }
-        }
-
-        private void Log(string msg)
+        private static void Log(string msg)
         {
             try
             {
@@ -265,7 +227,7 @@ namespace POSPRA.Launcher
             }
             catch
             {
-                // Ignore logging errors
+                // ignore
             }
         }
     }

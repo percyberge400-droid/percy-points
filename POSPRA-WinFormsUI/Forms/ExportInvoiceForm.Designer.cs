@@ -31,7 +31,6 @@
             dateTimePickerTo = new DateTimePicker();
             dateTimePickerFrom = new DateTimePicker();
             ExportInvoiceBtn = new Button();
-            label2 = new Label();
             panelPending.SuspendLayout();
             SuspendLayout();
             // 
@@ -141,22 +140,12 @@
             ExportInvoiceBtn.Text = "📤  Export Invoices";
             ExportInvoiceBtn.UseVisualStyleBackColor = false;
             // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(751, 41);
-            label2.Name = "label2";
-            label2.Size = new Size(183, 20);
-            label2.TabIndex = 2;
-            label2.Text = "Test version for update 1.1";
-            // 
             // ExportInvoiceForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(245, 247, 250);
             ClientSize = new Size(980, 540);
-            Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(panelPending);
             Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
@@ -179,6 +168,5 @@
         private DateTimePicker dateTimePickerTo;
         private DateTimePicker dateTimePickerFrom;
         private Button ExportInvoiceBtn;
-        private Label label2;
     }
 }

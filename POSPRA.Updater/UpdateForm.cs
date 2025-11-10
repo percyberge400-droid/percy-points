@@ -25,8 +25,10 @@ namespace POSPRA.Updater
             "appsettings.worker.json"
         };
 
-        public UpdateForm() => InitializeComponent();
-
+        public UpdateForm()
+        {
+            InitializeComponent(); 
+        }
         private async void UpdateForm_Load(object sender, EventArgs e)
         {
             try
@@ -167,19 +169,22 @@ namespace POSPRA.Updater
             try
             {
                 // Stop worker service & running UI processes
-                lblStatus.Text = "Stopping worker service...";
+                Invoke((Action)(() => lblStatus.Text = "Stopping worker service..."));
                 StopService(WorkerServiceName);
 
-                lblStatus.Text = "Stopping running applications...";
+                Invoke((Action)(() => lblStatus.Text = "Stopping running applications..."));
                 StopProcess(AppProcessName);
 
                 // Wait briefly to ensure all file handles are released
                 await Task.Delay(1000);
 
                 // Copy update files
-                lblStatus.Text = "Applying updates...";
-                progressBar.Style = ProgressBarStyle.Continuous;
-                progressBar.Value = 0;
+                Invoke((Action)(() => lblStatus.Text = "Applying updates..."));
+                Invoke((Action)(() =>
+                {
+                    progressBar.Style = ProgressBarStyle.Continuous;
+                    progressBar.Value = 0;
+                }));
                 await Task.Run(() => CopyFilesRecursive(serverVersionFolder, LocalFolder));
 
                 // Update version file
@@ -187,15 +192,16 @@ namespace POSPRA.Updater
                 Log($"Version updated: {localVersion} → {serverVersion}");
 
                 // Restart service
-                lblStatus.Text = "Restarting worker service...";
+                Invoke((Action)(() => lblStatus.Text = "Restarting worker service..."));
                 StartService(WorkerServiceName);
 
                 // Relaunch UI
                 string uiExe = Path.Combine(LocalFolder, "POSPRA-WinFormsUI.exe");
                 if (File.Exists(uiExe)) Process.Start(uiExe);
 
-                lblStatus.Text = "Update completed!";
-                progressBar.Value = 100;
+                Invoke((Action)(() => lblStatus.Text = "Update completed!"));
+                Invoke((Action)(() => progressBar.Value = 100));
+
                 MessageBox.Show(new Form { TopMost = true },
                     $"Update completed successfully!\nPrevious version: {localVersion}\nNew version: {serverVersion}",
                     "Update Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -207,6 +213,7 @@ namespace POSPRA.Updater
             {
                 ShowErrorAndClose($"Unexpected error during update: {ex.Message}");
             }
+
         }
 
         private void StopService(string name)
