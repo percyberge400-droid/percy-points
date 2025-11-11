@@ -1,8 +1,11 @@
-﻿using Pos.Application.DTOs.ProductCatalogDtos;
+﻿using Pos.Application.DTOs;
+using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Utility;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
+using System.Net.Http.Json;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -22,6 +25,7 @@ namespace POSPRA_WinFormsUI.Forms
         private System.Windows.Forms.Timer _searchDebounceTimer; // Remove readonly
         private const int SEARCH_DEBOUNCE_MS = 300;
         private string _lastSearchTerm = string.Empty;
+        private readonly HttpClient _httpClient;
 
         public CatalogView(IProductCatalogueService productCatalogueService, ILogService logService)
         {
@@ -31,6 +35,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             InitializeComponentEvents();
             StyleProductDataGridView();
+            _httpClient = new HttpClient();
         }
 
         private void InitializeComponentEvents()
@@ -245,16 +250,17 @@ namespace POSPRA_WinFormsUI.Forms
         {
             await CreateLog("Starting data refresh from API", "Info");
 
-            // Step 1: Fetch from API
-            var response = await _productCatalogueService.GetAllAsync(new ProductCatalogueQueryDto
-            {
-                numberOfRecords = 1000,
-                pageNumber = 1
-            });
+            var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+            var url = $"{_baseUrl}{Endpoints.GetProductCatalogue}";
 
-            cancellationToken.ThrowIfCancellationRequested();
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
 
-            var apiProducts = response?.Data?.ToList() ?? new List<ProductCatalogueDto>();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<ProductCatalogueDto>>>();
+
+            var apiProducts = (result?.Data != null && result.Data.Count > 0)
+                ? result.Data
+                : new List<ProductCatalogueDto> { new ProductCatalogueDto() };
 
             if (!apiProducts.Any())
             {

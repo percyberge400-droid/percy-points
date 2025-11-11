@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
@@ -18,12 +17,12 @@ namespace Pos.Application.Services.ProductCatalogService
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
         private readonly IConfiguration _configuration;
 
-        public ProductCatalogueService( 
+        public ProductCatalogueService(
             IMapper mapper,
             ISqliteUnitOfWork sqliteUnitOfWork,
             IConfiguration configuration,
             ISqlServerRepositoryFactory sqlRepositoryFactory,
-            ISqliteRepositoryFactory  sqliteRepositoryFactory
+            ISqliteRepositoryFactory sqliteRepositoryFactory
             )
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -35,29 +34,29 @@ namespace Pos.Application.Services.ProductCatalogService
 
         }
 
-        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(ProductCatalogueQueryDto dto)
+        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync()
         {
             try
             {
-                IQueryable<ProductCatalogue> query = _sqlProductCatalogueRepository.Query();
-                // Only filter HSCode if given
-                if (!string.IsNullOrEmpty(dto.HSCode) && dto.HSCode is not null)
-                    query = query.Where(i => i.HSCode!.Contains(dto.HSCode));
+                var result = await _sqlProductCatalogueRepository.GetAllAsync();
+                //// Only filter HSCode if given
+                //if (!string.IsNullOrEmpty(dto.HSCode) && dto.HSCode is not null)
+                //    query = query.Where(i => i.HSCode!.Contains(dto.HSCode));
 
-                // Only filter Product Description if given
-                if (!string.IsNullOrEmpty(dto.ProductDescription) && dto.ProductDescription is not null)
-                    query = query.Where(i => i.ProductDescription!.Contains(dto.ProductDescription));
+                //// Only filter Product Description if given
+                //if (!string.IsNullOrEmpty(dto.ProductDescription) && dto.ProductDescription is not null)
+                //    query = query.Where(i => i.ProductDescription!.Contains(dto.ProductDescription));
 
-                // Always order before pagination
-                query = query.OrderBy(i => i.ProductCode);
+                //// Always order before pagination
+                //query = query.OrderBy(i => i.ProductCode);
 
-                // Apply pagination
-                int skip = (dto.pageNumber - 1) * dto.numberOfRecords;
-                query = query.Skip(skip).Take(dto.numberOfRecords);
+                //// Apply pagination
+                //int skip = (dto.pageNumber - 1) * dto.numberOfRecords;
+                //query = query.Skip(skip).Take(dto.numberOfRecords);
 
-                var output = await query.ToListAsync();
+                //var output = await query.ToListAsync();
 
-                var productCatalogueDTO = _mapper.Map<List<ProductCatalogueDto>>(output);
+                var productCatalogueDTO = _mapper.Map<List<ProductCatalogueDto>>(result);
 
                 if (productCatalogueDTO.Any())
                     return new ApiResponse<List<ProductCatalogueDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, productCatalogueDTO, string.Empty);
@@ -122,6 +121,7 @@ namespace Pos.Application.Services.ProductCatalogService
         /// <returns></returns>
         public async Task<ApiResponse<object>> DeleteProductCatalogue()
         {
+
             var entities = await _sqLiteProductCatalogueRepository.GetAllAsync();
 
             if (entities.Any())

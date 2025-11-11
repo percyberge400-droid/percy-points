@@ -10,9 +10,9 @@ namespace Pos.API.Controllers
     {
         private readonly IProductCatalogueService _productCatalogueService = productCatalogueService;
 
-        [HttpPost("GetAll")]
-        public async Task<IActionResult> GetAll(ProductCatalogueQueryDto dto) =>
-            Ok(await _productCatalogueService.GetAllAsync(dto));
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAll() =>
+            Ok(await _productCatalogueService.GetAllAsync());
 
         /// <summary>
         /// This method is used to create product catalogue in SQLite.
