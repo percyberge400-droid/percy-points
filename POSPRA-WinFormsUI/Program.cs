@@ -86,6 +86,12 @@ namespace POSPRA_WinFormsUI
 
             using var provider = services.BuildServiceProvider();
 
+            using (var scope = provider.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
+                dbContext.Database.EnsureCreated();
+            }
+
             // ✅ Launch WinForms
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();

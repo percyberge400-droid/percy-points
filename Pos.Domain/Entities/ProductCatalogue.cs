@@ -26,10 +26,15 @@ namespace Pos.Domain.Entities
         [Column("SaleType")]
         public string? SaleType { get; set; }
 
-        [Required]
+        //[Required]
         [MaxLength(50)]
         [Column("Price")]
         public decimal? Price { get; set; }
+
+        [MaxLength(50)]
+        [Column("POSMASTERID")]
+        public long? POSMasterId { get; set; }
+
         [Required]
         [MaxLength(50)]
         [Column("POSUnitOfMeasurement")]

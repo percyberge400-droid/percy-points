@@ -3,10 +3,14 @@ using Pos.Application.Interfaces;
 
 namespace Pos.Infrastructure.Persistence.Repositories
 {
-
     public class UnitOfWork<TContext> : IUnitOfWork where TContext : DbContext
     {
-        private readonly TContext _context;
+        protected readonly TContext _context;
+
+        /// <summary>
+        /// Expose the DbContext publicly so repositories can reuse it.
+        /// </summary>
+        public TContext DbContext => _context;
 
         /// <summary>
         /// Creates a new UnitOfWork instance for the specified DbContext.

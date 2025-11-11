@@ -1,13 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Pos.Application.DTOs;
 using Pos.Infrastructure; // <-- for AddInfrastructure()
 using Pos.Worker;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Worker;
-using System.IO;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService()
