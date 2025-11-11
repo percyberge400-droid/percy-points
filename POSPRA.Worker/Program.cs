@@ -4,49 +4,39 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Pos.Application.DTOs;
 using Pos.Infrastructure; // <-- for AddInfrastructure()
+using Pos.Worker;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Worker;
-using System.Configuration;
 using System.IO;
 
 var builder = Host.CreateDefaultBuilder(args)
-    .UseWindowsService() // ✅ Allow running as Windows Service
+    .UseWindowsService()
     .ConfigureAppConfiguration((context, config) =>
     {
-        // Clear default sources
+        // Clear default sources if needed
         config.Sources.Clear();
 
-        // Load worker-specific config
-        config.AddJsonFile("appsettings.worker.json", optional: false, reloadOnChange: true)
+        // Load worker-specific config, fallback to default
+        config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              .AddJsonFile("appsettings.worker.json", optional: true, reloadOnChange: true)
               .AddEnvironmentVariables();
     })
     .ConfigureServices((context, services) =>
     {
         var configuration = context.Configuration;
+
+        //----------------------------------------------------
+        // 🔧 Register Infrastructure using builder.Configuration
+        //----------------------------------------------------
+        services.AddInfrastructure(configuration); // ✅ Same as API program
+
         //----------------------------------------------------
         // 🔧 Load AppSettings
         //----------------------------------------------------
-        // Bind AppSettings manually (optional, if you want immediate access)
-        var appSettings = new AppSettings();
-        configuration.GetSection("AppSettings").Bind(appSettings);
+        var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>()
+                          ?? throw new InvalidOperationException("AppSettings section missing.");
 
-        // Register AppSettings for IOptions<T>
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
-
-        //----------------------------------------------------
-        // 🔧 Build SQLite connection path
-        //----------------------------------------------------
-        var dbPath = appSettings?.DefaultDBFilePath
-                     ?? Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
-
-        // Optional: override DB name if needed
-        dbPath = Path.Combine(Path.GetDirectoryName(dbPath) ?? AppContext.BaseDirectory, "POSPRA.db");
-
-        //----------------------------------------------------
-        // ✅ Register centralized infrastructure
-        // Pass the DB path directly to AddInfrastructure
-        //----------------------------------------------------
-        services.AddInfrastructure(new DirectSqliteConfiguration(dbPath));
 
         //----------------------------------------------------
         // ✅ AutoMapper
@@ -68,7 +58,7 @@ using (var scope = host.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
     var dbPathUsed = db.Database.GetDbConnection().DataSource;
 
-    var logFile = Path.Combine(AppContext.BaseDirectory, "service-log.txt");
+    var logFile = Path.Combine(AppContext.BaseDirectory, "worker-service-log.txt");
     File.AppendAllText(logFile,
         $"[{DateTime.Now}] Using SQLite DB: {dbPathUsed}{System.Environment.NewLine}");
 }

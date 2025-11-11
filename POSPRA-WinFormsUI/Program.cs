@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA_WinFormsUI.Forms;
 using System.Drawing.Text;
 using Pos.Infrastructure;
+using Microsoft.Extensions.Configuration;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 namespace POSPRA_WinFormsUI
 {
@@ -20,18 +21,38 @@ namespace POSPRA_WinFormsUI
 
         static async Task MainAsync()
         {
-
-
-            // ✅ Load configuration from appsettings.json
-            var configuration = new ConfigurationBuilder()
+            // ------------------------------
+            // 1️⃣ Read appsettings.json
+            // ------------------------------
+            var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .Build();
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-            // ✅ Get DB path from config, fallback to default
-            string dbPath = configuration.GetValue<string>("DefaultDBFilePath")
-                            ?? Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            // ------------------------------
+            // 2️⃣ Read value from app.config
+            // ------------------------------
+            string dbPathFromAppConfig = ConfigurationManager.AppSettings["DefaultDBFilePath"]!;
+            if (string.IsNullOrWhiteSpace(dbPathFromAppConfig))
+            {
+                dbPathFromAppConfig = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            }
 
+
+            // ------------------------------
+            // 3️⃣ Inject app.config value into IConfiguration
+            // ------------------------------
+            builder.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["AppSettings:DefaultDBFilePath"] = dbPathFromAppConfig,
+                ["BaseUrl"] = ConfigurationManager.AppSettings["BaseUrl"]
+            });
+
+            var configuration = builder.Build();
+
+            // ------------------------------
+            // 4️⃣ Ensure DB directory exists
+            // ------------------------------
+            string dbPath = configuration["AppSettings:DefaultDBFilePath"]!;
             var dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {

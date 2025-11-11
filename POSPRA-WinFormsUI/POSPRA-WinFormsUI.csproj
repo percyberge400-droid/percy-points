@@ -54,6 +54,7 @@
     <ProjectReference Include="..\POSPRA.Repositories\POSPRA.Repositories.csproj" />
     <ProjectReference Include="..\POSPRA.SecurityEncryption\POSPRA.SecurityEncryption.csproj" />
     <ProjectReference Include="..\POSPRA.SetupUI\POSPRA.SetupUI.csproj" />
+	<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>

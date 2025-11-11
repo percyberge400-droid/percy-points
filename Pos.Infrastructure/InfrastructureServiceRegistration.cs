@@ -34,6 +34,7 @@ namespace Pos.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Core Services
+            services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
             services.AddScoped<IRequestHeaderService, RequestHeaderService>();

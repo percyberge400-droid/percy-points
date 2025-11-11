@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
@@ -10,7 +8,7 @@ using Pos.Application.Utility;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace POSPRA.Worker
+namespace Pos.Worker
 {
     public class Worker : BackgroundService
     {

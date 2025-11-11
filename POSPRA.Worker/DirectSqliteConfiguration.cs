@@ -10,13 +10,18 @@
 
         public DirectSqliteConfiguration(string dbPath)
         {
+            var directory = Path.GetDirectoryName(dbPath);
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
             _configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:SqliteConnection"] = $"Data Source={dbPath}"
+                    ["AppSettings:DefaultDBFilePath"] = $"Data Source={dbPath}"
                 })
                 .Build();
         }
+
 
         public string this[string key]
         {
