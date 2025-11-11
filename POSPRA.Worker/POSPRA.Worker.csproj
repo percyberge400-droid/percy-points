@@ -11,6 +11,9 @@
 		<PackageReference Include="Hangfire.SqlServer" Version="1.8.21" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="9.0.9" />
+		<ProjectReference Include="..\Pos.Api\Pos.Api.csproj" />
+		<ProjectReference Include="..\Pos.Application\Pos.Application.csproj" />
+		<ProjectReference Include="..\Pos.Infrastructure\Pos.Infrastructure.csproj" />
 		<ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
 		<ProjectReference Include="..\POSPRA.Application\POSPRA.Application.csproj" />
 	</ItemGroup>

@@ -1,73 +1,46 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Pos.Application.DTOs;
+using Pos.Infrastructure; // <-- for AddInfrastructure()
+using Pos.Worker;
 using POSPRA.Application.AutoMapperProfile;
-using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
-using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
-using POSPRA.Application.Services.FileRecordService;
-using POSPRA.Application.Services.HttpClientService;
-using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Services.NetworkService;
-using POSPRA.DTOs;
-using POSPRA.Infrastructure.Context;
-using POSPRA.Repositories.FileRecordRepository;
-using POSPRA.Repositories.LogRepository;
-using POSPRA.Repositories.UnitOfWork;
 using POSPRA.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)
-    .UseWindowsService() // ✅ Allow running as Windows Service
-    .ConfigureAppConfiguration((hostingContext, config) =>
+    .UseWindowsService()
+    .ConfigureAppConfiguration((context, config) =>
     {
-        // Only load worker-specific configs
+        // Clear default sources if needed
         config.Sources.Clear();
 
-        config.AddJsonFile("appsettings.worker.json", optional: false, reloadOnChange: true)
-              .AddJsonFile($"appsettings.worker.{hostingContext.HostingEnvironment.EnvironmentName}.json",
-                            optional: true, reloadOnChange: true)
+        // Load worker-specific config, fallback to default
+        config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              .AddJsonFile("appsettings.worker.json", optional: true, reloadOnChange: true)
               .AddEnvironmentVariables();
     })
     .ConfigureServices((context, services) =>
     {
-        //----------------------------------------------------
-        // 🔧 Load AppSettings section
-        //----------------------------------------------------
-        services.Configure<AppSettings>(context.Configuration.GetSection("AppSettings"));
-        var appSettings = context.Configuration.GetSection("AppSettings").Get<AppSettings>();
+        var configuration = context.Configuration;
 
         //----------------------------------------------------
-        // 🔧 SQLite Database
+        // 🔧 Register Infrastructure using builder.Configuration
         //----------------------------------------------------
-        var dbPath = appSettings!.DefaultDBFilePath;
-        services.AddDbContext<SqliteDbContext>(options =>
-            options.UseSqlite($"Data Source={dbPath}"));
+        services.AddInfrastructure(configuration); // ✅ Same as API program
 
         //----------------------------------------------------
-        // 🔧 Core Utility Services
+        // 🔧 Load AppSettings
         //----------------------------------------------------
-        services.AddSingleton<INetworkService, NetworkService>();
-        services.AddHttpClient<HttpService>(); // For calling external APIs
-        services.AddHttpContextAccessor();
-        //----------------------------------------------------
-        // 🔧 Repositories
-        //----------------------------------------------------
-        services.AddScoped<IFileRecordRepository, FileRecordRepository>();
-        services.AddScoped<ILogSQLiteRepository, LogSQLiteRepository>();
-        services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
+        var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>()
+                          ?? throw new InvalidOperationException("AppSettings section missing.");
+
+        services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 
         //----------------------------------------------------
-        // 🔧 Cloud Sync & Logging Services
+        // ✅ AutoMapper
         //----------------------------------------------------
-        services.AddScoped<IWorkerLogService, WorkerLogService>();
-        services.AddScoped<ISendInvoiceToCloudService, SendInvoiceToCloudService>();
-        services.AddScoped<IWorkerLogService, WorkerLogService>();
-        services.AddScoped<ILogService, LogService>();
-        services.AddScoped<IFileRecordService, FileRecordService>();
-        //----------------------------------------------------
-        // 🔧 AutoMapper
-        //----------------------------------------------------
-        services.AddAutoMapper(cfg => { }, typeof(Program).Assembly, typeof(PosProfile).Assembly);
+        services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
 
         //----------------------------------------------------
-        // 🔧 Hosted Workers
+        // ✅ Worker-specific Hosted Services
         //----------------------------------------------------
         services.AddHostedService<Worker>();
         services.AddHostedService<SqliteBackupService>();
@@ -75,34 +48,16 @@ var builder = Host.CreateDefaultBuilder(args)
 
 var host = builder.Build();
 
-
-// ✅ 1. Start the API self-host (runs alongside worker)
-_ = Task.Run(async () =>
-{
-    try
-    {
-        var apiHost = POSPRA.API.Program.BuildApiHost(args);
-        await apiHost.StartAsync();
-        Console.WriteLine("API self-hosted successfully at http://localhost:5010");
-    }
-    catch (Exception ex)
-    {
-        var logPath = Path.Combine(AppContext.BaseDirectory, "api-start-error.log");
-        File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n");
-    }
-});
-
-
-// ✅ 2. Log database path (for diagnostics)
+// ✅ Log SQLite DB path for diagnostics
 using (var scope = host.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-    var dbPath = db.Database.GetDbConnection().DataSource;
+    var dbPathUsed = db.Database.GetDbConnection().DataSource;
 
-    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "service-log.txt"),
-        $"[{DateTime.Now}] Using existing SQLite DB: {dbPath}{Environment.NewLine}");
+    var logFile = Path.Combine(AppContext.BaseDirectory, "worker-service-log.txt");
+    File.AppendAllText(logFile,
+        $"[{DateTime.Now}] Using SQLite DB: {dbPathUsed}{System.Environment.NewLine}");
 }
 
-
-// ✅ 3. Run the worker service
+// ✅ Run Worker Service
 await host.RunAsync();

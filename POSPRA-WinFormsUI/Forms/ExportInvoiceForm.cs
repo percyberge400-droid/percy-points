@@ -1,13 +1,13 @@
 ﻿using ClosedXML.Excel;
-using POSPRA.Application.Services.LiveService;
-using POSPRA.Application.Services.LogService;
-using POSPRA.DTOs.InvoiceDtos;
-using POSPRA.DTOs.LogDTOs;
+using Pos.Application.DTOs.InvoiceDtos;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.LiveService;
+using Pos.Application.Services.LogService;
+using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Runtime.InteropServices;
-using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
 {

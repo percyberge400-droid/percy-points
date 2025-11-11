@@ -1,32 +1,32 @@
 ﻿using Microsoft.Extensions.Options;
-using POSPRA.Application.Services.CloudSyncService.CloudSyncInvoiceService;
-using POSPRA.Application.Services.CloudSyncService.WorkerLogService;
-using POSPRA.Application.Services.NetworkService;
-using POSPRA.Application.Utility;
-using POSPRA.DTOs;
-using POSPRA.DTOs.CommanDtos;
+using Pos.Application.DTOs;
+using Pos.Application.DTOs.CommanDtos;
+using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
+using Pos.Application.Services.CloudSyncService.WorkerLogService;
+using Pos.Application.Services.NetworkService;
+using Pos.Application.Utility;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace POSPRA.Worker
+namespace Pos.Worker
 {
-    public class Worker(
-        IServiceScopeFactory scopeFactory,
-        IOptions<AppSettings> options,
-        INetworkService networkService,
-        IHttpClientFactory httpClientFactory) : BackgroundService
+    public class Worker : BackgroundService
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory = scopeFactory;
-        private readonly AppSettings _appSettings = options.Value;
-        private readonly INetworkService _networkService = networkService;
-        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly AppSettings _appSettings;
 
+        public Worker(IServiceScopeFactory scopeFactory, IOptions<AppSettings> options)
+        {
+            _serviceScopeFactory = scopeFactory;
+            _appSettings = options.Value;
+        }
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var workerInstanceId = Guid.NewGuid().ToString();
             var workerName = nameof(Worker);
 
+            // Log startup
             using (var startupScope = _serviceScopeFactory.CreateScope())
             {
                 var logService = startupScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
@@ -35,11 +35,14 @@ namespace POSPRA.Worker
 
             try
             {
-                //int serviceDisbaledLogCount = 0;
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    //serviceDisbaledLogCount = 0;
-                    bool internetAvailable = await _networkService.IsInternetAvailableAsync();
+                    // Resolve scoped services in a scope
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var networkService = scope.ServiceProvider.GetRequiredService<INetworkService>();
+                    var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
+
+                    bool internetAvailable = await networkService.IsInternetAvailableAsync();
 
                     if (!internetAvailable)
                     {
@@ -48,29 +51,25 @@ namespace POSPRA.Worker
                         continue;
                     }
 
-                    bool EnabledWorker = false;
+                    bool enabledWorker = false;
 
                     var fullUrl = $"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}?posId={_appSettings.POS}";
 
-                    using (var httpClient = new HttpClient())
+                    try
                     {
-                        try
-                        {
-                            var response = await httpClient.GetAsync(fullUrl);
-                            response.EnsureSuccessStatusCode();
+                        using var httpClient = httpClientFactory.CreateClient();
+                        var response = await httpClient.GetAsync(fullUrl, cancellationToken);
+                        response.EnsureSuccessStatusCode();
 
-                            string result = await response.Content.ReadAsStringAsync();
-
-                            // Parse string "true"/"false" to bool
-                            EnabledWorker = bool.TryParse(result, out bool parsedValue) && parsedValue;
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error calling API: {ex.Message}");
-                        }
+                        var result = await response.Content.ReadAsStringAsync(cancellationToken);
+                        enabledWorker = bool.TryParse(result, out bool parsed) && parsed;
+                    }
+                    catch (Exception ex)
+                    {
+                        await LogWarningAsync($"Error calling API: {ex.Message}", workerName, workerInstanceId);
                     }
 
-                    if (!EnabledWorker)
+                    if (!enabledWorker)
                     {
                         await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                         continue;
@@ -79,12 +78,10 @@ namespace POSPRA.Worker
                     bool isCloudSyncEnabled = false;
                     try
                     {
-                        // ✅ Replace service call with HTTP POST
-                        using var httpClient = _httpClientFactory.CreateClient();
+                        using var httpClient = httpClientFactory.CreateClient();
                         var apiUrl = $"{_appSettings.BaseUrl}{Endpoints.IsCloudSyncEnabledAsync}";
 
                         var response = await httpClient.PostAsJsonAsync(apiUrl, new GetByPosIdDto { PosId = _appSettings.POS }, cancellationToken);
-
                         if (response.IsSuccessStatusCode)
                         {
                             var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -111,12 +108,9 @@ namespace POSPRA.Worker
                     {
                         try
                         {
-                            using (var workerScope = _serviceScopeFactory.CreateScope())
-                            {
-                                var invoiceCloudSyncService = workerScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
-
-                                await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
-                            }
+                            using var cloudScope = _serviceScopeFactory.CreateScope();
+                            var invoiceCloudSyncService = cloudScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
+                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
                         }
                         catch (Exception ex)
                         {

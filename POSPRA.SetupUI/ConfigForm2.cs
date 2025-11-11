@@ -2,10 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using POSPRA.Application.Services.ScriptService;
-using POSPRA.DTOs.FiscalDtos;
-using POSPRA.DTOs.LogDTOs;
-using POSPRA.Infrastructure.Context;
+using Pos.Application.DTOs.FiscalDtos;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.ScriptService;
 using POSPRA.SecurityEncryption;
 using System.Configuration;
 using System.Diagnostics;

@@ -1,15 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using POSPRA.Application.Services.LogService;
-using POSPRA.Application.Utility;
-using POSPRA.Domain.Entities;
-using POSPRA.DTOs.LogDTOs;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.LogService;
+using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
-using AlertType = POSPRA.Application.Utility.AlertType;
 
 namespace POSPRA_WinFormsUI.Forms
 {
