@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Pos.Infrastructure;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA_WinFormsUI.Forms;
 using System.Drawing.Text;
-using Pos.Infrastructure;
-using Microsoft.Extensions.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 namespace POSPRA_WinFormsUI
@@ -41,11 +41,19 @@ namespace POSPRA_WinFormsUI
             // ------------------------------
             // 3️⃣ Inject app.config value into IConfiguration
             // ------------------------------
-            builder.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["AppSettings:DefaultDBFilePath"] = dbPathFromAppConfig,
-                ["BaseUrl"] = ConfigurationManager.AppSettings["BaseUrl"]
-            });
+            // 3️⃣ Merge ALL App.config values into IConfiguration
+            var appConfigValues = ConfigurationManager.AppSettings.AllKeys
+                .ToDictionary(
+                    key => key.StartsWith("AppSettings:") ? key : $"AppSettings:{key}", // keep structure consistent
+                    key => ConfigurationManager.AppSettings[key]
+                );
+
+            // Ensure DB Path is included
+            appConfigValues["AppSettings:DefaultDBFilePath"] = dbPathFromAppConfig;
+
+            // Add to builder
+            builder.AddInMemoryCollection(appConfigValues);
+
 
             var configuration = builder.Build();
 
