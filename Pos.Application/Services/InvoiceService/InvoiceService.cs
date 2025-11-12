@@ -66,21 +66,28 @@ namespace Pos.Application.Services.InvoiceService
                 var output = await _sqlFileRecordRepository.FirstOrDefaultAsync(x => x.InvoiceNumber == invoiceNumber);
                 if (output != null)
                 {
-                    var decrypted = ModernAESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
-                    var jsonPart = decrypted.Split('|')[0];
-                    if (string.IsNullOrWhiteSpace(jsonPart) ||
-                        JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto)
-                        return new ApiResponse<InvoiceDto>(
-                            statusCode: ApiStatusCode.Error,
-                            message: ResponseMessages.DataNotFound,
-                            data: null!
-                        );
+                    try
+                    {
+                        var decrypted = ModernAESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
+                        var jsonPart = decrypted.Split('|')[0];
+                        if (string.IsNullOrWhiteSpace(jsonPart) ||
+                            JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto)
+                            return new ApiResponse<InvoiceDto>(
+                                statusCode: ApiStatusCode.Error,
+                                message: ResponseMessages.DataNotFound,
+                                data: null!
+                            );
 
-                    return new ApiResponse<InvoiceDto>(
-                        statusCode: ApiStatusCode.Success,
-                        message: ResponseMessages.RecordFound,
-                        data: invoiceDto
-                    );
+                        return new ApiResponse<InvoiceDto>(
+                            statusCode: ApiStatusCode.Success,
+                            message: ResponseMessages.RecordFound,
+                            data: invoiceDto
+                        );
+                    }
+                    catch
+                    {
+                        throw;
+                    }
                 }
 
                 return new ApiResponse<InvoiceDto>(
@@ -120,11 +127,10 @@ namespace Pos.Application.Services.InvoiceService
                 var invoiceEntity = _mapper.Map<Invoice>(dto);
                 var validation = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
 
-                bool isValid = validation.IsValid;
-                if (!isValid)
+                if (!validation.IsValid)
                 {
-                    // ✅ log but don't exit
-                    await LogError(validation.ErrorMessages);
+                    await LogError($"Invoice validation failed: {validation.ErrorMessages}");
+                    return ErrorResponse("Invoice validation failed", validation.ErrorMessages);
                 }
 
                 // ✅ 2. Create fiscal invoice (runs regardless of validation)
@@ -159,12 +165,12 @@ namespace Pos.Application.Services.InvoiceService
                     }
                 }
 
-                // ✅ 4. Return success if fiscal creation worked, but include validation info
+                // 4. Return success if fiscal creation worked, but include validation info
                 return new ApiResponse<InvoiceDto>(
-                    isValid ? ApiStatusCode.Success : ApiStatusCode.Error,
-                    isValid ? ResponseMessages.RecordSaved : "Invoice saved but failed validation",
-                    null,
-                    isValid ? string.Empty : string.Join(" | ", string.Empty)
+                    ApiStatusCode.Success,
+                    ResponseMessages.RecordSaved,
+                    dto,
+                    string.Empty
                 );
             }
             catch (Exception ex)
