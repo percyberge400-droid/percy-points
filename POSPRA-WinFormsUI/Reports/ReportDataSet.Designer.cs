@@ -663,8 +663,6 @@ namespace POSPRA_WinFormsUI.Reports {
             
             private global::System.Data.DataColumn columnInvoiceType;
             
-            private global::System.Data.DataColumn columnBuyerPhoneNumber;
-            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public HeaderDataTableDataTable() {
@@ -828,14 +826,6 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public global::System.Data.DataColumn BuyerPhoneNumberColumn {
-                get {
-                    return this.columnBuyerPhoneNumber;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -887,8 +877,7 @@ namespace POSPRA_WinFormsUI.Reports {
                         string InvoiceNo, 
                         string TotalQty, 
                         string TotalTax, 
-                        string InvoiceType, 
-                        string BuyerPhoneNumber) {
+                        string InvoiceType) {
                 HeaderDataTableRow rowHeaderDataTableRow = ((HeaderDataTableRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         BusinessName,
@@ -906,8 +895,7 @@ namespace POSPRA_WinFormsUI.Reports {
                         InvoiceNo,
                         TotalQty,
                         TotalTax,
-                        InvoiceType,
-                        BuyerPhoneNumber};
+                        InvoiceType};
                 rowHeaderDataTableRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowHeaderDataTableRow);
                 return rowHeaderDataTableRow;
@@ -946,7 +934,6 @@ namespace POSPRA_WinFormsUI.Reports {
                 this.columnTotalQty = base.Columns["TotalQty"];
                 this.columnTotalTax = base.Columns["TotalTax"];
                 this.columnInvoiceType = base.Columns["InvoiceType"];
-                this.columnBuyerPhoneNumber = base.Columns["BuyerPhoneNumber"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -984,8 +971,6 @@ namespace POSPRA_WinFormsUI.Reports {
                 base.Columns.Add(this.columnTotalTax);
                 this.columnInvoiceType = new global::System.Data.DataColumn("InvoiceType", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnInvoiceType);
-                this.columnBuyerPhoneNumber = new global::System.Data.DataColumn("BuyerPhoneNumber", typeof(string), null, global::System.Data.MappingType.Element);
-                base.Columns.Add(this.columnBuyerPhoneNumber);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1567,22 +1552,6 @@ namespace POSPRA_WinFormsUI.Reports {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public string BuyerPhoneNumber {
-                get {
-                    try {
-                        return ((string)(this[this.tableHeaderDataTable.BuyerPhoneNumberColumn]));
-                    }
-                    catch (global::System.InvalidCastException e) {
-                        throw new global::System.Data.StrongTypingException("The value for column \'BuyerPhoneNumber\' in table \'HeaderDataTable\' is DBNull.", e);
-                    }
-                }
-                set {
-                    this[this.tableHeaderDataTable.BuyerPhoneNumberColumn] = value;
-                }
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public bool IsBusinessNameNull() {
                 return this.IsNull(this.tableHeaderDataTable.BusinessNameColumn);
             }
@@ -1771,18 +1740,6 @@ namespace POSPRA_WinFormsUI.Reports {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public void SetInvoiceTypeNull() {
                 this[this.tableHeaderDataTable.InvoiceTypeColumn] = global::System.Convert.DBNull;
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public bool IsBuyerPhoneNumberNull() {
-                return this.IsNull(this.tableHeaderDataTable.BuyerPhoneNumberColumn);
-            }
-            
-            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public void SetBuyerPhoneNumberNull() {
-                this[this.tableHeaderDataTable.BuyerPhoneNumberColumn] = global::System.Convert.DBNull;
             }
         }
         
