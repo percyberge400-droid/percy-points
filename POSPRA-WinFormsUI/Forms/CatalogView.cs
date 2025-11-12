@@ -417,7 +417,9 @@ namespace POSPRA_WinFormsUI.Forms
             ProductCatalogueDataGridView.SuspendLayout();
             ProductCatalogueDataGridView.Rows.Clear();
 
-            int srNo = 1;
+            // ✅ Calculate starting serial number based on current page and page size
+            int srNo = ((_currentPage - 1) * _pageSize) + 1;
+
             foreach (var product in items)
             {
                 int rowIndex = ProductCatalogueDataGridView.Rows.Add();
@@ -561,7 +563,7 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(12, 10, 12, 10);
-            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgv.ColumnHeadersHeight = 52;
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
 
@@ -587,7 +589,7 @@ namespace POSPRA_WinFormsUI.Forms
             ProductCatalogueDataGridView.AllowUserToResizeColumns = true;
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
-            // New "Sr. No." column (auto row numbers)
+            // Sr. No. - CENTER ALIGN
             var colSrNo = new DataGridViewTextBoxColumn
             {
                 Name = "colSrNo",
@@ -598,18 +600,18 @@ namespace POSPRA_WinFormsUI.Forms
             colSrNo.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colSrNo.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Product Code
+            // Product Code - RIGHT ALIGN
             var colProductCode = new DataGridViewTextBoxColumn
             {
                 Name = "colProductCode",
-                HeaderText = "Product Code",
+                HeaderText = "   Product Code",
                 ReadOnly = true,
-                FillWeight = 10
+                FillWeight = 9
             };
             colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Product Description
+            // Product Description - LEFT ALIGN
             var colProductDesc = new DataGridViewTextBoxColumn
             {
                 Name = "colProductDesc",
@@ -618,9 +620,9 @@ namespace POSPRA_WinFormsUI.Forms
                 FillWeight = 30
             };
             colProductDesc.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            colProductDesc.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colProductDesc.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Item Serial Number (moved here)
+            // Item Serial Number - CENTER ALIGN
             var colItemSrno = new DataGridViewTextBoxColumn
             {
                 Name = "colItemSrno",
@@ -631,7 +633,7 @@ namespace POSPRA_WinFormsUI.Forms
             colItemSrno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colItemSrno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // HS Code
+            // HS Code - CENTER ALIGN (FIXED - was Right before)
             var colHScode = new DataGridViewTextBoxColumn
             {
                 Name = "colHScode",
@@ -642,7 +644,7 @@ namespace POSPRA_WinFormsUI.Forms
             colHScode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colHScode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Sale Type
+            // Sale Type - CENTER ALIGN
             var colSaleType = new DataGridViewTextBoxColumn
             {
                 Name = "colSaleType",
@@ -653,7 +655,7 @@ namespace POSPRA_WinFormsUI.Forms
             colSaleType.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colSaleType.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // POS UOM
+            // POS UOM - CENTER ALIGN
             var colPosUOM = new DataGridViewTextBoxColumn
             {
                 Name = "colPosUOM",
@@ -664,19 +666,19 @@ namespace POSPRA_WinFormsUI.Forms
             colPosUOM.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colPosUOM.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Price Column
+            // Price - RIGHT ALIGN (keeping as is)
             var colPrice = new DataGridViewTextBoxColumn
             {
                 Name = "colPrice",
-                HeaderText = "   Price",
+                HeaderText = "Price",
                 ReadOnly = true,
                 FillWeight = 6
             };
             colPrice.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colPrice.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colPrice.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colPrice.DefaultCellStyle.Format = "N2";
 
-            // Tax Rate
+            // Tax Rate - CENTER ALIGN
             var colTaxRate = new DataGridViewTextBoxColumn
             {
                 Name = "colTaxRate",
@@ -687,7 +689,7 @@ namespace POSPRA_WinFormsUI.Forms
             colTaxRate.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colTaxRate.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // SRO Schedule
+            // SRO Schedule - LEFT ALIGN (keeping as is)
             var colSROno = new DataGridViewTextBoxColumn
             {
                 Name = "colSROno",
@@ -696,31 +698,36 @@ namespace POSPRA_WinFormsUI.Forms
                 FillWeight = 11
             };
             colSROno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            colSROno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colSROno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // columns in desired order
+            // Add columns in desired order
             ProductCatalogueDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
-                colSrNo,
-                colProductCode,
-                colProductDesc,
-                colHScode,
-                colSaleType,
-                colPosUOM,
-                colPrice,
-                colTaxRate,
-                colSROno,
-                colItemSrno
+        colSrNo,
+        colProductCode,
+        colProductDesc,
+        colHScode,
+        colSaleType,
+        colPosUOM,
+        colPrice,
+        colTaxRate,
+        colSROno,
+        colItemSrno
             });
 
-
-            // Polish header appearance
+            // Polish header appearance - ALL HEADERS CENTER ALIGNED
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 51, 51);
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             ProductCatalogueDataGridView.EnableHeadersVisualStyles = false;
-        }
 
+            // FORCE all column headers to center align (this overrides individual settings)
+            foreach (DataGridViewColumn col in ProductCatalogueDataGridView.Columns)
+            {
+                col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            }
+        }
         #endregion
     }
 

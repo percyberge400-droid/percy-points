@@ -1680,6 +1680,8 @@ namespace POSPRA_WinFormsUI.Forms
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
+            colInvoiceNumber.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colInvoiceNumber.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colIsSynced = new DataGridViewTextBoxColumn
             {
@@ -2090,10 +2092,10 @@ namespace POSPRA_WinFormsUI.Forms
 
             foreach (DataGridViewColumn column in LogsDataGridView.Columns)
             {
-                if (column.Name == "colLogID" || column.Name == "colException" || column.Name == "logdatetime")
-                {
-                    column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                }
+                //if (column.Name == "colLogID" || column.Name == "colException" || column.Name == "logdatetime")
+                //{
+                column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                //}
             }
         }
         private void LogsDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)

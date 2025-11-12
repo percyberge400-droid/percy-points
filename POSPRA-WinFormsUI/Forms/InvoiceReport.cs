@@ -127,6 +127,7 @@ namespace POSPRA_WinFormsUI.Forms
                 new DataColumn("Address", typeof(string)),
                 new DataColumn("STRN", typeof(string)),
                 new DataColumn("InvoiceNo", typeof(string)),
+                new DataColumn("PhoneNumber", typeof(string)),
                 new DataColumn("POSID", typeof(string)),
                 new DataColumn("Discount", typeof(decimal)),
                 new DataColumn("TotalTax", typeof(decimal)),
@@ -178,6 +179,7 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;
             headerRow["Total"] = Math.Round(dto.TotalBillAmount, 0, MidpointRounding.AwayFromZero);
             headerRow["POSID"] = dto.POSID.ToString();
+            //headerRow["PhoneNumber"] = "+923172300912";//dto.BuyerPhoneNumber ?? string.Empty;
             headerRow["TotalTax"] = Math.Round(dto.TotalTaxCharged, 0, MidpointRounding.AwayFromZero);
             headerRow["Discount"] = Math.Round(dto.Discount, 0, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
