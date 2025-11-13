@@ -469,6 +469,8 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
+                ShowMessage($"Enviroment set to {selectedEnvironment}", true, false);
+
                 // Pass the selected environment to your setup method
                 await ProcessSetupAsync(selectedEnvironment);
             }
@@ -717,7 +719,6 @@ namespace POSPRA.SetupUI
                         ShowMessage($"Warning: failed to write install_info.txt to ProgramData: {ex.Message}", false, true);
                     }
 
-                    ShowMessage($"Installer recorded install path: {installFolder}", false, true);
                 }
                 catch (Exception ex)
                 {
