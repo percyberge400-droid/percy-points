@@ -749,7 +749,7 @@
             buyerntn.Font = new Font("Microsoft Sans Serif", 9F);
             buyerntn.Location = new Point(152, 41);
             buyerntn.Name = "buyerntn";
-            buyerntn.PlaceholderText = "Buyer NTN";
+            buyerntn.PlaceholderText = "Buyer NTN (without dashes)";
             buyerntn.Size = new Size(123, 24);
             buyerntn.TabIndex = 2;
             // 
@@ -768,7 +768,7 @@
             buyercnic.Font = new Font("Microsoft Sans Serif", 9F);
             buyercnic.Location = new Point(23, 41);
             buyercnic.Name = "buyercnic";
-            buyercnic.PlaceholderText = "Buyer CNIC";
+            buyercnic.PlaceholderText = "Buyer CNIC (without dashes)";
             buyercnic.Size = new Size(123, 24);
             buyercnic.TabIndex = 1;
             // 
@@ -1029,9 +1029,10 @@
             // Invoice type ComboBox
             invoicetype.DataSource = new List<KeyValuePair<byte, string>>()
             {
-                new KeyValuePair<byte, string>(1, "New"),
-                new KeyValuePair<byte, string>(2, "Debit Invoice"),
-                new KeyValuePair<byte, string>(3, "Credit Invoice")
+                new KeyValuePair<byte, string>(1, "Sale"),
+                new KeyValuePair<byte, string>(2, "Purchase"),
+                new KeyValuePair<byte, string>(3, "Debit Invoice"),
+                new KeyValuePair<byte, string>(4, "Credit Invoice")
             };
             invoicetype.DisplayMember = "Value";
             invoicetype.ValueMember = "Key";
@@ -1067,12 +1068,12 @@
                     return true;
 
                 //ALT + R -> Remove Item
-                case Keys.Alt | Keys.R:  
+                case Keys.Alt | Keys.R:
                     btn_remove.PerformClick();
                     return true;
 
                 //ALT + E -> Edit Item
-                case Keys.Alt | Keys.E:  
+                case Keys.Alt | Keys.E:
                     btnEdit.PerformClick();
                     return true;
 
@@ -1082,22 +1083,22 @@
                     return true;
 
                 //ALT + S -> Search
-                case Keys.Alt | Keys.S:  
+                case Keys.Alt | Keys.S:
                     btnsearch.PerformClick();
                     return true;
 
                 //ALT + P -> Save and Print
-                case Keys.Alt | Keys.P:  
+                case Keys.Alt | Keys.P:
                     btnSave.PerformClick();
                     return true;
 
                 //ALT + F -> Search Catalogue 
-                case Keys.Alt | Keys.F: 
+                case Keys.Alt | Keys.F:
                     btnsearch.PerformClick();
                     return true;
 
                 //ESC -> Clear Form
-                case Keys.Escape:  
+                case Keys.Escape:
                     btnclear.PerformClick();
                     return true;
             }

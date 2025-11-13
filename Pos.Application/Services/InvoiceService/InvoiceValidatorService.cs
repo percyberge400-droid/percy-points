@@ -9,8 +9,11 @@ namespace POSPRA.Application.Services.FiscalService
 
     public class InvoiceValidatorService
     {
-        private const decimal MAX_SAFE_VALUE = 999_999_999_999_999_999m;
+        private const decimal MAX_SAFE_VALUE = 2_000_000_000_000_000_000m; // Safe for worst-case: qty*unitprice*100% tax
+        private const decimal MAX_QTY = 99_999.99m;                   // (5,2) for quantity - 8 digits before decimal
+        private const decimal MAX_UNIT_PRICE = 9_999_999_999.99m;        // (10,2) for unit price
         private const int MAX_DECIMAL_PLACES = 2;
+        private const int MAX_POSID_DIGITS = 6;                         // POSID limited to 6 digits
 
         /// <summary>
         /// Validates an entire invoice, including all items.
@@ -34,12 +37,30 @@ namespace POSPRA.Application.Services.FiscalService
 
             // -------- POS ID --------
             if (invoice.POSID == 0)
-                AddError("POS ID is required");
+            {
+                AddError("POS ID is required and must be greater than 0");
+            }
             else
             {
                 string posIdStr = invoice.POSID.ToString();
                 if (!posIdStr.All(char.IsDigit))
+                {
                     AddError("POS ID must be numeric");
+                }
+                else if (posIdStr.Length > MAX_POSID_DIGITS)
+                {
+                    AddError($"POS ID cannot exceed {MAX_POSID_DIGITS} digits");
+                }
+            }
+
+            // -------- USIN --------
+            if (IsEmpty(invoice.USIN))
+            {
+                AddError("USIN is required");
+            }
+            else if (TrimSafe(invoice.USIN).Length > 50)
+            {
+                AddError("USIN cannot exceed 50 characters");
             }
 
             // -------- Buyer Info --------
@@ -47,7 +68,7 @@ namespace POSPRA.Application.Services.FiscalService
 
             // -------- Invoice Details --------
             if (invoice.InvoiceType < 1 || invoice.InvoiceType > 4)
-                AddError("Invalid invoice type");
+                AddError("Invalid invoice type (must be 1-4: Purchase/Sale/Debit/Credit)");
 
             if ((invoice.InvoiceType == 3 || invoice.InvoiceType == 4) && IsEmpty(invoice.RefUSIN))
                 AddError("Ref USIN required for debit/credit invoices");
@@ -56,15 +77,22 @@ namespace POSPRA.Application.Services.FiscalService
             if (!IsEmpty(invoice.RefUSIN) && TrimSafe(invoice.RefUSIN).Length > 50)
                 AddError("Ref USIN cannot exceed 50 characters");
 
+            if (invoice.PaymentMode < 1 || invoice.PaymentMode > 3)
+                AddError("Payment mode must from 1 to 3 (Cash/Card/Credit)");
+
             // Validate USIN length if provided
             if (!IsEmpty(invoice.USIN) && TrimSafe(invoice.USIN).Length > 50)
                 AddError("USIN cannot exceed 50 characters");
 
-            if (invoice.PaymentMode < 1 || invoice.PaymentMode > 3)
-                AddError("Payment mode must be between 1 and 3");
-
-            if (invoice.EntryDate == DateTime.MinValue)
-                AddError("Invalid invoice date");
+            // -------- DateTime --------
+            if (invoice.DateTime == DateTime.MinValue)
+            {
+                AddError("Date is required");
+            }
+            else if (invoice.DateTime.Date > DateTime.Now.Date)
+            {
+                AddError("Date cannot be in the future");
+            }
 
             // Validate invoice-level totals with overflow protection
             if (!ValidateSafeDecimal(invoice.TotalBillAmount, "Total bill amount", AddError))
@@ -122,7 +150,7 @@ namespace POSPRA.Application.Services.FiscalService
             static bool IsEmpty(string? s) => string.IsNullOrWhiteSpace(s);
             static string TrimSafe(string? s) => s?.Trim() ?? string.Empty;
 
-            // Buyer Name - Optional but validated if provided
+            // ✅ Buyer Name - Optional, max 150 chars, letters and spaces only
             var name = TrimSafe(invoice.BuyerName);
             if (!IsEmpty(name))
             {
@@ -132,34 +160,37 @@ namespace POSPRA.Application.Services.FiscalService
                     AddError("Buyer name must contain only letters and spaces");
             }
 
-            // Buyer CNIC - Optional but validated if provided
+            // ✅ Buyer CNIC - Optional, exactly 13 digits
             var cnic = TrimSafe(invoice.BuyerCNIC);
             if (!IsEmpty(cnic))
             {
                 if (!cnic.All(char.IsDigit))
-                    AddError("Buyer CNIC must be 13 digits");
-                else if (cnic.Length != 13)
-                    AddError("Buyer CNIC must be 13 digits");
+                    AddError("Buyer CNIC must be numeric");
+                else if (cnic.Length != 13 && cnic.Length != 15)
+                    AddError("Buyer CNIC must be 13 or 15 digits");
+
             }
 
-            // Buyer NTN - Optional but validated if provided (7-8 alphanumeric)
+            // ✅ UPDATED: Buyer NTN - Optional, 7-9 alphanumeric (changed from 7-8)
             var ntn = TrimSafe(invoice.BuyerNTN);
             if (!IsEmpty(ntn))
             {
                 if (!ntn.All(char.IsLetterOrDigit))
                     AddError("Buyer NTN must be alphanumeric");
-                else if (ntn.Length != 7)
-                    AddError("Buyer NTN must be 7 characters");
+                else if (ntn.Length < 7 || ntn.Length > 9)
+                    AddError("Buyer NTN must be 7-9 alphanumeric characters");
             }
 
-            // Buyer Phone - Optional but validated if provided
+            // ✅ UPDATED: Buyer Phone - Optional, up to 20 characters (changed from 11/13)
             var phone = TrimSafe(invoice.BuyerPhoneNumber);
             if (!IsEmpty(phone))
             {
-                if (!phone.All(char.IsDigit))
-                    AddError("Buyer phone must be numeric");
-                else if (phone.Length != 11 && phone.Length != 13)
-                    AddError("Buyer phone must be 11 or 13 digits");
+                if (phone.Length > 20)
+                    AddError("Buyer phone cannot exceed 20 characters");
+
+                // Allow digits, spaces, +, -, (, )
+                if (!phone.All(c => char.IsDigit(c) || c == ' ' || c == '+' || c == '-' || c == '(' || c == ')'))
+                    AddError("Buyer phone contains invalid characters");
             }
         }
 
@@ -183,16 +214,14 @@ namespace POSPRA.Application.Services.FiscalService
             static bool IsEmpty(string? s) => string.IsNullOrWhiteSpace(s);
             static string TrimSafe(string? s) => s?.Trim() ?? string.Empty;
 
-            // Item Code - Required, 8 digits max
+            // ✅ Item Code - Required, max 50 characters
             var code = TrimSafe(item.ItemCode);
             if (IsEmpty(code))
                 AddError("Item code is required");
-            else if (!code.All(char.IsDigit))
-                AddError("Item code must be numeric");
-            else if (code.Length > 8)
-                AddError("Item code cannot exceed 8 digits");
+            else if (code.Length > 50)
+                AddError("Item code cannot exceed 50 characters");
 
-            // PCT/HS Code - Required, exactly 8 digits
+            // ✅ PCT/HS Code - Required, exactly 8 digits
             var pct = TrimSafe(item.PCTCode);
             if (IsEmpty(pct))
                 AddError("HS code is required");
@@ -201,69 +230,108 @@ namespace POSPRA.Application.Services.FiscalService
             else if (pct.Length != 8)
                 AddError("HS code must be exactly 8 digits");
 
-            // Item Name - Required, max 150 characters
+            // ✅ Item Name/Description - Required, max 150 characters
             var itemName = TrimSafe(item.ItemName);
             if (IsEmpty(itemName))
                 AddError("Item description is required");
             else if (itemName.Length > 150)
                 AddError("Item description cannot exceed 150 characters");
 
-            // Quantity - Required, must be > 0, decimal(18,2)
-            if (!ValidateSafeDecimal(item.Quantity, "Quantity", AddError))
-                return new ValidationResult(false, string.Join(Environment.NewLine, errors));
+            // ✅ Quantity - Required, must be > 0, max 99,999.99 (8 digits total)
+            if (!item.Quantity.HasValue || item.Quantity <= 0)
+            {
+                AddError("Quantity is required and must be greater than zero");
+            }
+            else if (item.Quantity > MAX_QTY)
+            {
+                AddError($"Quantity cannot exceed {MAX_QTY:F2}");
+            }
+            else if (DecimalPlaces(item.Quantity.Value) > MAX_DECIMAL_PLACES)
+            {
+                AddError("Quantity cannot have more than 2 decimal places");
+            }
 
-            // Unit Price / Sale Value - Required, must be > 0, decimal(18,2)
-            if (!ValidateSafeDecimal(item.SaleValue, "Unit price", AddError))
-                return new ValidationResult(false, string.Join(Environment.NewLine, errors));
+            // ✅ Unit Price / Sale Value - Required, must be > 0, max 9,999,999,999.99 (10 digits before decimal)
+            if (!item.SaleValue.HasValue || item.SaleValue <= 0)
+            {
+                AddError("Unit price is required and must be greater than zero");
+            }
+            else if (item.SaleValue > MAX_UNIT_PRICE)
+            {
+                AddError($"Unit price cannot exceed {MAX_UNIT_PRICE:F2}");
+            }
+            else if (DecimalPlaces(item.SaleValue.Value) > MAX_DECIMAL_PLACES)
+            {
+                AddError("Unit price cannot have more than 2 decimal places");
+            }
 
-            // Tax Rate - 0-100, decimal(5,2)
+            // ✅ Check for overflow in multiplication (Quantity × Unit Price)
+            if (item.Quantity.HasValue && item.SaleValue.HasValue)
+            {
+                if (item.Quantity > 0 && item.SaleValue > 0)
+                {
+                    if (item.Quantity > MAX_SAFE_VALUE / item.SaleValue)
+                    {
+                        AddError("Quantity × Unit Price exceeds maximum allowed total");
+                    }
+                }
+            }
+
+            // ✅ Tax Rate - 0-100%, max 2 decimal places
             if (item.TaxRate < 0 || item.TaxRate > 100)
                 AddError("Tax rate must be between 0 and 100");
             else if (DecimalPlaces((decimal)item.TaxRate) > MAX_DECIMAL_PLACES)
                 AddError("Tax rate cannot have more than 2 decimal places");
 
-            // Discount - Optional, 0-100, decimal(5,2) (this is discount percentage)
-            // Note: In the calculation, we convert percentage to amount
-            if (item.Discount.HasValue)
+            // ✅ Tax Charged - Must be >= 0, max 2 decimal places
+            if (item.TaxCharged.HasValue)
             {
-                var disountRS = Math.Round(item.Discount.Value, 2);
-
-                if (disountRS < 0)
-                    AddError("Discount cannot be negative");
-                else if (DecimalPlaces(disountRS) > MAX_DECIMAL_PLACES)
-                    AddError("Discount cannot have more than 2 decimal places");
+                var taxCharged = Math.Round(item.TaxCharged.Value, 2);
+                if (!ValidateSafeDecimal(taxCharged, "Tax charged", AddError, allowZero: true))
+                    return new ValidationResult(false, string.Join(Environment.NewLine, errors));
             }
 
-            // Tax Charged - Must be >= 0, decimal(18,2)
-            var taxCharged = Math.Round(item.TaxCharged.Value, 2);
-            if (!ValidateSafeDecimal(taxCharged, "Tax charged", AddError, allowZero: true))
-                return new ValidationResult(false, string.Join(Environment.NewLine, errors));
+            // ✅ Total Amount - Required, must be > 0, max 2 decimal places
+            if (item.TotalAmount.HasValue)
+            {
+                var totalRS = Math.Round(item.TotalAmount.Value, 2);
+                if (!ValidateSafeDecimal(totalRS, "Total amount", AddError))
+                    return new ValidationResult(false, string.Join(Environment.NewLine, errors));
+            }
 
-            // Total Amount - Required, must be > 0, decimal(18,2)
-            var totalRS = Math.Round(item.TotalAmount.Value, 2);
-            if (!ValidateSafeDecimal(totalRS, "Total amount", AddError))
-                return new ValidationResult(false, string.Join(Environment.NewLine, errors));
+            // ✅ Discount - Must be >= 0, max 2 decimal places
+            if (item.Discount.HasValue)
+            {
+                var discountRS = Math.Round(item.Discount.Value, 2);
+                if (!ValidateSafeDecimal(discountRS, "Discount", AddError, allowZero: true))
+                    return new ValidationResult(false, string.Join(Environment.NewLine, errors));
+            }
 
-            // RefUSIN check for Debit/Credit items
+            // ✅ RefUSIN check for Debit/Credit items (invoice type 3 or 4)
             if ((item.InvoiceType == 3 || item.InvoiceType == 4) && IsEmpty(item.RefUSIN))
                 AddError("Ref USIN required for debit/credit items");
 
             return new ValidationResult(isValid, string.Join(Environment.NewLine, errors));
         }
 
+        /// <summary>
+        /// Validates item calculation: Total = (Quantity × Price) + Tax - Discount
+        /// Tax is calculated on gross amount BEFORE discount
+        /// Discount is applied to amount AFTER tax
+        /// </summary>
         private void ValidateItemCalculations(InvoiceItems item, Action<string> AddError, string prefix)
         {
             if (!item.Quantity.HasValue || !item.SaleValue.HasValue)
                 return;
 
-            // Overflow-safe calculations
+            // ✅ Step 1: Calculate gross amount (Quantity × Unit Price)
             if (!TryMultiply(item.Quantity.Value, item.SaleValue.Value, out decimal grossAmount))
             {
                 AddError($"{prefix}Values too large for calculation");
                 return;
             }
 
-            // Tax is calculated on gross amount BEFORE discount
+            // ✅ Step 2: Calculate tax on GROSS amount (BEFORE discount)
             decimal taxAmount = 0m;
             if (item.TaxRate > 0)
             {
@@ -274,17 +342,17 @@ namespace POSPRA.Application.Services.FiscalService
                 }
             }
 
-            // Amount after adding tax
+            // ✅ Step 3: Calculate amount after adding tax
             if (!TryAdd(grossAmount, taxAmount, out decimal amountAfterTax))
             {
                 AddError($"{prefix}Total calculation overflow");
                 return;
             }
 
-            // Discount is calculated as percentage of amount after tax
+            // ✅ Step 4: Apply discount to amount after tax
             decimal discountAmount = item.Discount ?? 0m;
 
-            // Final total
+            // ✅ Step 5: Calculate final total
             decimal expectedTotal = Math.Round(Math.Max(0, amountAfterTax - discountAmount), 2);
             decimal actualTotal = Math.Round(item.TotalAmount ?? 0m, 2);
 
@@ -292,7 +360,7 @@ namespace POSPRA.Application.Services.FiscalService
             if (Math.Abs(expectedTotal - actualTotal) > 0.02m)
                 AddError($"{prefix}Total mismatch. Expected {expectedTotal:F2}, got {actualTotal:F2}");
 
-            // Validate tax charged
+            // ✅ Validate tax charged matches calculated tax
             if (item.TaxCharged.HasValue)
             {
                 decimal expectedTax = Math.Round(taxAmount, 2);
@@ -301,38 +369,56 @@ namespace POSPRA.Application.Services.FiscalService
                     AddError($"{prefix}Tax mismatch. Expected {expectedTax:F2}, got {actualTax:F2}");
             }
 
-            // Discount cannot exceed amount after tax
+            // ✅ Validate discount constraints
+            if (discountAmount < 0)
+                AddError($"{prefix}Discount cannot be negative");
+
             if (discountAmount > amountAfterTax)
                 AddError($"{prefix}Discount cannot exceed total after tax");
         }
 
+        /// <summary>
+        /// Validates that invoice-level totals match the sum of all items
+        /// </summary>
         private void ValidateInvoiceTotals(Invoice invoice, Action<string> AddError)
         {
+            // ✅ Total Quantity = Sum of all item quantities
             decimal sumQty = invoice.InvoiceItems.Sum(i => i.Quantity ?? 0m);
             if (Math.Abs((invoice.TotalQuantity ?? 0m) - sumQty) > 0.02m)
-                AddError($"Total quantity mismatch: {invoice.TotalQuantity:F2} vs {sumQty:F2}");
+                AddError($"Total quantity mismatch: Invoice total {invoice.TotalQuantity:F2} vs Sum of items {sumQty:F2}");
 
+            // ✅ Total Sale Value = Sum of (Quantity × Unit Price) for all items
             decimal sumSale = invoice.InvoiceItems.Sum(i => (i.Quantity ?? 0m) * (i.SaleValue ?? 0m));
             if (Math.Abs((invoice.TotalSaleValue ?? 0m) - sumSale) > 0.02m)
-                AddError($"Total sale value mismatch: {invoice.TotalSaleValue:F2} vs {sumSale:F2}");
+                AddError($"Total sale value mismatch: Invoice total {invoice.TotalSaleValue:F2} vs Sum of items {sumSale:F2}");
 
+            // ✅ Total Tax Charged = Sum of all item tax charges
             decimal sumTax = invoice.InvoiceItems.Sum(i => i.TaxCharged ?? 0m);
             if (Math.Abs((invoice.TotalTaxCharged ?? 0m) - sumTax) > 0.02m)
-                AddError($"Total tax mismatch: {invoice.TotalTaxCharged:F2} vs {sumTax:F2}");
+                AddError($"Total tax mismatch: Invoice total {invoice.TotalTaxCharged:F2} vs Sum of items {sumTax:F2}");
 
+            // ✅ Total Discount = Sum of all item discounts
             decimal sumDiscount = invoice.InvoiceItems.Sum(i => i.Discount ?? 0m);
             if (Math.Abs((invoice.Discount ?? 0m) - sumDiscount) > 0.02m)
-                AddError($"Total discount mismatch: {invoice.Discount:F2} vs {sumDiscount:F2}");
+                AddError($"Total discount mismatch: Invoice total {invoice.Discount:F2} vs Sum of items {sumDiscount:F2}");
 
+            // ✅ Total Bill Amount = Sum of all item totals
+            //    (which equals: Gross + Tax - Discount for each item)
             decimal sumTotal = invoice.InvoiceItems.Sum(i => i.TotalAmount ?? 0m);
             if (Math.Abs((invoice.TotalBillAmount ?? 0m) - sumTotal) > 0.02m)
-                AddError($"Total bill amount mismatch: {invoice.TotalBillAmount:F2} vs {sumTotal:F2}");
+                AddError($"Total bill amount mismatch: Invoice total {invoice.TotalBillAmount:F2} vs Sum of items {sumTotal:F2}");
+
+            // ✅ ADDITIONAL VERIFICATION: Invoice total should equal (Sale Value + Tax - Discount)
+            decimal calculatedInvoiceTotal = sumSale + sumTax - sumDiscount;
+            if (Math.Abs((invoice.TotalBillAmount ?? 0m) - calculatedInvoiceTotal) > 0.02m)
+                AddError($"Invoice total calculation error: Bill Amount {invoice.TotalBillAmount:F2} does not equal (Sale Value {sumSale:F2} + Tax {sumTax:F2} - Discount {sumDiscount:F2})");
         }
 
         /// <summary>
         /// Validates decimal field with overflow protection
         /// </summary>
-        private bool ValidateSafeDecimal(decimal? value, string fieldName, Action<string> AddError, bool allowZero = false)
+        private bool ValidateSafeDecimal(decimal? value, string fieldName, Action<string> AddError,
+            bool allowZero = false, decimal? customMax = null)
         {
             if (!value.HasValue || (!allowZero && value <= 0))
             {
@@ -347,9 +433,11 @@ namespace POSPRA.Application.Services.FiscalService
             }
 
             decimal v = value.Value;
-            if (v > MAX_SAFE_VALUE)
+            decimal maxLimit = customMax ?? MAX_SAFE_VALUE;
+
+            if (v > maxLimit)
             {
-                AddError($"{fieldName} exceeds limit");
+                AddError($"{fieldName} exceeds limit ({maxLimit:F2})");
                 return false;
             }
 
@@ -362,7 +450,9 @@ namespace POSPRA.Application.Services.FiscalService
             return true;
         }
 
-        // Safe arithmetic helpers
+        /// <summary>
+        /// Safe multiplication with overflow protection
+        /// </summary>
         private bool TryMultiply(decimal a, decimal b, out decimal result)
         {
             try
@@ -377,6 +467,9 @@ namespace POSPRA.Application.Services.FiscalService
             }
         }
 
+        /// <summary>
+        /// Safe addition with overflow protection
+        /// </summary>
         private bool TryAdd(decimal a, decimal b, out decimal result)
         {
             try
@@ -391,6 +484,9 @@ namespace POSPRA.Application.Services.FiscalService
             }
         }
 
+        /// <summary>
+        /// Gets the number of decimal places in a decimal value
+        /// </summary>
         private int DecimalPlaces(decimal value)
         {
             return BitConverter.GetBytes(decimal.GetBits(value)[3])[2];

@@ -1633,7 +1633,7 @@ namespace POSPRA_WinFormsUI.Forms
             dgv.DefaultCellStyle.ForeColor = Color.FromArgb(55, 65, 81);
             dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F);
             dgv.DefaultCellStyle.Padding = new Padding(0, 4, 0, 4);
-            dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            //dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dgv.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
             dgv.RowTemplate.Height = 40;
@@ -1680,7 +1680,7 @@ namespace POSPRA_WinFormsUI.Forms
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
             };
-            colInvoiceNumber.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colInvoiceNumber.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colInvoiceNumber.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             var colIsSynced = new DataGridViewTextBoxColumn
@@ -1970,6 +1970,8 @@ namespace POSPRA_WinFormsUI.Forms
                 e.Handled = true;
             }
 
+            // Replace this section in InvoicesDataGridView_CellPainting method:
+
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colInvoiceNumber"]?.Index)
             {
                 e.PaintBackground(e.CellBounds, true);
@@ -1981,15 +1983,15 @@ namespace POSPRA_WinFormsUI.Forms
                 {
                     var stringFormat = new StringFormat
                     {
-                        Alignment = StringAlignment.Near,
+                        Alignment = StringAlignment.Center,
                         LineAlignment = StringAlignment.Center,
                         Trimming = StringTrimming.EllipsisCharacter
                     };
 
                     var textRect = new RectangleF(
-                        e.CellBounds.X + 8,
+                        e.CellBounds.X,
                         e.CellBounds.Y,
-                        e.CellBounds.Width - 16,
+                        e.CellBounds.Width,
                         e.CellBounds.Height
                     );
 
@@ -1999,7 +2001,6 @@ namespace POSPRA_WinFormsUI.Forms
                 e.Handled = true;
             }
         }
-
         private void StyleLogsDataGridView()
         {
             LogsDataGridView.Columns.Clear();

@@ -116,43 +116,45 @@ namespace POSPRA_WinFormsUI.Forms
             var headerTable = new DataTable("HeaderDataSet");
             headerTable.Columns.AddRange(new[]
             {
-                new DataColumn("BusinessName", typeof(string)),
-                new DataColumn("DateCreated", typeof(DateTime)),
-                new DataColumn("ModeOfPayment", typeof(string)),
-                new DataColumn("InvoiceType", typeof(string)),
-                new DataColumn("LogoImage", typeof(byte[])),
-                new DataColumn("QRCodeImage", typeof(byte[])),
-                new DataColumn("PRALogo", typeof(byte[])),
-                new DataColumn("NTN", typeof(string)),
-                new DataColumn("Address", typeof(string)),
-                new DataColumn("STRN", typeof(string)),
-                new DataColumn("InvoiceNo", typeof(string)),
-                new DataColumn("PhoneNumber", typeof(string)),
-                new DataColumn("POSID", typeof(string)),
-                new DataColumn("Discount", typeof(decimal)),
-                new DataColumn("TotalTax", typeof(decimal)),
-                new DataColumn("TotalQty", typeof(int)),
-                new DataColumn("Total", typeof(decimal))
-            });
+        new DataColumn("BusinessName", typeof(string)),
+        new DataColumn("DateCreated", typeof(DateTime)),
+        new DataColumn("ModeOfPayment", typeof(string)),
+        new DataColumn("InvoiceType", typeof(string)),
+        new DataColumn("LogoImage", typeof(byte[])),
+        new DataColumn("QRCodeImage", typeof(byte[])),
+        new DataColumn("PRALogo", typeof(byte[])),
+        new DataColumn("NTN", typeof(string)),
+        new DataColumn("Address", typeof(string)),
+        new DataColumn("STRN", typeof(string)),
+        new DataColumn("InvoiceNo", typeof(string)),
+        new DataColumn("PhoneNumber", typeof(string)),
+        new DataColumn("POSID", typeof(string)),
+        new DataColumn("Discount", typeof(decimal)),
+        new DataColumn("TotalTax", typeof(decimal)),
+        new DataColumn("TotalQty", typeof(decimal)),
+        new DataColumn("Total", typeof(decimal))
+    });
 
             var bodyTable = new DataTable("BodyDataSet");
             bodyTable.Columns.AddRange(new[]
             {
-                new DataColumn("Amount", typeof(decimal)),
-                new DataColumn("ItemName", typeof(string)),
-                new DataColumn("TaxRate", typeof(decimal)),
-                new DataColumn("Qty", typeof(decimal)),
-                new DataColumn("Price", typeof(decimal)),
-                new DataColumn("Tax", typeof(decimal))
-            });
+        // ✅ changed Amount to decimal to avoid overflow
+        new DataColumn("Amount", typeof(decimal)),
+        new DataColumn("ItemName", typeof(string)),
+        new DataColumn("TaxRate", typeof(decimal)),
+        new DataColumn("Qty", typeof(decimal)),
+        new DataColumn("Price", typeof(decimal)),
+        new DataColumn("Tax", typeof(decimal))
+    });
+
             byte[] logo = LoadCompanyLogo();
             byte[] praLogo = LoadPraLogo();
-
             byte[] qr = GenerateQRCode(dto.InvoiceNumber);
 
             var headerRow = headerTable.NewRow();
             headerRow["BusinessName"] = businessname;
             headerRow["DateCreated"] = dto.DateTime;
+
             string paymentModeText = dto.PaymentMode switch
             {
                 1 => "Credit Card",
@@ -161,7 +163,8 @@ namespace POSPRA_WinFormsUI.Forms
                 _ => "N/A"
             };
             headerRow["ModeOfPayment"] = paymentModeText;
-            string InvoiceType = dto.InvoiceType switch
+
+            string invoiceType = dto.InvoiceType switch
             {
                 1 => "Sale",
                 2 => "Purchase",
@@ -169,36 +172,39 @@ namespace POSPRA_WinFormsUI.Forms
                 4 => "Credit",
                 _ => "N/A"
             };
-            headerRow["InvoiceType"] = InvoiceType;
+            headerRow["InvoiceType"] = invoiceType;
+
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
             headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
-            headerRow["Address"] = branchName + ",  " + branchAddress; //dto.BuyerName;// + ", City, Pakistan";
+            headerRow["Address"] = $"{branchName}, {branchAddress}";
             headerRow["STRN"] = dto.USIN ?? string.Empty;
             headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;
-            headerRow["Total"] = Math.Round(dto.TotalBillAmount, 0, MidpointRounding.AwayFromZero);
             headerRow["POSID"] = dto.POSID.ToString();
-            //headerRow["PhoneNumber"] = "+923172300912";//dto.BuyerPhoneNumber ?? string.Empty;
-            headerRow["TotalTax"] = Math.Round(dto.TotalTaxCharged, 0, MidpointRounding.AwayFromZero);
+            headerRow["PhoneNumber"] = dto.BuyerPhoneNumber ?? string.Empty;
             headerRow["Discount"] = Math.Round(dto.Discount, 0, MidpointRounding.AwayFromZero);
+            headerRow["TotalTax"] = Math.Round(dto.TotalTaxCharged, 0, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
+            headerRow["Total"] = Math.Round(dto.TotalBillAmount, 0, MidpointRounding.AwayFromZero);
+
             headerTable.Rows.Add(headerRow);
-            //int serial = 1;
+
             foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
                 row["Amount"] = Math.Round(item.TotalAmount + item.Discount, 0, MidpointRounding.AwayFromZero);
                 row["ItemName"] = item.ItemName ?? string.Empty;
-                //? item.ItemName.Substring(0, 20): item.ItemName ?? string.Empty;
                 row["TaxRate"] = item.TaxRate;
                 row["Qty"] = item.Quantity;
                 row["Price"] = item.SaleValue;
                 row["Tax"] = item.TaxCharged;
                 bodyTable.Rows.Add(row);
             }
+
             return (headerTable, bodyTable);
         }
+
 
         private byte[] LoadCompanyLogo()
         {

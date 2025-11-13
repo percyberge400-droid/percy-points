@@ -104,14 +104,11 @@ namespace POSPRA_WinFormsUI
             buyerphone.KeyPress += NumericOnlyWithLength_KeyPress;
             buyerphone.TextChanged += NumericOnlyWithLength_TextChanged;
 
-            ItemCode.KeyPress += NumericOnlyWithLength_KeyPress;
-            ItemCode.TextChanged += NumericOnlyWithLength_TextChanged;
+            ItemCode.KeyPress += StringOnlyWithLength_KeyPress;
+            ItemCode.TextChanged += StringOnlyWithLength_TextChanged;
 
             pctCode.KeyPress += NumericOnlyWithLength_KeyPress;
             pctCode.TextChanged += NumericOnlyWithLength_TextChanged;
-
-            totalamount.KeyPress += NumericOnlyWithLength_KeyPress;
-            totalamount.TextChanged += NumericOnlyWithLength_TextChanged;
 
             TaxRatebox.KeyPress += NumericOnlyWithLength_KeyPress;
             TaxRatebox.TextChanged += NumericOnlyWithLength_TextChanged;
@@ -122,14 +119,17 @@ namespace POSPRA_WinFormsUI
             salevalue.KeyPress += NumericOnlyWithLength_KeyPress;
             salevalue.TextChanged += NumericOnlyWithLength_TextChanged;
 
-            TaxCharged.KeyPress += NumericOnlyWithLength_KeyPress;
-            TaxCharged.TextChanged += NumericOnlyWithLength_TextChanged;
-
             itemDiscountPercent.KeyPress += NumericOnlyWithLength_KeyPress;
             itemDiscountPercent.TextChanged += NumericOnlyWithLength_TextChanged;
 
             BuyerBname.KeyPress += StringOnlyWithLength_KeyPress;
             BuyerBname.TextChanged += StringOnlyWithLength_TextChanged;
+
+            USIN.KeyPress += StringOnlyWithLength_KeyPress;
+            USIN.TextChanged += StringOnlyWithLength_TextChanged;
+
+            refUSIN.KeyPress += StringOnlyWithLength_KeyPress;
+            refUSIN.TextChanged += StringOnlyWithLength_TextChanged;
 
             itemDiscountPercent.TextChanged += RecalculateTotals;
 
@@ -654,19 +654,22 @@ namespace POSPRA_WinFormsUI
 
         private InvoiceItems GetTextboxData()
         {
-            const decimal SAFE_MAX = 999999999999999999m;
+            // ✅ ADD: Safe limits BEFORE calculation
+            const decimal MAX_QTY = 99999999.99m;        // (8,2) limit
+            const decimal MAX_UNIT_PRICE = 9999999999.99m; // (10,2) limit
+            const decimal MAX_RESULT = 999999999999999999m; // (18,2) limit for results
 
             decimal quantity = 0m;
             decimal saleValuePerUnit = 0m;
             decimal taxRatePercent = 0m;
             decimal discountPercent = 0m;
 
-            // Safe parsing with validation
+            // Parse with NEW limits
             if (decimal.TryParse(qty.Text, out var q))
             {
-                if (q < 0 || q > SAFE_MAX)
+                if (q < 0 || q > MAX_QTY)
                 {
-                    AlertManager.ShowError("Quantity exceeds limit");
+                    AlertManager.ShowError($"Quantity must be between 0 and {MAX_QTY}");
                     qty.Focus();
                     return null;
                 }
@@ -675,13 +678,23 @@ namespace POSPRA_WinFormsUI
 
             if (decimal.TryParse(salevalue.Text, out var sv))
             {
-                if (sv < 0 || sv > SAFE_MAX)
+                if (sv < 0 || sv > MAX_UNIT_PRICE)
                 {
-                    AlertManager.ShowError("Unit price exceeds limit");
+                    AlertManager.ShowError($"Unit price must be between 0 and {MAX_UNIT_PRICE}");
                     salevalue.Focus();
                     return null;
                 }
                 saleValuePerUnit = sv;
+            }
+
+            if (quantity > 0 && saleValuePerUnit > 0)
+            {
+                if (quantity > MAX_RESULT / saleValuePerUnit)
+                {
+                    AlertManager.ShowError("Total exceeds limit. Reduce quantity or unit price.");
+                    qty.Focus();
+                    return null;
+                }
             }
 
             if (decimal.TryParse(TaxRatebox.Text, out var tr))
@@ -694,7 +707,7 @@ namespace POSPRA_WinFormsUI
                 discountPercent = Math.Clamp(dp, 0m, 100m);
             }
 
-            // Define variables for calculations
+            // ✅ CORRECT CALCULATION ORDER
             decimal grossAmount = 0m;
             decimal taxAmount = 0m;
             decimal amountAfterTax = 0m;
@@ -708,35 +721,35 @@ namespace POSPRA_WinFormsUI
                 return null;
             }
 
-            // Step 2: Calculate tax on gross amount
+            // Step 2: Calculate tax on GROSS amount (BEFORE discount) ✅
             if (!TryMultiplyDecimal(grossAmount, taxRatePercent / 100m, out taxAmount))
             {
                 AlertManager.ShowError("Tax calculation overflow. Reduce values");
                 return null;
             }
 
-            // Step 3: Calculate amount after tax
+            // Step 3: Calculate amount AFTER adding tax ✅
             if (!TryAddDecimal(grossAmount, taxAmount, out amountAfterTax))
             {
                 AlertManager.ShowError("Total exceeds limit. Reduce values");
                 return null;
             }
 
-            // Step 4: Calculate discount
+            // Step 4: Calculate discount on AMOUNT AFTER TAX ✅
             if (!TryMultiplyDecimal(amountAfterTax, discountPercent / 100m, out discountAmount))
             {
                 AlertManager.ShowError("Discount calculation overflow");
                 return null;
             }
 
-            // Step 5: Calculate final total
+            // Step 5: Calculate final total (after tax, minus discount) ✅
             if (!TrySubtractDecimal(amountAfterTax, discountAmount, out totalAmount))
             {
                 totalAmount = 0m;
             }
             totalAmount = Math.Max(0, totalAmount);
 
-            // Update UI
+            // Update UI with rounded values
             itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
             TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
             totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
@@ -748,11 +761,11 @@ namespace POSPRA_WinFormsUI
                 PCTCode = pctCode.Text.Trim(),
                 Quantity = quantity,
                 SaleValue = saleValuePerUnit,
-                Discount = discountAmount,
+                Discount = discountAmount,  // ✅ Discount in Rs. (from after-tax amount)
                 TaxRate = (double)taxRatePercent,
-                TaxCharged = taxAmount,
+                TaxCharged = taxAmount,     // ✅ Tax calculated on gross (before discount)
                 FurtherTax = GetSelectedSaleType(),
-                TotalAmount = totalAmount,
+                TotalAmount = totalAmount,  // ✅ (Gross + Tax) - Discount
                 InvoiceType = GetSelectedInvoiceType(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
@@ -777,7 +790,7 @@ namespace POSPRA_WinFormsUI
 
                 if (!ValidateItemEntry(inputData))
                 {
-                    HighlightEmptyTextBoxes(pctCode, ItemCode, ItemName, qty, salevalue);
+                    HighlightEmptyTextBoxes(pctCode, USIN, ItemCode, ItemName, qty, salevalue);
                     return;
                 }
 
@@ -1922,7 +1935,7 @@ namespace POSPRA_WinFormsUI
 
         private bool ValidateItemEntry(InvoiceItems inputData)
         {
-            // Item Code (comes from pctCode textbox - PCT Code)
+            // Item Code - max 50 characters
             if (string.IsNullOrWhiteSpace(inputData.ItemCode))
             {
                 AlertManager.ShowError("Please enter the Item Code.");
@@ -1930,6 +1943,14 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
+            if (inputData.ItemCode.Length > 50)
+            {
+                AlertManager.ShowError("Item Code cannot exceed 50 characters.");
+                this.BeginInvoke(new Action(() => ItemCode.Focus()));
+                return false;
+            }
+
+            // HS Code - exactly 8 digits
             if (string.IsNullOrWhiteSpace(inputData.PCTCode))
             {
                 AlertManager.ShowError("Please enter the HS Code.");
@@ -1944,13 +1965,14 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
-            // Item Name
+            // Item Description - max 150 chars
             if (string.IsNullOrWhiteSpace(inputData.ItemName))
             {
                 AlertManager.ShowError("Please enter an Item Description.");
                 this.BeginInvoke(new Action(() => ItemName.Focus()));
                 return false;
             }
+
             if (inputData.ItemName.Length > 150)
             {
                 AlertManager.ShowError("Item Description cannot exceed 150 characters.");
@@ -1958,37 +1980,44 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
-            // Quantity
-            if (inputData.Quantity <= 0)
+            // Quantity - must be > 0, max 99,999.99 (5 digits total including decimals)
+            if (!inputData.Quantity.HasValue || inputData.Quantity <= 0)
             {
                 AlertManager.ShowError("Please enter a valid Quantity greater than 0.");
                 this.BeginInvoke(new Action(() => qty.Focus()));
                 return false;
             }
 
-            // Sale Value
-            if (inputData.SaleValue <= 0)
+            if (inputData.Quantity > 99999.99m)
+            {
+                AlertManager.ShowError("Quantity cannot exceed 99,999.99");
+                this.BeginInvoke(new Action(() => qty.Focus()));
+                return false;
+            }
+
+            // Unit Price - must be > 0, max 9,999,999,999.99 (10 digits before decimal)
+            if (!inputData.SaleValue.HasValue || inputData.SaleValue <= 0)
             {
                 AlertManager.ShowError("Please enter a valid Unit Price greater than 0.");
                 this.BeginInvoke(new Action(() => salevalue.Focus()));
                 return false;
             }
 
-            if (inputData.TaxCharged < 0)
+            if (inputData.SaleValue > 9999999999.99m)
             {
-                AlertManager.ShowError("Tax Charged must be greater than or equal to 0.");
-                this.BeginInvoke(new Action(() => qty.Focus()));
+                AlertManager.ShowError("Unit Price cannot exceed 9,999,999,999.99");
+                this.BeginInvoke(new Action(() => salevalue.Focus()));
                 return false;
             }
 
-
-            // Tax Rate 
+            // Tax Rate - 0-100%
             if (!decimal.TryParse(TaxRatebox.Text, out decimal taxRate))
             {
                 AlertManager.ShowError("Tax Rate must be a valid number.");
                 this.BeginInvoke(new Action(() => TaxRatebox.Focus()));
                 return false;
             }
+
             if (taxRate < 0 || taxRate > 100)
             {
                 AlertManager.ShowError("Tax Rate must be between 0 and 100.");
@@ -1996,19 +2025,45 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
+            // Discount % - 0-100%
+            if (!string.IsNullOrWhiteSpace(itemDiscountPercent.Text))
+            {
+                if (!decimal.TryParse(itemDiscountPercent.Text, out decimal discountPercent))
+                {
+                    AlertManager.ShowError("Discount percentage must be a valid number.");
+                    this.BeginInvoke(new Action(() => itemDiscountPercent.Focus()));
+                    return false;
+                }
+
+                if (discountPercent < 0 || discountPercent > 100)
+                {
+                    AlertManager.ShowError("Discount percentage must be between 0 and 100.");
+                    this.BeginInvoke(new Action(() => itemDiscountPercent.Focus()));
+                    return false;
+                }
+            }
+
+            // Tax Charged must be >= 0
+            if (inputData.TaxCharged < 0)
+            {
+                AlertManager.ShowError("Tax Charged must be greater than or equal to 0.");
+                this.BeginInvoke(new Action(() => TaxCharged.Focus()));
+                return false;
+            }
 
             return true;
         }
 
         private bool AreInvoiceFieldsValid()
         {
-            // POS ID: Required, Numeric
+            // ✅ POS ID: Required, Numeric, UP TO 6 DIGITS
             if (string.IsNullOrWhiteSpace(posid.Text))
             {
                 AlertManager.ShowError("POS ID is required.");
                 this.BeginInvoke(new Action(() => posid.Focus()));
                 return false;
             }
+
             if (!posid.Text.All(char.IsDigit))
             {
                 AlertManager.ShowError("POS ID must contain only numbers.");
@@ -2016,18 +2071,53 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
-            // Buyer NTN: Optional, 7 Alphanumeric (Validated if filled)
+            if (posid.Text.Length > 6)
+            {
+                AlertManager.ShowError("POS ID cannot exceed 6 digits.");
+                this.BeginInvoke(new Action(() => posid.Focus()));
+                return false;
+            }
+
+            if (posid.Text == "0" || int.Parse(posid.Text) == 0)
+            {
+                AlertManager.ShowError("POS ID must be greater than 0.");
+                this.BeginInvoke(new Action(() => posid.Focus()));
+                return false;
+            }
+
+            // ✅ USIN: REQUIRED, max 50 characters
+            if (string.IsNullOrWhiteSpace(USIN.Text))
+            {
+                AlertManager.ShowError("USIN is required.");
+                this.BeginInvoke(new Action(() => USIN.Focus()));
+                return false;
+            }
+
+            if (USIN.Text.Length > 50)
+            {
+                AlertManager.ShowError("USIN cannot exceed 50 characters.");
+                this.BeginInvoke(new Action(() => USIN.Focus()));
+                return false;
+            }
+            // ✅ Buyer NTN: Optional, 7 Alphanumeric
             if (!string.IsNullOrWhiteSpace(buyerntn.Text))
             {
-                if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length < 7 || buyerntn.Text.Length > 8)
+                if (!buyerntn.Text.All(char.IsLetterOrDigit))
                 {
-                    AlertManager.ShowError("Buyer NTN must be 7-8 alphanumeric characters.");
+                    AlertManager.ShowError("Buyer NTN must contain only letters and numbers.");
+                    this.BeginInvoke(new Action(() => buyerntn.Focus()));
+                    return false;
+                }
+
+                if (buyerntn.Text.Length < 7)
+                {
+                    AlertManager.ShowError("Buyer NTN must be 7 alphanumeric characters.");
                     this.BeginInvoke(new Action(() => buyerntn.Focus()));
                     return false;
                 }
             }
 
-            // Buyer CNIC: Optional, 13 Digits (Validated if filled)
+            // ✅ Buyer CNIC: Optional, Exactly 13 Digits
             if (!string.IsNullOrWhiteSpace(buyercnic.Text))
             {
                 if (!buyercnic.Text.All(char.IsDigit) || buyercnic.Text.Length != 13)
@@ -2038,25 +2128,45 @@ namespace POSPRA_WinFormsUI
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(BuyerBname.Text) && BuyerBname.Text.Length > 150)
+
+            // ✅ Buyer Name: Optional, max 150 chars, letters and spaces only
+            if (!string.IsNullOrWhiteSpace(BuyerBname.Text))
             {
-                AlertManager.ShowError("Buyer Name cannot exceed 150 characters.");
-                this.BeginInvoke(new Action(() => BuyerBname.Focus()));
-                return false;
+                if (BuyerBname.Text.Length > 150)
+                {
+                    AlertManager.ShowError("Buyer Name cannot exceed 150 characters.");
+                    this.BeginInvoke(new Action(() => BuyerBname.Focus()));
+                    return false;
+                }
+
+                if (!BuyerBname.Text.All(c => char.IsLetter(c) || char.IsWhiteSpace(c)))
+                {
+                    AlertManager.ShowError("Buyer Name can only contain letters and spaces.");
+                    this.BeginInvoke(new Action(() => BuyerBname.Focus()));
+                    return false;
+                }
             }
 
-
-            // Buyer Phone: Optional, Numeric, 11 or 13 digits (Validated if filled)
+            // ✅ Buyer Phone: Optional, UP TO 20 CHARACTERS (CHANGED FROM 11/13)
             if (!string.IsNullOrWhiteSpace(buyerphone.Text))
             {
-                if (!buyerphone.Text.All(char.IsDigit) || !(buyerphone.Text.Length == 11 || buyerphone.Text.Length == 13))
+                if (buyerphone.Text.Length > 20)
                 {
-                    AlertManager.ShowError("Buyer Phone must be 11 or 13 digits long.");
+                    AlertManager.ShowError("Buyer Phone cannot exceed 20 characters.");
+                    this.BeginInvoke(new Action(() => buyerphone.Focus()));
+                    return false;
+                }
+
+                // Allow digits, spaces, +, -, (, )
+                if (!buyerphone.Text.All(c => char.IsDigit(c) || c == ' ' || c == '+' || c == '-' || c == '(' || c == ')'))
+                {
+                    AlertManager.ShowError("Buyer Phone contains invalid characters.");
                     this.BeginInvoke(new Action(() => buyerphone.Focus()));
                     return false;
                 }
             }
 
+            // Ref USIN validation
             if (refUSIN.Visible && !string.IsNullOrWhiteSpace(refUSIN.Text))
             {
                 if (refUSIN.Text.Length > 50)
@@ -2067,14 +2177,20 @@ namespace POSPRA_WinFormsUI
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(USIN.Text))
+            // Invoice Type validation (1-4)
+            byte invoiceType = GetSelectedInvoiceType();
+            if (invoiceType < 1 || invoiceType > 4)
             {
-                if (USIN.Text.Length > 50)
-                {
-                    AlertManager.ShowError("USIN cannot exceed 50 characters.");
-                    this.BeginInvoke(new Action(() => USIN.Focus()));
-                    return false;
-                }
+                AlertManager.ShowError("Please select a valid Invoice Type.");
+                return false;
+            }
+
+            // Payment Mode validation (1-3)
+            byte paymentMode = GetSelectedPaymentMode();
+            if (paymentMode < 1 || paymentMode > 3)
+            {
+                AlertManager.ShowError("Please select a valid Payment Mode.");
+                return false;
             }
 
             return true;
@@ -2083,43 +2199,87 @@ namespace POSPRA_WinFormsUI
         private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (sender is not TextBox tb) return;
-
             string name = tb.Name.ToLower();
 
-            // Allow control characters (Backspace, Delete, etc.)
+            // Allow control characters
             if (char.IsControl(e.KeyChar)) return;
 
             switch (name)
             {
+                case "posid":
+                    // ✅ UP TO 6 DIGITS
+                    if (!char.IsDigit(e.KeyChar) || tb.Text.Length >= 6)
+                        e.Handled = true;
+                    break;
+
                 case "buyerntn":
                     if (!char.IsLetterOrDigit(e.KeyChar) || tb.Text.Length >= 7)
                         e.Handled = true;
                     break;
 
                 case "buyercnic":
+                    // 13 DIGITS
                     if (!char.IsDigit(e.KeyChar) || tb.Text.Length >= 13)
                         e.Handled = true;
                     break;
 
                 case "buyerphone":
-                    if (!char.IsDigit(e.KeyChar) || tb.Text.Length >= 13)
+                    // ✅ UP TO 20 CHARACTERS (allows +, -, parentheses)
+                    if (tb.Text.Length >= 20)
+                    {
                         e.Handled = true;
+                    }
+                    else if (!char.IsDigit(e.KeyChar) && e.KeyChar != '+' && e.KeyChar != '-' && e.KeyChar != '(' && e.KeyChar != ')')
+                    {
+                        e.Handled = true;
+                    }
                     break;
 
-                case "itemcode":
                 case "pctcode":
-                    if (tb.Text.Length >= 8)
+                    // 8 DIGITS
+                    if (!char.IsDigit(e.KeyChar) || tb.Text.Length >= 8)
                         e.Handled = true;
                     break;
 
-                // Monetary fields (18,2)
                 case "qty":
-                case "totalamount":
+                    // 5 digits before decimal, 2 after
+                    if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.')
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
+                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
+                    string futureQty = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
+
+                    if (futureQty.Contains('.'))
+                    {
+                        string[] parts = futureQty.Split('.');
+                        // Max 5 digits before decimal, 2 after
+                        if (parts[0].Length > 5 || (parts.Length > 1 && parts[1].Length > 2))
+                            e.Handled = true;
+                    }
+                    else
+                    {
+                        // Without decimal, max 5 digits
+                        if (futureQty.Length > 5)
+                            e.Handled = true;
+                    }
+                    break;
+
+
+
                 case "salevalue":
+                case "totalamount":
                 case "discount":
-                case "furthertax":
                 case "taxcharged":
                 case "itemdiscountamount":
+                    // ✅ 10 DIGITS BEFORE DECIMAL, 2 AFTER
                     if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.')
                     {
                         e.Handled = true;
@@ -2133,14 +2293,23 @@ namespace POSPRA_WinFormsUI
                     }
 
                     string futureText = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
-                    string[] parts = futureText.Split('.');
-                    if (parts[0].Length > 18) e.Handled = true; // Integer part max 18 digits
-                    if (parts.Length > 1 && parts[1].Length > 2) e.Handled = true; // Decimal part max 2 digits
+
+                    if (futureText.Contains('.'))
+                    {
+                        string[] parts = futureText.Split('.');
+                        if (parts[0].Length > 10 || (parts.Length > 1 && parts[1].Length > 2))
+                            e.Handled = true;
+                    }
+                    else
+                    {
+                        if (futureText.Length > 10)
+                            e.Handled = true;
+                    }
                     break;
 
-                // Percentage fields (5,2) with max 100
                 case "taxratebox":
                 case "itemdiscountpercent":
+                    // PERCENTAGE 0-100.00
                     if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.')
                     {
                         e.Handled = true;
@@ -2153,15 +2322,21 @@ namespace POSPRA_WinFormsUI
                         return;
                     }
 
-                    futureText = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
-                    parts = futureText.Split('.');
-                    if (parts[0].Length > 3) e.Handled = true;   // Integer part max 3 digits
-                    if (parts.Length > 1 && parts[1].Length > 2) e.Handled = true; // Decimal part max 2 digits
-                    if (decimal.TryParse(futureText, out decimal val) && val > 100) e.Handled = true;
-                    break;
+                    string futurePercent = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
 
-                default:
-                    if (!char.IsDigit(e.KeyChar)) e.Handled = true;
+                    if (futurePercent.Contains('.'))
+                    {
+                        string[] parts = futurePercent.Split('.');
+                        if (parts[0].Length > 3 || (parts.Length > 1 && parts[1].Length > 2))
+                            e.Handled = true;
+                    }
+                    else if (futurePercent.Length > 3)
+                    {
+                        e.Handled = true;
+                    }
+
+                    if (decimal.TryParse(futurePercent, out decimal val) && val > 100)
+                        e.Handled = true;
                     break;
             }
         }
@@ -2169,119 +2344,129 @@ namespace POSPRA_WinFormsUI
         private void NumericOnlyWithLength_TextChanged(object sender, EventArgs e)
         {
             if (sender is not TextBox tb) return;
-
             string original = tb.Text;
             string clean = original;
-            int maxLength = 21; // default: 18 digits + decimal + 2 decimals
-            int dotIndex;
+            string name = tb.Name.ToLower();
 
-            switch (tb.Name.ToLower())
+            switch (name)
             {
+                case "posid":
+                    // ✅ UP TO 6 DIGITS
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    if (clean.Length > 6) clean = clean[..6];
+                    break;
+
                 case "buyerntn":
                     clean = new string(original.Where(char.IsLetterOrDigit).ToArray());
-                    maxLength = 7;
+                    if (clean.Length > 7) clean = clean[..7];
                     break;
 
                 case "buyercnic":
+                    // 13 DIGITS
                     clean = new string(original.Where(char.IsDigit).ToArray());
-                    maxLength = 13;
+                    if (clean.Length > 13) clean = clean[..13];
                     break;
 
                 case "buyerphone":
-                    clean = new string(original.Where(char.IsDigit).ToArray());
-                    maxLength = 13;
+                    // ✅ UP TO 20 CHARACTERS
+                    clean = new string(original.Where(c =>
+                        char.IsDigit(c) || c == '+' || c == '-' || c == '(' || c == ')').ToArray());
+                    if (clean.Length > 20) clean = clean[..20];
                     break;
 
                 case "pctcode":
+                    // 8 DIGITS
                     clean = new string(original.Where(char.IsDigit).ToArray());
-                    maxLength = 8;
+                    if (clean.Length > 8) clean = clean[..8];
                     break;
 
-                // Decimal fields with strict (18,2)
                 case "qty":
+                    // ✅ 5 digits before decimal, 2 after
+                    clean = Regex.Replace(original, @"[^0-9.]", "");
+                    int dotIndex = clean.IndexOf('.');
+
+                    if (dotIndex != -1)
+                        clean = clean[..(dotIndex + 1)] + clean[(dotIndex + 1)..].Replace(".", "");
+
+                    if (dotIndex != -1)
+                    {
+                        string intPart = clean[..dotIndex];
+                        string decPart = clean[(dotIndex + 1)..];
+
+                        if (intPart.Length > 5) intPart = intPart[..5];
+                        if (decPart.Length > 2) decPart = decPart[..2];
+
+                        clean = intPart + "." + decPart;
+                    }
+                    else if (clean.Length > 5)
+                    {
+                        clean = clean[..5];
+                    }
+
+                    if (clean.StartsWith(".")) clean = "0" + clean;
+                    break;
+
                 case "salevalue":
                 case "totalamount":
                 case "discount":
-                case "furthertax":
                 case "taxcharged":
                 case "itemdiscountamount":
-                    clean = Regex.Replace(original, @"[^0-9.]", ""); // Remove invalid chars
-                    dotIndex = clean.IndexOf('.');
-
-                    // Allow only one dot
-                    if (dotIndex != -1)
-                        clean = clean.Substring(0, dotIndex + 1) + clean[(dotIndex + 1)..].Replace(".", "");
-
-                    // Enforce (18,2)
-                    if (dotIndex != -1)
-                    {
-                        string integerPart = clean[..dotIndex];
-                        string decimalPart = clean[(dotIndex + 1)..];
-
-                        // Integer part: 18 digits max
-                        if (integerPart.Length > 18)
-                            integerPart = integerPart[..18];
-
-                        // Decimal part: 2 digits max
-                        if (decimalPart.Length > 2)
-                            decimalPart = decimalPart[..2];
-
-                        clean = integerPart + "." + decimalPart;
-                    }
-                    else if (clean.Length > 18)
-                    {
-                        // No decimal, limit to 18 digits
-                        clean = clean[..18];
-                    }
-
-                    // prevent entry of invalid decimals (like starting with ".")
-                    if (clean.StartsWith("."))
-                        clean = "0" + clean;
-
-                    break;
-
-                // Percentage fields (limit to 100.00)
-                case "taxratebox":
-                case "itemdiscountpercent":
+                    // 10 DIGITS BEFORE DECIMAL, 2 AFTER
                     clean = Regex.Replace(original, @"[^0-9.]", "");
                     dotIndex = clean.IndexOf('.');
 
                     if (dotIndex != -1)
-                        clean = clean.Substring(0, dotIndex + 1) + clean[(dotIndex + 1)..].Replace(".", "");
+                        clean = clean[..(dotIndex + 1)] + clean[(dotIndex + 1)..].Replace(".", "");
 
-                    string intPart = "", decPart = "";
                     if (dotIndex != -1)
                     {
-                        intPart = clean[..dotIndex];
-                        decPart = clean[(dotIndex + 1)..];
+                        string intPartSale = clean[..dotIndex];
+                        string decPartSale = clean[(dotIndex + 1)..];
+
+                        if (intPartSale.Length > 10) intPartSale = intPartSale[..10];
+                        if (decPartSale.Length > 2) decPartSale = decPartSale[..2];
+
+                        clean = intPartSale + "." + decPartSale;
+                    }
+                    else if (clean.Length > 10)
+                    {
+                        clean = clean[..10];
+                    }
+
+                    if (clean.StartsWith(".")) clean = "0" + clean;
+                    break;
+
+                case "taxratebox":
+                case "itemdiscountpercent":
+                    // PERCENTAGE 0-100.00
+                    clean = Regex.Replace(original, @"[^0-9.]", "");
+                    dotIndex = clean.IndexOf('.');
+
+                    if (dotIndex != -1)
+                        clean = clean[..(dotIndex + 1)] + clean[(dotIndex + 1)..].Replace(".", "");
+
+                    string intPartPercent = "";
+                    string decPartPercent = "";
+                    if (dotIndex != -1)
+                    {
+                        intPartPercent = clean[..dotIndex];
+                        decPartPercent = clean[(dotIndex + 1)..];
                     }
                     else
                     {
-                        intPart = clean;
+                        intPartPercent = clean;
                     }
 
-                    if (intPart.Length > 3)
-                        intPart = intPart[..3];
-                    if (decPart.Length > 2)
-                        decPart = decPart[..2];
+                    if (intPartPercent.Length > 3) intPartPercent = intPartPercent[..3];
+                    if (decPartPercent.Length > 2) decPartPercent = decPartPercent[..2];
 
-                    clean = dotIndex != -1 ? intPart + "." + decPart : intPart;
+                    clean = dotIndex != -1 ? intPartPercent + "." + decPartPercent : intPartPercent;
 
-                    if (decimal.TryParse(clean, out decimal percentVal) && percentVal > 100)
+                    if (decimal.TryParse(clean, out decimal val) && val > 100)
                         clean = "100";
-                    break;
-
-                case "itemcode":
-                    clean = new string(original.Where(char.IsDigit).ToArray());
-                    maxLength = 8;
                     break;
             }
 
-            // Trim to max length
-            if (clean.Length > maxLength)
-                clean = clean[..maxLength];
-
-            // Apply only if text changed
             if (tb.Text != clean)
             {
                 int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
@@ -2298,17 +2483,38 @@ namespace POSPRA_WinFormsUI
             if (char.IsControl(e.KeyChar))
                 return;
 
-            // Allow letters and space only
-            if (!char.IsLetter(e.KeyChar) && e.KeyChar != ' ')
-            {
-                e.Handled = true;
-                return;
-            }
+            string name = tb.Name.ToLower();
 
-            switch (tb.Name.ToLower())
+            switch (name)
             {
+
                 case "buyerbname":
-                    if (tb.Text.Length >= 100)
+                    // Allow letters and spaces only
+                    if (!char.IsLetter(e.KeyChar) && e.KeyChar != ' ')
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (tb.Text.Length >= 150)
+                        e.Handled = true;
+                    break;
+
+                case "refusin":
+                case "usin":
+                case "itemcode":
+                    // Allow letters, digits, and spaces
+                    if (!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != ' ')
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    if (tb.Text.Length >= 50)
+                        e.Handled = true;
+                    break;
+
+                default:
+                    // Default: letters and spaces only
+                    if (!char.IsLetter(e.KeyChar) && e.KeyChar != ' ')
                         e.Handled = true;
                     break;
             }
@@ -2318,23 +2524,34 @@ namespace POSPRA_WinFormsUI
         {
             if (sender is not TextBox tb) return;
 
+            string name = tb.Name.ToLower();
             string original = tb.Text;
-            string clean = new string(original.Where(c => char.IsLetter(c) || char.IsWhiteSpace(c)).ToArray());
-            int maxLength = 150;
+            string clean;
 
-            // Per-field custom max length
-            switch (tb.Name.ToLower())
+            // Default: allow letters and spaces
+            if (name == "itemcode")
+                clean = new string(original.Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)).ToArray());
+            else if (name == "refusin")
+                clean = new string(original.Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)).ToArray());
+            else if (name == "usin")
+                clean = new string(original.Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)).ToArray());
+            else
+                clean = new string(original.Where(c => char.IsLetter(c) || char.IsWhiteSpace(c)).ToArray());
+
+            int maxLength = name switch
             {
-                case "buyerbname":
-                    maxLength = 100;
-                    break;
-            }
+                "refusin" => 50,
+                "usin" => 50,
+                "buyerbname" => 150,
+                "itemcode" => 50,
+                _ => 150
+            };
 
-            // Enforce length
+            // Enforce max length
             if (clean.Length > maxLength)
                 clean = clean.Substring(0, maxLength);
 
-            // Apply correction if changed
+            // Apply only if modified
             if (tb.Text != clean)
             {
                 int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
@@ -2344,6 +2561,7 @@ namespace POSPRA_WinFormsUI
         }
 
         #endregion
+
 
         #region Responsive / Rounded Corners
 

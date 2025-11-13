@@ -10,7 +10,6 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
@@ -429,12 +428,44 @@ namespace POSPRA.SetupUI
                 string selectedEnvironment = null;
 
                 if (rdoSandbox.Checked)
+                {
                     selectedEnvironment = "Sandbox";
+                }
                 else if (rdoProduction.Checked)
+                {
                     selectedEnvironment = "Production";
+                }
                 else
                 {
                     ShowMessage("Please select an environment first (Sandbox or Production).", false, false);
+                    return;
+                }
+
+                string EnvapiUrl = ConfigurationManager.AppSettings["environmentapiurl"];
+                if (string.IsNullOrWhiteSpace(EnvapiUrl))
+                {
+                    ShowMessage("API URL is missing in configuration.", false, false);
+                    return;
+                }
+
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                var stringContent = new StringContent(
+                    JsonConvert.SerializeObject(selectedEnvironment),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+
+                var response = await client.PostAsync(EnvapiUrl, stringContent);
+                var responseBody = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    ShowMessage(
+                        $"Request failed: {(int)response.StatusCode} - {response.ReasonPhrase}",
+                        false,
+                        false
+                    );
                     return;
                 }
 
@@ -708,6 +739,7 @@ namespace POSPRA.SetupUI
 
         }
         #endregion
+
         #region Helper Method for Progress Bar
 
         private void ShowProgressBar(bool show)
@@ -731,6 +763,7 @@ namespace POSPRA.SetupUI
         }
 
         #endregion
+
         #region Validation Methods
 
         private bool ValidateDatabasePath(string dbPath)
@@ -1440,7 +1473,7 @@ namespace POSPRA.SetupUI
                     return null;
                 }
 
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                using var client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                 var jsonContent = new StringContent(

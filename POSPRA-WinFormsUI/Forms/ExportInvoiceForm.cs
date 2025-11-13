@@ -162,7 +162,7 @@ namespace POSPRA_WinFormsUI.Forms
                                 (1, "Invoice Number"),         // FBRInvoiceNumber
                                 (3, "USIN"),                   // USIN
                                 (2, "POSID"),                  // POSID
-                                (20, "Buyer NTN"),             // BuyerNTN
+                                (21, "Buyer NTN"),             // BuyerNTN
                                 (23, "Buyer CNIC"),            // BuyerCNIC
                                 (5, "Buyer Name"),             // BuyerName
                                 (6, "Buyer Phone Number"),     // BuyerPhoneNumber

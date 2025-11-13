@@ -93,6 +93,7 @@ namespace POSPRA.SetupUI
             var services = new ServiceCollection();
             services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
             services.AddScoped<IScriptService, ScriptService>();
+            services.AddScoped<ISqliteRepositoryFactory, SqliteRepositoryFactory>();
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
 
 
