@@ -138,7 +138,7 @@ namespace POSPRA_WinFormsUI.Forms
             var bodyTable = new DataTable("BodyDataSet");
             bodyTable.Columns.AddRange(new[]
             {
-                new DataColumn("Amount", typeof(int)),
+                new DataColumn("Amount", typeof(decimal)),
                 new DataColumn("ItemName", typeof(string)),
                 new DataColumn("TaxRate", typeof(decimal)),
                 new DataColumn("Qty", typeof(decimal)),
