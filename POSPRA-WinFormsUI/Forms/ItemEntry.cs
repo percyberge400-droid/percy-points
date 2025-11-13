@@ -557,211 +557,6 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
-        #region numeric and string only data entry
-        private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (sender is not TextBox tb) return;
-
-            switch (tb.Name.ToLower()) // use lowercase for consistency
-            {
-                case "buyerntn":
-                    if (!char.IsControl(e.KeyChar) && !char.IsLetterOrDigit(e.KeyChar))
-                        e.Handled = true;
-                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 7)
-                        e.Handled = true;
-                    break;
-
-                case "buyercnic":
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                        e.Handled = true;
-                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
-                        e.Handled = true;
-                    break;
-
-                case "buyerphone":
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                        e.Handled = true;
-                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 13)
-                        e.Handled = true;
-                    break;
-
-                case "itemcode":
-                case "pctcode":
-                    if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 8)
-                        e.Handled = true;
-                    break;
-
-                case "quantity":
-                case "totalamount":
-                case "salevalue":
-                case "taxrate":
-                case "discount":
-                case "furthertax":
-                case "taxcharged":
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
-                        e.Handled = true;
-                    else if (e.KeyChar == '.' && tb.Text.Contains('.'))
-                        e.Handled = true;
-                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
-                        e.Handled = true;
-                    break;
-
-                case "itemdiscountpercent":
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != '.')
-                        e.Handled = true;
-                    else if (e.KeyChar == '.' && tb.Text.Contains('.'))
-                        e.Handled = true;
-                    else if (!char.IsControl(e.KeyChar))
-                    {
-                        string futureText = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
-                        if (decimal.TryParse(futureText, out decimal val) && val > 100)
-                            e.Handled = true;
-                    }
-                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 6)
-                        e.Handled = true;
-                    break;
-
-                default:
-                    if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                        e.Handled = true;
-                    else if (!char.IsControl(e.KeyChar) && tb.Text.Length >= 15)
-                        e.Handled = true;
-                    break;
-            }
-        }
-
-        private void NumericOnlyWithLength_TextChanged(object sender, EventArgs e)
-        {
-            if (sender is not TextBox tb) return;
-
-            string original = tb.Text;
-            string clean = original;
-            int maxLength = 15;
-
-            switch (tb.Name.ToLower())
-            {
-                case "buyerntn":
-                    clean = new string(original.Where(char.IsLetterOrDigit).ToArray());
-                    maxLength = 7;
-                    break;
-
-                case "buyercnic":
-                    clean = new string(original.Where(char.IsDigit).ToArray());
-                    maxLength = 13;
-                    break;
-
-                case "buyerphone":
-                    clean = new string(original.Where(char.IsDigit).ToArray());
-                    maxLength = 13;
-                    break;
-
-                // Only numeric allowed for these — including paste
-                case "qty":
-                case "itemcode":
-                case "unitprice":
-                    clean = Regex.Replace(original, @"[^0-9.]", ""); // Remove non-numeric
-                    int dotIndexNumeric = clean.IndexOf('.');
-                    if (dotIndexNumeric != -1)
-                        clean = clean.Substring(0, dotIndexNumeric + 1) + clean[(dotIndexNumeric + 1)..].Replace(".", "");
-                    maxLength = 15;
-                    break;
-
-                case "pctcode":
-                    clean = new string(original.Where(char.IsDigit).ToArray());
-                    maxLength = 8;
-                    break;
-
-                case "totalamount":
-                case "salevalue":
-                case "discount":
-                case "furthertax":
-                case "taxcharged":
-                    clean = Regex.Replace(original, @"[^0-9.]", "");
-                    int dotIndex = clean.IndexOf('.');
-                    if (dotIndex != -1)
-                        clean = clean.Substring(0, dotIndex + 1) + clean.Substring(dotIndex + 1).Replace(".", "");
-                    maxLength = 15;
-                    break;
-
-                case "taxratebox":
-                case "itemdiscountpercent":
-                    clean = Regex.Replace(original, @"[^0-9.]", "");
-                    dotIndex = clean.IndexOf('.');
-                    if (dotIndex != -1)
-                        clean = clean.Substring(0, dotIndex + 1) + clean.Substring(dotIndex + 1).Replace(".", "");
-                    if (decimal.TryParse(clean, out decimal val) && val > 100)
-                        clean = "100";
-                    maxLength = 6;
-                    break;
-            }
-
-            // Enforce max length
-            if (clean.Length > maxLength)
-                clean = clean.Substring(0, maxLength);
-
-            // Update text if needed
-            if (tb.Text != clean)
-            {
-                int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
-                tb.Text = clean;
-                tb.SelectionStart = Math.Max(0, Math.Min(pos, tb.Text.Length));
-            }
-        }
-
-        private void StringOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (sender is not TextBox tb) return;
-
-            // Allow control keys (Backspace, Delete, etc.)
-            if (char.IsControl(e.KeyChar))
-                return;
-
-            // Allow letters and space only
-            if (!char.IsLetter(e.KeyChar) && e.KeyChar != ' ')
-            {
-                e.Handled = true;
-                return;
-            }
-
-            switch (tb.Name.ToLower())
-            {
-                case "buyerbname":
-                    if (tb.Text.Length >= 100)
-                        e.Handled = true;
-                    break;
-            }
-        }
-        private void StringOnlyWithLength_TextChanged(object sender, EventArgs e)
-        {
-            if (sender is not TextBox tb) return;
-
-            string original = tb.Text;
-            string clean = new string(original.Where(c => char.IsLetter(c) || char.IsWhiteSpace(c)).ToArray());
-            int maxLength = 100;
-
-            // Per-field custom max length
-            switch (tb.Name.ToLower())
-            {
-                case "buyerbname":
-                    maxLength = 100;
-                    break;
-            }
-
-            // Enforce length
-            if (clean.Length > maxLength)
-                clean = clean.Substring(0, maxLength);
-
-            // Apply correction if changed
-            if (tb.Text != clean)
-            {
-                int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
-                tb.Text = clean;
-                tb.SelectionStart = Math.Max(0, Math.Min(pos, tb.Text.Length));
-            }
-        }
-
-
-        #endregion
 
         #region Invoice Type Logic
 
@@ -815,38 +610,148 @@ namespace POSPRA_WinFormsUI
             dataGridView1.ContextMenuStrip = contextMenu;
         }
 
+        private bool TryMultiplyDecimal(decimal a, decimal b, out decimal result)
+        {
+            try
+            {
+                result = a * b;
+                return true;
+            }
+            catch (OverflowException)
+            {
+                result = 0m;
+                return false;
+            }
+        }
+
+        private bool TryAddDecimal(decimal a, decimal b, out decimal result)
+        {
+            try
+            {
+                result = a + b;
+                return true;
+            }
+            catch (OverflowException)
+            {
+                result = 0m;
+                return false;
+            }
+        }
+
+        private bool TrySubtractDecimal(decimal a, decimal b, out decimal result)
+        {
+            try
+            {
+                result = a - b;
+                return true;
+            }
+            catch (OverflowException)
+            {
+                result = 0m;
+                return false;
+            }
+        }
+
         private InvoiceItems GetTextboxData()
         {
-            // Parse with better error handling
-            decimal quantity = decimal.TryParse(qty.Text, out var q) ? Math.Max(0, q) : 0m;
-            decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? Math.Max(0, sv) : 0m;
-            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? Math.Max(0, tr) : 0m;
-            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? Math.Max(0, Math.Min(100, dp)) : 0m;
+            const decimal SAFE_MAX = 999999999999999999m;
 
-            // Calculations
-            decimal grossAmount = quantity * saleValuePerUnit;
-            decimal discountAmount = grossAmount * (discountPercent / 100m);
-            decimal amountAfterDiscount = Math.Max(0, grossAmount - discountAmount);
+            decimal quantity = 0m;
+            decimal saleValuePerUnit = 0m;
+            decimal taxRatePercent = 0m;
+            decimal discountPercent = 0m;
 
-            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
-            decimal totalAmount = amountAfterDiscount + taxAmount;
+            // Safe parsing with validation
+            if (decimal.TryParse(qty.Text, out var q))
+            {
+                if (q < 0 || q > SAFE_MAX)
+                {
+                    AlertManager.ShowError("Quantity exceeds limit");
+                    qty.Focus();
+                    return null;
+                }
+                quantity = q;
+            }
 
-            // Update UI fields
-            itemDiscountAmount.Text = discountAmount.ToString("0.00");
-            totalamount.Text = totalAmount.ToString("0.00");
-            TaxCharged.Text = taxAmount.ToString("0.00");
+            if (decimal.TryParse(salevalue.Text, out var sv))
+            {
+                if (sv < 0 || sv > SAFE_MAX)
+                {
+                    AlertManager.ShowError("Unit price exceeds limit");
+                    salevalue.Focus();
+                    return null;
+                }
+                saleValuePerUnit = sv;
+            }
+
+            if (decimal.TryParse(TaxRatebox.Text, out var tr))
+            {
+                taxRatePercent = Math.Clamp(tr, 0m, 100m);
+            }
+
+            if (decimal.TryParse(itemDiscountPercent.Text, out var dp))
+            {
+                discountPercent = Math.Clamp(dp, 0m, 100m);
+            }
+
+            // Define variables for calculations
+            decimal grossAmount = 0m;
+            decimal taxAmount = 0m;
+            decimal amountAfterTax = 0m;
+            decimal discountAmount = 0m;
+            decimal totalAmount = 0m;
+
+            // Step 1: Calculate gross sale amount
+            if (!TryMultiplyDecimal(quantity, saleValuePerUnit, out grossAmount))
+            {
+                AlertManager.ShowError("Values too large. Reduce quantity or price");
+                return null;
+            }
+
+            // Step 2: Calculate tax on gross amount
+            if (!TryMultiplyDecimal(grossAmount, taxRatePercent / 100m, out taxAmount))
+            {
+                AlertManager.ShowError("Tax calculation overflow. Reduce values");
+                return null;
+            }
+
+            // Step 3: Calculate amount after tax
+            if (!TryAddDecimal(grossAmount, taxAmount, out amountAfterTax))
+            {
+                AlertManager.ShowError("Total exceeds limit. Reduce values");
+                return null;
+            }
+
+            // Step 4: Calculate discount
+            if (!TryMultiplyDecimal(amountAfterTax, discountPercent / 100m, out discountAmount))
+            {
+                AlertManager.ShowError("Discount calculation overflow");
+                return null;
+            }
+
+            // Step 5: Calculate final total
+            if (!TrySubtractDecimal(amountAfterTax, discountAmount, out totalAmount))
+            {
+                totalAmount = 0m;
+            }
+            totalAmount = Math.Max(0, totalAmount);
+
+            // Update UI
+            itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
+            TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
+            totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
 
             return new InvoiceItems
             {
-                ItemCode = ItemCode.Text.Trim(),        // PCT Code becomes Item Code
+                ItemCode = ItemCode.Text.Trim(),
                 ItemName = ItemName.Text.Trim(),
-                PCTCode = pctCode.Text.Trim(),        // HS Code becomes PCT Code
+                PCTCode = pctCode.Text.Trim(),
                 Quantity = quantity,
                 SaleValue = saleValuePerUnit,
-                Discount = discountAmount,             // Store calculated amount
-                TaxRate = (double)taxRatePercent,      // Store percentage
-                TaxCharged = taxAmount,                // Calculated tax amount
-                FurtherTax = GetSelectedSaleType(),         // Calculated further tax amount
+                Discount = discountAmount,
+                TaxRate = (double)taxRatePercent,
+                TaxCharged = taxAmount,
+                FurtherTax = GetSelectedSaleType(),
                 TotalAmount = totalAmount,
                 InvoiceType = GetSelectedInvoiceType(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
@@ -862,6 +767,13 @@ namespace POSPRA_WinFormsUI
             {
                 CurrentInvoice = CollectInvoiceData();
                 InvoiceItems inputData = GetTextboxData();
+
+                // Check if calculation failed
+                if (inputData == null)
+                {
+                    // Error already shown in GetTextboxData()
+                    return;
+                }
 
                 if (!ValidateItemEntry(inputData))
                 {
@@ -909,7 +821,6 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowError($"Error processing item: {ex.Message}");
             }
         }
-
         private async void BtnSave_Click(object sender, EventArgs e)
         {
             if (_isSaving)
@@ -1172,7 +1083,6 @@ namespace POSPRA_WinFormsUI
         #endregion
 
         #region search functionality
-        // Call this from your click handler (unchanged)
         private async void btnsearch_Click(object sender, EventArgs e)
         {
             var response = await _productCatalogueService.GetProductCatalogue();
@@ -1603,24 +1513,33 @@ namespace POSPRA_WinFormsUI
         #region Grid Edit / Remove Helpers
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
-
-
         {
-            row.Cells["colSaleType"].Value = "";
-            row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";         // PCT Code
+            row.Cells["colSaleType"].Value = GetSaleTypeName(GetSelectedSaleType());
+            row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";
             row.Cells["colProductDescription"].Value = inputData.ItemName ?? "";
-            row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";               // HS Code
-            row.Cells["colQuantity"].Value = (inputData.Quantity ?? 0m).ToString("0.00");
+            row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";
 
-            // Sales value excluding sales tax: (quantity × rate) - discount
-            decimal salesValueExcTax = (inputData.Quantity ?? 0) * (inputData.SaleValue ?? 0) - (inputData.Discount ?? 0);
-            row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
+            decimal qty = inputData.Quantity ?? 0m;
+            decimal rate = inputData.SaleValue ?? 0m;
+            decimal discountAmount = inputData.Discount ?? 0m;
+            decimal taxCharged = inputData.TaxCharged ?? 0m;
+            decimal totalAmount = inputData.TotalAmount ?? 0m;
 
-            row.Cells["colSalesTax"].Value = inputData.TaxRate.ToString("0.00");      // Tax rate percentage
-            row.Cells["colExtraTax"].Value = (inputData.TaxCharged ?? 0m).ToString("0.00");
-            row.Cells["colTotalValue"].Value = (inputData.TotalAmount ?? 0m).ToString("0.00");
+            // Explicitly cast if TaxRate is double
+            decimal taxRate = (decimal)inputData.TaxRate;
 
+            // Calculations
+            decimal salesValueExcTax = Math.Round((qty * rate) - discountAmount, 2);
+
+            // Assign values
+            row.Cells["colUnitPrice"].Value = rate.ToString("0.00");
+            row.Cells["colQuantity"].Value = qty.ToString("0.00");
+            row.Cells["colTaxRate"].Value = taxRate.ToString("0.00");
+            row.Cells["colTaxCharged"].Value = taxCharged.ToString("0.00");
+            row.Cells["colDiscount"].Value = discountAmount.ToString("0.00");
+            row.Cells["colTotalAmount"].Value = totalAmount.ToString("0.00");
         }
+
         private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -1641,36 +1560,65 @@ namespace POSPRA_WinFormsUI
 
         private void LoadItemForEditing(InvoiceItems item)
         {
-            pctCode.Text = item.PCTCode ?? "";        // PCT Code
+            // Safely set text fields
+            pctCode.Text = item.PCTCode ?? "";
             ItemName.Text = item.ItemName ?? "";
-            ItemCode.Text = item.ItemCode ?? "";        // HS Code
-            qty.Text = (item.Quantity ?? 0m).ToString();
-            salevalue.Text = (item.SaleValue ?? 0m).ToString();
+            ItemCode.Text = item.ItemCode ?? "";
+            qty.Text = (item.Quantity ?? 0m).ToString("0.##");
+            salevalue.Text = (item.SaleValue ?? 0m).ToString("0.##");
 
-            // Calculate back discount percentage from stored amount
-            decimal grossAmount = (item.Quantity ?? 0) * (item.SaleValue ?? 0);
-            if (grossAmount > 0 && item.Discount.HasValue && item.Discount.Value > 0)
+            const decimal SAFE_MAX = 999999999999999999m;
+
+            decimal quantity = Math.Clamp(item.Quantity ?? 0m, 0m, SAFE_MAX);
+            decimal saleValuePerUnit = Math.Clamp(item.SaleValue ?? 0m, 0m, SAFE_MAX);
+            decimal taxRatePercent = Math.Clamp((decimal)(item.TaxRate), 0m, 100m);
+
+            // Safe calculations
+            if (!TryMultiplyDecimal(quantity, saleValuePerUnit, out decimal grossAmount))
             {
-                decimal discountPercent = (item.Discount.Value / grossAmount) * 100m;
-                itemDiscountPercent.Text = Math.Round(discountPercent, 2).ToString();
-                itemDiscountAmount.Text = Math.Round(item.Discount.Value, 2).ToString("0.00");
+                itemDiscountPercent.Text = itemDiscountAmount.Text = TaxCharged.Text = totalamount.Text = "0.00";
+                TaxRatebox.Text = Math.Round(taxRatePercent, 2).ToString("0.##");
+                return;
             }
-            else
+
+            if (!TryMultiplyDecimal(grossAmount, taxRatePercent / 100m, out decimal taxAmount))
             {
-                itemDiscountPercent.Text = "0";
-                itemDiscountAmount.Text = "0.00";
+                itemDiscountPercent.Text = itemDiscountAmount.Text = TaxCharged.Text = totalamount.Text = "0.00";
+                TaxRatebox.Text = Math.Round(taxRatePercent, 2).ToString("0.##");
+                return;
             }
 
-            // Set tax rate percentage in textbox
-            TaxRatebox.Text = item.TaxRate.ToString();
+            if (!TryAddDecimal(grossAmount, taxAmount, out decimal amountAfterTax))
+            {
+                itemDiscountPercent.Text = itemDiscountAmount.Text = TaxCharged.Text = totalamount.Text = "0.00";
+                TaxRatebox.Text = Math.Round(taxRatePercent, 2).ToString("0.##");
+                return;
+            }
 
-            // Calculate back the further tax percentage from stored amount
-            decimal afterDiscount = grossAmount - (item.Discount ?? 0);
+            decimal discountAmount = Math.Clamp(item.Discount ?? 0m, 0m, amountAfterTax);
+            decimal discountPercent = 0m;
 
-            totalamount.Text = (item.TotalAmount ?? 0m).ToString();
-            TaxCharged.Text = (item.TaxCharged ?? 0m).ToString();
+            if (discountAmount > 0 && amountAfterTax > 0)
+            {
+                if (TryMultiplyDecimal(discountAmount / amountAfterTax, 100m, out discountPercent))
+                {
+                    // Success
+                }
+                else
+                {
+                    discountPercent = 0m;
+                }
+            }
+
+            decimal totalAmount = Math.Max(0, amountAfterTax - discountAmount);
+
+            // Update UI
+            itemDiscountPercent.Text = Math.Round(discountPercent, 2).ToString("0.##");
+            itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
+            TaxRatebox.Text = Math.Round(taxRatePercent, 2).ToString("0.##");
+            TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
+            totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
         }
-
         private void ClearFormFields()
         {
             ItemCode.Clear();
@@ -1703,7 +1651,6 @@ namespace POSPRA_WinFormsUI
                     ClearForm(c);
             }
         }
-
 
         private void ClearInvoiceFields()
         {
@@ -1756,59 +1703,105 @@ namespace POSPRA_WinFormsUI
 
         #endregion
 
-        #region Helper Methods
-
-        private string GetSaleTypeName(byte FurtureTax)
-        {
-            return FurtureTax switch
-            {
-                1 => "New",
-                2 => "Debit",
-                3 => "Credit",
-                _ => "New"
-            };
-        }
-
-        #endregion
-
         #region Calculations
 
         private void CalculateItemTotals()
         {
-            // Parse input values
-            decimal quantity = decimal.TryParse(qty.Text, out var q) ? q : 0m;
-            decimal saleValuePerUnit = decimal.TryParse(salevalue.Text, out var sv) ? sv : 0m;
+            const decimal SAFE_MAX = 999999999999999999m;
 
-            // Get tax rate percentage from textbox
-            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? tr : 0m;
+            // Parse inputs
+            if (!decimal.TryParse(qty.Text, out var quantity) || quantity < 0 || quantity > SAFE_MAX)
+            {
+                return;
+            }
 
-            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? dp : 0m;
+            if (!decimal.TryParse(salevalue.Text, out var saleValuePerUnit) || saleValuePerUnit < 0 || saleValuePerUnit > SAFE_MAX)
+            {
+                return;
+            }
 
-            // Step 1: Calculate gross sale amount
-            decimal grossAmount = quantity * saleValuePerUnit;
+            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? Math.Clamp(tr, 0m, 100m) : 0m;
+            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? Math.Clamp(dp, 0m, 100m) : 0m;
 
-            // Step 2: Calculate discount amount from percentage
-            decimal discountAmount = grossAmount * (discountPercent / 100m);
+            // Safe calculations
+            if (!TryMultiplyDecimal(quantity, saleValuePerUnit, out decimal grossAmount))
+            {
+                itemDiscountAmount.Text = TaxCharged.Text = totalamount.Text = "ERROR";
+                return;
+            }
 
-            // Update readonly discount amount field
-            itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
+            if (!TryMultiplyDecimal(grossAmount, taxRatePercent / 100m, out decimal taxAmount))
+            {
+                itemDiscountAmount.Text = TaxCharged.Text = totalamount.Text = "ERROR";
+                return;
+            }
 
-            // Step 3: Deduct discount
-            decimal amountAfterDiscount = grossAmount - discountAmount;
-            if (amountAfterDiscount < 0) amountAfterDiscount = 0;
+            if (!TryAddDecimal(grossAmount, taxAmount, out decimal amountAfterTax))
+            {
+                itemDiscountAmount.Text = TaxCharged.Text = totalamount.Text = "ERROR";
+                return;
+            }
 
-            // Step 4: Calculate tax (percentage of amount after discount)
-            decimal taxAmount = amountAfterDiscount * (taxRatePercent / 100m);
+            if (!TryMultiplyDecimal(amountAfterTax, discountPercent / 100m, out decimal discountAmount))
+            {
+                itemDiscountAmount.Text = TaxCharged.Text = totalamount.Text = "ERROR";
+                return;
+            }
 
-            // Step 5: Calculate further tax (percentage of amount after discount)
-
-            // Step 6: Calculate final total
-            decimal totalAmount = amountAfterDiscount + taxAmount;
+            decimal totalAmount = Math.Max(0, amountAfterTax - discountAmount);
 
             // Update UI
-            totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
+            itemDiscountAmount.Text = Math.Round(discountAmount, 2).ToString("0.00");
             TaxCharged.Text = Math.Round(taxAmount, 2).ToString("0.00");
+            totalamount.Text = Math.Round(totalAmount, 2).ToString("0.00");
         }
+
+
+        /// <summary>
+        /// Safely multiplies two decimals with overflow protection.
+        /// </summary>
+        private decimal SafeMultiply(decimal a, decimal b)
+        {
+            try
+            {
+                return a * b;
+            }
+            catch (OverflowException)
+            {
+                return 9999999999999999m; // cap at max safe value
+            }
+        }
+
+        /// <summary>
+        /// Safely adds two decimals with overflow protection.
+        /// </summary>
+        private decimal SafeAdd(decimal a, decimal b)
+        {
+            try
+            {
+                return a + b;
+            }
+            catch (OverflowException)
+            {
+                return 9999999999999999m;
+            }
+        }
+
+        /// <summary>
+        /// Safely subtracts two decimals with overflow protection.
+        /// </summary>
+        private decimal SafeSubtract(decimal a, decimal b)
+        {
+            try
+            {
+                return a - b;
+            }
+            catch (OverflowException)
+            {
+                return 0m;
+            }
+        }
+
 
         private void CalculateItemTotals(object sender, EventArgs e)
         {
@@ -1884,6 +1877,17 @@ namespace POSPRA_WinFormsUI
             return 1;
         }
 
+        private string GetSaleTypeName(byte FurtureTax)
+        {
+            return FurtureTax switch
+            {
+                1 => "New",
+                2 => "Debit",
+                3 => "Credit",
+                _ => "New"
+            };
+        }
+
         #endregion
 
         #region Invoice Header Helpers
@@ -1925,12 +1929,17 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
-            // PCT Code (comes from ItemCode textbox - HS Code) - Optional
-            // You can make this required if needed
             if (string.IsNullOrWhiteSpace(inputData.PCTCode))
             {
-                AlertManager.ShowError("Please enter the HSCode.");
-                this.BeginInvoke(new Action(() => ItemCode.Focus()));
+                AlertManager.ShowError("Please enter the HS Code.");
+                this.BeginInvoke(new Action(() => pctCode.Focus()));
+                return false;
+            }
+
+            if (!inputData.PCTCode.All(char.IsDigit) || inputData.PCTCode.Length != 8)
+            {
+                AlertManager.ShowError("HS Code must be exactly 8 digits.");
+                this.BeginInvoke(new Action(() => pctCode.Focus()));
                 return false;
             }
 
@@ -1938,6 +1947,12 @@ namespace POSPRA_WinFormsUI
             if (string.IsNullOrWhiteSpace(inputData.ItemName))
             {
                 AlertManager.ShowError("Please enter an Item Description.");
+                this.BeginInvoke(new Action(() => ItemName.Focus()));
+                return false;
+            }
+            if (inputData.ItemName.Length > 150)
+            {
+                AlertManager.ShowError("Item Description cannot exceed 150 characters.");
                 this.BeginInvoke(new Action(() => ItemName.Focus()));
                 return false;
             }
@@ -1958,17 +1973,30 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
+            if (inputData.TaxCharged < 0)
+            {
+                AlertManager.ShowError("Tax Charged must be greater than or equal to 0.");
+                this.BeginInvoke(new Action(() => qty.Focus()));
+                return false;
+            }
+
+
+            // Tax Rate 
+            if (!decimal.TryParse(TaxRatebox.Text, out decimal taxRate))
+            {
+                AlertManager.ShowError("Tax Rate must be a valid number.");
+                this.BeginInvoke(new Action(() => TaxRatebox.Focus()));
+                return false;
+            }
+            if (taxRate < 0 || taxRate > 100)
+            {
+                AlertManager.ShowError("Tax Rate must be between 0 and 100.");
+                this.BeginInvoke(new Action(() => TaxRatebox.Focus()));
+                return false;
+            }
+
+
             return true;
-        }
-        private bool IsInvoiceHeaderEmptyForAdding()
-        {
-            return string.IsNullOrWhiteSpace(posid.Text)
-                && string.IsNullOrWhiteSpace(USIN.Text)
-                && string.IsNullOrWhiteSpace(refUSIN.Text)
-                && string.IsNullOrWhiteSpace(buyerntn.Text)
-                && string.IsNullOrWhiteSpace(buyercnic.Text)
-                && string.IsNullOrWhiteSpace(BuyerBname.Text)
-                && string.IsNullOrWhiteSpace(buyerphone.Text);
         }
 
         private bool AreInvoiceFieldsValid()
@@ -1990,9 +2018,9 @@ namespace POSPRA_WinFormsUI
             // Buyer NTN: Optional, 7 Alphanumeric (Validated if filled)
             if (!string.IsNullOrWhiteSpace(buyerntn.Text))
             {
-                if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length != 7)
+                if (!buyerntn.Text.All(char.IsLetterOrDigit) || buyerntn.Text.Length < 7 || buyerntn.Text.Length > 8)
                 {
-                    AlertManager.ShowError("Buyer NTN must be exactly 7 only digits.");
+                    AlertManager.ShowError("Buyer NTN must be 7-8 alphanumeric characters.");
                     this.BeginInvoke(new Action(() => buyerntn.Focus()));
                     return false;
                 }
@@ -2009,13 +2037,13 @@ namespace POSPRA_WinFormsUI
                 }
             }
 
-            // Buyer Name: Optional, up to 350 characters
-            if (!string.IsNullOrWhiteSpace(BuyerBname.Text) && BuyerBname.Text.Length > 350)
+            if (!string.IsNullOrWhiteSpace(BuyerBname.Text) && BuyerBname.Text.Length > 150)
             {
-                AlertManager.ShowError("Buyer Name cannot exceed 350 characters.");
+                AlertManager.ShowError("Buyer Name cannot exceed 150 characters.");
                 this.BeginInvoke(new Action(() => BuyerBname.Focus()));
                 return false;
             }
+
 
             // Buyer Phone: Optional, Numeric, 11 or 13 digits (Validated if filled)
             if (!string.IsNullOrWhiteSpace(buyerphone.Text))
@@ -2028,29 +2056,290 @@ namespace POSPRA_WinFormsUI
                 }
             }
 
-            // Ref USIN: Conditional, Numeric only (Validated if visible and filled)
             if (refUSIN.Visible && !string.IsNullOrWhiteSpace(refUSIN.Text))
             {
-                if (!refUSIN.Text.All(char.IsDigit))
+                if (refUSIN.Text.Length > 50)
                 {
-                    AlertManager.ShowError("Ref USIN must contain only digits.");
+                    AlertManager.ShowError("Ref USIN cannot exceed 50 characters.");
                     this.BeginInvoke(new Action(() => refUSIN.Focus()));
                     return false;
                 }
             }
 
-            // USIN No: Numeric only (Validated if filled)
             if (!string.IsNullOrWhiteSpace(USIN.Text))
             {
-                if (!USIN.Text.All(char.IsDigit))
+                if (USIN.Text.Length > 50)
                 {
-                    AlertManager.ShowError("USIN No must contain only digits.");
+                    AlertManager.ShowError("USIN cannot exceed 50 characters.");
                     this.BeginInvoke(new Action(() => USIN.Focus()));
                     return false;
                 }
             }
 
             return true;
+        }
+
+        private void NumericOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            string name = tb.Name.ToLower();
+
+            // Allow control characters (Backspace, Delete, etc.)
+            if (char.IsControl(e.KeyChar)) return;
+
+            switch (name)
+            {
+                case "buyerntn":
+                    if (!char.IsLetterOrDigit(e.KeyChar) || tb.Text.Length >= 7)
+                        e.Handled = true;
+                    break;
+
+                case "buyercnic":
+                    if (!char.IsDigit(e.KeyChar) || tb.Text.Length >= 13)
+                        e.Handled = true;
+                    break;
+
+                case "buyerphone":
+                    if (!char.IsDigit(e.KeyChar) || tb.Text.Length >= 13)
+                        e.Handled = true;
+                    break;
+
+                case "itemcode":
+                case "pctcode":
+                    if (tb.Text.Length >= 8)
+                        e.Handled = true;
+                    break;
+
+                // Monetary fields (18,2)
+                case "qty":
+                case "totalamount":
+                case "salevalue":
+                case "discount":
+                case "furthertax":
+                case "taxcharged":
+                case "itemdiscountamount":
+                    if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.')
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
+                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
+                    string futureText = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
+                    string[] parts = futureText.Split('.');
+                    if (parts[0].Length > 18) e.Handled = true; // Integer part max 18 digits
+                    if (parts.Length > 1 && parts[1].Length > 2) e.Handled = true; // Decimal part max 2 digits
+                    break;
+
+                // Percentage fields (5,2) with max 100
+                case "taxratebox":
+                case "itemdiscountpercent":
+                    if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.')
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
+                    if (e.KeyChar == '.' && tb.Text.Contains('.'))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+
+                    futureText = tb.Text.Insert(tb.SelectionStart, e.KeyChar.ToString());
+                    parts = futureText.Split('.');
+                    if (parts[0].Length > 3) e.Handled = true;   // Integer part max 3 digits
+                    if (parts.Length > 1 && parts[1].Length > 2) e.Handled = true; // Decimal part max 2 digits
+                    if (decimal.TryParse(futureText, out decimal val) && val > 100) e.Handled = true;
+                    break;
+
+                default:
+                    if (!char.IsDigit(e.KeyChar)) e.Handled = true;
+                    break;
+            }
+        }
+
+        private void NumericOnlyWithLength_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            string original = tb.Text;
+            string clean = original;
+            int maxLength = 21; // default: 18 digits + decimal + 2 decimals
+            int dotIndex;
+
+            switch (tb.Name.ToLower())
+            {
+                case "buyerntn":
+                    clean = new string(original.Where(char.IsLetterOrDigit).ToArray());
+                    maxLength = 7;
+                    break;
+
+                case "buyercnic":
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    maxLength = 13;
+                    break;
+
+                case "buyerphone":
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    maxLength = 13;
+                    break;
+
+                case "pctcode":
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    maxLength = 8;
+                    break;
+
+                // Decimal fields with strict (18,2)
+                case "qty":
+                case "salevalue":
+                case "totalamount":
+                case "discount":
+                case "furthertax":
+                case "taxcharged":
+                case "itemdiscountamount":
+                    clean = Regex.Replace(original, @"[^0-9.]", ""); // Remove invalid chars
+                    dotIndex = clean.IndexOf('.');
+
+                    // Allow only one dot
+                    if (dotIndex != -1)
+                        clean = clean.Substring(0, dotIndex + 1) + clean[(dotIndex + 1)..].Replace(".", "");
+
+                    // Enforce (18,2)
+                    if (dotIndex != -1)
+                    {
+                        string integerPart = clean[..dotIndex];
+                        string decimalPart = clean[(dotIndex + 1)..];
+
+                        // Integer part: 18 digits max
+                        if (integerPart.Length > 18)
+                            integerPart = integerPart[..18];
+
+                        // Decimal part: 2 digits max
+                        if (decimalPart.Length > 2)
+                            decimalPart = decimalPart[..2];
+
+                        clean = integerPart + "." + decimalPart;
+                    }
+                    else if (clean.Length > 18)
+                    {
+                        // No decimal, limit to 18 digits
+                        clean = clean[..18];
+                    }
+
+                    // prevent entry of invalid decimals (like starting with ".")
+                    if (clean.StartsWith("."))
+                        clean = "0" + clean;
+
+                    break;
+
+                // Percentage fields (limit to 100.00)
+                case "taxratebox":
+                case "itemdiscountpercent":
+                    clean = Regex.Replace(original, @"[^0-9.]", "");
+                    dotIndex = clean.IndexOf('.');
+
+                    if (dotIndex != -1)
+                        clean = clean.Substring(0, dotIndex + 1) + clean[(dotIndex + 1)..].Replace(".", "");
+
+                    string intPart = "", decPart = "";
+                    if (dotIndex != -1)
+                    {
+                        intPart = clean[..dotIndex];
+                        decPart = clean[(dotIndex + 1)..];
+                    }
+                    else
+                    {
+                        intPart = clean;
+                    }
+
+                    if (intPart.Length > 3)
+                        intPart = intPart[..3];
+                    if (decPart.Length > 2)
+                        decPart = decPart[..2];
+
+                    clean = dotIndex != -1 ? intPart + "." + decPart : intPart;
+
+                    if (decimal.TryParse(clean, out decimal percentVal) && percentVal > 100)
+                        clean = "100";
+                    break;
+
+                case "itemcode":
+                    clean = new string(original.Where(char.IsDigit).ToArray());
+                    maxLength = 8;
+                    break;
+            }
+
+            // Trim to max length
+            if (clean.Length > maxLength)
+                clean = clean[..maxLength];
+
+            // Apply only if text changed
+            if (tb.Text != clean)
+            {
+                int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
+                tb.Text = clean;
+                tb.SelectionStart = Math.Max(0, Math.Min(pos, tb.Text.Length));
+            }
+        }
+
+        private void StringOnlyWithLength_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            // Allow control keys (Backspace, Delete, etc.)
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            // Allow letters and space only
+            if (!char.IsLetter(e.KeyChar) && e.KeyChar != ' ')
+            {
+                e.Handled = true;
+                return;
+            }
+
+            switch (tb.Name.ToLower())
+            {
+                case "buyerbname":
+                    if (tb.Text.Length >= 100)
+                        e.Handled = true;
+                    break;
+            }
+        }
+
+        private void StringOnlyWithLength_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is not TextBox tb) return;
+
+            string original = tb.Text;
+            string clean = new string(original.Where(c => char.IsLetter(c) || char.IsWhiteSpace(c)).ToArray());
+            int maxLength = 150;
+
+            // Per-field custom max length
+            switch (tb.Name.ToLower())
+            {
+                case "buyerbname":
+                    maxLength = 100;
+                    break;
+            }
+
+            // Enforce length
+            if (clean.Length > maxLength)
+                clean = clean.Substring(0, maxLength);
+
+            // Apply correction if changed
+            if (tb.Text != clean)
+            {
+                int pos = tb.SelectionStart - (tb.Text.Length - clean.Length);
+                tb.Text = clean;
+                tb.SelectionStart = Math.Max(0, Math.Min(pos, tb.Text.Length));
+            }
         }
 
         #endregion
@@ -2213,17 +2502,25 @@ namespace POSPRA_WinFormsUI
             row.Cells["colProductDescription"].Value = item.ItemName ?? "";
             row.Cells["colHSCode"].Value = item.PCTCode ?? "";
 
-            row.Cells["colQuantity"].Value = (item.Quantity ?? 0m).ToString("0.00");
-
             decimal qty = item.Quantity ?? 0m;
-            decimal rate = item.SaleValue ?? 0m;
+            decimal rate = item.SaleValue ?? 0m;       // Assuming SaleValue = Unit Price
             decimal discountAmount = item.Discount ?? 0m;
+            decimal taxCharged = item.TaxCharged ?? 0m;
+            decimal totalAmount = item.TotalAmount ?? 0m;
+
+            // Explicitly cast TaxRate to decimal if it's double
+            decimal taxRate = (decimal)item.TaxRate;
+
+            // Calculations
             decimal salesValueExcTax = Math.Round((qty * rate) - discountAmount, 2);
 
-            row.Cells["colSalesValueExcST"].Value = salesValueExcTax.ToString("0.00");
-            row.Cells["colSalesTax"].Value = (item.TaxRate).ToString("0.00");
-            row.Cells["colExtraTax"].Value = (item.TaxCharged ?? 0m).ToString("0.00");
-            row.Cells["colTotalValue"].Value = (item.TotalAmount ?? 0m).ToString("0.00");
+            // Assign values
+            row.Cells["colUnitPrice"].Value = rate.ToString("0.00");
+            row.Cells["colQuantity"].Value = qty.ToString("0.00");
+            row.Cells["colTaxRate"].Value = taxRate.ToString("0.00");
+            row.Cells["colTaxCharged"].Value = taxCharged.ToString("0.00");
+            row.Cells["colDiscount"].Value = discountAmount.ToString("0.00");
+            row.Cells["colTotalAmount"].Value = totalAmount.ToString("0.00");
         }
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -2274,31 +2571,40 @@ namespace POSPRA_WinFormsUI
         private void StyleProductDataGridView()
         {
             dataGridView1.Columns.Clear();
-
             StyleDataGridView(dataGridView1);
 
+            // ✅ Make the grid responsive
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
 
+            // Common cell styles
+            var centerStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter };
+            var rightStyle = new DataGridViewCellStyle
+            {
+                Alignment = DataGridViewContentAlignment.MiddleRight,
+                Format = "0.00"
+            };
+            var leftStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleLeft };
+
+            // Columns definition
             var colSrNo = new DataGridViewTextBoxColumn
             {
                 Name = "colSrNo",
                 HeaderText = "Sr. No.",
-                FillWeight = 7,
-                MinimumWidth = 80,
+                FillWeight = 8,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                DefaultCellStyle = centerStyle
             };
 
             var colSaleType = new DataGridViewTextBoxColumn
             {
                 Name = "colSaleType",
-                HeaderText = "Sale Type",
-                FillWeight = 10,
-                MinimumWidth = 80,
+                HeaderText = "Services Rendered",
+                FillWeight = 14,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                DefaultCellStyle = centerStyle
             };
 
             var colProductCode = new DataGridViewTextBoxColumn
@@ -2306,21 +2612,19 @@ namespace POSPRA_WinFormsUI
                 Name = "colProductCode",
                 HeaderText = "Item Code",
                 FillWeight = 12,
-                MinimumWidth = 100,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                DefaultCellStyle = centerStyle
             };
 
             var colProductDescription = new DataGridViewTextBoxColumn
             {
                 Name = "colProductDescription",
-                HeaderText = "Product Description",
-                FillWeight = 20,
-                MinimumWidth = 150,
+                HeaderText = "Item Description",
+                FillWeight = 18,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                DefaultCellStyle = leftStyle
             };
 
             var colHSCode = new DataGridViewTextBoxColumn
@@ -2328,129 +2632,98 @@ namespace POSPRA_WinFormsUI
                 Name = "colHSCode",
                 HeaderText = "HS Code",
                 FillWeight = 10,
-                MinimumWidth = 90,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                DefaultCellStyle = centerStyle
+            };
+
+            var colUnitPrice = new DataGridViewTextBoxColumn
+            {
+                Name = "colUnitPrice",
+                HeaderText = "     Unit Price",
+                FillWeight = 12,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = rightStyle
             };
 
             var colQuantity = new DataGridViewTextBoxColumn
             {
                 Name = "colQuantity",
-                HeaderText = "Quantity",
-                FillWeight = 8,
-                MinimumWidth = 70,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
-                    Format = "0.00"
-                }
-            };
-
-            var colSalesValueExcST = new DataGridViewTextBoxColumn
-            {
-                Name = "colSalesValueExcST",
-                HeaderText = "Sales Value (Excl. ST)",
-                FillWeight = 13,
-                MinimumWidth = 120,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
-                    Format = "0.00"
-                }
-            };
-
-            var colSalesTax = new DataGridViewTextBoxColumn
-            {
-                Name = "colSalesTax",
-                HeaderText = "Sales Tax (%)",
+                HeaderText = " Quantity",
                 FillWeight = 10,
-                MinimumWidth = 90,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
+                DefaultCellStyle = rightStyle
             };
 
-            var colExtraTax = new DataGridViewTextBoxColumn
+            var colTaxRate = new DataGridViewTextBoxColumn
             {
-                Name = "colExtraTax",
-                HeaderText = "Tax Charged",
-                FillWeight = 10,
-                MinimumWidth = 80,
-                ReadOnly = true,
-                SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
-            };
-
-            var colTotalValue = new DataGridViewTextBoxColumn
-            {
-                Name = "colTotalValue",
-                HeaderText = "Total Value",
+                Name = "colTaxRate",
+                HeaderText = "  Tax Rate (%)",
                 FillWeight = 12,
-                MinimumWidth = 100,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleRight,
-                    Format = "0.00"
-                }
+                DefaultCellStyle = rightStyle
             };
 
-            // Add columns in correct order
+            var colTaxCharged = new DataGridViewTextBoxColumn
+            {
+                Name = "colTaxCharged",
+                HeaderText = "  Tax Charged",
+                FillWeight = 12,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = rightStyle
+            };
+
+            var colDiscount = new DataGridViewTextBoxColumn
+            {
+                Name = "colDiscount",
+                HeaderText = "Discount(Rs.)",
+                FillWeight = 12,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = rightStyle
+            };
+
+            var colTotalAmount = new DataGridViewTextBoxColumn
+            {
+                Name = "colTotalAmount",
+                HeaderText = "   Total Amount",
+                FillWeight = 12,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = rightStyle
+            };
+
+            // Add columns
             dataGridView1.Columns.AddRange(new DataGridViewColumn[]
             {
-                colSrNo,
-                colSaleType,
-                colProductCode,
-                colProductDescription,
-                colHSCode,
-                colQuantity,
-                colSalesValueExcST,
-                colSalesTax,
-                colExtraTax,
-                colTotalValue
+        colSrNo,
+        colSaleType,
+        colProductCode,
+        colProductDescription,
+        colHSCode,
+        colUnitPrice,
+        colQuantity,
+        colTaxRate,
+        colTaxCharged,
+        colDiscount,
+        colTotalAmount
             });
 
-            // Header alignment settings
-            colSrNo.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colProductDescription.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colHSCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colSaleType.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            // ✅ Center all headers
+            foreach (DataGridViewColumn col in dataGridView1.Columns)
+                col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Cell alignment settings
-            colSrNo.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            // ✅ Automatically size headers initially
+            dataGridView1.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+
+            // ✅ Then allow fill-based resizing when the form expands
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
             colProductDescription.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colHSCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colProductCode.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colSaleType.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
-            // Right-align these numeric columns (both headers and data)
-            colSalesValueExcST.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colSalesValueExcST.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-
-            colExtraTax.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colExtraTax.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-
-            colSalesTax.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colSalesTax.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-
-            colTotalValue.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleRight;
-            colTotalValue.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-
         }
 
         #endregion
