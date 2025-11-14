@@ -118,6 +118,7 @@ namespace Pos.Application.Services.LiveService
                 var invoice = _mapper.Map<Invoice>(dto);
                 invoice.EntryDate = DateTime.Now;
                 invoice.FBRInvoiceNumber = dto.InvoiceNumber;
+                invoice.BuyerNTN = dto.BuyerPNTN;
                 //invoice.FBRInvoiceNumber = GlobalMethods.InvoiceNumber(dto.POSID);
                 await _sqlInvoiceRepository.AddAsync(invoice);
                 await _sqlServerUnitOfWork.SaveChangesAsync();

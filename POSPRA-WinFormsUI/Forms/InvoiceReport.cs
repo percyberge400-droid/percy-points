@@ -177,7 +177,7 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
-            headerRow["NTN"] = dto.BuyerNTN ?? string.Empty;
+            headerRow["NTN"] = dto.BuyerPNTN ?? string.Empty;
             headerRow["Address"] = $"{branchName}, {branchAddress}";
             headerRow["STRN"] = dto.USIN ?? string.Empty;
             headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;
