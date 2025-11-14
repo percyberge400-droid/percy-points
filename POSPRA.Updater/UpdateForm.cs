@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace POSPRA.Updater
 {
@@ -27,7 +28,7 @@ namespace POSPRA.Updater
 
         public UpdateForm()
         {
-            InitializeComponent(); 
+            InitializeComponent();
         }
         private async void UpdateForm_Load(object sender, EventArgs e)
         {
@@ -45,7 +46,7 @@ namespace POSPRA.Updater
                     return;
                 }
 
-                lblStatus.Text = "Checking for update availability...";
+                lblStatus.Text = "Checking for update";
                 await Task.Delay(300);
 
                 if (!CheckInternetConnection())
@@ -58,7 +59,7 @@ namespace POSPRA.Updater
             }
             catch (Exception ex)
             {
-                ShowErrorAndClose($"Updater failed: {ex.Message}");
+                ShowErrorAndClose($"Updater failed: ");
             }
         }
 
@@ -91,12 +92,12 @@ namespace POSPRA.Updater
                 if (!LocalFolder.EndsWith(Path.DirectorySeparatorChar.ToString()))
                     LocalFolder += Path.DirectorySeparatorChar;
 
-                Log($"Detected install path: {LocalFolder}");
+                Log($"Detected install path");
             }
             catch (Exception ex)
             {
                 LocalFolder = AppDomain.CurrentDomain.BaseDirectory;
-                Log($"DetectInstallPath error: {ex.Message}");
+                Log($"DetectInstallPath error: ");
             }
         }
 
@@ -107,7 +108,7 @@ namespace POSPRA.Updater
                 string configPath = Path.Combine(LocalFolder, "Updater-Version.config");
                 if (!File.Exists(configPath))
                 {
-                    Log($"Config missing: {configPath}");
+                    Log($"Config missing");
                     return false;
                 }
 
@@ -121,12 +122,12 @@ namespace POSPRA.Updater
                 if (string.IsNullOrWhiteSpace(ServerRoot)) return false;
                 if (!ServerRoot.EndsWith("\\")) ServerRoot += "\\";
 
-                Log($"Loaded server path: {ServerRoot}");
+                Log($"Loaded server path");
                 return true;
             }
             catch (Exception ex)
             {
-                Log($"Error reading Updater-Version.config: {ex.Message}");
+                Log($"Error reading Updater-Version.config");
                 return false;
             }
         }
@@ -211,47 +212,46 @@ namespace POSPRA.Updater
             }
             catch (Exception ex)
             {
-                ShowErrorAndClose($"Unexpected error during update: {ex.Message}");
+                ShowErrorAndClose($"Unexpected error during update ");
             }
 
         }
-
-        private void StopService(string name)
+        private void StopService(string serviceName)
         {
             try
             {
-                var service = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == name);
-                if (service == null)
+                // Wait for LoginForm2 to finish if it is restarting the service
+                using (var mutex = Mutex.OpenExisting("POSPRAWorkerServiceMutex"))
                 {
-                    Log($"Service {name} does not exist, skipping stop.");
-                    return;
-                }
-
-                using var sc = new ServiceController(name);
-                if (sc.Status != ServiceControllerStatus.Stopped)
-                {
-                    Log($"Stopping service {name}...");
-                    sc.Stop();
-                    sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(20));
+                    mutex.WaitOne(TimeSpan.FromSeconds(60));
                 }
             }
-            catch (Exception ex)
+            catch (WaitHandleCannotBeOpenedException)
             {
-                ShowErrorAndClose($"Failed to stop service {name}: {ex.Message}");
+                // Mutex doesn't exist, proceed normally
+            }
+            catch (AbandonedMutexException)
+            {
+                // Mutex was abandoned, safe to continue
+            }
+
+            using var sc = new ServiceController(serviceName);
+            if (sc.Status == ServiceControllerStatus.Running ||
+                sc.Status == ServiceControllerStatus.Paused)
+            {
+                sc.Stop();
+                sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
             }
         }
 
-        private void StartService(string name)
+
+        private void StartService(string serviceName)
         {
-            try
+            using var sc = new ServiceController(serviceName);
+            if (sc.Status != ServiceControllerStatus.Running)
             {
-                using var sc = new ServiceController(name);
                 sc.Start();
-                sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(20));
-            }
-            catch (Exception ex)
-            {
-                ShowErrorAndClose($"Failed to start service {name}: {ex.Message}");
+                sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(60));
             }
         }
 
@@ -267,7 +267,7 @@ namespace POSPRA.Updater
                 }
                 catch (Exception ex)
                 {
-                    ShowErrorAndClose($"Failed to stop process {name}: {ex.Message}");
+                    ShowErrorAndClose($"Failed to stop process {name} ");
                 }
             }
         }
@@ -287,14 +287,14 @@ namespace POSPRA.Updater
                 // Skip excluded files
                 if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    Log($"Skipped file: {relPath}");
+                    Log($"Skipped file");
                     continue;
                 }
 
                 // Skip entire runtimes folder to avoid locking DLLs
                 if (relPath.StartsWith("runtimes\\", StringComparison.OrdinalIgnoreCase))
                 {
-                    Log($"Skipped folder: {relPath}");
+                    Log($"Skipped folder");
                     continue;
                 }
 
@@ -302,11 +302,11 @@ namespace POSPRA.Updater
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
                     File.Copy(file, destFile, true);
-                    Log($"Copied file: {relPath}");
+                    Log($"Copied file");
                 }
                 catch (Exception ex)
                 {
-                    ShowErrorAndClose($"Failed to copy {relPath}: {ex.Message}");
+                    ShowErrorAndClose($"Failed to copy {relPath} ");
                 }
 
                 copiedCount++;
