@@ -931,7 +931,7 @@ namespace POSPRA_WinFormsUI
                     Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
                     FurtherTax = (byte)GetSelectedSaleType(),
                     DateTime = DateTime.Now,
-                    InvoiceItemDto = itemDtos
+                    Items = itemDtos
                 };
 
                 // Save + print coordination

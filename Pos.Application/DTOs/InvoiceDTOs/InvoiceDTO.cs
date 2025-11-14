@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Pos.Application.DTOs.InvoiceDtos
+﻿namespace Pos.Application.DTOs.InvoiceDtos
 {
     public class InvoiceDto
     {
@@ -39,7 +37,6 @@ namespace Pos.Application.DTOs.InvoiceDtos
 
         public DateTime DateTime { get; set; }
 
-        [JsonPropertyName("Items")]   // match the JSON array name
-        public List<InvoiceItemDto>? InvoiceItemDto { get; set; }
+        public List<InvoiceItemDto>? Items { get; set; }
     }
 }

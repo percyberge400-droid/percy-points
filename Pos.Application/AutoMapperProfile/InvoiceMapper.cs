@@ -31,7 +31,7 @@ namespace Pos.Application.AutoMapperProfile
                 FurtherTax = old.FurtherTax,
                 DateTime = old.DateTime,
 
-                InvoiceItemDto = old.Items?.Select(x => new InvoiceItemDto
+                Items = old.Items?.Select(x => new InvoiceItemDto
                 {
                     ItemCode = x.ItemCode,
                     ItemName = x.ItemName,
