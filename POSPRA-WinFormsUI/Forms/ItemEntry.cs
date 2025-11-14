@@ -547,6 +547,7 @@ namespace POSPRA_WinFormsUI
 
             return hasEmpty;
         }
+
         private void ResetTextBoxHighlights(params TextBox[] textBoxes)
         {
             foreach (var tb in textBoxes)
@@ -841,10 +842,21 @@ namespace POSPRA_WinFormsUI
                 AlertManager.ShowInfo("Save operation is already in progress. Please wait...");
                 return;
             }
+
+            if (string.IsNullOrWhiteSpace(USIN.Text))
+            {
+                AlertManager.ShowError("USIN is required.");
+                HighlightEmptyTextBoxes(USIN);
+                this.BeginInvoke(new Action(() => USIN.Focus()));
+                return;
+            }
+
             if (!AreInvoiceFieldsValid())
             {
                 return;
             }
+
+            ResetTextBoxHighlights(USIN);
 
             _isSaving = true;
             btnSave.Enabled = false;
@@ -2056,7 +2068,7 @@ namespace POSPRA_WinFormsUI
 
         private bool AreInvoiceFieldsValid()
         {
-            // ✅ POS ID: Required, Numeric, UP TO 6 DIGITS
+            // POS ID: Required, Numeric, UP TO 6 DIGITS
             if (string.IsNullOrWhiteSpace(posid.Text))
             {
                 AlertManager.ShowError("POS ID is required.");
@@ -2085,21 +2097,13 @@ namespace POSPRA_WinFormsUI
                 return false;
             }
 
-            // ✅ USIN: REQUIRED, max 50 characters
-            if (string.IsNullOrWhiteSpace(USIN.Text))
-            {
-                AlertManager.ShowError("USIN is required.");
-                this.BeginInvoke(new Action(() => USIN.Focus()));
-                return false;
-            }
-
             if (USIN.Text.Length > 50)
             {
                 AlertManager.ShowError("USIN cannot exceed 50 characters.");
                 this.BeginInvoke(new Action(() => USIN.Focus()));
                 return false;
             }
-            // ✅ Buyer NTN: Optional, 7 Alphanumeric
+            // Buyer NTN: Optional, 7 Alphanumeric
             if (!string.IsNullOrWhiteSpace(buyerntn.Text))
             {
                 if (!buyerntn.Text.All(char.IsLetterOrDigit))
@@ -2117,7 +2121,7 @@ namespace POSPRA_WinFormsUI
                 }
             }
 
-            // ✅ Buyer CNIC: Optional, Exactly 13 Digits
+            // Buyer CNIC: Optional, Exactly 13 Digits
             if (!string.IsNullOrWhiteSpace(buyercnic.Text))
             {
                 if (!buyercnic.Text.All(char.IsDigit) || buyercnic.Text.Length != 13)
@@ -2129,7 +2133,7 @@ namespace POSPRA_WinFormsUI
             }
 
 
-            // ✅ Buyer Name: Optional, max 150 chars, letters and spaces only
+            // Buyer Name: Optional, max 150 chars, letters and spaces only
             if (!string.IsNullOrWhiteSpace(BuyerBname.Text))
             {
                 if (BuyerBname.Text.Length > 150)
@@ -2147,7 +2151,7 @@ namespace POSPRA_WinFormsUI
                 }
             }
 
-            // ✅ Buyer Phone: Optional, UP TO 20 CHARACTERS (CHANGED FROM 11/13)
+            // Buyer Phone: Optional, UP TO 20 CHARACTERS (CHANGED FROM 11/13)
             if (!string.IsNullOrWhiteSpace(buyerphone.Text))
             {
                 if (buyerphone.Text.Length > 20)
