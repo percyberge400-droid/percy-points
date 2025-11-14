@@ -12,7 +12,7 @@ namespace Pos.Application.DTOs.InvoiceDtos
 
         public byte InvoiceType { get; set; }
 
-        public string? BuyerNTN { get; set; }
+        public string? BuyerPNTN { get; set; }
 
         public string? BuyerCNIC { get; set; }
 
@@ -39,7 +39,7 @@ namespace Pos.Application.DTOs.InvoiceDtos
 
         public DateTime DateTime { get; set; }
 
-        [JsonPropertyName("invoiceItems")]   // match the JSON array name
+        [JsonPropertyName("Items")]   // match the JSON array name
         public List<InvoiceItemDto>? InvoiceItemDto { get; set; }
     }
 }

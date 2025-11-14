@@ -14,7 +14,7 @@ namespace Pos.Application.AutoMapperProfile
                 USIN = old.USIN,
                 InvoiceType = (byte)old.InvoiceType,   // <-- FIX
 
-                BuyerNTN = old.BuyerNTN,
+                BuyerPNTN = old.BuyerNTN,
                 BuyerCNIC = old.BuyerCNIC,
                 BuyerName = old.BuyerName,
                 BuyerPhoneNumber = old.BuyerPhoneNumber,

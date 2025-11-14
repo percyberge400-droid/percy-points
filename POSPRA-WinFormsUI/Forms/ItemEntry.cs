@@ -919,7 +919,7 @@ namespace POSPRA_WinFormsUI
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = (byte)GetSelectedInvoiceType(),
-                    BuyerNTN = buyerntn.Text.Trim(),
+                    BuyerPNTN = buyerntn.Text.Trim(),
                     BuyerCNIC = buyercnic.Text.Trim(),
                     BuyerName = BuyerBname.Text.Trim(),
                     BuyerPhoneNumber = buyerphone.Text.Trim(),
