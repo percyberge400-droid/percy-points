@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.InvoiceDtos;
+using Pos.Application.DTOs.InvoiceDTOs;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Interfaces;
 using Pos.Application.Services.FileRecordService;
@@ -10,6 +12,7 @@ using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
+using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
 using POSPRA.Application.Services.FiscalService;
@@ -86,8 +89,41 @@ namespace Pos.Application.Services.InvoiceService
                     }
                     catch
                     {
-                        throw;
+                        var decrypted = AESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
+                        var jsonPart = decrypted.Split('|')[0];
+
+                        if (string.IsNullOrWhiteSpace(jsonPart))
+                        {
+                            return new ApiResponse<InvoiceDto>(
+                                statusCode: ApiStatusCode.Error,
+                                message: ResponseMessages.DataNotFound,
+                                data: null!
+                            );
+                        }
+
+                        // Deserialize Old DTO
+                        var oldDto = JsonSerializer.Deserialize<OldInvoiceDto>(jsonPart, options);
+
+                        if (oldDto is null)
+                        {
+                            return new ApiResponse<InvoiceDto>(
+                                statusCode: ApiStatusCode.Error,
+                                message: ResponseMessages.DataNotFound,
+                                data: null!
+                            );
+                        }
+
+                        // Map → New DTO
+                        var invoiceDto = oldDto.ToNewInvoiceDto();
+
+                        return new ApiResponse<InvoiceDto>(
+                            statusCode: ApiStatusCode.Success,
+                            message: ResponseMessages.RecordFound,
+                            data: invoiceDto
+                        );
+
                     }
+
                 }
 
                 return new ApiResponse<InvoiceDto>(
