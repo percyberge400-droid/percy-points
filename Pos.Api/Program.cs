@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi.Models;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using POSPRA.Application.AutoMapperProfile;
+using System.Reflection;
 
 namespace Pos.Api
 {
@@ -10,12 +10,29 @@ namespace Pos.Api
     {
         public static WebApplication BuildApiHost(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            // --------------------------
+            // Determine API folder
+            // --------------------------
+            var apiBasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                Args = args,
+                ContentRootPath = apiBasePath
+            });
+
+            // Load API appsettings.json
+            builder.Configuration
+                .SetBasePath(apiBasePath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
 
             // --------------------------
             // Add services
             // --------------------------
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .PartManager.ApplicationParts.Add(new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(Program).Assembly));
+
             builder.Services.AddInfrastructure(builder.Configuration);
 
             builder.Services.AddEndpointsApiExplorer();
@@ -26,24 +43,26 @@ namespace Pos.Api
 
             builder.Services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
 
+            // --------------------------
+            // Configure Kestrel from appsettings.json
+            // --------------------------
+            builder.WebHost.ConfigureKestrel((context, options) =>
+            {
+                options.Configure(context.Configuration.GetSection("Kestrel"));
+            });
+
             var app = builder.Build();
 
             // --------------------------
             // Optional: verify SQLite DB
             // --------------------------
-            // 1️⃣ Build configuration
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
+            var configuration = builder.Configuration;
 
-            // 2️⃣ Bind AppSettings
-            var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
+            var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>()
+                ?? throw new InvalidOperationException("AppSettings section missing.");
 
-            // 3️⃣ Get SQLite connection string from AppSettings
             var sqliteConnectionString = appSettings?.DefaultDBFilePath
                 ?? throw new InvalidOperationException("SqliteConnection not found in AppSettings.");
-
 
             // --------------------------
             // Middleware
