@@ -1,14 +1,17 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
+using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDtos;
 using Pos.Application.Services.CloudSyncService.CloudSyncLogService;
 using Pos.Application.Services.FileRecordService;
 using Pos.Application.Services.InvoiceService;
 using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
+using POSPRA.DTOs.LogDTOs;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Drawing.Drawing2D;
@@ -71,6 +74,19 @@ namespace POSPRA_WinFormsUI.Forms
         private Bitmap _cachedPieChart = null;
         private int _lastPieChartSynced = -1;
         private int _lastPieChartPending = -1;
+
+        private int currentInvoicePage = 1;
+        private int invoiceRecordsPerPage = 500;
+        private int totalInvoicePages = 1;
+        private int totalInvoiceRecords = 0;
+
+        private int currentLogsPage = 1;
+        private int logsRecordsPerPage = 500;
+        private int totalLogsPages = 1;
+        private int totalLogsRecords = 0;
+
+        private ModernPaginationControl paginationInvoices;
+        private ModernPaginationControl paginationLogs;
 
         public DashboardForm(IServiceProvider provider,
             ILogService logService,
@@ -171,7 +187,7 @@ namespace POSPRA_WinFormsUI.Forms
             _invoiceService = invoiceService;
             _fileRecordService = fileRecordService;
 
-            // Enable Virtual Mode
+            InitializePaginationControls();
             EnableVirtualMode();
 
         }
@@ -273,6 +289,70 @@ namespace POSPRA_WinFormsUI.Forms
             LogsDataGridView.CellValueNeeded += LogsDataGridView_CellValueNeeded;
         }
 
+        private void InitializePaginationControls()
+        {
+            // ----- INVOICES PAGINATION -----
+            paginationInvoices = new ModernPaginationControl
+            {
+                Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink
+            };
+
+            // Find the header label and position after it
+            var lblInvoices = panelInvoices.Controls
+                .OfType<Label>()
+                .FirstOrDefault(l => l.Text.Contains("INVOICES", StringComparison.OrdinalIgnoreCase));
+
+            if (lblInvoices != null)
+            {
+                paginationInvoices.Location = new Point(lblInvoices.Right + 15, lblInvoices.Top);
+            }
+            else
+            {
+                paginationInvoices.Location = new Point(10, 8);
+            }
+
+            paginationInvoices.PageChanged += async (s, page) =>
+            {
+                currentInvoicePage = page;
+                await RunSingleLoad(async () => await LoadAndShowInvoicesAsync());
+            };
+
+            panelInvoices.Controls.Add(paginationInvoices);
+            paginationInvoices.BringToFront();
+
+
+            // ----- LOGS PAGINATION -----
+            paginationLogs = new ModernPaginationControl
+            {
+                Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink
+            };
+
+            var lblLogs = panelLogs.Controls
+                .OfType<Label>()
+                .FirstOrDefault(l => l.Text.Contains("LOGS", StringComparison.OrdinalIgnoreCase));
+
+            if (lblLogs != null)
+            {
+                paginationLogs.Location = new Point(lblLogs.Right + 15, lblLogs.Top);
+            }
+            else
+            {
+                paginationLogs.Location = new Point(10, 8);
+            }
+
+            paginationLogs.PageChanged += async (s, page) =>
+            {
+                currentLogsPage = page;
+                await RunSingleLoad(async () => await LoadAndShowLogsAsync());
+            };
+
+            panelLogs.Controls.Add(paginationLogs);
+            paginationLogs.BringToFront();
+        }
         private void InvoicesDataGridView_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
         {
             if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count) return;
@@ -432,7 +512,7 @@ namespace POSPRA_WinFormsUI.Forms
             return await serviceCall();
         }
 
-        private async Task<bool> QuickCheckForChangesAsync()
+        private async Task<bool> QuickCheckForChangesAsync(bool skipDateFilter = false)
         {
             if (!await _checkSemaphore.WaitAsync(0))
                 return false;
@@ -443,44 +523,40 @@ namespace POSPRA_WinFormsUI.Forms
                 var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var invoiceResponse = await fileService.GetAllAsync();
-                var logResponse = await logService.GetAllAsync();
+                var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
+
+                var invoiceDto = new GetAllFileRecordDto
+                {
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    PageNumber = currentInvoicePage,
+                    NumberOfRecords = invoiceRecordsPerPage
+                };
+
+                var logDto = new GetAllLogsDto
+                {
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    PageNumber = currentLogsPage,
+                    NumberOfRecords = logsRecordsPerPage
+                };
+
+                var invoiceResponse = await fileService.GetAllAsync(invoiceDto);
+                var logResponse = await logService.GetAllAsync(logDto);
 
                 if (invoiceResponse?.Data == null || logResponse?.Data == null)
                     return false;
 
-                var allInvoices = invoiceResponse.Data.ToList();
-                var allLogs = logResponse.Data.ToList();
+                int currentInvoiceCount = invoiceResponse.Data.TotalRecords ?? 0;
+                int currentLogCount = logResponse.Data.TotalRecords ?? 0;
 
-                bool shouldFilterByDate = !(_startDate == DateTime.Today.AddDays(-7) && _endDate == DateTime.Today);
-
-                IEnumerable<dynamic> filteredInvoices = allInvoices;
-                IEnumerable<LogDto> filteredLogs = allLogs;
-
-                if (shouldFilterByDate)
-                {
-                    filteredInvoices = allInvoices.Where(i =>
-                        i.DateCreated >= _startDate &&
-                        i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
-
-                    filteredLogs = allLogs.Where(l =>
-                        l.CreatedAtPk >= _startDate &&
-                        l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
-                }
-
-                int currentInvoiceCount = filteredInvoices.Count();
-                int currentSyncedCount = filteredInvoices.Count(i => i.IsSynced == 1);
-                int currentLogCount = filteredLogs.Count();
-
-                bool hasChanges =
-                    (currentInvoiceCount != _lastInvoiceCount) ||
-                    (currentSyncedCount != _lastSyncedInvoiceCount) ||
-                    (currentLogCount != _lastLogCount);
+                bool hasChanges = (currentInvoiceCount != _lastInvoiceCount) ||
+                                  (currentLogCount != _lastLogCount);
 
                 if (hasChanges)
                 {
                     _lastInvoiceCount = currentInvoiceCount;
-                    _lastSyncedInvoiceCount = currentSyncedCount;
                     _lastLogCount = currentLogCount;
                 }
 
@@ -778,6 +854,10 @@ namespace POSPRA_WinFormsUI.Forms
                 _checkSemaphore?.Dispose();
                 _httpClient?.Dispose();
 
+                // Dispose pagination controls
+                paginationInvoices?.Dispose();
+                paginationLogs?.Dispose();
+
                 // Dispose cached images
                 _cachedPieChart?.Dispose();
                 _cachedPieChart = null;
@@ -957,35 +1037,38 @@ namespace POSPRA_WinFormsUI.Forms
                 using var scope = _provider.CreateScope();
                 var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
 
-                var response = await fileService.GetAllAsync();
+                var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
-                if (response?.Data == null || !response.Data.Any())
+                var dto = new GetAllFileRecordDto
+                {
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    PageNumber = currentInvoicePage,
+                    NumberOfRecords = invoiceRecordsPerPage
+                };
+
+                var response = await fileService.GetAllAsync(dto);
+
+                if (response?.Data?.Items == null || !response.Data.Items.Any())
                 {
                     _invoiceCache = new List<InvoiceDisplayModel>();
                     InvoicesDataGridView.RowCount = 0;
                     AlertManager.ShowWarning("No invoices found.");
                     lblLastSync.Text = "Last Sync: N/A";
+                    UpdateInvoicePageInfo(1, 1);
                     return;
                 }
 
-                IEnumerable<dynamic> filteredInvoices = response.Data;
+                totalInvoiceRecords = response.Data.TotalRecords ?? 0;
+                totalInvoicePages = response.Data.TotalPages ?? 1;
 
-                if (!skipDateFilter)
-                {
-                    filteredInvoices = filteredInvoices.Where(i =>
-                        i.DateCreated >= _startDate &&
-                        i.DateCreated <= _endDate.AddDays(1).AddTicks(-1));
-                }
+                var invoices = response.Data.Items;
 
-                if (_filterSyncedOnly)
-                    filteredInvoices = filteredInvoices.Where(i => i.IsSynced == 1);
-
-                // Build cache for virtual mode
-                _invoiceCache = filteredInvoices
-                    .OrderByDescending(i => i.DateCreated)
+                _invoiceCache = invoices
                     .Select((inv, index) => new InvoiceDisplayModel
                     {
-                        SerialNo = index + 1,
+                        SerialNo = ((currentInvoicePage - 1) * invoiceRecordsPerPage) + index + 1,
                         PosId = inv.POSID,
                         InvoiceNumber = inv.InvoiceNumber ?? "N/A",
                         IsSynced = inv.IsSynced == 1 ? "Yes" : "No",
@@ -996,27 +1079,30 @@ namespace POSPRA_WinFormsUI.Forms
                     })
                     .ToList();
 
-                // Set row count for virtual mode (instant)
+                InvoicesDataGridView.SuspendLayout();
                 InvoicesDataGridView.RowCount = _invoiceCache.Count;
+                InvoicesDataGridView.ResumeLayout(false);
                 InvoicesDataGridView.Invalidate();
                 InvoicesDataGridView.Refresh();
-
-
-                int syncedCount = _invoiceCache.Count(i => i.IsSynced == "Yes");
-                int pendingCount = _invoiceCache.Count - syncedCount;
-
-                labelAllInvoices.Text = _invoiceCache.Count.ToString();
-                labelPendingInvoice.Text = pendingCount.ToString();
-                labelPaidInvoices.Text = syncedCount.ToString();
-                _pendingCount = pendingCount;
-                _syncedCount = syncedCount;
-                DrawInvoicePieChart(panelinvoicechart, _syncedCount, _pendingCount);
 
                 InvoicesDataGridView.ClearSelection();
                 InvoicesDataGridView.CurrentCell = null;
 
+                int syncedCount = response.Data.TotalSyncedInvoices ?? 0;
+                int pendingCount = response.Data.UnsyncedInvoices ?? 0;
+
+                labelAllInvoices.Text = totalInvoiceRecords.ToString();
+                labelPendingInvoice.Text = pendingCount.ToString();
+                labelPaidInvoices.Text = syncedCount.ToString();
+                _pendingCount = pendingCount;
+                _syncedCount = syncedCount;
+
+                DrawInvoicePieChart(panelinvoicechart, _syncedCount, _pendingCount);
+                UpdateInvoicePageInfo(currentInvoicePage, totalInvoicePages);
+
                 var lastSyncedInvoice = _invoiceCache
                     .Where(i => i.IsSynced == "Yes")
+                    .OrderByDescending(i => i.DateCreatedRaw)
                     .FirstOrDefault();
 
                 if (lastSyncedInvoice != null)
@@ -1039,7 +1125,6 @@ namespace POSPRA_WinFormsUI.Forms
                 lblLastSync.ForeColor = Color.FromArgb(220, 38, 38);
             }
         }
-
         private async Task LoadAndShowLogsAsync(
             IEnumerable<LogDto>? preloadedLogs = null,
             bool skipDateFilter = false,
@@ -1048,51 +1133,51 @@ namespace POSPRA_WinFormsUI.Forms
             try
             {
                 IEnumerable<LogDto> logs;
-                IEnumerable<LogDto> allLogsForStats; // ✅ Keep unfiltered logs for statistics
+                IEnumerable<LogDto> allLogsForStats;
 
                 if (preloadedLogs != null)
                 {
                     logs = preloadedLogs;
                     allLogsForStats = preloadedLogs;
+                    totalLogsRecords = logs.Count();
+                    totalLogsPages = (int)Math.Ceiling(totalLogsRecords / (double)logsRecordsPerPage);
                 }
                 else
                 {
-                    var response = await _logService.GetAllAsync();
+                    var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                    var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
-                    if (response?.Data == null || !response.Data.Any())
+                    var Logsdto = new GetAllLogsDto
+                    {
+                        PageNumber = currentLogsPage,
+                        NumberOfRecords = logsRecordsPerPage,
+                        StartDate = startDate,
+                        EndDate = endDate
+                    };
+
+                    var response = await _logService.GetAllAsync(Logsdto);
+
+                    if (response?.Data?.Items == null || !response.Data.Items.Any())
                     {
                         _logCache = new List<LogDisplayModel>();
                         LogsDataGridView.RowCount = 0;
-
                         WindowsLocalAppNotification.Show("Logs", "No logs available to display");
                         AlertManager.ShowWarning("No logs available to display");
-
                         CalculateLogStatistics(null);
                         UpdateLogStatisticsDisplay();
+                        UpdateLogsPageInfo(1, 1);
                         return;
                     }
 
-                    logs = response.Data;
-                    allLogsForStats = response.Data;
+                    totalLogsRecords = response.Data.TotalRecords ?? 0;
+                    totalLogsPages = response.Data.TotalPages ?? 1;
+                    logs = response.Data.Items;
+                    allLogsForStats = response.Data.Items;
                 }
 
-                // ✅ Apply date filter (affects both stats + display)
-                if (!skipDateFilter)
-                {
-                    logs = logs.Where(l =>
-                        l.CreatedAtPk >= _startDate &&
-                        l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
-
-                    allLogsForStats = allLogsForStats.Where(l =>
-                        l.CreatedAtPk >= _startDate &&
-                        l.CreatedAtPk <= _endDate.AddDays(1).AddTicks(-1));
-                }
-
-                // ✅ Calculate statistics BEFORE applying type filter
                 CalculateLogStatistics(allLogsForStats);
                 UpdateLogStatisticsDisplay();
 
-                // ✅ Apply log type filter (for grid display only)
                 if (!string.IsNullOrWhiteSpace(logTypeFilter))
                 {
                     string filter = logTypeFilter.Trim().ToLower();
@@ -1100,10 +1185,8 @@ namespace POSPRA_WinFormsUI.Forms
                     logs = logs.Where(l =>
                     {
                         var type = (l.Type ?? string.Empty).ToLower();
-
                         return filter switch
                         {
-                            // Grouped filters
                             "error" or "exception" => type.Contains("error") || type.Contains("exception"),
                             "info" or "information" => type.Contains("info") || type.Contains("information"),
                             "warning" => type.Contains("warning"),
@@ -1115,22 +1198,20 @@ namespace POSPRA_WinFormsUI.Forms
 
                 var logsList = logs.OrderByDescending(l => l.CreatedAtPk).ToList();
 
-                // ✅ Handle empty results after filter
                 if (!logsList.Any())
                 {
                     _logCache = new List<LogDisplayModel>();
                     LogsDataGridView.RowCount = 0;
-
-                    WindowsLocalAppNotification.Show("Logs", $"No {logTypeFilter ?? "filtered"} logs available to display");
-                    AlertManager.ShowWarning($"No {logTypeFilter ?? "filtered"} logs available to display");
+                    WindowsLocalAppNotification.Show("Logs", $"No {logTypeFilter ?? "filtered"} logs available");
+                    AlertManager.ShowWarning($"No {logTypeFilter ?? "filtered"} logs available");
+                    UpdateLogsPageInfo(1, 1);
                     return;
                 }
 
-                // ✅ Build log cache for display
                 _logCache = logsList
                     .Select((log, index) => new LogDisplayModel
                     {
-                        SerialNo = index + 1,
+                        SerialNo = ((currentLogsPage - 1) * logsRecordsPerPage) + index + 1,
                         Message = log.Message ?? "No message",
                         Type = log.Type ?? "N/A",
                         DateCreated = log.CreatedAtPk.ToString("dd-MM-yyyy HH:mm:ss"),
@@ -1138,13 +1219,13 @@ namespace POSPRA_WinFormsUI.Forms
                     })
                     .ToList();
 
-                // ✅ Refresh DataGridView safely
                 LogsDataGridView.SuspendLayout();
                 LogsDataGridView.RowCount = _logCache.Count;
                 LogsDataGridView.ResumeLayout(false);
                 LogsDataGridView.Invalidate();
                 LogsDataGridView.Refresh();
-                await Task.Yield();
+
+                UpdateLogsPageInfo(currentLogsPage, totalLogsPages);
 
                 LogsDataGridView.ClearSelection();
                 LogsDataGridView.CurrentCell = null;
@@ -1153,9 +1234,26 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 CalculateLogStatistics(null);
                 UpdateLogStatisticsDisplay();
-
                 WindowsLocalAppNotification.Show("Logs Error", $"Error loading logs: {ex.Message}");
                 AlertManager.ShowError($"Error loading logs: {ex.Message}");
+            }
+        }
+
+        private void UpdateInvoicePageInfo(int currentPage, int totalPages)
+        {
+            if (paginationInvoices != null)
+            {
+                paginationInvoices.CurrentPage = currentPage;
+                paginationInvoices.TotalPages = totalPages;
+            }
+        }
+
+        private void UpdateLogsPageInfo(int currentPage, int totalPages)
+        {
+            if (paginationLogs != null)
+            {
+                paginationLogs.CurrentPage = currentPage;
+                paginationLogs.TotalPages = totalPages;
             }
         }
 
@@ -1312,11 +1410,16 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.Text = "Show Synced First";
         }
 
-        private async void btnFilterInvoices_Click(object sender, EventArgs e) => await RunSingleLoad(async () =>
+        private async void btnFilterInvoices_Click(object sender, EventArgs e)
         {
-            await LoadAndShowInvoicesAsync();
-            await LoadAndShowLogsAsync();
-        });
+            currentInvoicePage = 1;
+            currentLogsPage = 1;
+            await RunSingleLoad(async () =>
+            {
+                await LoadAndShowInvoicesAsync();
+                await LoadAndShowLogsAsync();
+            });
+        }
 
         private void btnFilterSynced_Click(object sender, EventArgs e)
         {
@@ -1340,16 +1443,17 @@ namespace POSPRA_WinFormsUI.Forms
         private async void btnToday_Click(object sender, EventArgs e)
         {
             ResetSortToDefault();
+            currentInvoicePage = 1;
+            currentLogsPage = 1;
             _startDate = DateTime.Today;
             _endDate = DateTime.Today;
             dtpStartDate.Value = _startDate;
             dtpEndDate.Value = _endDate;
             UpdateDateRangeLabel();
-
             await RunSingleLoad(async () =>
             {
-                await LoadAndShowInvoicesAsync(skipDateFilter: false);
-                await LoadAndShowLogsAsync(skipDateFilter: false);
+                await LoadAndShowInvoicesAsync();
+                await LoadAndShowLogsAsync();
             });
         }
 
@@ -1357,6 +1461,8 @@ namespace POSPRA_WinFormsUI.Forms
         {
             ResetSortToDefault();
             _filterSyncedOnly = false;
+            currentInvoicePage = 1;
+            currentLogsPage = 1;
 
             _startDate = DateTime.Today.AddDays(-7);
             _endDate = DateTime.Today;
@@ -1370,6 +1476,7 @@ namespace POSPRA_WinFormsUI.Forms
                 await LoadAndShowLogsAsync(skipDateFilter: false);
             });
         }
+
         private void ClearDataGridView(DataGridView dataGridView)
         {
             if (dataGridView == null) return;
@@ -1432,14 +1539,15 @@ namespace POSPRA_WinFormsUI.Forms
         // Disables the button for 3 seconds but doesn't block the UI.
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
-            // Disable the button right away (no delay)
             btnRefresh.Enabled = false;
-
             ResetSortToDefault();
+            currentInvoicePage = 1; // ✅ Reset pagination
+            currentLogsPage = 1;
 
             bool wasAutoRefreshEnabled = _autoRefreshEnabled;
             if (wasAutoRefreshEnabled)
                 _autoRefreshTimer.Stop();
+
 
             try
             {
@@ -1891,8 +1999,6 @@ namespace POSPRA_WinFormsUI.Forms
             InvoicesDataGridView.InvalidateCell(columnIndex, rowIndex);
         }
 
-
-
         private void InvoicesDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colIsSynced"]?.Index)
@@ -2001,6 +2107,7 @@ namespace POSPRA_WinFormsUI.Forms
                 e.Handled = true;
             }
         }
+
         private void StyleLogsDataGridView()
         {
             LogsDataGridView.Columns.Clear();
@@ -2099,6 +2206,7 @@ namespace POSPRA_WinFormsUI.Forms
                 //}
             }
         }
+
         private void LogsDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
             if (e.ColumnIndex == 2 && e.RowIndex >= 0)
@@ -2302,6 +2410,250 @@ namespace POSPRA_WinFormsUI.Forms
             UpdateLogStatisticsLayout();
         }
     }
+
+    #region Pagination Control
+    public class ModernPaginationControl : FlowLayoutPanel
+    {
+        private int _currentPage = 1;
+        private int _totalPages = 1;
+
+        public event EventHandler<int> PageChanged;
+
+        private Button btnFirstPage;
+        private Button btnPrevPage;
+        private Button btnNextPage;
+        private Button btnLastPage;
+        private TextBox txtPageNumber;
+        private Label lblTotalPages;
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int CurrentPage
+        {
+            get => _currentPage;
+            set
+            {
+                if (_currentPage != value && value >= 1 && value <= _totalPages)
+                {
+                    _currentPage = value;
+                    UpdatePaginationUI();
+                    PageChanged?.Invoke(this, _currentPage);
+                }
+            }
+        }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int TotalPages
+        {
+            get => _totalPages;
+            set
+            {
+                if (_totalPages != value && value > 0)
+                {
+                    _totalPages = value;
+                    if (_currentPage > _totalPages)
+                        _currentPage = _totalPages;
+                    UpdatePaginationUI();
+                }
+            }
+        }
+
+        public ModernPaginationControl()
+        {
+            InitializeControl();
+        }
+
+        private void InitializeControl()
+        {
+            this.AutoSize = true;
+            this.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            this.FlowDirection = FlowDirection.LeftToRight;
+            this.WrapContents = false;
+            this.Padding = new Padding(0);
+            this.Margin = new Padding(0);
+            this.BackColor = Color.Transparent;
+
+            // Navigation buttons
+            btnFirstPage = CreateNavButton("⏮", "First Page");
+            btnPrevPage = CreateNavButton("◀", "Previous Page");
+            btnNextPage = CreateNavButton("▶", "Next Page");
+            btnLastPage = CreateNavButton("⏭", "Last Page");
+
+            // Editable page number textbox
+            txtPageNumber = new TextBox
+            {
+                Width = 50,
+                Height = 32,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                TextAlign = HorizontalAlignment.Center,
+                BorderStyle = BorderStyle.FixedSingle,
+                Margin = new Padding(3, 6, 3, 2),
+                BackColor = Color.White
+            };
+
+            // Total pages label
+            lblTotalPages = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(55, 65, 81),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Padding = new Padding(0, 9, 8, 0),
+                Margin = new Padding(0, 0, 3, 0)
+            };
+
+            // Event handlers
+            btnFirstPage.Click += (s, e) => CurrentPage = 1;
+            btnPrevPage.Click += (s, e) => { if (_currentPage > 1) CurrentPage--; };
+            btnNextPage.Click += (s, e) => { if (_currentPage < _totalPages) CurrentPage++; };
+            btnLastPage.Click += (s, e) => CurrentPage = _totalPages;
+
+            txtPageNumber.KeyPress += TxtPageNumber_KeyPress;
+            txtPageNumber.Leave += TxtPageNumber_Leave;
+            txtPageNumber.Enter += (s, e) => txtPageNumber.SelectAll();
+
+            // Add all controls ONCE during initialization
+            this.Controls.Add(btnFirstPage);
+            this.Controls.Add(btnPrevPage);
+            this.Controls.Add(txtPageNumber);
+            this.Controls.Add(lblTotalPages);
+            this.Controls.Add(btnNextPage);
+            this.Controls.Add(btnLastPage);
+
+            UpdatePaginationUI();
+        }
+
+        private void TxtPageNumber_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Only allow numbers and control keys (backspace, etc.)
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+
+            // Handle Enter key to navigate to page
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true;
+                NavigateToEnteredPage();
+            }
+        }
+
+        private void TxtPageNumber_Leave(object sender, EventArgs e)
+        {
+            NavigateToEnteredPage();
+        }
+
+        private void NavigateToEnteredPage()
+        {
+            if (int.TryParse(txtPageNumber.Text, out int pageNumber))
+            {
+                if (pageNumber >= 1 && pageNumber <= _totalPages)
+                {
+                    CurrentPage = pageNumber;
+                }
+                else
+                {
+                    // Reset to current page if invalid
+                    txtPageNumber.Text = _currentPage.ToString();
+                }
+            }
+            else
+            {
+                txtPageNumber.Text = _currentPage.ToString();
+            }
+        }
+
+        private Button CreateNavButton(string text, string tooltip)
+        {
+            var btn = new Button
+            {
+                Text = text,
+                Size = new Size(32, 32),
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                BackColor = Color.White,
+                ForeColor = Color.FromArgb(55, 65, 81),
+                Cursor = Cursors.Hand,
+                Margin = new Padding(2, 2, 2, 2),
+                TabStop = false
+            };
+
+            btn.FlatAppearance.BorderColor = Color.FromArgb(209, 213, 219);
+            btn.FlatAppearance.BorderSize = 1;
+            btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(243, 244, 246);
+            btn.FlatAppearance.MouseDownBackColor = Color.FromArgb(229, 231, 235);
+
+            return btn;
+        }
+
+        private void UpdatePaginationUI()
+        {
+            // Don't recreate controls - just update their values
+            if (txtPageNumber.InvokeRequired)
+            {
+                txtPageNumber.Invoke(new Action(() =>
+                {
+                    txtPageNumber.Text = _currentPage.ToString();
+                }));
+            }
+            else
+            {
+                txtPageNumber.Text = _currentPage.ToString();
+            }
+
+            if (lblTotalPages.InvokeRequired)
+            {
+                lblTotalPages.Invoke(new Action(() =>
+                {
+                    lblTotalPages.Text = $"of {_totalPages}";
+                }));
+            }
+            else
+            {
+                lblTotalPages.Text = $"of {_totalPages}";
+            }
+
+            // Update button states
+            btnFirstPage.Enabled = _currentPage > 1;
+            btnPrevPage.Enabled = _currentPage > 1;
+            btnNextPage.Enabled = _currentPage < _totalPages;
+            btnLastPage.Enabled = _currentPage < _totalPages;
+
+            UpdateButtonAppearance(btnFirstPage);
+            UpdateButtonAppearance(btnPrevPage);
+            UpdateButtonAppearance(btnNextPage);
+            UpdateButtonAppearance(btnLastPage);
+        }
+
+        private void UpdateButtonAppearance(Button btn)
+        {
+            if (!btn.Enabled)
+            {
+                btn.ForeColor = Color.FromArgb(156, 163, 175);
+                btn.BackColor = Color.FromArgb(249, 250, 251);
+                btn.FlatAppearance.BorderColor = Color.FromArgb(229, 231, 235);
+                btn.Cursor = Cursors.Default;
+            }
+            else
+            {
+                btn.BackColor = Color.White;
+                btn.ForeColor = Color.FromArgb(55, 65, 81);
+                btn.FlatAppearance.BorderColor = Color.FromArgb(209, 213, 219);
+                btn.Cursor = Cursors.Hand;
+            }
+        }
+
+        public void Reset()
+        {
+            _currentPage = 1;
+            _totalPages = 1;
+            UpdatePaginationUI();
+        }
+    }
+    #endregion
+
 
     // ===== DISPLAY MODELS (ADD AT END OF FILE) =====
     public class InvoiceDisplayModel

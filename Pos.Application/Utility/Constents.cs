@@ -59,6 +59,7 @@
         public const string InvalidPosId = "Invalid POS ID.";
         public const string InvalidMacAddress = "Invalid MAC Address.";
         public const string InvalidToken = "Invalid Token.";
+        public const string RecordNotFound = "Record Not Found.";
     }
 
     public static class AlertType
