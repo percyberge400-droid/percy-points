@@ -26,7 +26,7 @@ namespace Pos.Domain.Entities
         // ---------- Date/Time ----------
         public DateTime? CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
-        public DateTime? CreatedAtPk { get; set; } = DateTime.Now;
+        public DateTime CreatedAtPk { get; set; } = DateTime.Now;
 
         // ---------- User / Security ----------
         public string? UserId { get; set; }

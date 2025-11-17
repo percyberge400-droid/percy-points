@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.LogDtos;
 using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.Interfaces;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
+using POSPRA.DTOs.LogDTOs;
 using System.Reflection;
 
 namespace Pos.Application.Services.LogService
@@ -43,11 +46,74 @@ namespace Pos.Application.Services.LogService
             return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null!, string.Empty);
         }
 
-        public async Task<ApiResponse<List<LogDto>>> GetAllAsync()
+        public async Task<ApiResponse<PageResponseDto<LogDto>>> GetAllAsync(GetAllLogsDto dto)
         {
-            var output = await _sqlLiteLogRepository.GetAllAsync();
-            var logDTO = _mapper.Map<List<LogDto>>(output);
-            return new ApiResponse<List<LogDto>>(null!, null!, logDTO, null!);
+            int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+            int numberOfRecords = dto.NumberOfRecords <= 0 ? 10 : dto.NumberOfRecords;
+
+            var query = _sqlLiteLogRepository.Query();
+
+            if (dto.StartDate.HasValue && dto.EndDate.HasValue)
+            {
+                DateTime start = dto.StartDate.Value.Date;
+                DateTime end = dto.EndDate.Value.Date;
+                query = query.Where(m => m.CreatedAtPk.Date >= start && m.CreatedAtPk.Date <= end);
+            }
+
+            // Total Records before Pagination
+            int totalRecords = await query.CountAsync();
+
+            // Check if no records exist
+            if (totalRecords == 0)
+            {
+                return new ApiResponse<PageResponseDto<LogDto>>(
+                    ApiStatusCode.NotFound,
+                    ResponseMessages.RecordNotFound,
+                    new PageResponseDto<LogDto>
+                    {
+                        Items = new List<LogDto>(),
+                        TotalRecords = 0,
+                        TotalPages = 0
+                    },
+                    null!
+                );
+            }
+
+            // Calculate Total Pages
+            int totalPages = (int)Math.Ceiling((double)totalRecords / numberOfRecords);
+
+            // Validate page number
+            if (pageNumber > totalPages)
+            {
+                pageNumber = totalPages;
+            }
+
+            // Sort by CreatedAtPk DESC (most recent first)
+            query = query.OrderByDescending(m => m.CreatedAtPk);
+
+            // Apply Pagination
+            var output = await query
+                .Skip((pageNumber - 1) * numberOfRecords)
+                .Take(numberOfRecords)
+                .ToListAsync();
+
+            // Map Entity → DTO
+            var logDto = _mapper.Map<List<LogDto>>(output);
+
+            // Final result in clean format
+            var pagedResult = new PageResponseDto<LogDto>
+            {
+                Items = logDto ?? new List<LogDto>(),
+                TotalRecords = totalRecords,
+                TotalPages = totalPages
+            };
+
+            return new ApiResponse<PageResponseDto<LogDto>>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordFound,
+                pagedResult,
+                string.Empty
+            );
         }
 
         public async Task<ApiResponse<bool>> UpdateLog(List<Logs> dtos)

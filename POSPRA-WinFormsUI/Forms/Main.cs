@@ -66,17 +66,120 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void InitializeStatusSystem()
         {
-            // First set the background color before styling
             panel2.BackColor = Color.White;
 
+            // Initialize badges ONCE
+            InitializeStatusBadges();
+
+            // Setup panel styling ONCE
             StyleStatusPanel();
+
+            // Start background tasks
             StartInternetStatusChecker();
             StartWorkerServiceStatusChecker();
             StartStatusAnimations();
+        }
 
+        private void InitializeStatusBadges()
+        {
+            // Setup fonts
             posStatus.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
             internetStatus.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
+
+            // Setup badge appearance
+            internetStatus.AutoSize = false;
+            internetStatus.TextAlign = ContentAlignment.MiddleCenter;
+            internetStatus.Size = new Size(110, 32);
+            internetStatus.Text = "Checking...";
+
+            posStatus.AutoSize = false;
+            posStatus.TextAlign = ContentAlignment.MiddleCenter;
+            posStatus.Size = new Size(110, 32);
+            posStatus.Text = "Checking...";
+
+            // ✅ Attach paint handlers ONCE
+            internetStatus.Paint += (s, e) => PaintStatusBadge(e.Graphics, internetStatus, _internetPulseFrame);
+            posStatus.Paint += (s, e) => PaintStatusBadge(e.Graphics, posStatus, _posPulseFrame);
+
+            // Create rounded regions
+            internetStatus.Region = new Region(CreateRoundRectPath(new Rectangle(0, 0, 110, 32), 12));
+            posStatus.Region = new Region(CreateRoundRectPath(new Rectangle(0, 0, 110, 32), 12));
         }
+
+        private void PaintStatusBadge(Graphics g, Label lbl, int pulseFrame)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            Rectangle rect = new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1);
+
+            // Determine if active based on text
+            bool isActive = lbl.Text.Contains("Online") || lbl.Text.Contains("Active");
+
+            // Colors
+            Color bgColor = isActive ? Color.FromArgb(72, 167, 135) : Color.FromArgb(220, 53, 69);
+            Color glowColor = isActive ? Color.FromArgb(187, 247, 208) : Color.FromArgb(248, 215, 218);
+            Color dotColor = Color.White;
+
+            // Gradient background
+            using (var bgBrush = new LinearGradientBrush(
+                rect,
+                bgColor,
+                Color.FromArgb(Math.Max(0, bgColor.R - 20), Math.Max(0, bgColor.G - 20), Math.Max(0, bgColor.B - 20)),
+                LinearGradientMode.Vertical))
+            {
+                g.FillRoundedRectangle(bgBrush, rect, 6);
+            }
+
+            // Animated pulse effect
+            float pulseAlpha = (float)(Math.Sin(pulseFrame * 0.1) * 0.3 + 0.7);
+            using (Pen pulsePen = new Pen(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
+            {
+                g.DrawRoundedRectangle(pulsePen, rect, 12);
+            }
+
+            // Get status text (remove dot if present)
+            string statusText = lbl.Text.Replace("●", "").Trim();
+
+            // Measure text
+            Size textSize = TextRenderer.MeasureText(statusText, lbl.Font);
+            int dotSize = 8;
+            int spacing = 6;
+            int totalContentWidth = dotSize + spacing + textSize.Width;
+            int startX = (lbl.Width - totalContentWidth) / 2;
+
+            // Draw dot
+            int dotX = startX;
+            int dotY = (lbl.Height - dotSize) / 2;
+
+            // Glow effect
+            float glowIntensity = (float)(Math.Sin(pulseFrame * 0.15) * 0.4 + 0.6);
+            using (var glowBrush = new SolidBrush(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
+            {
+                g.FillEllipse(glowBrush, dotX - 3, dotY - 3, dotSize + 6, dotSize + 6);
+            }
+
+            // Main dot
+            using (var dotBrush = new LinearGradientBrush(
+                new Rectangle(dotX, dotY, dotSize, dotSize),
+                dotColor,
+                Color.White,
+                LinearGradientMode.Vertical))
+            {
+                g.FillEllipse(dotBrush, dotX, dotY, dotSize, dotSize);
+            }
+
+            // Draw text
+            int textX = dotX + dotSize + spacing;
+            int textY = (lbl.Height - textSize.Height) / 2;
+
+            // Shadow
+            TextRenderer.DrawText(g, statusText, lbl.Font, new Point(textX + 1, textY + 1),
+                Color.FromArgb(40, 0, 0, 0), TextFormatFlags.Left | TextFormatFlags.NoPadding);
+
+            // Main text
+            TextRenderer.DrawText(g, statusText, lbl.Font, new Point(textX, textY),
+                Color.White, TextFormatFlags.Left | TextFormatFlags.NoPadding);
+        }
+
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -96,181 +199,64 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void StyleStatusPanel()
         {
-            panel2.Paint += (s, e) =>
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            // Paint event for panel background (attached once)
+            panel2.Paint += Panel2_Paint;
 
-                // Glossy gradient background
-                using (var brush = new LinearGradientBrush(
-                    panel2.ClientRectangle,
-                    Color.White,
-                    Color.White,
-                    LinearGradientMode.Vertical))
-                {
-                    e.Graphics.FillRectangle(brush, panel2.ClientRectangle);
-                }
-
-                // Subtle top highlight
-                using (var highlight = new LinearGradientBrush(
-                    new Rectangle(0, 0, panel2.Width, 20),
-                    Color.FromArgb(60, 255, 255, 255),
-                    Color.Transparent,
-                    LinearGradientMode.Vertical))
-                {
-                    e.Graphics.FillRectangle(highlight, 0, 0, panel2.Width, 20);
-                }
-
-                // Bottom shadow line
-                using (Pen shadow = new Pen(Color.FromArgb(40, 0, 0, 0), 1))
-                    e.Graphics.DrawLine(shadow, 0, panel2.Height - 1, panel2.Width, panel2.Height - 1);
-            };
-
-            // Disable AutoSize and Anchor for manual positioning
+            // Setup label properties
             lblNetworkStatus.AutoSize = true;
             lblNetworkStatus.Anchor = AnchorStyles.None;
-            internetStatus.AutoSize = false;
-            internetStatus.Anchor = AnchorStyles.None;
             lblWorkerService.AutoSize = true;
             lblWorkerService.Anchor = AnchorStyles.None;
-            posStatus.AutoSize = false;
-            posStatus.Anchor = AnchorStyles.None;
 
-            // Style the status badges first (this sets their size)
-            StyleStatusBadge(internetStatus, false);
-            StyleStatusBadge(posStatus, false);
+            // Calculate and set positions
+            RepositionStatusControls();
+        }
 
-            // Calculate total width needed (with padding)
+        private void Panel2_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Glossy gradient background
+            using (var brush = new LinearGradientBrush(
+                panel2.ClientRectangle,
+                Color.White,
+                Color.White,
+                LinearGradientMode.Vertical))
+            {
+                e.Graphics.FillRectangle(brush, panel2.ClientRectangle);
+            }
+
+            // Subtle top highlight
+            using (var highlight = new LinearGradientBrush(
+                new Rectangle(0, 0, panel2.Width, 20),
+                Color.FromArgb(60, 255, 255, 255),
+                Color.Transparent,
+                LinearGradientMode.Vertical))
+            {
+                e.Graphics.FillRectangle(highlight, 0, 0, panel2.Width, 20);
+            }
+
+            // Bottom shadow line
+            using (Pen shadow = new Pen(Color.FromArgb(40, 0, 0, 0), 1))
+                e.Graphics.DrawLine(shadow, 0, panel2.Height - 1, panel2.Width, panel2.Height - 1);
+        }
+        private void RepositionStatusControls()
+        {
             int totalWidth = lblNetworkStatus.Width + 10 + internetStatus.Width + 30 +
-                           lblWorkerService.Width + 10 + posStatus.Width + 60; // Extra padding
+                            lblWorkerService.Width + 10 + posStatus.Width + 60;
 
-            // Resize panel2 to fit content with margins
-            panel2.Width = Math.Max(totalWidth, 550); // Minimum width of 550
-
-            // Reposition panel2 to stay anchored to the right
+            panel2.Width = Math.Max(totalWidth, 550);
             panel2.Location = new Point(panel1.Width - panel2.Width, 0);
 
-            // Center the entire group in panel2
-            int startX = (panel2.Width - (totalWidth - 60)) / 2; // Subtract extra padding for centering
+            int startX = (panel2.Width - (totalWidth - 60)) / 2;
             int centerY = (panel2.Height - lblNetworkStatus.Height) / 2;
 
-            // Position all elements
             lblNetworkStatus.Location = new Point(startX, centerY);
-            internetStatus.Location = new Point(lblNetworkStatus.Right + 10,
-                                                (panel2.Height - internetStatus.Height) / 2);
+            internetStatus.Location = new Point(lblNetworkStatus.Right + 10, (panel2.Height - internetStatus.Height) / 2);
             lblWorkerService.Location = new Point(internetStatus.Right + 30, centerY);
-            posStatus.Location = new Point(lblWorkerService.Right + 10,
-                                          (panel2.Height - posStatus.Height) / 2);
+            posStatus.Location = new Point(lblWorkerService.Right + 10, (panel2.Height - posStatus.Height) / 2);
         }
 
-        private void StyleStatusBadge(Label lbl, bool isActive)
-        {
-            lbl.AutoSize = false;
-            lbl.TextAlign = ContentAlignment.MiddleCenter;
-            lbl.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
-            lbl.Size = new Size(110, 32);
-            lbl.Region = new Region(CreateRoundRectPath(new Rectangle(0, 0, lbl.Width, lbl.Height), 12));
-
-            // Store which pulse frame to use based on label
-            lbl.Paint += (s, e) =>
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                Rectangle rect = new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1);
-
-                // Get the appropriate pulse frame
-                int currentPulseFrame = (lbl == internetStatus) ? _internetPulseFrame : _posPulseFrame;
-
-                // Determine colors based on status
-                Color bgColor, glowColor, dotColor;
-                if (isActive)
-                {
-                    bgColor = Color.FromArgb(72, 167, 135);
-                    glowColor = Color.FromArgb(187, 247, 208);
-                    dotColor = Color.White;
-                }
-                else
-                {
-                    bgColor = Color.FromArgb(220, 53, 69);
-                    glowColor = Color.FromArgb(248, 215, 218);
-                    dotColor = Color.White;
-                }
-
-                // Gradient background
-                using (var bgBrush = new LinearGradientBrush(
-                    rect,
-                    bgColor,
-                    Color.FromArgb(Math.Max(0, bgColor.R - 20), Math.Max(0, bgColor.G - 20), Math.Max(0, bgColor.B - 20)),
-                    LinearGradientMode.Vertical))
-                {
-                    e.Graphics.FillRoundedRectangle(bgBrush, rect, 6);
-                }
-
-                // Animated pulse effect
-                float pulseAlpha = (float)(Math.Sin(currentPulseFrame * 0.1) * 0.3 + 0.7);
-                using (Pen pulsePen = new Pen(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
-                {
-                    e.Graphics.DrawRoundedRectangle(pulsePen, rect, 12);
-                }
-
-                // Get status text
-                string statusText = lbl.Text.Replace("●", "").Trim();
-
-                // Measure text to calculate proper centering
-                Size textSize = TextRenderer.MeasureText(statusText, lbl.Font);
-                int dotSize = 8;
-                int spacing = 6; // Space between dot and text
-
-                // Calculate total width of dot + spacing + text
-                int totalContentWidth = dotSize + spacing + textSize.Width;
-
-                // Center the entire content (dot + text) in the badge
-                int startX = (lbl.Width - totalContentWidth) / 2;
-
-                // Position dot
-                int dotX = startX;
-                int dotY = (lbl.Height - dotSize) / 2;
-
-                // Glow effect for dot
-                float glowIntensity = (float)(Math.Sin(currentPulseFrame * 0.15) * 0.4 + 0.6);
-                using (var glowBrush = new SolidBrush(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
-                {
-                    e.Graphics.FillEllipse(glowBrush, dotX - 3, dotY - 3, dotSize + 6, dotSize + 6);
-                }
-
-                // Main dot
-                using (var dotBrush = new LinearGradientBrush(
-                    new Rectangle(dotX, dotY, dotSize, dotSize),
-                    dotColor,
-                    Color.White,
-                    LinearGradientMode.Vertical))
-                {
-                    e.Graphics.FillEllipse(dotBrush, dotX, dotY, dotSize, dotSize);
-                }
-
-                // Position text after the dot
-                int textX = dotX + dotSize + spacing;
-                int textY = (lbl.Height - textSize.Height) / 2;
-
-                // Shadow text
-                TextRenderer.DrawText(
-                    e.Graphics,
-                    statusText,
-                    lbl.Font,
-                    new Point(textX + 1, textY + 1),
-                    Color.FromArgb(40, 0, 0, 0),
-                    TextFormatFlags.Left | TextFormatFlags.NoPadding
-                );
-
-                // Main text
-                TextRenderer.DrawText(
-                    e.Graphics,
-                    statusText,
-                    lbl.Font,
-                    new Point(textX, textY),
-                    Color.White,
-                    TextFormatFlags.Left | TextFormatFlags.NoPadding
-                );
-            };
-        }
         private void StartStatusAnimations()
         {
             _animationTimer = new System.Windows.Forms.Timer { Interval = 50 };
@@ -279,9 +265,10 @@ namespace POSPRA_WinFormsUI.Forms
                 _internetPulseFrame++;
                 _posPulseFrame++;
 
-                if (internetStatus?.IsHandleCreated == true)
+                // Only invalidate if controls are visible
+                if (internetStatus?.Visible == true && internetStatus.IsHandleCreated)
                     internetStatus.Invalidate();
-                if (posStatus?.IsHandleCreated == true)
+                if (posStatus?.Visible == true && posStatus.IsHandleCreated)
                     posStatus.Invalidate();
             };
             _animationTimer.Start();
@@ -291,14 +278,26 @@ namespace POSPRA_WinFormsUI.Forms
         {
             if (lbl == null || !lbl.IsHandleCreated) return;
 
-            lbl.BeginInvoke(new Action(() =>
+            if (lbl.InvokeRequired)
             {
-                lbl.Text = text;
-                StyleStatusBadge(lbl, isActive);
-                lbl.Invalidate();
-            }));
+                lbl.BeginInvoke(new Action(() =>
+                {
+                    if (lbl.Text != text) // Only update if changed
+                    {
+                        lbl.Text = text;
+                        lbl.Invalidate(); // Trigger repaint
+                    }
+                }));
+            }
+            else
+            {
+                if (lbl.Text != text)
+                {
+                    lbl.Text = text;
+                    lbl.Invalidate();
+                }
+            }
         }
-
         private void Main_Resize(object sender, EventArgs e) => HandleFormStateChange();
 
         private void HandleFormStateChange()

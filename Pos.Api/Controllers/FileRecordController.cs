@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Pos.Application.Services.FileRecordService;
 using Pos.Application.DTOs.FiscalDtos;
+using Pos.Application.Services.FileRecordService;
 
 namespace Pos.API.Controllers
 {
@@ -16,9 +16,9 @@ namespace Pos.API.Controllers
         /// <returns>
         /// A list of all invoices with their fiscal details.
         /// </returns>
-        [HttpGet("getalls")]
-        public async Task<IActionResult> GetAll() =>
-            Ok(await _fileRecordService.GetAllAsync());
+        [HttpPost("getalls")]
+        public async Task<IActionResult> GetAll(GetAllFileRecordDto dto) =>
+            Ok(await _fileRecordService.GetAllAsync(dto));
 
         /// <summary>
         /// Retrieves all fiscal invoices that have not yet been synced.

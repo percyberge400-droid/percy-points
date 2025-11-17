@@ -272,8 +272,10 @@
             Controls.Add(panel1);
             Controls.Add(pictureBox1);
             Margin = new Padding(3, 4, 3, 4);
+            MaximizeBox = false;
             Name = "Main";
             Text = "Main";
+            WindowState = FormWindowState.Maximized;
             panel1.ResumeLayout(false);
             panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
