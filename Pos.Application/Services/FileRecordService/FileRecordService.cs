@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.Interfaces;
 using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
@@ -39,13 +41,83 @@ namespace Pos.Application.Services.FileRecordService
         /// An <see cref="ApiResponse{T}"/> containing a list of all
         /// <see cref="FileRecordDTO"/> objects.
         /// </returns>
-        public async Task<ApiResponse<List<FileRecordDto>>> GetAllAsync()
+        public async Task<ApiResponse<PageResponseDto<FileRecordDto>>> GetAllAsync(GetAllFileRecordDto dto)
         {
-            var output = await _sqliteFileRecordRepository.GetAllAsync();
-            var fileRecrodDTO = _mapper.Map<List<FileRecordDto>>(output);
-            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, fileRecrodDTO, string.Empty);
-        }
+            int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+            int numberOfRecords = dto.NumberOfRecords <= 0 ? 10 : dto.NumberOfRecords;
 
+            var query = _sqliteFileRecordRepository.Query();
+
+            if (dto.StartDate.HasValue && dto.EndDate.HasValue)
+            {
+                DateTime start = dto.StartDate.Value.Date;
+                DateTime end = dto.EndDate.Value.Date;
+                query = query.Where(m => m.DateCreated.Date >= start && m.DateCreated.Date <= end);
+            }
+
+            // Total Records
+            int totalRecords = await query.CountAsync();
+
+            // Total Synced Invoices
+            int totalSyncedInvoices = await query.CountAsync(m => m.IsSynced == 1);
+
+            // Total Unsynced Invoices
+            int unsyncedInvoices = await query.CountAsync(m => m.IsSynced == 0);
+
+            // Check if no records exist
+            if (totalRecords == 0)
+            {
+                return new ApiResponse<PageResponseDto<FileRecordDto>>(
+                    ApiStatusCode.NotFound,
+                    ResponseMessages.RecordNotFound,
+                    new PageResponseDto<FileRecordDto>
+                    {
+                        Items = new List<FileRecordDto>(),
+                        TotalRecords = 0,
+                        TotalPages = 0,
+                        TotalSyncedInvoices = 0,
+                        UnsyncedInvoices = 0
+                    },
+                    null!
+                );
+            }
+
+            // Calculate Total Pages
+            int totalPages = (int)Math.Ceiling((double)totalRecords / numberOfRecords);
+
+            // Validate page number
+            if (pageNumber > totalPages)
+            {
+                pageNumber = totalPages;
+            }
+
+            // Sort by DateCreated DESC (most recent first), then by ID DESC as tiebreaker
+            query = query.OrderByDescending(m => m.DateCreated).ThenByDescending(m => m.ID);
+
+            // Apply Pagination
+            int skip = (pageNumber - 1) * numberOfRecords;
+            var output = await query.Skip(skip).Take(numberOfRecords).ToListAsync();
+
+            // Map to DTO
+            var fileRecordDTO = _mapper.Map<List<FileRecordDto>>(output);
+
+            // Return in a Paged Result
+            var pagedResult = new PageResponseDto<FileRecordDto>
+            {
+                Items = fileRecordDTO ?? new List<FileRecordDto>(),
+                TotalRecords = totalRecords,
+                TotalPages = totalPages,
+                TotalSyncedInvoices = totalSyncedInvoices,
+                UnsyncedInvoices = unsyncedInvoices
+            };
+
+            return new ApiResponse<PageResponseDto<FileRecordDto>>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordFound,
+                pagedResult,
+                string.Empty
+            );
+        }
         /// <summary>
         /// Retrieves only the file records that are **not yet synced**.
         /// </summary>

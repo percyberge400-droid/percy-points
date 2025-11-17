@@ -318,7 +318,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Arial", 12F);
             btnExportInvoice.ForeColor = Color.White;
-            btnExportInvoice.Location = new Point(182, 7);
+            btnExportInvoice.Location = new Point(206, 7);
             btnExportInvoice.Name = "btnExportInvoice";
             btnExportInvoice.Size = new Size(182, 37);
             btnExportInvoice.TabIndex = 10;
@@ -334,7 +334,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilter.FlatStyle = FlatStyle.Flat;
             btnFilter.Font = new Font("Microsoft Sans Serif", 10.8F);
             btnFilter.ForeColor = Color.White;
-            btnFilter.Location = new Point(819, 7);
+            btnFilter.Location = new Point(832, 7);
             btnFilter.Name = "btnFilter";
             btnFilter.Size = new Size(64, 37);
             btnFilter.TabIndex = 12;
@@ -349,7 +349,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnRefresh.FlatStyle = FlatStyle.Flat;
             btnRefresh.Font = new Font("Microsoft Sans Serif", 10.8F);
             btnRefresh.ForeColor = Color.White;
-            btnRefresh.Location = new Point(958, 7);
+            btnRefresh.Location = new Point(965, 7);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(64, 37);
             btnRefresh.TabIndex = 0;
@@ -376,7 +376,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnFilterSynced.FlatStyle = FlatStyle.Flat;
             btnFilterSynced.Font = new Font("Arial", 10.8F);
             btnFilterSynced.ForeColor = Color.White;
-            btnFilterSynced.Location = new Point(371, 7);
+            btnFilterSynced.Location = new Point(390, 7);
             btnFilterSynced.Name = "btnFilterSynced";
             btnFilterSynced.Size = new Size(190, 37);
             btnFilterSynced.TabIndex = 5;
@@ -392,7 +392,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnClearFilter.FlatStyle = FlatStyle.Flat;
             btnClearFilter.Font = new Font("Microsoft Sans Serif", 10.8F);
             btnClearFilter.ForeColor = Color.White;
-            btnClearFilter.Location = new Point(888, 7);
+            btnClearFilter.Location = new Point(898, 7);
             btnClearFilter.Name = "btnClearFilter";
             btnClearFilter.Size = new Size(64, 37);
             btnClearFilter.TabIndex = 4;
@@ -407,7 +407,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnToday.FlatStyle = FlatStyle.Flat;
             btnToday.Font = new Font("Arial", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             btnToday.ForeColor = Color.White;
-            btnToday.Location = new Point(1029, 7);
+            btnToday.Location = new Point(1033, 7);
             btnToday.Name = "btnToday";
             btnToday.Size = new Size(77, 37);
             btnToday.TabIndex = 3;
@@ -421,7 +421,7 @@ namespace POSPRA_WinFormsUI.Forms
             lblDateRange.Cursor = Cursors.Hand;
             lblDateRange.Font = new Font("Segoe UI", 9F);
             lblDateRange.ForeColor = Color.FromArgb(55, 65, 81);
-            lblDateRange.Location = new Point(571, 7);
+            lblDateRange.Location = new Point(587, 7);
             lblDateRange.Name = "lblDateRange";
             lblDateRange.Padding = new Padding(11, 7, 30, 7);
             lblDateRange.Size = new Size(240, 37);
@@ -474,12 +474,13 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             labelInvoicesTitle.AutoSize = true;
             labelInvoicesTitle.Dock = DockStyle.Top;
-            labelInvoicesTitle.Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelInvoicesTitle.Font = new Font("Segoe UI", 13.8F);
             labelInvoicesTitle.ForeColor = Color.FromArgb(85, 85, 85);
             labelInvoicesTitle.Location = new Point(8, 8);
+            labelInvoicesTitle.Margin = new Padding(0, 0, 3, 0);
             labelInvoicesTitle.Name = "labelInvoicesTitle";
-            labelInvoicesTitle.Padding = new Padding(6, 5, 0, 5);
-            labelInvoicesTitle.Size = new Size(241, 41);
+            labelInvoicesTitle.Padding = new Padding(0, 5, 0, 5);
+            labelInvoicesTitle.Size = new Size(235, 41);
             labelInvoicesTitle.TabIndex = 1;
             labelInvoicesTitle.Text = "\U0001f9fe INVOICES LISTING";
             labelInvoicesTitle.TextAlign = ContentAlignment.MiddleCenter;
@@ -505,7 +506,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             lblLastSync.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblLastSync.AutoSize = true;
-            lblLastSync.Location = new Point(481, 26);
+            lblLastSync.Location = new Point(488, 24);
             lblLastSync.Name = "lblLastSync";
             lblLastSync.Size = new Size(279, 20);
             lblLastSync.TabIndex = 12;
@@ -515,7 +516,7 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             lblHeartbeat.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblHeartbeat.AutoSize = true;
-            lblHeartbeat.Location = new Point(481, 6);
+            lblHeartbeat.Location = new Point(488, 4);
             lblHeartbeat.Name = "lblHeartbeat";
             lblHeartbeat.Size = new Size(248, 20);
             lblHeartbeat.TabIndex = 11;
@@ -530,7 +531,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnSyncLogs.FlatStyle = FlatStyle.Flat;
             btnSyncLogs.Font = new Font("Arial", 12F);
             btnSyncLogs.ForeColor = Color.White;
-            btnSyncLogs.Location = new Point(766, 7);
+            btnSyncLogs.Location = new Point(772, 5);
             btnSyncLogs.Name = "btnSyncLogs";
             btnSyncLogs.Size = new Size(167, 39);
             btnSyncLogs.TabIndex = 10;
@@ -546,7 +547,7 @@ namespace POSPRA_WinFormsUI.Forms
             btnExportLogs.FlatStyle = FlatStyle.Flat;
             btnExportLogs.Font = new Font("Arial", 12F);
             btnExportLogs.ForeColor = Color.White;
-            btnExportLogs.Location = new Point(939, 7);
+            btnExportLogs.Location = new Point(942, 5);
             btnExportLogs.Name = "btnExportLogs";
             btnExportLogs.Size = new Size(167, 39);
             btnExportLogs.TabIndex = 9;
@@ -573,12 +574,13 @@ namespace POSPRA_WinFormsUI.Forms
             // 
             labelLogsTitle.AutoSize = true;
             labelLogsTitle.Dock = DockStyle.Top;
-            labelLogsTitle.Font = new Font("Segoe UI", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelLogsTitle.Font = new Font("Segoe UI", 13.8F);
             labelLogsTitle.ForeColor = Color.FromArgb(85, 85, 85);
             labelLogsTitle.Location = new Point(8, 8);
+            labelLogsTitle.Margin = new Padding(0, 0, 3, 0);
             labelLogsTitle.Name = "labelLogsTitle";
-            labelLogsTitle.Padding = new Padding(6, 5, 0, 5);
-            labelLogsTitle.Size = new Size(113, 41);
+            labelLogsTitle.Padding = new Padding(0, 5, 0, 5);
+            labelLogsTitle.Size = new Size(107, 41);
             labelLogsTitle.TabIndex = 1;
             labelLogsTitle.Text = "📝 LOGS";
             // 

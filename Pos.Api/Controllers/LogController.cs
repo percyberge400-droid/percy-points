@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Pos.Application.Services.LogService;
 using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.LogService;
+using POSPRA.DTOs.LogDTOs;
 
 namespace Pos.API.Controllers
 {
@@ -11,9 +12,9 @@ namespace Pos.API.Controllers
 
         private readonly ILogService _logService = logService;
 
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll() =>
-            Ok(await _logService.GetAllAsync());
+        [HttpPost("GetAll")]
+        public async Task<IActionResult> GetAll(GetAllLogsDto dto) =>
+            Ok(await _logService.GetAllAsync(dto));
 
         [HttpPost("create-logAsync")]
         public async Task<IActionResult> CreateLogAsync(CreateLogDto dto) =>
