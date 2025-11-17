@@ -36,6 +36,9 @@ namespace POSPRA_WinFormsUI.Forms
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             InitializeComponent();
+            panel2.Paint += Panel2_Paint;
+            internetStatus.Paint += InternetStatus_Paint;
+            posStatus.Paint += PosStatus_Paint;
 
             this.IsMdiContainer = true;
             panInvoiceSelection.Visible = false;
@@ -79,6 +82,15 @@ namespace POSPRA_WinFormsUI.Forms
             StartInternetStatusChecker();
             StartWorkerServiceStatusChecker();
             StartStatusAnimations();
+        }
+        private void InternetStatus_Paint(object? sender, PaintEventArgs e)
+        {
+            PaintStatusBadge(e.Graphics, internetStatus, _internetPulseFrame);
+        }
+
+        private void PosStatus_Paint(object? sender, PaintEventArgs e)
+        {
+            PaintStatusBadge(e.Graphics, posStatus, _posPulseFrame);
         }
 
         private void InitializeStatusBadges()
@@ -200,9 +212,6 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void StyleStatusPanel()
         {
-            // Paint event for panel background (attached once)
-            panel2.Paint += Panel2_Paint;
-
             // Setup label properties
             lblNetworkStatus.AutoSize = true;
             lblNetworkStatus.Anchor = AnchorStyles.None;
