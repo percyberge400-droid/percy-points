@@ -8,6 +8,7 @@ using System.Configuration;
 using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
+using System.Xml;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -687,6 +688,91 @@ namespace POSPRA_WinFormsUI.Forms
             path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
             path.CloseFigure();
             return path;
+        }
+
+        private void btnUpdatelogo_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using var ofd = new OpenFileDialog
+                {
+                    Filter = "Image Files|*.png;*.jpg",
+                    Title = "Select Company Logo"
+                };
+
+                if (ofd.ShowDialog() != DialogResult.OK)
+                    return;
+
+                var fileInfo = new FileInfo(ofd.FileName);
+                if (!fileInfo.Exists)
+                {
+                    MessageBox.Show(" File not found");
+                    //ShowMessage(" File not found.", false, true);
+                    return;
+                }
+
+                if (fileInfo.Length > 1024 * 1024) // 2,048 KB KB limit
+                {
+                    MessageBox.Show("Logo size too large. Please select an image under 2 MB");
+                    //ShowMessage(" Logo size too large. Please select an image under 2 MB.",false, true);
+                    return;
+                }
+
+                // Convert image → Base64
+                string base64;
+                using (var img = Image.FromFile(ofd.FileName))
+                using (var ms = new MemoryStream())
+                {
+                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    base64 = Convert.ToBase64String(ms.ToArray());
+                }
+
+                // Define shared config path
+                string dir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                    "POSPRA"
+                );
+                Directory.CreateDirectory(dir);
+
+                string configFile = Path.Combine(dir, "AppSettings.config");
+
+                // Load or create XML config
+                var xml = new XmlDocument();
+                if (File.Exists(configFile))
+                    xml.Load(configFile);
+                else
+                {
+                    xml.AppendChild(xml.CreateXmlDeclaration("1.0", "utf-8", null));
+                    xml.AppendChild(xml.CreateElement("appSettings"));
+                }
+
+                var appSettings = xml.SelectSingleNode("//appSettings");
+                if (appSettings == null)
+                {
+                    appSettings = xml.CreateElement("appSettings");
+                    xml.AppendChild(appSettings);
+                }
+
+                // Update or create logo entry
+                var node = appSettings.SelectSingleNode("add[@key='CompLogobase64']") as XmlElement;
+                if (node == null)
+                {
+                    node = xml.CreateElement("add");
+                    node.SetAttribute("key", "CompLogobase64");
+                    appSettings.AppendChild(node);
+                }
+
+                node.SetAttribute("value", base64);
+                xml.Save(configFile);
+                MessageBox.Show("Logo saved successfully!");
+                //ShowMessage(" Logo saved successfully!", true, true);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("$\" Failed to update logo: {ex.Message}\"");//, MessageBoxButtons.OKCancel);
+                                                                             //DialogResult = DialogResult.Cancel;
+                                                                             //ShowMessage($" Failed to update logo: {ex.Message}", false, true);
+            }
         }
     }
 

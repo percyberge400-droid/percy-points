@@ -210,6 +210,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             try
             {
+                AppResources.RefreshLogo();
                 var logo = AppResources.BusinessLogo;
                 if (logo == null)
                     return Array.Empty<byte>();

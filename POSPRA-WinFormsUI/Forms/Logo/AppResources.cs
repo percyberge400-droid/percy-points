@@ -43,5 +43,10 @@ namespace POSPRA_WinFormsUI.Forms.Logo
                 return _cachedLogo;
             }
         }
+        public static void RefreshLogo()
+        {
+            _cachedLogo?.Dispose();
+            _cachedLogo = null;
+        }
     }
 }
