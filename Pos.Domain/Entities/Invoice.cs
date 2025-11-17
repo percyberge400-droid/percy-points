@@ -80,6 +80,6 @@ namespace Pos.Domain.Entities
         public string? Remarks { get; set; }
 
         // 🔑 One invoice → many items
-        public ICollection<InvoiceItems> InvoiceItems { get; set; } = new List<InvoiceItems>();
+        public ICollection<InvoiceItems> Items { get; set; } = new List<InvoiceItems>();
     }
 }

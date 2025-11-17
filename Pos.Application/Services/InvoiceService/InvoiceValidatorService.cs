@@ -111,14 +111,14 @@ namespace POSPRA.Application.Services.FiscalService
                 return new ValidationResult(false, string.Join(Environment.NewLine, errors));
 
             // -------- Invoice Items --------
-            if (invoice.InvoiceItems == null || invoice.InvoiceItems.Count == 0)
+            if (invoice.Items == null || invoice.Items.Count == 0)
             {
                 AddError("Invoice must contain at least one item");
             }
             else
             {
                 int index = 0;
-                foreach (var item in invoice.InvoiceItems)
+                foreach (var item in invoice.Items)
                 {
                     index++;
                     string prefix = $"Item {index}: ";
@@ -383,28 +383,28 @@ namespace POSPRA.Application.Services.FiscalService
         private void ValidateInvoiceTotals(Invoice invoice, Action<string> AddError)
         {
             // ✅ Total Quantity = Sum of all item quantities
-            decimal sumQty = invoice.InvoiceItems.Sum(i => i.Quantity ?? 0m);
+            decimal sumQty = invoice.Items.Sum(i => i.Quantity ?? 0m);
             if (Math.Abs((invoice.TotalQuantity ?? 0m) - sumQty) > 0.02m)
                 AddError($"Total quantity mismatch: Invoice total {invoice.TotalQuantity:F2} vs Sum of items {sumQty:F2}");
 
             // ✅ Total Sale Value = Sum of (Quantity × Unit Price) for all items
-            decimal sumSale = invoice.InvoiceItems.Sum(i => (i.Quantity ?? 0m) * (i.SaleValue ?? 0m));
+            decimal sumSale = invoice.Items.Sum(i => (i.Quantity ?? 0m) * (i.SaleValue ?? 0m));
             if (Math.Abs((invoice.TotalSaleValue ?? 0m) - sumSale) > 0.02m)
                 AddError($"Total sale value mismatch: Invoice total {invoice.TotalSaleValue:F2} vs Sum of items {sumSale:F2}");
 
             // ✅ Total Tax Charged = Sum of all item tax charges
-            decimal sumTax = invoice.InvoiceItems.Sum(i => i.TaxCharged ?? 0m);
+            decimal sumTax = invoice.Items.Sum(i => i.TaxCharged ?? 0m);
             if (Math.Abs((invoice.TotalTaxCharged ?? 0m) - sumTax) > 0.02m)
                 AddError($"Total tax mismatch: Invoice total {invoice.TotalTaxCharged:F2} vs Sum of items {sumTax:F2}");
 
             // ✅ Total Discount = Sum of all item discounts
-            decimal sumDiscount = invoice.InvoiceItems.Sum(i => i.Discount ?? 0m);
+            decimal sumDiscount = invoice.Items.Sum(i => i.Discount ?? 0m);
             if (Math.Abs((invoice.Discount ?? 0m) - sumDiscount) > 0.02m)
                 AddError($"Total discount mismatch: Invoice total {invoice.Discount:F2} vs Sum of items {sumDiscount:F2}");
 
             // ✅ Total Bill Amount = Sum of all item totals
             //    (which equals: Gross + Tax - Discount for each item)
-            decimal sumTotal = invoice.InvoiceItems.Sum(i => i.TotalAmount ?? 0m);
+            decimal sumTotal = invoice.Items.Sum(i => i.TotalAmount ?? 0m);
             if (Math.Abs((invoice.TotalBillAmount ?? 0m) - sumTotal) > 0.02m)
                 AddError($"Total bill amount mismatch: Invoice total {invoice.TotalBillAmount:F2} vs Sum of items {sumTotal:F2}");
 

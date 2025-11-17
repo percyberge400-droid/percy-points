@@ -40,8 +40,10 @@ namespace POSPRA.Application.AutoMapperProfile
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true))
                 .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 // map child collection explicitly
-                .ForMember(dest => dest.InvoiceItems,
-                           opt => opt.MapFrom(src => src.InvoiceItemDto));
+                .ForMember(dest => dest.Items,
+                           opt => opt.MapFrom(src => src.Items))
+                .ForMember(dest => dest.BuyerNTN,
+                           opt => opt.MapFrom(src => src.BuyerPNTN));
 
             // Child mapping
             CreateMap<InvoiceItemDto, InvoiceItems>()
