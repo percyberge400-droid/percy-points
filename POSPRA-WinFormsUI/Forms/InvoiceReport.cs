@@ -190,7 +190,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             headerTable.Rows.Add(headerRow);
 
-            foreach (var item in dto.InvoiceItemDto ?? Enumerable.Empty<dynamic>())
+            foreach (var item in dto.Items ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
                 row["Amount"] = Math.Round(item.TotalAmount + item.Discount, 0, MidpointRounding.AwayFromZero);
