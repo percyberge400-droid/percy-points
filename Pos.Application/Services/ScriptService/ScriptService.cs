@@ -4,6 +4,7 @@ using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Interfaces;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
+using System.Globalization;
 
 namespace Pos.Application.Services.ScriptService
 {
@@ -12,109 +13,195 @@ namespace Pos.Application.Services.ScriptService
         private readonly IRepository<Logs> _sqlLogsRepository;
         private readonly IRepository<FileRecord> _sqlFileRecordRepository;
         private readonly ISqliteUnitOfWork _sqliteUnitOfWork;
+        private readonly ISqliteRepositoryFactory _sqliteFactory;
+
 
         public ScriptService(ISqliteRepositoryFactory sqliteRepositoryFactory, ISqliteUnitOfWork sqliteUnitOfWork)
         {
             _sqlLogsRepository = sqliteRepositoryFactory.CreateRepository<Logs>();
             _sqlFileRecordRepository = sqliteRepositoryFactory.CreateRepository<FileRecord>();
             _sqliteUnitOfWork = sqliteUnitOfWork;
+            _sqliteFactory = sqliteRepositoryFactory;
         }
 
         public async Task<ApiResponse<ScriptDTO>> CreateScript(ScriptDTO dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.NewDbPath))
+                return new ApiResponse<ScriptDTO>(ApiStatusCode.Error, "NewDbPath missing", null!, "");
+
+            // Build dynamic DB connection for this request
+            var fileRecordRepo = _sqliteFactory.CreateRepository<FileRecord>(dto.NewDbPath);
+            var logRepo = _sqliteFactory.CreateRepository<Logs>(dto.NewDbPath);
+            var uow = _sqliteFactory.CreateUnitOfWork(dto.NewDbPath);
+
             try
             {
                 int posId = 0;
-                if (dto.FileRecord is not null && dto.FileRecord.Any())
+
+                if (dto.FileRecord?.Any() == true)
                 {
-                    await CreateScriptFileRecord(dto.FileRecord);
+                    var records = dto.FileRecord.Select(x => new FileRecord
+                    {
+                        POSID = x.POSID,
+                        InvoiceNumber = x.InvoiceNumber,
+                        InvoiceData = x.InvoiceData,
+                        DateCreated = x.DateCreated,
+                        DateModified = x.DateModified,
+                        IsSynced = (int)InvoiceStatus.Synced,
+                        AttemptCount = 0
+                    }).ToList();
+
+                    await fileRecordRepo.AddRangeAsync(records);
+                    await uow.SaveChangesAsync();
+
                     posId = dto.FileRecord[0].POSID;
                 }
 
-                if (dto.Log is not null && dto.Log.Any() && posId > 0)
+                if (dto.Log?.Any() == true && posId > 0)
                 {
-                    await CreateScriptLog(dto.Log, posId);
-                }
-            }
-            catch (Exception ex)
-            {
-                return new ApiResponse<ScriptDTO>(ApiStatusCode.Error, ResponseMessages.DatabaseError, null!, string.Empty);
-            }
-
-            return new ApiResponse<ScriptDTO>(ApiStatusCode.Success, ResponseMessages.RecordSaved, null!, string.Empty);
-
-        }
-        private async Task<bool> CreateScriptFileRecord(List<FileRecordDto> dtoList)
-        {
-            if (dtoList == null || dtoList.Count == 0)
-                return false;
-
-            var records = dtoList.Select(dto => new FileRecord
-            {
-                POSID = dto.POSID,
-                InvoiceNumber = dto.InvoiceNumber,
-                InvoiceData = dto.InvoiceData,
-                DateCreated = dto.DateCreated,
-                DateModified = dto.DateModified,
-                IsSynced = (int)InvoiceStatus.Synced,
-                AttemptCount = 0
-            }).ToList();
-
-            await _sqlFileRecordRepository.AddRangeAsync(records);
-            await _sqliteUnitOfWork.SaveChangesAsync();
-
-            return true;
-        }
-
-        private async Task<bool> CreateScriptLog(List<SyncLogDto> dtoList, long posId)
-        {
-            if (dtoList == null || dtoList.Count == 0)
-                return false;
-
-            var records = dtoList.Select(dto =>
-            {
-                string message = dto.Message!;
-                DateTime createdAtPk = DateTime.Now;
-                DateTime createdAtUtc = createdAtPk.ToUniversalTime();
-
-                if (!string.IsNullOrWhiteSpace(dto.Message) && dto.Message.Contains("==>"))
-                {
-                    var parts = dto.Message.Split("==>", 2, StringSplitOptions.TrimEntries);
-
-                    // ✅ Try parsing exact date format
-                    string[] formats =
+                    var logs = dto.Log.Select(dto =>
                     {
-                        "M/d/yyyy h:mm:ss tt",
-                        "MM/dd/yyyy hh:mm:ss tt",
-                        "M/d/yyyy hh:mm:ss tt",
-                        "MM/dd/yyyy h:mm:ss tt"
-                    };
+                        string msg = dto.Message!;
+                        DateTime createdAtPk = DateTime.Now;
 
-                    if (DateTime.TryParseExact(parts[0], formats,
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        System.Globalization.DateTimeStyles.None,
-                        out var parsedDate))
-                    {
-                        createdAtPk = parsedDate;
-                        createdAtUtc = parsedDate.ToUniversalTime();
-                        message = parts[1]; // message without date
-                    }
+                        if (!string.IsNullOrWhiteSpace(dto.Message) && dto.Message.Contains("==>"))
+                        {
+                            var parts = dto.Message.Split("==>", 2, StringSplitOptions.TrimEntries);
+
+                            string[] formats = {
+                            "M/d/yyyy h:mm:ss tt",
+                            "MM/dd/yyyy hh:mm:ss tt",
+                            "M/d/yyyy hh:mm:ss tt",
+                            "MM/dd/yyyy h:mm:ss tt"
+                        };
+
+                            if (DateTime.TryParseExact(parts[0], formats,
+                                CultureInfo.InvariantCulture, DateTimeStyles.None,
+                                out var parsed))
+                            {
+                                createdAtPk = parsed;
+                                msg = parts[1];
+                            }
+                        }
+
+                        return new Logs
+                        {
+                            POSID = posId,
+                            Message = msg,
+                            CreatedAtPk = createdAtPk,
+                            CreatedAtUtc = createdAtPk.ToUniversalTime(),
+                            IsSynced = true
+                        };
+                    }).ToList();
+
+                    await logRepo.AddRangeAsync(logs);
+                    await uow.SaveChangesAsync();
                 }
 
-                return new Logs
-                {
-                    POSID = posId,
-                    Message = message,
-                    CreatedAtPk = createdAtPk,
-                    CreatedAtUtc = createdAtUtc,
-                    IsSynced = true
-                };
-            }).ToList();
-
-            await _sqlLogsRepository.AddRangeAsync(records);
-            await _sqliteUnitOfWork.SaveChangesAsync();
-
-            return true;
+                return new ApiResponse<ScriptDTO>(ApiStatusCode.Success, "Record Saved", null!, "");
+            }
+            catch (Exception)
+            {
+                return new ApiResponse<ScriptDTO>(ApiStatusCode.Error, "Database Error", null!, "");
+            }
         }
+
+        //public async Task<ApiResponse<ScriptDTO>> CreateScript(ScriptDTO dto)
+        //{
+        //    try
+        //    {
+        //        int posId = 0;
+        //        if (dto.FileRecord is not null && dto.FileRecord.Any())
+        //        {
+        //            await CreateScriptFileRecord(dto.FileRecord);
+        //            posId = dto.FileRecord[0].POSID;
+        //        }
+
+        //        if (dto.Log is not null && dto.Log.Any() && posId > 0)
+        //        {
+        //            await CreateScriptLog(dto.Log, posId);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ApiResponse<ScriptDTO>(ApiStatusCode.Error, ResponseMessages.DatabaseError, null!, string.Empty);
+        //    }
+
+        //    return new ApiResponse<ScriptDTO>(ApiStatusCode.Success, ResponseMessages.RecordSaved, null!, string.Empty);
+
+        //}
+        //private async Task<bool> CreateScriptFileRecord(List<FileRecordDto> dtoList)
+        //{
+        //    if (dtoList == null || dtoList.Count == 0)
+        //        return false;
+
+        //    var records = dtoList.Select(dto => new FileRecord
+        //    {
+        //        POSID = dto.POSID,
+        //        InvoiceNumber = dto.InvoiceNumber,
+        //        InvoiceData = dto.InvoiceData,
+        //        DateCreated = dto.DateCreated,
+        //        DateModified = dto.DateModified,
+        //        IsSynced = (int)InvoiceStatus.Synced,
+        //        AttemptCount = 0
+        //    }).ToList();
+
+        //    await _sqlFileRecordRepository.AddRangeAsync(records);
+        //    await _sqliteUnitOfWork.SaveChangesAsync();
+
+        //    return true;
+        //}
+
+        //private async Task<bool> CreateScriptLog(List<SyncLogDto> dtoList, long posId)
+        //{
+        //    if (dtoList == null || dtoList.Count == 0)
+        //        return false;
+
+        //    var records = dtoList.Select(dto =>
+        //    {
+        //        string message = dto.Message!;
+        //        DateTime createdAtPk = DateTime.Now;
+        //        DateTime createdAtUtc = createdAtPk.ToUniversalTime();
+
+        //        if (!string.IsNullOrWhiteSpace(dto.Message) && dto.Message.Contains("==>"))
+        //        {
+        //            var parts = dto.Message.Split("==>", 2, StringSplitOptions.TrimEntries);
+
+        //            // ✅ Try parsing exact date format
+        //            string[] formats =
+        //            {
+        //                "M/d/yyyy h:mm:ss tt",
+        //                "MM/dd/yyyy hh:mm:ss tt",
+        //                "M/d/yyyy hh:mm:ss tt",
+        //                "MM/dd/yyyy h:mm:ss tt"
+        //            };
+
+        //            if (DateTime.TryParseExact(parts[0], formats,
+        //                System.Globalization.CultureInfo.InvariantCulture,
+        //                System.Globalization.DateTimeStyles.None,
+        //                out var parsedDate))
+        //            {
+        //                createdAtPk = parsedDate;
+        //                createdAtUtc = parsedDate.ToUniversalTime();
+        //                message = parts[1]; // message without date
+        //            }
+        //        }
+
+        //        return new Logs
+        //        {
+        //            POSID = posId,
+        //            Message = message,
+        //            CreatedAtPk = createdAtPk,
+        //            CreatedAtUtc = createdAtUtc,
+        //            IsSynced = true
+        //        };
+        //    }).ToList();
+
+        //    await _sqlLogsRepository.AddRangeAsync(records);
+        //    await _sqliteUnitOfWork.SaveChangesAsync();
+
+        //    return true;
+        //}
+
     }
 }
