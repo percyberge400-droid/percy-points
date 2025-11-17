@@ -28,6 +28,7 @@
         private void InitializeComponent()
         {
             panel1 = new Panel();
+            btnUpdatelogo = new Button();
             panel2 = new Panel();
             posStatus = new Label();
             lblWorkerService = new Label();
@@ -53,6 +54,7 @@
             // panel1
             // 
             panel1.BackColor = Color.White;
+            panel1.Controls.Add(btnUpdatelogo);
             panel1.Controls.Add(panel2);
             panel1.Controls.Add(pictureBox2);
             panel1.Controls.Add(panCatalogView);
@@ -67,8 +69,23 @@
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(3, 4, 3, 4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1488, 60);
+            panel1.Size = new Size(1672, 60);
             panel1.TabIndex = 4;
+            // 
+            // btnUpdatelogo
+            // 
+            btnUpdatelogo.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnUpdatelogo.BackColor = Color.FromArgb(99, 102, 241);
+            btnUpdatelogo.FlatStyle = FlatStyle.Flat;
+            btnUpdatelogo.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnUpdatelogo.ForeColor = Color.White;
+            btnUpdatelogo.Location = new Point(1054, 16);
+            btnUpdatelogo.Name = "btnUpdatelogo";
+            btnUpdatelogo.Size = new Size(146, 33);
+            btnUpdatelogo.TabIndex = 6;
+            btnUpdatelogo.Text = "📤 Update Logo";
+            btnUpdatelogo.UseVisualStyleBackColor = false;
+            btnUpdatelogo.Click += btnUpdatelogo_Click;
             // 
             // panel2
             // 
@@ -78,7 +95,7 @@
             panel2.Controls.Add(lblWorkerService);
             panel2.Controls.Add(internetStatus);
             panel2.Controls.Add(lblNetworkStatus);
-            panel2.Location = new Point(1027, 0);
+            panel2.Location = new Point(1211, 0);
             panel2.Name = "panel2";
             panel2.Size = new Size(458, 60);
             panel2.TabIndex = 6;
@@ -268,7 +285,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1488, 849);
+            ClientSize = new Size(1672, 647);
             Controls.Add(panel1);
             Controls.Add(pictureBox1);
             Margin = new Padding(3, 4, 3, 4);
@@ -302,5 +319,6 @@
         private Label lblWorkerService;
         private Label internetStatus;
         private Label lblNetworkStatus;
+        private Button btnUpdatelogo;
     }
 }
