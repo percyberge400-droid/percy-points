@@ -637,7 +637,7 @@ namespace POSPRA.SetupUI
                 if (_isServiceAvailable && !string.IsNullOrWhiteSpace(oldDbPath))
                 {
                     ShowMessage("Migrating old database...", true, false);
-                    await MigrateOldDatabaseAsync(oldDbPath, username, password);
+                    await MigrateOldDatabaseAsync(oldDbPath, username, password, dbPath);
                 }
 
                 // Only validate and backup old database if service is available
@@ -1069,7 +1069,7 @@ namespace POSPRA.SetupUI
         /// <summary>
         /// Migrates data from old IMS database to API
         /// </summary>
-        private async Task MigrateOldDatabaseAsync(string oldDbPath, string username, string password)
+        private async Task MigrateOldDatabaseAsync(string oldDbPath, string username, string password, string dbPath)
         {
             try
             {
@@ -1087,7 +1087,7 @@ namespace POSPRA.SetupUI
 
                 ShowMessage("Sending data to server...", true, false);
                 // Prepare data for API
-                await PrepareDataForApiAsync(fileRecords, logs, username, password);
+                await PrepareDataForApiAsync(fileRecords, logs, username, password, dbPath);
             }
             catch (Exception ex)
             {
@@ -1111,7 +1111,7 @@ namespace POSPRA.SetupUI
         /// <summary>
         /// Prepares data for API transmission (ready for API implementation)
         /// </summary>
-        private async Task PrepareDataForApiAsync(List<FileRecordDto> fileRecords, List<SyncLogDto> logs, string username, string password)
+        private async Task PrepareDataForApiAsync(List<FileRecordDto> fileRecords, List<SyncLogDto> logs, string username, string password, string dbPath)
         {
             try
             {
@@ -1125,7 +1125,8 @@ namespace POSPRA.SetupUI
                 var payload = new ScriptDTO
                 {
                     FileRecord = fileRecords,
-                    Log = logs
+                    Log = logs,
+                    NewDbPath = dbPath
                 };
 
                 ShowMessage($"Preparing {fileRecords.Count} file records and {logs.Count} logs for API...", true, false);
