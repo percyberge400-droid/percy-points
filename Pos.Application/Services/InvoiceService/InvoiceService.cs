@@ -80,6 +80,11 @@ namespace Pos.Application.Services.InvoiceService
                                 message: ResponseMessages.DataNotFound,
                                 data: null!
                             );
+                        var buyerNtn = JsonDocument.Parse(jsonPart)
+                            .RootElement.GetProperty("BuyerNTN")
+                            .GetString();
+
+                        invoiceDto.BuyerPNTN = buyerNtn;
 
                         return new ApiResponse<InvoiceDto>(
                             statusCode: ApiStatusCode.Success,
