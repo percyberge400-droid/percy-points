@@ -937,7 +937,7 @@ namespace POSPRA_WinFormsUI
                 // Save + print coordination
                 try
                 {
-                    var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+                    var _baseUrl = ConfigurationManager.AppSettings["SelfHostUrl"] ?? "";
 
                     var url = $"{_baseUrl}{Endpoints.Create}";
 
