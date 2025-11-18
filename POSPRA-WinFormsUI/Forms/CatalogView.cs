@@ -258,9 +258,8 @@ namespace POSPRA_WinFormsUI.Forms
 
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<ProductCatalogueDto>>>();
 
-            var apiProducts = (result?.Data != null && result.Data.Count > 0)
-                ? result.Data
-                : new List<ProductCatalogueDto> { new ProductCatalogueDto() };
+            var apiProducts = result?.Data ?? new List<ProductCatalogueDto>();
+
 
             if (!apiProducts.Any())
             {
@@ -424,7 +423,6 @@ namespace POSPRA_WinFormsUI.Forms
                 var row = ProductCatalogueDataGridView.Rows[rowIndex];
 
                 row.Cells["colSrNo"].Value = srNo++;
-                SetCell(row, "colItemSrno", product.ItemSerialNumber);
                 SetCell(row, "colProductCode", product.ProductCode);
                 SetCell(row, "colProductDesc", product.ProductDescription);
                 SetCell(row, "colHScode", product.HSCode);
@@ -432,7 +430,6 @@ namespace POSPRA_WinFormsUI.Forms
                 SetCell(row, "colPosUOM", product.PosUnitOfMeasurement);
                 SetCell(row, "colPrice", product.Price ?? 0);
                 SetCell(row, "colTaxRate", product.TaxRate);
-                SetCell(row, "colSROno", product.SroScheduleNumber);
             }
 
             ProductCatalogueDataGridView.ResumeLayout();
@@ -620,17 +617,6 @@ namespace POSPRA_WinFormsUI.Forms
             colProductDesc.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             colProductDesc.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // Item Serial Number - CENTER ALIGN
-            var colItemSrno = new DataGridViewTextBoxColumn
-            {
-                Name = "colItemSrno",
-                HeaderText = "Item Sr No",
-                ReadOnly = true,
-                FillWeight = 7
-            };
-            colItemSrno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colItemSrno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
             // HS Code - CENTER ALIGN (FIXED - was Right before)
             var colHScode = new DataGridViewTextBoxColumn
             {
@@ -687,30 +673,17 @@ namespace POSPRA_WinFormsUI.Forms
             colTaxRate.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colTaxRate.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-            // SRO Schedule - LEFT ALIGN (keeping as is)
-            var colSROno = new DataGridViewTextBoxColumn
-            {
-                Name = "colSROno",
-                HeaderText = "SRO Schedule No.",
-                ReadOnly = true,
-                FillWeight = 11
-            };
-            colSROno.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            colSROno.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
             // Add columns in desired order
             ProductCatalogueDataGridView.Columns.AddRange(new DataGridViewColumn[]
             {
-        colSrNo,
-        colProductCode,
-        colProductDesc,
-        colHScode,
-        colSaleType,
-        colPosUOM,
-        colPrice,
-        colTaxRate,
-        colSROno,
-        colItemSrno
+                colSrNo,
+                colProductCode,
+                colProductDesc,
+                colHScode,
+                colSaleType,
+                colPosUOM,
+                colPrice,
+                colTaxRate,
             });
 
             // Polish header appearance - ALL HEADERS CENTER ALIGNED
