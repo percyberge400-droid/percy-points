@@ -23,6 +23,7 @@ using Pos.Application.Services.POSService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Services.ScriptService;
 using Pos.Infrastructure.Persistence;
+using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
 using Pos.Infrastructure.Persistence.Repositories.ProductCatalogue;
 using Pos.Infrastructure.Services;
@@ -60,6 +61,7 @@ namespace Pos.Infrastructure
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ICloudLogService, CloudLogService>();
             services.AddSingleton<IEnvironmentService, EnvironmentService>();
+            services.AddSingleton<ISqliteDynamicFactory, SqliteDynamicFactory>();
 
             // Configuration
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
