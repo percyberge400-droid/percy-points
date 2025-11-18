@@ -4,6 +4,7 @@ using Pos.Worker;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Worker;
 using System.Reflection;
+using Pos.Worker.Logging;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService()
@@ -33,7 +34,16 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddHostedService<Worker>();
         services.AddHostedService<SqliteBackupService>();
     });
+// Global exception handlers
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    FileLogger.LogException(e.ExceptionObject as Exception, "UnhandledException");
+};
 
+TaskScheduler.UnobservedTaskException += (sender, e) =>
+{
+    FileLogger.LogException(e.Exception, "UnobservedTaskException");
+};
 var host = builder.Build();
 
 // ----------------------------------------------------
@@ -61,9 +71,9 @@ using (var scope = host.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
     var dbPathUsed = db.Database.GetDbConnection().DataSource;
 
-    var logFile = Path.Combine(AppContext.BaseDirectory, "worker-service-log.txt");
-    File.AppendAllText(logFile,
-        $"[{DateTime.Now}] Using SQLite DB: {dbPathUsed}{Environment.NewLine}");
+    //var logFile = Path.Combine(AppContext.BaseDirectory, "worker-service-log.txt");
+    //File.AppendAllText(logFile,
+    //    $"[{DateTime.Now}] Using SQLite DB: {dbPathUsed}{Environment.NewLine}");
 }
 
 // ----------------------------------------------------
