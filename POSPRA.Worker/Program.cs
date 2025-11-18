@@ -71,9 +71,9 @@ using (var scope = host.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
     var dbPathUsed = db.Database.GetDbConnection().DataSource;
 
-    var logFile = Path.Combine(AppContext.BaseDirectory, "worker-service-log.txt");
-    File.AppendAllText(logFile,
-        $"[{DateTime.Now}] Using SQLite DB: {dbPathUsed}{Environment.NewLine}");
+    //var logFile = Path.Combine(AppContext.BaseDirectory, "worker-service-log.txt");
+    //File.AppendAllText(logFile,
+    //    $"[{DateTime.Now}] Using SQLite DB: {dbPathUsed}{Environment.NewLine}");
 }
 
 // ----------------------------------------------------
