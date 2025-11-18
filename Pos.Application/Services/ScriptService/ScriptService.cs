@@ -33,7 +33,7 @@ namespace Pos.Application.Services.ScriptService
                 if (dto.FileRecord?.Any() == true)
                 {
                     await CreateScriptFileRecord(dto.FileRecord, fileRepo, fileUow);
-                    posId = 112233;
+                    posId = dto.FileRecord[0].POSID;
                 }
 
                 // Insert Logs
