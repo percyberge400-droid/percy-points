@@ -15,10 +15,20 @@ namespace Pos.Infrastructure.Persistence
             _environmentService = environmentService;
         }
 
-        public SqlServerDbContext CreateSqlServerDbContext()
+        /// <summary>
+        /// Creates a new SqlServerDbContext based on current environment.
+        /// Use forceProduction = true to always connect to the Production database.
+        /// </summary>
+        /// <param name="forceProduction">If true, always use Production DB</param>
+        /// <returns>SqlServerDbContext</returns>
+        public SqlServerDbContext CreateSqlServerDbContext(bool forceProduction = false)
         {
             // Get current environment (Sandbox or Production)
             var env = _environmentService.GetCurrentEnvironment();
+
+            // Force Production if requested
+            if (forceProduction)
+                env = EnvironmentType.Production;
 
             // Pick connection string based on environment
             var connectionString = env == EnvironmentType.Sandbox
@@ -30,7 +40,7 @@ namespace Pos.Infrastructure.Persistence
 
             optionsBuilder.UseSqlServer(connectionString, sqlOptions =>
             {
-                // ✅ Enable retry logic for transient SQL issues
+                // Enable retry logic for transient SQL issues
                 sqlOptions.EnableRetryOnFailure(
                     maxRetryCount: 5,
                     maxRetryDelay: TimeSpan.FromSeconds(10),

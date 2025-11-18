@@ -12,30 +12,24 @@ namespace Pos.Infrastructure.Persistence.Repositories.ProductCatalogue
         private readonly IRepository<Pos.Domain.Entities.PosClients> _sqlPosClientRepository;
         private readonly IRepository<Pos.Domain.Entities.POSBranches> _sqlPosBranchesRepository;
         private readonly IConfiguration _configuration;
-
+        private readonly DbContextFactory _dbContextFactory;
         public ProductCatalogueByPosIdRepository(
-            ISqlServerRepositoryFactory sqlRepositoryFactory, IConfiguration configuration)
+            ISqlServerRepositoryFactory sqlRepositoryFactory, IConfiguration configuration, DbContextFactory dbContextFactory)
         {
             // Get the DbContext from the factory or inject it directly
             _sqlProductCatalogueRepository = sqlRepositoryFactory.CreateRepository<Pos.Domain.Entities.ProductCatalogue>();
             _sqlPosClientRepository = sqlRepositoryFactory.CreateRepository<Pos.Domain.Entities.PosClients>();
             _sqlPosBranchesRepository = sqlRepositoryFactory.CreateRepository<Pos.Domain.Entities.POSBranches>();
             _configuration = configuration;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(int posId)
         {
-            // Get the production connection string
-            var connectionString = _configuration.GetConnectionString("ProductionConnection");
+            // Use the DbContextFactory to always get Production DB instance
+            await using var dbContext = _dbContextFactory.CreateSqlServerDbContext(forceProduction: true);
 
-            // Create DbContext options dynamically
-            var optionsBuilder = new DbContextOptionsBuilder<SqlServerDbContext>();
-            optionsBuilder.UseSqlServer(connectionString);
-
-            // Use a temporary DbContext
-            await using var dbContext = new SqlServerDbContext(optionsBuilder.Options);
-
-            // Query using the temporary DbContext
+            // Query the data
             var output =
                 from client in dbContext.PosClients
                 join branch in dbContext.POSBranches
