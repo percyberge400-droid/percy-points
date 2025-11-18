@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Pos.Application.Interfaces;
 using Pos.Application.Services.ScriptService;
+using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
 using System.Configuration;
 
@@ -95,7 +96,7 @@ namespace POSPRA.SetupUI
             services.AddScoped<IScriptService, ScriptService>();
             services.AddScoped<ISqliteRepositoryFactory, SqliteRepositoryFactory>();
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
-
+            services.AddSingleton<ISqliteDynamicFactory, SqliteDynamicFactory>();
 
             // ✅ Build the provider to resolve services
             using (var serviceProvider = services.BuildServiceProvider())
