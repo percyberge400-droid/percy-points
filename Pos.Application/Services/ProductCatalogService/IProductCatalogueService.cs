@@ -1,4 +1,5 @@
 ﻿using Pos.Application.DTOs;
+using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 
 namespace Pos.Application.Services.ProductCatalogService
@@ -20,6 +21,11 @@ namespace Pos.Application.Services.ProductCatalogService
         /// <returns></returns>
         Task<ApiResponse<List<ProductCatalogueDto>>> GetProductCatalogue();
 
+        /// <summary>
+        /// This API is used to get product catalog from local db with pagination implemented.
+        /// </summary>
+        /// <returns></returns>
+        Task<ApiResponse<PageResponseDto<ProductCatalogueDto>>> GetProductCatalogueWithPagination(ProductCatalogueQueryDto query);
         /// <summary>
         /// This API is used to delete product catalog.
         /// </summary>

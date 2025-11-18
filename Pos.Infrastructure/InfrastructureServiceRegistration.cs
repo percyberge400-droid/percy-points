@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using pos.Application.Services.ConfigurationService;
 using Pos.Application.DTOs;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.ProductCatalogue;
 using Pos.Application.Services;
 using Pos.Application.Services.ClientService;
 using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
@@ -23,6 +24,7 @@ using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Services.ScriptService;
 using Pos.Infrastructure.Persistence;
 using Pos.Infrastructure.Persistence.Repositories;
+using Pos.Infrastructure.Persistence.Repositories.ProductCatalogue;
 using Pos.Infrastructure.Services;
 using POSPRA.Application.Services.FiscalService;
 
@@ -32,6 +34,11 @@ namespace Pos.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // -------------------------
+            // Repositories
+            // -------------------------
+            services.AddScoped<IProductCatalogueByPosIdRepository, ProductCatalogueByPosIdRepository>();
+
             // -------------------------
             // Core Services
             // -------------------------

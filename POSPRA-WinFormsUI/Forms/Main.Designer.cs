@@ -69,19 +69,19 @@
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(3, 4, 3, 4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1672, 60);
+            panel1.Size = new Size(1753, 60);
             panel1.TabIndex = 4;
             // 
             // btnUpdatelogo
             // 
             btnUpdatelogo.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnUpdatelogo.BackColor = Color.FromArgb(99, 102, 241);
+            btnUpdatelogo.BackColor = Color.Teal;
             btnUpdatelogo.FlatStyle = FlatStyle.Flat;
-            btnUpdatelogo.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnUpdatelogo.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnUpdatelogo.ForeColor = Color.White;
-            btnUpdatelogo.Location = new Point(1054, 16);
+            btnUpdatelogo.Location = new Point(1120, 12);
             btnUpdatelogo.Name = "btnUpdatelogo";
-            btnUpdatelogo.Size = new Size(146, 33);
+            btnUpdatelogo.Size = new Size(164, 39);
             btnUpdatelogo.TabIndex = 6;
             btnUpdatelogo.Text = "📤 Update Logo";
             btnUpdatelogo.UseVisualStyleBackColor = false;
@@ -95,7 +95,7 @@
             panel2.Controls.Add(lblWorkerService);
             panel2.Controls.Add(internetStatus);
             panel2.Controls.Add(lblNetworkStatus);
-            panel2.Location = new Point(1211, 0);
+            panel2.Location = new Point(1292, 0);
             panel2.Name = "panel2";
             panel2.Size = new Size(458, 60);
             panel2.TabIndex = 6;
@@ -285,7 +285,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1672, 647);
+            ClientSize = new Size(1753, 1105);
             Controls.Add(panel1);
             Controls.Add(pictureBox1);
             Margin = new Padding(3, 4, 3, 4);

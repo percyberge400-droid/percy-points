@@ -332,13 +332,24 @@ namespace POSPRA_WinFormsUI.Forms
 
         private async Task LoadFromLocalDB(CancellationToken cancellationToken = default)
         {
-            var response = await _productCatalogueService.GetProductCatalogue();
+            var query = new ProductCatalogueQueryDto
+            {
+                HSCode = null,
+                ProductDescription = null,
+                numberOfRecords = _pageSize,
+                pageNumber = _currentPage
+            };
+
+            var response = await _productCatalogueService.GetProductCatalogueWithPagination(query);
             cancellationToken.ThrowIfCancellationRequested();
+            var allItems = response.Data.Items;
 
-            var allItems = response?.Data?.OrderBy(p => p.ItemSerialNumber).ToList()
-                ?? new List<ProductCatalogueDto>();
 
-            UpdateDataGridWithPagination(allItems, cancellationToken);
+            //var allItems = response?.Items?.OrderBy(p => p.ItemSerialNumber).ToList()
+            //               ?? new List<ProductCatalogueDto>();
+            int totalRecords = (int)response.Data.TotalRecords;
+            int totalPages = (int)response.Data.TotalPages;
+            UpdateDataGridWithPagination(allItems, totalRecords, totalPages, cancellationToken);
         }
 
         private async Task FilterProductsFromLocalDB(CancellationToken cancellationToken = default)
@@ -371,26 +382,13 @@ namespace POSPRA_WinFormsUI.Forms
         #endregion
 
         #region UI Updates
-        private void UpdateDataGridWithPagination(List<ProductCatalogueDto> allItems, CancellationToken cancellationToken = default)
+        private void UpdateDataGridWithPagination(List<ProductCatalogueDto> allItems, int totalRecords, int totalPages, CancellationToken cancellationToken = default)
         {
             if (IsOperationCanceled()) return;
 
-            int totalRecords = allItems.Count;
-            int totalPages = (int)Math.Ceiling((double)totalRecords / _pageSize);
-
-            // Adjust current page if needed
-            if (_currentPage > totalPages && totalPages > 0)
-                _currentPage = totalPages;
-            if (_currentPage < 1) _currentPage = 1;
-
-            var pageData = allItems
-                .Skip((_currentPage - 1) * _pageSize)
-                .Take(_pageSize)
-                .ToList();
-
             ProductCatalogueDataGridView.InvokeIfRequired(() =>
             {
-                PopulateGrid(pageData);
+                PopulateGrid(allItems);
                 lblTotalRecords.Text = $"Total {totalRecords} Products";
                 lblPageNumber.Text = $"Page {_currentPage} of {totalPages}";
                 btnNext.Enabled = _currentPage < totalPages;
