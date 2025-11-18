@@ -77,7 +77,7 @@ namespace POSPRA.SetupUI
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                Directory.CreateDirectory(dbDirectory);
+                //Directory.CreateDirectory(dbDirectory);
             }
 
             // 🔹 Step 4: Initialize SQLite database
@@ -87,7 +87,7 @@ namespace POSPRA.SetupUI
 
             using (var context = new SqliteDbContext(sqliteOptions))
             {
-                context.Database.EnsureCreated();
+                //context.Database.EnsureCreated();
             }
 
             // 🔹 Step 5: Build DI container
