@@ -5,6 +5,7 @@ using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
+using Pos.Worker.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -26,7 +27,10 @@ namespace Pos.Worker
             var workerInstanceId = Guid.NewGuid().ToString();
             var workerName = nameof(Worker);
 
-            // Log startup
+            // Write file log
+            FileLogger.Log($"Worker started - InstanceId: {workerInstanceId}");
+
+            // Also DB or custom log
             using (var startupScope = _serviceScopeFactory.CreateScope())
             {
                 var logService = startupScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
@@ -37,7 +41,6 @@ namespace Pos.Worker
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    // Resolve scoped services in a scope
                     using var scope = _serviceScopeFactory.CreateScope();
                     var networkService = scope.ServiceProvider.GetRequiredService<INetworkService>();
                     var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
@@ -46,13 +49,13 @@ namespace Pos.Worker
 
                     if (!internetAvailable)
                     {
+                        FileLogger.Log("Warning: Internet not available. Skipping sync.");
                         await LogWarningAsync("Internet not available. Skipping sync.", workerName, workerInstanceId);
                         await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                         continue;
                     }
 
                     bool enabledWorker = false;
-
                     var fullUrl = $"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}?posId={_appSettings.POS}";
 
                     try
@@ -66,41 +69,44 @@ namespace Pos.Worker
                     }
                     catch (Exception ex)
                     {
+                        FileLogger.LogException(ex, "Service Enabled Check");
                         await LogWarningAsync($"Error calling API: {ex.Message}", workerName, workerInstanceId);
                     }
 
                     if (!enabledWorker)
                     {
+                        FileLogger.Log("Worker disabled via API.");
                         await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                         continue;
                     }
 
                     bool isCloudSyncEnabled = false;
+
                     try
                     {
                         using var httpClient = httpClientFactory.CreateClient();
                         var apiUrl = $"{_appSettings.BaseUrl}{Endpoints.IsCloudSyncEnabledAsync}";
-
                         var response = await httpClient.PostAsJsonAsync(apiUrl, new GetByPosIdDto { PosId = _appSettings.POS }, cancellationToken);
+
                         if (response.IsSuccessStatusCode)
                         {
                             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                            isCloudSyncEnabled = JsonSerializer.Deserialize<bool>(content, new JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true
-                            });
+                            isCloudSyncEnabled = JsonSerializer.Deserialize<bool>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                         }
                         else
                         {
+                            FileLogger.Log($"Cloud sync API failed: {response.StatusCode}");
                             await LogWarningAsync($"Cloud sync API call failed with status {response.StatusCode}", workerName, workerInstanceId);
                         }
                     }
                     catch (HttpRequestException ex)
                     {
+                        FileLogger.LogException(ex, "Cloud Sync Network Issue");
                         await LogWarningAsync($"Network issue while calling cloud sync API: {ex.Message}", workerName, workerInstanceId);
                     }
                     catch (Exception ex)
                     {
+                        FileLogger.LogException(ex, "Cloud Sync Unexpected Error");
                         await LogErrorAsync($"Unexpected error calling cloud sync API: {ex}", workerName, workerInstanceId);
                     }
 
@@ -114,6 +120,7 @@ namespace Pos.Worker
                         }
                         catch (Exception ex)
                         {
+                            FileLogger.LogException(ex, "Invoice Sync");
                             await LogErrorAsync($"Error during invoice sync: {ex}", workerName, workerInstanceId);
                         }
                     }
@@ -121,16 +128,25 @@ namespace Pos.Worker
                     await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                 }
             }
+            catch (Exception ex)
+            {
+                FileLogger.LogException(ex, "ExecuteAsync Crash");
+            }
             finally
             {
+                // Shutdown logging
                 using var shutdownScope = _serviceScopeFactory.CreateScope();
                 var logService = shutdownScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
                 await logService.LogShutdown(workerName, workerInstanceId);
+
+                FileLogger.Log($"Worker stopped - InstanceId: {workerInstanceId}");
             }
         }
 
         private async Task LogWarningAsync(string message, string workerName, string workerInstanceId)
         {
+            FileLogger.Log("Warning: " + message);
+
             using var scope = _serviceScopeFactory.CreateScope();
             var logService = scope.ServiceProvider.GetRequiredService<IWorkerLogService>();
             await logService.LogAsync(AlertType.Warning, message, workerName, workerInstanceId, "NetworkIssue");
@@ -138,6 +154,8 @@ namespace Pos.Worker
 
         private async Task LogErrorAsync(string message, string workerName, string workerInstanceId)
         {
+            FileLogger.Log("Error: " + message);
+
             using var scope = _serviceScopeFactory.CreateScope();
             var logService = scope.ServiceProvider.GetRequiredService<IWorkerLogService>();
             await logService.LogAsync(AlertType.Error, message, workerName, workerInstanceId, "WorkerError");

@@ -4,6 +4,7 @@ using Pos.Worker;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Worker;
 using System.Reflection;
+using Pos.Worker.Logging;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService()
@@ -33,7 +34,16 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddHostedService<Worker>();
         services.AddHostedService<SqliteBackupService>();
     });
+// Global exception handlers
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    FileLogger.LogException(e.ExceptionObject as Exception, "UnhandledException");
+};
 
+TaskScheduler.UnobservedTaskException += (sender, e) =>
+{
+    FileLogger.LogException(e.Exception, "UnobservedTaskException");
+};
 var host = builder.Build();
 
 // ----------------------------------------------------
