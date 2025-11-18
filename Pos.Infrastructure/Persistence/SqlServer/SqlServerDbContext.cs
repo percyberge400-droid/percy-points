@@ -15,6 +15,7 @@ public class SqlServerDbContext : DbContext
     public DbSet<PosStatus> POSStatus { get; set; }
     public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
     public DbSet<Logs> Logs { get; set; } = null!;
+    public DbSet<POSBranches> POSBranches { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
