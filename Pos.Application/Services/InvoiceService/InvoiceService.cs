@@ -183,28 +183,28 @@ namespace Pos.Application.Services.InvoiceService
                 }
 
                 // ✅ 3. Try to sync with live if internet is available
-                dto.InvoiceNumber = invoiceEntity.FBRInvoiceNumber;
-                if (await _networkService.IsInternetAvailableAsync())
-                {
-                    if (dto.InvoiceNumber != null)
-                    {
-                        var isInvoiceExist = await isCloudInvoiceExists(invoiceEntity.FBRInvoiceNumber);
-                        if (!isInvoiceExist)
-                        {
-                            var liveResponse = await _liveService.CreateInvoiceWithItemsAsync(dto);
-                            if (liveResponse.StatusCode == ApiStatusCode.Success)
-                            {
-                                var record = await _fileRecordService.GetByInvoiceIdAsync(fiscalResponse.Data.InvoiceId);
-                                if (record.StatusCode == ApiStatusCode.Success)
-                                {
-                                    record.Data.IsSynced = (int)InvoiceStatus.Synced;
+                //dto.InvoiceNumber = invoiceEntity.FBRInvoiceNumber;
+                //if (await _networkService.IsInternetAvailableAsync())
+                //{
+                //    if (dto.InvoiceNumber != null)
+                //    {
+                //        var isInvoiceExist = await isCloudInvoiceExists(invoiceEntity.FBRInvoiceNumber);
+                //        if (!isInvoiceExist)
+                //        {
+                //            var liveResponse = await _liveService.CreateInvoiceWithItemsAsync(dto);
+                //            if (liveResponse.StatusCode == ApiStatusCode.Success)
+                //            {
+                //                var record = await _fileRecordService.GetByInvoiceIdAsync(fiscalResponse.Data.InvoiceId);
+                //                if (record.StatusCode == ApiStatusCode.Success)
+                //                {
+                //                    record.Data.IsSynced = (int)InvoiceStatus.Synced;
 
-                                    await _fileRecordService.UpdateFileRecordAsync(record.Data);
-                                }
-                            }
-                        }
-                    }
-                }
+                //                    await _fileRecordService.UpdateFileRecordAsync(record.Data);
+                //                }
+                //            }
+                //        }
+                //    }
+                //}
 
                 // 4. Return success if fiscal creation worked, but include validation info
                 return new ApiResponse<InvoiceDto>(
