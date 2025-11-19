@@ -37,7 +37,6 @@ namespace POSPRA_WinFormsUI
                 dbPathFromAppConfig = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
             }
 
-
             // ------------------------------
             // 3️⃣ Inject app.config value into IConfiguration
             // ------------------------------
@@ -54,7 +53,6 @@ namespace POSPRA_WinFormsUI
             // Add to builder
             builder.AddInMemoryCollection(appConfigValues);
 
-
             var configuration = builder.Build();
 
             // ------------------------------
@@ -70,12 +68,11 @@ namespace POSPRA_WinFormsUI
             // ✅ Setup DI
             var services = new ServiceCollection();
 
-
             // ✅ Register IConfiguration first
             services.AddSingleton<IConfiguration>(configuration);
 
             // ✅ Add all infrastructure services (repositories, unit of work, core services)
-            services.AddInfrastructure(configuration);
+            services.AddInfrastructure(configuration, true);
 
             // ✅ Register SQLite DbContext manually for file path override
             services.AddDbContext<SqliteDbContext>(options =>

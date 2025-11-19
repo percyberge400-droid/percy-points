@@ -29,12 +29,11 @@ using Pos.Infrastructure.Persistence.Repositories;
 using Pos.Infrastructure.Persistence.Repositories.ProductCatalogue;
 using Pos.Infrastructure.Services;
 using POSPRA.Application.Services.FiscalService;
-
 namespace Pos.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool isWinForm = false)
         {
             // -------------------------
             // Add HttpContextAccessor first
@@ -45,36 +44,43 @@ namespace Pos.Infrastructure
             // Environment Service
             // -------------------------
             // Load Worker config dynamically
-            services.AddSingleton<IEnvironmentService>(provider =>
-            {
-                // Read worker JSON path from configuration
-                var workerConfigPath = configuration["WorkerConfigPath"];
-                if (string.IsNullOrWhiteSpace(workerConfigPath))
+            if (!isWinForm)
+                services.AddSingleton<IEnvironmentService>(provider =>
                 {
-                    workerConfigPath = Path.GetFullPath(
-                        Path.Combine(AppContext.BaseDirectory, @"..\..\..\POSPRA.Worker\appsettings.worker.json")
-                    );
-                }
-
-                if (!File.Exists(workerConfigPath))
-                    throw new FileNotFoundException("Worker config file not found", workerConfigPath);
-
-                // Read App.config path from configuration
-                var appConfigPath = configuration["WinFormsAppConfigPath"];
-                if (!string.IsNullOrWhiteSpace(appConfigPath))
-                {
-                    appConfigPath = Path.GetFullPath(appConfigPath);
-                    if (!File.Exists(appConfigPath))
+                    // Read worker JSON path from configuration
+                    var workerConfigPath = configuration["WorkerConfigPath"];
+                    if (string.IsNullOrWhiteSpace(workerConfigPath))
                     {
-                        // Optional: ignore if file doesn’t exist
-                        appConfigPath = null;
+                        workerConfigPath = Path.GetFullPath(
+                            Path.Combine(AppContext.BaseDirectory, @"..\..\..\POSPRA.Worker\appsettings.worker.json")
+                        );
                     }
-                }
 
-                return new EnvironmentService(workerConfigPath, appConfigPath);
-            });
+                    if (!File.Exists(workerConfigPath))
+                        throw new FileNotFoundException("Worker config file not found", workerConfigPath);
 
+                    return new EnvironmentService(workerConfigPath);
+                });
+            else
+            {
+                // WinForms mode → Use NullEnvironmentService
+                services.AddSingleton<IEnvironmentService>(provider =>
+                {
+                    // Read WinForms App.config value
+                    var appConfigPath = System.Configuration.ConfigurationManager.AppSettings["WinFormsAppConfigPath"];
 
+                    if (string.IsNullOrWhiteSpace(appConfigPath))
+                    {
+                        // Fallback: App.config in WinForms EXE directory
+                        appConfigPath = Path.Combine(AppContext.BaseDirectory, "App.config");
+                    }
+
+                    if (!File.Exists(appConfigPath))
+                        throw new FileNotFoundException("WinForms App.config not found", appConfigPath);
+
+                    return new NullEnvironmentService(appConfigPath);
+                });
+            }
 
             // -------------------------
             // Repositories

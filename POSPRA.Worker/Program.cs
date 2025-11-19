@@ -1,10 +1,10 @@
-﻿using System.Reflection;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Pos.Infrastructure;
 using Pos.Worker;
 using Pos.Worker.Logging;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Worker;
+using System.Reflection;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService()

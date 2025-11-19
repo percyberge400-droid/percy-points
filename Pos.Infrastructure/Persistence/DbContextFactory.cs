@@ -19,9 +19,13 @@ namespace Pos.Infrastructure.Persistence
         /// <summary>
         /// Creates a new SqlServerDbContext based on the current process environment (async).
         /// </summary>
-        public async Task<SqlServerDbContext> CreateSqlServerDbContextAsync(bool forceProduction = false)
+        public async Task<SqlServerDbContext?> CreateSqlServerDbContextAsync(bool forceProduction = false)
         {
             var env = await _environmentService.GetCurrentEnvironmentAsync();
+
+            // If environment is null → stop and return null (or throw if you prefer)
+            if (env == null)
+                return null;
 
             if (forceProduction)
                 env = EnvironmentType.Production;
