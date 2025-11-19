@@ -60,4 +60,9 @@ namespace Pos.Domain.ValueObjects
                 return value.ToString();
         }
     }
+    public enum EnvironmentType
+    {
+        Sandbox,
+        Production
+    }
 }

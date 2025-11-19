@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Pos.Application.Interfaces;
+using Pos.Domain.ValueObjects;
 
 namespace Pos.Infrastructure.Persistence
 {
@@ -16,39 +17,35 @@ namespace Pos.Infrastructure.Persistence
         }
 
         /// <summary>
-        /// Creates a new SqlServerDbContext based on current environment.
-        /// Use forceProduction = true to always connect to the Production database.
+        /// Creates a new SqlServerDbContext based on the current process environment (async).
         /// </summary>
-        /// <param name="forceProduction">If true, always use Production DB</param>
-        /// <returns>SqlServerDbContext</returns>
-        public SqlServerDbContext CreateSqlServerDbContext(bool forceProduction = false)
+        public async Task<SqlServerDbContext> CreateSqlServerDbContextAsync(bool forceProduction = false)
         {
-            // Get current environment (Sandbox or Production)
-            var env = _environmentService.GetCurrentEnvironment();
+            var env = await _environmentService.GetCurrentEnvironmentAsync();
 
-            // Force Production if requested
             if (forceProduction)
                 env = EnvironmentType.Production;
 
-            // Pick connection string based on environment
             var connectionString = env == EnvironmentType.Sandbox
                 ? _configuration.GetConnectionString("SandboxConnection")
                 : _configuration.GetConnectionString("ProductionConnection");
 
-            // Configure DbContextOptions
             var optionsBuilder = new DbContextOptionsBuilder<SqlServerDbContext>();
-
             optionsBuilder.UseSqlServer(connectionString, sqlOptions =>
             {
-                // Enable retry logic for transient SQL issues
-                sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(10),
-                    errorNumbersToAdd: null
-                );
+                sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
             });
 
             return new SqlServerDbContext(optionsBuilder.Options);
+        }
+
+        /// <summary>
+        /// Synchronous wrapper for DI usage.
+        /// </summary>
+        public SqlServerDbContext CreateSqlServerDbContext(bool forceProduction = false)
+        {
+            // Use .GetAwaiter().GetResult() to block until async completes
+            return CreateSqlServerDbContextAsync(forceProduction).GetAwaiter().GetResult();
         }
     }
 }

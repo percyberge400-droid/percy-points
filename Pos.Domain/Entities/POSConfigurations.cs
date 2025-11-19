@@ -1,4 +1,6 @@
-﻿namespace Pos.Domain.Entities
+﻿using Pos.Domain.ValueObjects;
+
+namespace Pos.Domain.Entities
 {
     public class POSConfigurations
     {
@@ -18,5 +20,6 @@
         public long? POSID { get; set; }
         public int? FileSize { get; set; }
         public string? Token { get; set; }
+        public EnvironmentType Environment { get; set; }
     }
 }
