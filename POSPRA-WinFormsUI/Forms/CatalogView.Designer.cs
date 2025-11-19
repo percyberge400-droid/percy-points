@@ -22,10 +22,10 @@
             lblTotalRecords = new Label();
             btnLoad = new Button();
             panel1 = new Panel();
-            lblCustomerRegType = new Label();
             labelInvoicesTitle = new Label();
-            SearchBox = new TextBox();
             label1 = new Label();
+            lblCustomerRegType = new Label();
+            SearchBox = new TextBox();
             progressBar = new ProgressBar();
             ((System.ComponentModel.ISupportInitialize)ProductCatalogueDataGridView).BeginInit();
             panel2.SuspendLayout();
@@ -38,13 +38,13 @@
             ProductCatalogueDataGridView.AllowUserToDeleteRows = false;
             ProductCatalogueDataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             ProductCatalogueDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            ProductCatalogueDataGridView.Location = new Point(0, 49);
+            ProductCatalogueDataGridView.Location = new Point(0, 83);
             ProductCatalogueDataGridView.Margin = new Padding(3, 4, 3, 4);
             ProductCatalogueDataGridView.Name = "ProductCatalogueDataGridView";
             ProductCatalogueDataGridView.ReadOnly = true;
             ProductCatalogueDataGridView.RowHeadersVisible = false;
             ProductCatalogueDataGridView.RowHeadersWidth = 51;
-            ProductCatalogueDataGridView.Size = new Size(1587, 646);
+            ProductCatalogueDataGridView.Size = new Size(1587, 612);
             ProductCatalogueDataGridView.TabIndex = 9;
             // 
             // colItemSrno
@@ -169,26 +169,13 @@
             // 
             panel1.BackColor = Color.White;
             panel1.BorderStyle = BorderStyle.FixedSingle;
-            panel1.Controls.Add(lblCustomerRegType);
             panel1.Controls.Add(labelInvoicesTitle);
-            panel1.Controls.Add(SearchBox);
             panel1.Controls.Add(label1);
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
             panel1.Size = new Size(1581, 46);
             panel1.TabIndex = 80;
-            // 
-            // lblCustomerRegType
-            // 
-            lblCustomerRegType.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lblCustomerRegType.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
-            lblCustomerRegType.ForeColor = Color.FromArgb(75, 85, 99);
-            lblCustomerRegType.Location = new Point(1254, 15);
-            lblCustomerRegType.Name = "lblCustomerRegType";
-            lblCustomerRegType.Size = new Size(62, 20);
-            lblCustomerRegType.TabIndex = 41;
-            lblCustomerRegType.Text = "Search";
             // 
             // labelInvoicesTitle
             // 
@@ -203,17 +190,6 @@
             labelInvoicesTitle.TabIndex = 40;
             labelInvoicesTitle.Text = "PRODUCT CATALOGUE";
             // 
-            // SearchBox
-            // 
-            SearchBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SearchBox.Font = new Font("Microsoft Sans Serif", 9F);
-            SearchBox.ForeColor = SystemColors.InfoText;
-            SearchBox.Location = new Point(1322, 10);
-            SearchBox.Name = "SearchBox";
-            SearchBox.PlaceholderText = "Search";
-            SearchBox.Size = new Size(252, 24);
-            SearchBox.TabIndex = 0;
-            // 
             // label1
             // 
             label1.Anchor = AnchorStyles.Right;
@@ -223,6 +199,28 @@
             label1.Size = new Size(53, 20);
             label1.TabIndex = 3;
             label1.Text = "Page 1";
+            // 
+            // lblCustomerRegType
+            // 
+            lblCustomerRegType.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblCustomerRegType.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
+            lblCustomerRegType.ForeColor = Color.FromArgb(75, 85, 99);
+            lblCustomerRegType.Location = new Point(1249, 57);
+            lblCustomerRegType.Name = "lblCustomerRegType";
+            lblCustomerRegType.Size = new Size(62, 20);
+            lblCustomerRegType.TabIndex = 41;
+            lblCustomerRegType.Text = "Search";
+            // 
+            // SearchBox
+            // 
+            SearchBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            SearchBox.Font = new Font("Microsoft Sans Serif", 9F);
+            SearchBox.ForeColor = SystemColors.InfoText;
+            SearchBox.Location = new Point(1317, 52);
+            SearchBox.Name = "SearchBox";
+            SearchBox.PlaceholderText = "Search";
+            SearchBox.Size = new Size(252, 24);
+            SearchBox.TabIndex = 0;
             // 
             // progressBar
             // 
@@ -235,7 +233,9 @@
             // 
             BackColor = Color.WhiteSmoke;
             ClientSize = new Size(1581, 773);
+            Controls.Add(lblCustomerRegType);
             Controls.Add(progressBar);
+            Controls.Add(SearchBox);
             Controls.Add(panel1);
             Controls.Add(panel2);
             Controls.Add(ProductCatalogueDataGridView);
@@ -246,6 +246,7 @@
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
         private DataGridView ProductCatalogueDataGridView;
         private DataGridViewTextBoxColumn colItemSrno;

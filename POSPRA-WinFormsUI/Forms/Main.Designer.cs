@@ -27,8 +27,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             panel1 = new Panel();
-            btnUpdatelogo = new Button();
+            lblEnvironment = new Label();
             panel2 = new Panel();
             posStatus = new Label();
             lblWorkerService = new Label();
@@ -45,16 +46,20 @@
             panInvoiceSelection = new Panel();
             sqliteCommand1 = new Microsoft.Data.Sqlite.SqliteCommand();
             pictureBox1 = new PictureBox();
+            contextMenuCatalog = new ContextMenuStrip(components);
+            productCatalogToolStripMenuItem = new ToolStripMenuItem();
+            uploadLogoToolStripMenuItem = new ToolStripMenuItem();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            contextMenuCatalog.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
             // 
             panel1.BackColor = Color.White;
-            panel1.Controls.Add(btnUpdatelogo);
+            panel1.Controls.Add(lblEnvironment);
             panel1.Controls.Add(panel2);
             panel1.Controls.Add(pictureBox2);
             panel1.Controls.Add(panCatalogView);
@@ -72,20 +77,17 @@
             panel1.Size = new Size(1753, 60);
             panel1.TabIndex = 4;
             // 
-            // btnUpdatelogo
+            // lblEnvironment
             // 
-            btnUpdatelogo.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnUpdatelogo.BackColor = Color.Teal;
-            btnUpdatelogo.FlatStyle = FlatStyle.Flat;
-            btnUpdatelogo.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnUpdatelogo.ForeColor = Color.White;
-            btnUpdatelogo.Location = new Point(1120, 12);
-            btnUpdatelogo.Name = "btnUpdatelogo";
-            btnUpdatelogo.Size = new Size(164, 39);
-            btnUpdatelogo.TabIndex = 6;
-            btnUpdatelogo.Text = "📤 Update Logo";
-            btnUpdatelogo.UseVisualStyleBackColor = false;
-            btnUpdatelogo.Click += btnUpdatelogo_Click;
+            lblEnvironment.Anchor = AnchorStyles.Left;
+            lblEnvironment.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblEnvironment.ForeColor = Color.Teal;
+            lblEnvironment.Location = new Point(1122, 33);
+            lblEnvironment.Name = "lblEnvironment";
+            lblEnvironment.Size = new Size(136, 23);
+            lblEnvironment.TabIndex = 8;
+            lblEnvironment.Text = "Sandbox";
+            lblEnvironment.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // panel2
             // 
@@ -95,9 +97,9 @@
             panel2.Controls.Add(lblWorkerService);
             panel2.Controls.Add(internetStatus);
             panel2.Controls.Add(lblNetworkStatus);
-            panel2.Location = new Point(1292, 0);
+            panel2.Location = new Point(1277, 0);
             panel2.Name = "panel2";
-            panel2.Size = new Size(458, 60);
+            panel2.Size = new Size(473, 60);
             panel2.TabIndex = 6;
             // 
             // posStatus
@@ -105,7 +107,7 @@
             posStatus.Anchor = AnchorStyles.Right;
             posStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             posStatus.ForeColor = Color.Black;
-            posStatus.Location = new Point(369, 15);
+            posStatus.Location = new Point(384, 15);
             posStatus.Name = "posStatus";
             posStatus.Size = new Size(86, 30);
             posStatus.TabIndex = 0;
@@ -117,7 +119,7 @@
             lblWorkerService.Anchor = AnchorStyles.Right;
             lblWorkerService.Font = new Font("Segoe UI", 11F);
             lblWorkerService.ForeColor = Color.Black;
-            lblWorkerService.Location = new Point(244, 15);
+            lblWorkerService.Location = new Point(259, 15);
             lblWorkerService.Name = "lblWorkerService";
             lblWorkerService.Size = new Size(116, 30);
             lblWorkerService.TabIndex = 1;
@@ -129,7 +131,7 @@
             internetStatus.Anchor = AnchorStyles.Right;
             internetStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             internetStatus.ForeColor = Color.Black;
-            internetStatus.Location = new Point(147, 15);
+            internetStatus.Location = new Point(162, 15);
             internetStatus.Name = "internetStatus";
             internetStatus.Size = new Size(90, 30);
             internetStatus.TabIndex = 2;
@@ -141,7 +143,7 @@
             lblNetworkStatus.Anchor = AnchorStyles.Right;
             lblNetworkStatus.Font = new Font("Segoe UI", 11F);
             lblNetworkStatus.ForeColor = Color.Black;
-            lblNetworkStatus.Location = new Point(3, 15);
+            lblNetworkStatus.Location = new Point(18, 15);
             lblNetworkStatus.Name = "lblNetworkStatus";
             lblNetworkStatus.Size = new Size(138, 30);
             lblNetworkStatus.TabIndex = 3;
@@ -162,7 +164,7 @@
             // 
             panCatalogView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panCatalogView.BackColor = Color.FromArgb(72, 167, 135);
-            panCatalogView.Location = new Point(912, 46);
+            panCatalogView.Location = new Point(937, 46);
             panCatalogView.Margin = new Padding(3, 4, 3, 4);
             panCatalogView.Name = "panCatalogView";
             panCatalogView.Size = new Size(33, 5);
@@ -175,12 +177,12 @@
             btnCatalogView.FlatStyle = FlatStyle.Flat;
             btnCatalogView.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnCatalogView.ForeColor = Color.Black;
-            btnCatalogView.Location = new Point(829, 14);
+            btnCatalogView.Location = new Point(837, 14);
             btnCatalogView.Margin = new Padding(3, 4, 3, 4);
             btnCatalogView.Name = "btnCatalogView";
-            btnCatalogView.Size = new Size(206, 31);
+            btnCatalogView.Size = new Size(232, 31);
             btnCatalogView.TabIndex = 5;
-            btnCatalogView.Text = "PRODUCT CATALOGUE";
+            btnCatalogView.Text = "SYSTEM CONFIGURATION";
             btnCatalogView.TextAlign = ContentAlignment.BottomCenter;
             btnCatalogView.UseVisualStyleBackColor = true;
             btnCatalogView.Click += btnCatalogView_Click;
@@ -281,6 +283,25 @@
             pictureBox1.TabIndex = 5;
             pictureBox1.TabStop = false;
             // 
+            // contextMenuCatalog
+            // 
+            contextMenuCatalog.ImageScalingSize = new Size(20, 20);
+            contextMenuCatalog.Items.AddRange(new ToolStripItem[] { productCatalogToolStripMenuItem, uploadLogoToolStripMenuItem });
+            contextMenuCatalog.Name = "contextMenuCatalog";
+            contextMenuCatalog.Size = new Size(186, 52);
+            // 
+            // productCatalogToolStripMenuItem
+            // 
+            productCatalogToolStripMenuItem.Name = "productCatalogToolStripMenuItem";
+            productCatalogToolStripMenuItem.Size = new Size(185, 24);
+            productCatalogToolStripMenuItem.Text = "Product Catalog";
+            // 
+            // uploadLogoToolStripMenuItem
+            // 
+            uploadLogoToolStripMenuItem.Name = "uploadLogoToolStripMenuItem";
+            uploadLogoToolStripMenuItem.Size = new Size(185, 24);
+            uploadLogoToolStripMenuItem.Text = "Upload Logo";
+            // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -295,6 +316,7 @@
             panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            contextMenuCatalog.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -319,6 +341,9 @@
         private Label lblWorkerService;
         private Label internetStatus;
         private Label lblNetworkStatus;
-        private Button btnUpdatelogo;
+        private ContextMenuStrip contextMenuCatalog;
+        private ToolStripMenuItem productCatalogToolStripMenuItem;
+        private ToolStripMenuItem uploadLogoToolStripMenuItem;
+        private Label lblEnvironment;
     }
 }

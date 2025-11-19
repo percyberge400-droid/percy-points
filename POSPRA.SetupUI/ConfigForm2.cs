@@ -441,35 +441,35 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                string EnvapiUrl = ConfigurationManager.AppSettings["environmentapiurl"];
-                if (string.IsNullOrWhiteSpace(EnvapiUrl))
-                {
-                    ShowMessage("API URL is missing in configuration.", false, false);
-                    return;
-                }
+                //string EnvapiUrl = ConfigurationManager.AppSettings["environmentapiurl"];
+                //if (string.IsNullOrWhiteSpace(EnvapiUrl))
+                //{
+                //    ShowMessage("API URL is missing in configuration.", false, false);
+                //    return;
+                //}
 
-                using var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-                var stringContent = new StringContent(
-                    JsonConvert.SerializeObject(selectedEnvironment),
-                    Encoding.UTF8,
-                    "application/json"
-                );
+                //using var client = new HttpClient();
+                //client.DefaultRequestHeaders.Add("Accept", "application/json");
+                //var stringContent = new StringContent(
+                //    JsonConvert.SerializeObject(selectedEnvironment),
+                //    Encoding.UTF8,
+                //    "application/json"
+                //);
 
 
-                var response = await client.PostAsync(EnvapiUrl, stringContent);
-                var responseBody = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                {
-                    ShowMessage(
-                        $"Request failed: {(int)response.StatusCode} - {response.ReasonPhrase}",
-                        false,
-                        false
-                    );
-                    return;
-                }
+                //var response = await client.PostAsync(EnvapiUrl, stringContent);
+                //var responseBody = await response.Content.ReadAsStringAsync();
+                //if (!response.IsSuccessStatusCode)
+                //{
+                //    ShowMessage(
+                //        $"Request failed: {(int)response.StatusCode} - {response.ReasonPhrase}",
+                //        false,
+                //        false
+                //    );
+                //    return;
+                //}
 
-                ShowMessage($"Enviroment set to {selectedEnvironment}", true, false);
+                //ShowMessage($"Enviroment set to {selectedEnvironment}", true, false);
 
                 // Pass the selected environment to your setup method
                 await ProcessSetupAsync(selectedEnvironment);
@@ -604,6 +604,8 @@ namespace POSPRA.SetupUI
                 var mac = TryGetMacAddress();
                 await Task.Delay(300);
 
+
+
                 ShowMessage("Authenticating with server...", true, false);
                 var json = await AuthenticateAsync(username, password, mac, selectedEnvironment);
                 if (json == null)
@@ -621,7 +623,12 @@ namespace POSPRA.SetupUI
                 }
 
                 ShowMessage("Saving configurations...", true, false);
-                SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName, AccessCode);
+
+                // Assume selectedEnvironment is "Production" or "Sandbox"
+                bool isProduction = selectedEnvironment.Equals("Production", StringComparison.OrdinalIgnoreCase);
+
+                // Pass the boolean to SaveAllConfigs
+                SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName, AccessCode, isProduction);
                 UpdateSetupConfig(dbPath);
                 await Task.Delay(300);
 
@@ -1707,11 +1714,11 @@ namespace POSPRA.SetupUI
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string dbPath,
-            string branchName, string branchAddress, string businessName, string AccessCode)
+            string branchName, string branchAddress, string businessName, string AccessCode, bool selectedEnvironment)
         {
             SaveXmlConfig(username, password, mac, AccessCode);
-            SaveJsonConfigs(dbPath, username);
-            SaveWinFormsConfig(dbPath, branchName, branchAddress, businessName);
+            SaveJsonConfigs(dbPath, username, selectedEnvironment);
+            SaveWinFormsConfig(dbPath, branchName, branchAddress, businessName, selectedEnvironment);
         }
 
         private void SaveXmlConfig(string username, string password, string mac, string AccessCode)
@@ -1731,12 +1738,12 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private void SaveJsonConfigs(string dbPath, string username)
+        private void SaveJsonConfigs(string dbPath, string username, bool selectedEnvironment)
         {
             try
             {
-                SaveDbPathToJson(_jsonWorkerPath, dbPath, username);
-                SaveDbPathToJson(_jsonMainPath, dbPath, username);
+                SaveDbPathToJson(_jsonWorkerPath, dbPath, username, selectedEnvironment);
+                SaveDbPathToJson(_jsonMainPath, dbPath, username, selectedEnvironment);
             }
             catch (Exception ex)
             {
@@ -1744,7 +1751,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private void SaveWinFormsConfig(string dbPath, string branchName, string branchAddress, string businessName)
+        private void SaveWinFormsConfig(string dbPath, string branchName, string branchAddress, string businessName, bool selectedEnvironment)
         {
             try
             {
@@ -1755,6 +1762,7 @@ namespace POSPRA.SetupUI
                 UpdateOrCreateNode(doc, "branchName", branchName);
                 UpdateOrCreateNode(doc, "branchAddress", branchAddress);
                 UpdateOrCreateNode(doc, "businessName", businessName);
+                UpdateOrCreateNode(doc, "IsProduction", Convert.ToString(selectedEnvironment));
 
                 doc.Save(_winformsConfigPath);
             }
@@ -1784,7 +1792,38 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId)
+        private void UpdateEnvironmentInJson(string jsonFilePath, string selectedEnvironment)
+        {
+            try
+            {
+                JObject root;
+
+                if (File.Exists(jsonFilePath))
+                {
+                    string text = File.ReadAllText(jsonFilePath);
+                    root = string.IsNullOrWhiteSpace(text) ? new JObject() : JObject.Parse(text);
+                }
+                else
+                {
+                    root = new JObject();
+                }
+
+                if (root["AppSettings"] == null || root["AppSettings"].Type != JTokenType.Object)
+                    root["AppSettings"] = new JObject();
+
+                // Update only IsProduction
+                root["AppSettings"]["Environment"] = selectedEnvironment;
+
+                File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Failed to update {Path.GetFileName(jsonFilePath)}: {ex.Message}", false, true);
+            }
+        }
+
+
+        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId, bool selectedEnvironment)
         {
             try
             {
@@ -1805,6 +1844,7 @@ namespace POSPRA.SetupUI
 
                 root["AppSettings"]["DefaultDBFilePath"] = dbPath;
                 root["AppSettings"]["POS"] = posId;
+                root["AppSettings"]["IsProduction"] = selectedEnvironment;
 
                 File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
             }
@@ -1816,11 +1856,17 @@ namespace POSPRA.SetupUI
         private async void rdoSandbox_Click(object sender, EventArgs e)
         {
             SaveEnvironmentToApiConfig("Sandbox");
+            UpdateEnvironmentInJson(_jsonWorkerPath, "Sandbox");
+            MessageBox.Show("Sandbox");
+
 
         }
         private async void rdoProduction_Click(object sender, EventArgs e)
         {
             SaveEnvironmentToApiConfig("Production");
+            UpdateEnvironmentInJson(_jsonWorkerPath, "Production");
+            MessageBox.Show("Production");
+
         }
         private void SaveEnvironmentToApiConfig(string environment)
         {

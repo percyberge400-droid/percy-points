@@ -8,7 +8,6 @@ using System.Configuration;
 using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
-using System.Xml;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -24,21 +23,29 @@ namespace POSPRA_WinFormsUI.Forms
         private DateTime lastOfflineAlertTime = DateTime.MinValue;
         private bool _workerServiceAlertShown = false;
         private readonly string _baseUrl;
+        private readonly string _jsonworkerpath;
 
         // 🎨 Animation tracking for status badges
         private int _internetPulseFrame = 0;
         private int _posPulseFrame = 0;
+        private int _environmentPulseFrame = 0; // New pulse frame for environment
         private System.Windows.Forms.Timer _animationTimer;
         private long decryptedPosId;
+
 
         public Main(IServiceProvider provider, ILogService logService)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             InitializeComponent();
+            StyleContextMenu();
+
+            productCatalogToolStripMenuItem.Click += productCatalogToolStripMenuItem_Click;
+            uploadLogoToolStripMenuItem.Click += uploadLogoToolStripMenuItem_Click;
             panel2.Paint += Panel2_Paint;
             internetStatus.Paint += InternetStatus_Paint;
             posStatus.Paint += PosStatus_Paint;
+            lblEnvironment.Paint += EnvironmentStatus_Paint; // Add paint handler for environment
 
             this.IsMdiContainer = true;
             panInvoiceSelection.Visible = false;
@@ -49,9 +56,11 @@ namespace POSPRA_WinFormsUI.Forms
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
+
             this.Resize += Main_Resize;
             _baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
-
+            string isProduction = ConfigurationManager.AppSettings["IsProduction"];
+            updatelbl(isProduction);
             // 🚀 Initialize catchy status system
             InitializeStatusSystem();
 
@@ -83,6 +92,40 @@ namespace POSPRA_WinFormsUI.Forms
             StartWorkerServiceStatusChecker();
             StartStatusAnimations();
         }
+        private void updatelbl(string isproduction)
+        {
+            string enviroment = "Sandbox";
+            Color backgroundColor = Color.DarkGoldenrod; // Dark yellow for sandbox
+
+            if (isproduction == "true")
+            {
+                enviroment = "Production";
+                backgroundColor = ColorTranslator.FromHtml("#3E577D"); // light blue
+            }
+
+            if (lblEnvironment.InvokeRequired)
+            {
+                lblEnvironment.BeginInvoke(new Action(() =>
+                {
+                    lblEnvironment.Text = enviroment;
+                    lblEnvironment.Tag = backgroundColor;
+                    lblEnvironment.Invalidate();
+                    RepositionStatusControls(); // Reposition after text update
+                }));
+            }
+            else
+            {
+                lblEnvironment.Text = enviroment;
+                lblEnvironment.Tag = backgroundColor;
+                lblEnvironment.Invalidate();
+                RepositionStatusControls(); // Reposition after text update
+            }
+        }
+        private void EnvironmentStatus_Paint(object? sender, PaintEventArgs e)
+        {
+            PaintEnvironmentBadge(e.Graphics, lblEnvironment, _environmentPulseFrame);
+        }
+
         private void InternetStatus_Paint(object? sender, PaintEventArgs e)
         {
             PaintStatusBadge(e.Graphics, internetStatus, _internetPulseFrame);
@@ -98,8 +141,9 @@ namespace POSPRA_WinFormsUI.Forms
             // Setup fonts
             posStatus.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
             internetStatus.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
+            lblEnvironment.Font = new Font("Segoe UI", 9.8f, FontStyle.Bold);
 
-            // Setup badge appearance
+            // Setup badge appearance for status badges
             internetStatus.AutoSize = false;
             internetStatus.TextAlign = ContentAlignment.MiddleCenter;
             internetStatus.Size = new Size(110, 32);
@@ -110,13 +154,29 @@ namespace POSPRA_WinFormsUI.Forms
             posStatus.Size = new Size(110, 32);
             posStatus.Text = "Checking...";
 
+            // Environment badge setup - increase width for "Production" text
+            lblEnvironment.AutoSize = false;
+            lblEnvironment.TextAlign = ContentAlignment.MiddleCenter;
+            lblEnvironment.Size = new Size(130, 32); // Increased from 110 to 130
+                                                     // Remove it from panel1 and add to panel2
+            if (panel1.Controls.Contains(lblEnvironment))
+            {
+                panel1.Controls.Remove(lblEnvironment);
+            }
+            if (!panel2.Controls.Contains(lblEnvironment))
+            {
+                panel2.Controls.Add(lblEnvironment);
+            }
+
             // ✅ Attach paint handlers ONCE
             internetStatus.Paint += (s, e) => PaintStatusBadge(e.Graphics, internetStatus, _internetPulseFrame);
             posStatus.Paint += (s, e) => PaintStatusBadge(e.Graphics, posStatus, _posPulseFrame);
+            lblEnvironment.Paint += (s, e) => PaintEnvironmentBadge(e.Graphics, lblEnvironment, _environmentPulseFrame);
 
-            // Create rounded regions
+            // Create rounded regions with updated size
             internetStatus.Region = new Region(CreateRoundRectPath(new Rectangle(0, 0, 110, 32), 12));
             posStatus.Region = new Region(CreateRoundRectPath(new Rectangle(0, 0, 110, 32), 12));
+            lblEnvironment.Region = new Region(CreateRoundRectPath(new Rectangle(0, 0, 130, 32), 12)); // Updated size
         }
 
         private void PaintStatusBadge(Graphics g, Label lbl, int pulseFrame)
@@ -193,7 +253,92 @@ namespace POSPRA_WinFormsUI.Forms
                 Color.White, TextFormatFlags.Left | TextFormatFlags.NoPadding);
         }
 
+        private void PaintEnvironmentBadge(Graphics g, Label lbl, int pulseFrame)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            Rectangle rect = new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1);
 
+            // Get background color from Tag (set in updatelbl method)
+            Color backgroundColor = lbl.Tag is Color color ? color : Color.DarkGoldenrod;
+            bool isSandbox = lbl.Text == "Sandbox";
+
+            // Adjust colors based on environment
+            Color bgColor = backgroundColor;
+            Color glowColor = isSandbox ? Color.FromArgb(255, 255, 200) : Color.FromArgb(180, 240, 240);
+            Color dotColor = Color.White;
+
+            // Gradient background
+            using (var bgBrush = new LinearGradientBrush(
+                rect,
+                bgColor,
+                Color.FromArgb(Math.Max(0, bgColor.R - 20), Math.Max(0, bgColor.G - 20), Math.Max(0, bgColor.B - 20)),
+                LinearGradientMode.Vertical))
+            {
+                g.FillRoundedRectangle(bgBrush, rect, 6);
+            }
+
+            // Animated pulse effect
+            float pulseAlpha = (float)(Math.Sin(pulseFrame * 0.1) * 0.3 + 0.7);
+            using (Pen pulsePen = new Pen(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
+            {
+                g.DrawRoundedRectangle(pulsePen, rect, 12);
+            }
+
+            // Get status text
+            string statusText = lbl.Text;
+
+            // Measure text
+            Size textSize = TextRenderer.MeasureText(statusText, lbl.Font);
+            int dotSize = 8;
+            int spacing = 6;
+            int totalContentWidth = dotSize + spacing + textSize.Width;
+            int startX = (lbl.Width - totalContentWidth) / 2;
+
+            // Ensure the dot doesn't get cut off by adjusting startX if needed
+            if (startX < 5) // Add minimum left margin
+            {
+                startX = 5;
+            }
+
+            // Draw dot
+            int dotX = startX;
+            int dotY = (lbl.Height - dotSize) / 2;
+
+            // Glow effect
+            float glowIntensity = (float)(Math.Sin(pulseFrame * 0.15) * 0.4 + 0.6);
+            using (var glowBrush = new SolidBrush(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
+            {
+                g.FillEllipse(glowBrush, dotX - 3, dotY - 3, dotSize + 6, dotSize + 6);
+            }
+
+            // Main dot
+            using (var dotBrush = new LinearGradientBrush(
+                new Rectangle(dotX, dotY, dotSize, dotSize),
+                dotColor,
+                Color.White,
+                LinearGradientMode.Vertical))
+            {
+                g.FillEllipse(dotBrush, dotX, dotY, dotSize, dotSize);
+            }
+
+            // Draw text
+            int textX = dotX + dotSize + spacing;
+            int textY = (lbl.Height - textSize.Height) / 2;
+
+            // Ensure text doesn't get cut off
+            if (textX + textSize.Width > lbl.Width - 5)
+            {
+                textX = lbl.Width - textSize.Width - 5;
+            }
+
+            // Shadow
+            TextRenderer.DrawText(g, statusText, lbl.Font, new Point(textX + 1, textY + 1),
+                Color.FromArgb(40, 0, 0, 0), TextFormatFlags.Left | TextFormatFlags.NoPadding);
+
+            // Main text
+            TextRenderer.DrawText(g, statusText, lbl.Font, new Point(textX, textY),
+                Color.White, TextFormatFlags.Left | TextFormatFlags.NoPadding);
+        }
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
@@ -220,6 +365,46 @@ namespace POSPRA_WinFormsUI.Forms
 
             // Calculate and set positions
             RepositionStatusControls();
+        }
+
+        private void RepositionStatusControls()
+        {
+            // Update total width calculation to include environment badge in panel2 with increased width
+            int totalWidth = lblEnvironment.Width + 30 +
+                            lblNetworkStatus.Width + 10 + internetStatus.Width + 30 +
+                            lblWorkerService.Width + 10 + posStatus.Width + 60;
+
+            panel2.Width = Math.Max(totalWidth, 670); // Increased minimum width from 650 to 670
+            panel2.Location = new Point(panel1.Width - panel2.Width, 0);
+
+            int startX = 20; // Start with some padding from left edge
+            int centerY = (panel2.Height - lblEnvironment.Height) / 2;
+
+            // Position environment badge first in panel2
+            lblEnvironment.Location = new Point(startX, centerY);
+
+            // Then position other controls with proper spacing
+            lblNetworkStatus.Location = new Point(lblEnvironment.Right + 30, centerY);
+            internetStatus.Location = new Point(lblNetworkStatus.Right + 10, centerY);
+            lblWorkerService.Location = new Point(internetStatus.Right + 30, centerY);
+            posStatus.Location = new Point(lblWorkerService.Right + 10, centerY);
+        }
+        private void PositionEnvironmentBadge()
+        {
+            if (lblEnvironment == null) return;
+
+            // Position environment badge to the right of the logo in panel1
+            int logoRight = pictureBox2.Right;
+            int spacing = 20;
+
+            lblEnvironment.Location = new Point(logoRight + spacing, (panel1.Height - lblEnvironment.Height) / 2);
+            lblEnvironment.BringToFront();
+        }
+
+        private void Main_Resize(object sender, EventArgs e)
+        {
+            HandleFormStateChange();
+            RepositionStatusControls(); // Reposition all controls in panel2 on resize
         }
 
         private void Panel2_Paint(object sender, PaintEventArgs e)
@@ -250,22 +435,6 @@ namespace POSPRA_WinFormsUI.Forms
             using (Pen shadow = new Pen(Color.FromArgb(40, 0, 0, 0), 1))
                 e.Graphics.DrawLine(shadow, 0, panel2.Height - 1, panel2.Width, panel2.Height - 1);
         }
-        private void RepositionStatusControls()
-        {
-            int totalWidth = lblNetworkStatus.Width + 10 + internetStatus.Width + 30 +
-                            lblWorkerService.Width + 10 + posStatus.Width + 60;
-
-            panel2.Width = Math.Max(totalWidth, 550);
-            panel2.Location = new Point(panel1.Width - panel2.Width, 0);
-
-            int startX = (panel2.Width - (totalWidth - 60)) / 2;
-            int centerY = (panel2.Height - lblNetworkStatus.Height) / 2;
-
-            lblNetworkStatus.Location = new Point(startX, centerY);
-            internetStatus.Location = new Point(lblNetworkStatus.Right + 10, (panel2.Height - internetStatus.Height) / 2);
-            lblWorkerService.Location = new Point(internetStatus.Right + 30, centerY);
-            posStatus.Location = new Point(lblWorkerService.Right + 10, (panel2.Height - posStatus.Height) / 2);
-        }
 
         private void StartStatusAnimations()
         {
@@ -274,12 +443,15 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 _internetPulseFrame++;
                 _posPulseFrame++;
+                _environmentPulseFrame++;
 
                 // Only invalidate if controls are visible
                 if (internetStatus?.Visible == true && internetStatus.IsHandleCreated)
                     internetStatus.Invalidate();
                 if (posStatus?.Visible == true && posStatus.IsHandleCreated)
                     posStatus.Invalidate();
+                if (lblEnvironment?.Visible == true && lblEnvironment.IsHandleCreated)
+                    lblEnvironment.Invalidate();
             };
             _animationTimer.Start();
         }
@@ -308,7 +480,6 @@ namespace POSPRA_WinFormsUI.Forms
                 }
             }
         }
-        private void Main_Resize(object sender, EventArgs e) => HandleFormStateChange();
 
         private void HandleFormStateChange()
         {
@@ -585,8 +756,6 @@ namespace POSPRA_WinFormsUI.Forms
             });
         }
 
-
-
         private void StopWorkerServiceStatusChecker()
         {
             _workerServiceCts?.Cancel();
@@ -658,11 +827,28 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void btnCatalogView_Click(object sender, EventArgs e)
         {
+            contextMenuCatalog.Show(btnCatalogView, new Point(0, btnCatalogView.Height));
+        }
+
+        private void productCatalogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
             ResetNavStyles();
             btnCatalogView.ForeColor = ColorTranslator.FromHtml("#48A787");
             panCatalogView.Visible = true;
+
+            // Call LoadView here
             LoadView("Catalog View");
         }
+
+        private void uploadLogoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (var frm = new UploadLogoForm())
+            {
+                frm.ShowDialog();
+            }
+        }
+
+
 
         public void LoadView(string viewName)
         {
@@ -699,91 +885,27 @@ namespace POSPRA_WinFormsUI.Forms
             return path;
         }
 
-        private void btnUpdatelogo_Click(object sender, EventArgs e)
+        private void StyleContextMenu()
         {
-            try
+            contextMenuCatalog.Renderer = new ModernContextMenuRenderer();
+            contextMenuCatalog.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+            contextMenuCatalog.BackColor = Color.White;
+            contextMenuCatalog.Padding = new Padding(2, 8, 2, 8);
+            contextMenuCatalog.ShowImageMargin = false;
+            contextMenuCatalog.AutoSize = true;
+            contextMenuCatalog.RenderMode = ToolStripRenderMode.Professional;
+
+            // Style each item with uppercase and better spacing
+            foreach (ToolStripItem item in contextMenuCatalog.Items)
             {
-                using var ofd = new OpenFileDialog
-                {
-                    Filter = "Image Files|*.png;*.jpg",
-                    Title = "Select Company Logo"
-                };
-
-                if (ofd.ShowDialog() != DialogResult.OK)
-                    return;
-
-                var fileInfo = new FileInfo(ofd.FileName);
-                if (!fileInfo.Exists)
-                {
-                    MessageBox.Show(" File not found");
-                    //ShowMessage(" File not found.", false, true);
-                    return;
-                }
-
-                if (fileInfo.Length > 1024 * 1024) // 2,048 KB KB limit
-                {
-                    MessageBox.Show("Logo size too large. Please select an image under 2 MB");
-                    //ShowMessage(" Logo size too large. Please select an image under 2 MB.",false, true);
-                    return;
-                }
-
-                // Convert image → Base64
-                string base64;
-                using (var img = Image.FromFile(ofd.FileName))
-                using (var ms = new MemoryStream())
-                {
-                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                    base64 = Convert.ToBase64String(ms.ToArray());
-                }
-
-                // Define shared config path
-                string dir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                    "POSPRA"
-                );
-                Directory.CreateDirectory(dir);
-
-                string configFile = Path.Combine(dir, "AppSettings.config");
-
-                // Load or create XML config
-                var xml = new XmlDocument();
-                if (File.Exists(configFile))
-                    xml.Load(configFile);
-                else
-                {
-                    xml.AppendChild(xml.CreateXmlDeclaration("1.0", "utf-8", null));
-                    xml.AppendChild(xml.CreateElement("appSettings"));
-                }
-
-                var appSettings = xml.SelectSingleNode("//appSettings");
-                if (appSettings == null)
-                {
-                    appSettings = xml.CreateElement("appSettings");
-                    xml.AppendChild(appSettings);
-                }
-
-                // Update or create logo entry
-                var node = appSettings.SelectSingleNode("add[@key='CompLogobase64']") as XmlElement;
-                if (node == null)
-                {
-                    node = xml.CreateElement("add");
-                    node.SetAttribute("key", "CompLogobase64");
-                    appSettings.AppendChild(node);
-                }
-
-                node.SetAttribute("value", base64);
-                xml.Save(configFile);
-                MessageBox.Show("Logo saved successfully!");
-                //ShowMessage(" Logo saved successfully!", true, true);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("$\" Failed to update logo: {ex.Message}\"");//, MessageBoxButtons.OKCancel);
-                                                                             //DialogResult = DialogResult.Cancel;
-                                                                             //ShowMessage($" Failed to update logo: {ex.Message}", false, true);
+                item.Text = item.Text.ToUpper(); // Capitalize text
+                item.ForeColor = Color.FromArgb(33, 37, 41);
+                item.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             }
         }
     }
+
+
 
     public static class GraphicsExtensions
     {
@@ -799,4 +921,131 @@ namespace POSPRA_WinFormsUI.Forms
             g.FillPath(brush, path);
         }
     }
+
+    // Custom renderer for the context menu
+    public class ModernContextMenuRenderer : ToolStripProfessionalRenderer
+    {
+        private readonly Color _accentColor = ColorTranslator.FromHtml("#48A787");
+        private readonly Color _hoverColor = ColorTranslator.FromHtml("#E8F5F1");
+        private readonly Color _borderColor = Color.FromArgb(222, 226, 230);
+        private readonly Color _textColor = Color.FromArgb(33, 37, 41);
+
+        public ModernContextMenuRenderer() : base(new ModernColorTable()) { }
+
+        protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+        {
+            var rc = new Rectangle(4, 2, e.Item.Width - 8, e.Item.Height - 4);
+
+            if (e.Item.Selected)
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Gradient background on hover
+                using (var brush = new LinearGradientBrush(
+                    rc,
+                    _hoverColor,
+                    Color.FromArgb(250, 255, 253),
+                    LinearGradientMode.Vertical))
+                using (var path = Main.CreateRoundRectPath(rc, 8))
+                {
+                    e.Graphics.FillPath(brush, path);
+                }
+
+                // Accent border on hover
+                using (var pen = new Pen(_accentColor, 2))
+                using (var path = Main.CreateRoundRectPath(rc, 8))
+                {
+                    e.Graphics.DrawPath(pen, path);
+                }
+
+                // Subtle glow effect
+                using (var glowPen = new Pen(Color.FromArgb(40, 72, 167, 135), 4))
+                {
+                    var glowRect = new Rectangle(rc.X - 2, rc.Y - 2, rc.Width + 4, rc.Height + 4);
+                    using (var path = Main.CreateRoundRectPath(glowRect, 10))
+                    {
+                        e.Graphics.DrawPath(glowPen, path);
+                    }
+                }
+            }
+        }
+
+        protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+        {
+            if (e.Item is ToolStripMenuItem)
+            {
+                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+                // Colors + font
+                Color textColor = e.Item.Selected ? _accentColor : _textColor;
+                Font font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+
+                // Use FULL ITEM RECTANGLE
+                Rectangle rect = new Rectangle(0, 0, e.Item.Width, e.Item.Height);
+
+                // Measure text
+                SizeF textSize = e.Graphics.MeasureString(e.Text, font);
+
+                // Center X, Y
+                float x = rect.X + (rect.Width - textSize.Width) / 2;
+                float y = rect.Y + (rect.Height - textSize.Height) / 2;
+
+                using (var brush = new SolidBrush(textColor))
+                {
+                    e.Graphics.DrawString(e.Text, font, brush, x, y);
+                }
+            }
+            else
+            {
+                base.OnRenderItemText(e);
+            }
+        }
+
+        protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // Rounded border with shadow
+            var rect = new Rectangle(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+            using (var shadowPen = new Pen(Color.FromArgb(30, 0, 0, 0), 3))
+            {
+                var shadowRect = new Rectangle(2, 2, rect.Width, rect.Height);
+                e.Graphics.DrawRectangle(shadowPen, shadowRect);
+            }
+
+            using (var pen = new Pen(_borderColor, 1.5f))
+            {
+                e.Graphics.DrawRectangle(pen, rect);
+            }
+        }
+
+        protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
+        {
+            var rc = new Rectangle(15, e.Item.Height / 2, e.Item.Width - 30, 1);
+
+            // Gradient separator line
+            using (var brush = new LinearGradientBrush(
+                new Point(rc.Left, rc.Top),
+                new Point(rc.Right, rc.Top),
+                Color.Transparent,
+                _borderColor))
+            using (var pen = new Pen(brush, 1))
+            {
+                e.Graphics.DrawLine(pen, rc.Left, rc.Top, rc.Right, rc.Top);
+            }
+        }
+    }
+
+    // Custom color table
+    public class ModernColorTable : ProfessionalColorTable
+    {
+        public override Color MenuItemSelected => ColorTranslator.FromHtml("#E8F5F1");
+        public override Color MenuItemBorder => Color.Transparent;
+        public override Color MenuBorder => Color.FromArgb(222, 226, 230);
+        public override Color ImageMarginGradientBegin => Color.White;
+        public override Color ImageMarginGradientMiddle => Color.White;
+        public override Color ImageMarginGradientEnd => Color.White;
+        public override Color ToolStripDropDownBackground => Color.White;
+    }
 }
+
