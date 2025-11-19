@@ -42,7 +42,7 @@ namespace Pos.Domain.Entities
 
         [Required]
         [MaxLength(50)]
-        [Column("TaxRate(%)")]
+        [Column("TaxRate")]
         public string? TaxRate { get; set; }
 
         [MaxLength(100)]
