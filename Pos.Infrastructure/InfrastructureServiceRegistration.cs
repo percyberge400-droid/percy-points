@@ -22,6 +22,7 @@ using Pos.Application.Services.PosService;
 using Pos.Application.Services.POSService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Services.ScriptService;
+using Pos.Domain.ValueObjects;
 using Pos.Infrastructure.Persistence;
 using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
@@ -31,10 +32,50 @@ using POSPRA.Application.Services.FiscalService;
 
 namespace Pos.Infrastructure
 {
-    public static class InfrastructureServiceRegistration
+    public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // -------------------------
+            // Add HttpContextAccessor first
+            // -------------------------
+            services.AddHttpContextAccessor();
+
+            // -------------------------
+            // Environment Service
+            // -------------------------
+            // Load Worker config dynamically
+            services.AddSingleton<IEnvironmentService>(provider =>
+            {
+                // Read worker JSON path from configuration
+                var workerConfigPath = configuration["WorkerConfigPath"];
+                if (string.IsNullOrWhiteSpace(workerConfigPath))
+                {
+                    workerConfigPath = Path.GetFullPath(
+                        Path.Combine(AppContext.BaseDirectory, @"..\..\..\POSPRA.Worker\appsettings.worker.json")
+                    );
+                }
+
+                if (!File.Exists(workerConfigPath))
+                    throw new FileNotFoundException("Worker config file not found", workerConfigPath);
+
+                // Read App.config path from configuration
+                var appConfigPath = configuration["WinFormsAppConfigPath"];
+                if (!string.IsNullOrWhiteSpace(appConfigPath))
+                {
+                    appConfigPath = Path.GetFullPath(appConfigPath);
+                    if (!File.Exists(appConfigPath))
+                    {
+                        // Optional: ignore if file doesn’t exist
+                        appConfigPath = null;
+                    }
+                }
+
+                return new EnvironmentService(workerConfigPath, appConfigPath);
+            });
+
+
+
             // -------------------------
             // Repositories
             // -------------------------
@@ -46,7 +87,7 @@ namespace Pos.Infrastructure
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
-            services.AddScoped<IRequestHeaderService, RequestHeaderService>();
+            services.AddScoped<IRequestHeaderService, RequestHeaderService>(); // depends on IHttpContextAccessor
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
@@ -60,13 +101,18 @@ namespace Pos.Infrastructure
             services.AddScoped<IScriptService, ScriptService>();
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ICloudLogService, CloudLogService>();
-            services.AddSingleton<IEnvironmentService, EnvironmentService>();
-            services.AddSingleton<ISqliteDynamicFactory, SqliteDynamicFactory>();
 
+            // -------------------------
+            // SQLite & SQL Server factories
+            // -------------------------
+            services.AddSingleton<ISqliteDynamicFactory, SqliteDynamicFactory>();
+            services.AddScoped<DbContextFactory>();
+
+            // -------------------------
             // Configuration
+            // -------------------------
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
             services.AddHttpClient<HttpService>();
-            services.AddHttpContextAccessor();
 
             // -------------------------
             // SQLite DbContext
@@ -82,26 +128,24 @@ namespace Pos.Infrastructure
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // -------------------------
-            // SQL Server DbContext Factory (for dynamic switching)
-            // -------------------------
-            services.AddScoped<DbContextFactory>();
-
-            // -------------------------
-            // Environment-based dynamic DbContext & UnitOfWork
+            // SQL Server UnitOfWork
             // -------------------------
             services.AddScoped<ISqlServerUnitOfWork>(provider =>
             {
                 var factory = provider.GetRequiredService<DbContextFactory>();
-                var sqlCtx = factory.CreateSqlServerDbContext();
+                var sqlCtx = factory.CreateSqlServerDbContext(); // synchronous wrapper
                 return new SqlServerUnitOfWork(sqlCtx);
             });
 
             services.AddScoped<ISqlServerRepositoryFactory>(provider =>
             {
                 var uow = provider.GetRequiredService<ISqlServerUnitOfWork>() as SqlServerUnitOfWork;
-                return new SqlServerRepositoryFactory(uow.DbContext); // Reuse same context
+                return new SqlServerRepositoryFactory(uow.DbContext);
             });
 
+            // -------------------------
+            // SQLite UnitOfWork
+            // -------------------------
             services.AddScoped<ISqliteUnitOfWork>(provider =>
             {
                 var sqliteCtx = provider.GetRequiredService<SqliteDbContext>();
@@ -111,16 +155,16 @@ namespace Pos.Infrastructure
             services.AddScoped<ISqliteRepositoryFactory>(provider =>
             {
                 var uow = provider.GetRequiredService<ISqliteUnitOfWork>() as SqliteUnitOfWork;
-                return new SqliteRepositoryFactory(uow.DbContext); // Reuse same context
+                return new SqliteRepositoryFactory(uow.DbContext);
             });
 
             // -------------------------
-            // Unified UnitOfWork for service
+            // Unified UnitOfWork per environment
             // -------------------------
             services.AddScoped<IUnitOfWork>(provider =>
             {
                 var envService = provider.GetRequiredService<IEnvironmentService>();
-                var env = envService.GetCurrentEnvironment();
+                var env = envService.GetCurrentEnvironmentAsync().Result; // synchronous
 
                 return env == EnvironmentType.Sandbox
                     ? provider.GetRequiredService<ISqliteUnitOfWork>()

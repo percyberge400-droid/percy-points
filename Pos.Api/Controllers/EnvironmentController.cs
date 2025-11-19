@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Pos.Application.Interfaces;
+using Pos.Domain.ValueObjects;
 
 namespace Pos.Api.Controllers
 {
@@ -14,13 +15,15 @@ namespace Pos.Api.Controllers
             _environmentService = environmentService;
         }
 
+        // GET api/environment
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            var current = _environmentService.GetCurrentEnvironment();
+            var current = await _environmentService.GetCurrentEnvironmentAsync();
             return Ok(new { environment = current.ToString() });
         }
 
+        // POST api/environment
         [HttpPost]
         public IActionResult Set([FromBody] string environment)
         {
@@ -28,7 +31,8 @@ namespace Pos.Api.Controllers
                 return BadRequest("Invalid environment. Use 'Sandbox' or 'Production'.");
 
             _environmentService.SetCurrentEnvironment(envType);
-            return Ok(new { message = $"Environment set to {envType}" });
+
+            return Ok(new { message = $"Environment set to {envType} for this process" });
         }
     }
 }

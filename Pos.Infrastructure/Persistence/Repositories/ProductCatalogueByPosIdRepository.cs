@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.ProductCatalogue;
@@ -24,34 +23,39 @@ namespace Pos.Infrastructure.Persistence.Repositories.ProductCatalogue
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(int posId)
+        public Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(int posId)
         {
-            // Use the DbContextFactory to always get Production DB instance
-            await using var dbContext = _dbContextFactory.CreateSqlServerDbContext(forceProduction: true);
-
-            // Query the data
-            var output =
-                from client in dbContext.PosClients
-                join branch in dbContext.POSBranches
-                    on client.POSBranchID equals branch.POSBranchID
-                join pc in dbContext.ProductCatalogue
-                    on branch.POSMASTERID equals pc.POSMasterId
-                where client.POSRegistrationNumber == posId
-                select new ProductCatalogueDto
-                {
-                    ItemSerialNumber = pc.ItemSerialNumber,
-                    ProductCode = pc.ProductCode,
-                    ProductDescription = pc.ProductDescription,
-                    HSCode = pc.HSCode,
-                    SaleType = pc.SaleType,
-                    PosUnitOfMeasurement = pc.PosUnitOfMeasurement,
-                    Price = pc.Price,
-                    TaxRate = pc.TaxRate,
-                    SroScheduleNumber = pc.SroScheduleNumber
-                };
-
-            return await output.ToListAsync();
+            throw new NotImplementedException();
         }
+
+        //public async Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(int posId)
+        //{
+        //    // Use the DbContextFactory to always get Production DB instance
+        //    await using var dbContext = await _dbContextFactory.CreateSqlServerDbContextAsync(forceProduction: true);
+
+        //    // Query the data
+        //    var output =
+        //        from client in dbContext.PosClients
+        //        join branch in dbContext.POSBranches
+        //            on client.POSBranchID equals branch.POSBranchID
+        //        join pc in dbContext.ProductCatalogue
+        //            on branch.POSMASTERID equals pc.POSMasterId
+        //        where client.POSRegistrationNumber == posId
+        //        select new ProductCatalogueDto
+        //        {
+        //            ItemSerialNumber = pc.ItemSerialNumber,
+        //            ProductCode = pc.ProductCode,
+        //            ProductDescription = pc.ProductDescription,
+        //            HSCode = pc.HSCode,
+        //            SaleType = pc.SaleType,
+        //            PosUnitOfMeasurement = pc.PosUnitOfMeasurement,
+        //            Price = pc.Price,
+        //            TaxRate = pc.TaxRate,
+        //            SroScheduleNumber = pc.SroScheduleNumber
+        //        };
+
+        //    return await output.ToListAsync();
+        //}
 
     }
 }

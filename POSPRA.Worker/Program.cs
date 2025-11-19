@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Pos.Infrastructure;
 using Pos.Worker;
+using Pos.Worker.Logging;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.Worker;
-using System.Reflection;
-using Pos.Worker.Logging;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService()
@@ -18,6 +18,8 @@ var builder = Host.CreateDefaultBuilder(args)
               .AddJsonFile("appsettings.worker.json", optional: true, reloadOnChange: true)
               .AddEnvironmentVariables();
     })
+
+
     .ConfigureServices((context, services) =>
     {
         var configuration = context.Configuration;
@@ -33,6 +35,7 @@ var builder = Host.CreateDefaultBuilder(args)
         // ----------------------------------------------------
         services.AddHostedService<Worker>();
         services.AddHostedService<SqliteBackupService>();
+
     });
 // Global exception handlers
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>

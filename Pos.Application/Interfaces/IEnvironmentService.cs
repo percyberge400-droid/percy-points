@@ -1,15 +1,14 @@
-﻿namespace Pos.Application.Interfaces
-{
-    public enum EnvironmentType
-    {
-        Sandbox,
-        Production
-    }
+﻿using Pos.Domain.ValueObjects;
 
+namespace Pos.Application.Interfaces
+{
 
     public interface IEnvironmentService
     {
-        EnvironmentType GetCurrentEnvironment();
-        void SetCurrentEnvironment(EnvironmentType type);
+        // Synchronous process-wide environment
+        Task SetCurrentEnvironment(EnvironmentType type);
+
+        // Async per-user environment (for worker service / WinForms)
+        Task<EnvironmentType> GetCurrentEnvironmentAsync();
     }
 }

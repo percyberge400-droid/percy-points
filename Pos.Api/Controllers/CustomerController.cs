@@ -24,8 +24,11 @@ namespace Pos.Api.Controllers
         {
             try
             {
+                // Get environment per process
+                var env = await _environmentService.GetCurrentEnvironmentAsync();
+
+                // Fetch customer (no userId required)
                 PosClients? customer = await _customerService.GetByIdFromSqlAsync(id);
-                var env = _environmentService.GetCurrentEnvironment();
 
                 return Ok(new
                 {
@@ -50,8 +53,11 @@ namespace Pos.Api.Controllers
         {
             try
             {
+                // Get environment per process
+                var env = await _environmentService.GetCurrentEnvironmentAsync();
+
+                // Fetch customer (no userId required)
                 FileRecord? customer = await _customerService.GetByIdFromSqliteAsync(id);
-                var env = _environmentService.GetCurrentEnvironment();
 
                 return Ok(new
                 {
