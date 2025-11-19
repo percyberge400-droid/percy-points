@@ -117,8 +117,9 @@ namespace Pos.Application.Services.ClientService
 
         public async Task<bool> IsServiceEnabled(long posId)
         {
-            var client = await _sqlClientRepository.FirstOrDefaultAsync(x => x.POSRegistrationNumber == posId);
-            return client?.IsServiceEnabled ?? false;
+            PosClients client = await _sqlClientRepository.FirstOrDefaultAsync(x => x.POSRegistrationNumber == posId);
+            var retVal = client?.IsServiceEnabled ?? false;
+            return retVal;
         }
     }
 }

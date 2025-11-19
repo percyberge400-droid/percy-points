@@ -1,4 +1,5 @@
 ﻿using Pos.Domain.ValueObjects;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Pos.Domain.Entities
 {
@@ -20,6 +21,7 @@ namespace Pos.Domain.Entities
         public long? POSID { get; set; }
         public int? FileSize { get; set; }
         public string? Token { get; set; }
+        [NotMapped]
         public EnvironmentType Environment { get; set; }
     }
 }
