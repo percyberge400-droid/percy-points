@@ -676,6 +676,7 @@ namespace POSPRA.SetupUI
                             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                             "PRAL", "POSComponent"
                         );
+
                         if (Directory.Exists(probable))
                             installFolder = probable;
                     }
@@ -690,10 +691,8 @@ namespace POSPRA.SetupUI
                     if (!installFolder.EndsWith(Path.DirectorySeparatorChar.ToString()))
                         installFolder += Path.DirectorySeparatorChar;
 
-                    // ✅ Build minimal content — only install path
+                    // ---------------- Write install_info.txt inside install folder ----------------
                     string installInfoContent = $"InstallPath={installFolder}";
-
-                    // 1️⃣ Write to install folder
                     try
                     {
                         Directory.CreateDirectory(installFolder);
@@ -704,7 +703,7 @@ namespace POSPRA.SetupUI
                         ShowMessage($"Warning: failed to write install_info.txt to install folder: {ex.Message}", false, true);
                     }
 
-                    // 2️⃣ Write to CommonApplicationData for Updater (C:\ProgramData\PRAL\install_info.txt)
+                    // ---------------- Write install_info.txt to ProgramData\PRAL ----------------
                     try
                     {
                         string commonDir = Path.Combine(
@@ -719,12 +718,50 @@ namespace POSPRA.SetupUI
                         ShowMessage($"Warning: failed to write install_info.txt to ProgramData: {ex.Message}", false, true);
                     }
 
+                    // ---------------- Update appsettings.json → WorkerConfigPath & WinFormsAppConfigPath ----------------
+                    try
+                    {
+                        string appSettingsPath = Path.Combine(installFolder, "appsettings.json");
+
+                        if (File.Exists(appSettingsPath))
+                        {
+                            string appSettingsJsonContent = File.ReadAllText(appSettingsPath);
+                            dynamic config = Newtonsoft.Json.JsonConvert.DeserializeObject(appSettingsJsonContent);
+
+                            // Ensure AppSettings exists
+                            if (config.AppSettings == null)
+                                config.AppSettings = new Newtonsoft.Json.Linq.JObject();
+
+                            // Set the dynamic paths
+                            config.AppSettings.WorkerConfigPath = Path.Combine(installFolder, "appsettings.worker.json");
+                            config.AppSettings.WinFormsAppConfigPath = Path.Combine(installFolder, "POSPRA-WinFormsUI.dll.config");
+
+                            // Save updated JSON
+                            string updatedJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+                                config,
+                                Newtonsoft.Json.Formatting.Indented
+                            );
+
+                            File.WriteAllText(appSettingsPath, updatedJson);
+                        }
+                        else
+                        {
+                            ShowMessage("Warning: appsettings.json not found to update WorkerConfigPath and WinFormsAppConfigPath", false, true);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowMessage($"Failed to update config paths in appsettings.json: {ex.Message}", false, true);
+                    }
+
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Failed to persist install path info: {ex.Message}", false, true);
+                    ShowMessage($"Failed to persist install info: {ex.Message}", false, true);
                 }
                 // ------------------ END: Write install info for Updater ------------------
+
+
 
 
                 Environment.Exit(0);
