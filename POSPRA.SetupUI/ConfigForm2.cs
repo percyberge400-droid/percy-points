@@ -1927,13 +1927,13 @@ namespace POSPRA.SetupUI
         {
             SaveEnvironmentToApiConfig("Sandbox");
             UpdateEnvironmentInJson(_jsonWorkerPath, "Sandbox");
-            MessageBox.Show("Sandbox");
+            //MessageBox.Show("Sandbox");
         }
         private async void rdoProduction_Click(object sender, EventArgs e)
         {
             SaveEnvironmentToApiConfig("Production");
             UpdateEnvironmentInJson(_jsonWorkerPath, "Production");
-            MessageBox.Show("Production");
+            //MessageBox.Show("Production");
         }
         private void SaveEnvironmentToApiConfig(string environment)
         {
