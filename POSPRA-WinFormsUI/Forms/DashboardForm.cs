@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
+using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDtos;
 using Pos.Application.Services.CloudSyncService.CloudSyncLogService;
@@ -449,13 +450,16 @@ namespace POSPRA_WinFormsUI.Forms
                     UpdateHeartbeatLabel(isError: true);
                     return;
                 }
-
-                // Combine BaseUrl + Endpoint
+                string selectedEnvironment = ConfigurationManager.AppSettings["Environment"];
                 var fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
-                var requestBody = new { PosId = posId };
+                var requestBody = new GetByPosIdDto
+                {
+                    PosId = posId,
+                    Environment = selectedEnvironment
+                };
                 var json = JsonContent.Create(requestBody);
-
                 var response = await _httpClient.PostAsync(fullUrl, json);
+
                 if (response.IsSuccessStatusCode)
                 {
                     var heartbeatResponse = await response.Content.ReadFromJsonAsync<ApiResponse<HeartBeatDto>>();

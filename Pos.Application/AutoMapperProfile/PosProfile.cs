@@ -44,14 +44,6 @@ namespace POSPRA.Application.AutoMapperProfile
                            opt => opt.MapFrom(src => src.Items))
                 .ForMember(dest => dest.BuyerNTN,
                            opt => opt.MapFrom(src => src.BuyerPNTN));
-
-            // Child mapping
-            CreateMap<InvoiceItemDto, InvoiceItems>()
-                .ForMember(dest => dest.EntryDate, opt => opt.MapFrom(_ => DateTime.UtcNow))
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => true));
-
-            //CreateMap<SyncLogDto, Logs>()
-            //    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => 0));
         }
     }
 }

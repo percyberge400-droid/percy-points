@@ -25,7 +25,7 @@ namespace Pos.Application.Services.LiveService
     {
         private readonly AppSettings _settings = options.Value;
         //private readonly IRepository<Invoice> _sqlInvoiceRepository = sqlRepositoryFactory.CreateRepository<Invoice>();
-        private readonly IInvoiceRepository _invoiceRepository;
+        private readonly IInvoiceRepository _invoiceRepository = invoiceRepository;
         private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork = sqlServerUnitOfWork;
 
@@ -182,9 +182,6 @@ namespace Pos.Application.Services.LiveService
             try
             {
                 var result = await _invoiceRepository.GetInvoicesAsync(dto, env);
-
-
-
                 return result;
             }
             catch
