@@ -45,15 +45,25 @@ namespace Pos.Application.Services.POSService
         {
             try
             {
-                var client = _posClientRepository.UpdatePosClientHeartBeat(posId, env);
+                var client = await _posClientRepository.UpdatePosClientHeartBeat(posId, env);
 
-                var dto = _mapper.Map<HeartBeatDto>(client);
+                if (client == null)
+                    return new ApiResponse<HeartBeatDto>(ApiStatusCode.Error, "Client not found", null);
 
-                return new ApiResponse<HeartBeatDto>(
-                    statusCode: ApiStatusCode.Success,
-                    message: ResponseMessages.HeartbeatUpdated,
-                    data: dto
-                );
+                // Map only if client is PosClients
+                if (client is PosClients posClient)
+                {
+                    var dto = _mapper.Map<HeartBeatDto>(posClient);
+                    return new ApiResponse<HeartBeatDto>(
+                        statusCode: ApiStatusCode.Success,
+                        message: ResponseMessages.HeartbeatUpdated,
+                        data: dto
+                    );
+                }
+                else
+                {
+                    return new ApiResponse<HeartBeatDto>(ApiStatusCode.Error, $"Unsupported type: {client.GetType().FullName}", null);
+                }
             }
             catch (Exception ex)
             {
@@ -63,7 +73,6 @@ namespace Pos.Application.Services.POSService
                     data: null
                 );
             }
-
         }
 
         public async Task<ApiResponse<List<PosConfigurationDto>>> GetConfigurationsAsync(string env)

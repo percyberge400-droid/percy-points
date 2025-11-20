@@ -599,7 +599,8 @@ namespace POSPRA_WinFormsUI.Forms
                         internetStatus = await CheckInternetConnectivityAsync();
                         if (internetStatus)
                         {
-                            var fullUrl = $"{_baseUrl}{Endpoints.IsServiceEnabled}?posId={decryptedPosId}";
+                            string selectedenvironment = ConfigurationManager.AppSettings["Environment"];
+                            var fullUrl = $"{_baseUrl}{Endpoints.IsServiceEnabled}?posId={decryptedPosId}&env={selectedenvironment}";
                             bool isEnabled = true;
 
                             using (var httpClient = new HttpClient())
