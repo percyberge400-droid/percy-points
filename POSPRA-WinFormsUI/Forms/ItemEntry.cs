@@ -9,6 +9,7 @@ using Pos.Domain.Entities;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms;
+using System;
 using System.Configuration;
 using System.Drawing.Drawing2D;
 using System.Text.RegularExpressions;
@@ -947,8 +948,8 @@ namespace POSPRA_WinFormsUI
                     //var result = await response.Content.ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
                     //if (result == null)
                     //    throw new Exception("Empty or invalid API response.");
-
-                    var result = await _invoiceService.CreateAsync(invoiceDto);
+                    var env = ConfigurationManager.AppSettings["Environment"];
+                    var result = await _invoiceService.CreateAsync(invoiceDto, env);
 
                     if (result.StatusCode == ApiStatusCode.Success)
                     {

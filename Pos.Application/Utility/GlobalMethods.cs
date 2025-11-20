@@ -30,7 +30,7 @@ namespace Pos.Application.Utility
         /// </summary>
         /// <param name="POSID"></param>
         /// <returns></returns>
-        public static string InvoiceNumber(long POSID)
+        public static string InvoiceNumber(long POSID, string environment)
         {
             string number = null;
             Random rand = new();
@@ -442,7 +442,7 @@ namespace Pos.Application.Utility
                     break;
             }
 
-            if (GlobalVariables.IS_PRODUCTION)
+            if (environment == "Production")
                 number = POSID.ToString() + year + month + day + hour + DateTime.Now.Minute + DateTime.Now.Second + RandomKey.GenerateNumericKey(4);
             else
                 number = POSID.ToString() + year + month + day + hour + DateTime.Now.Minute + DateTime.Now.Second + RandomKey.GenerateNumericKey(4) + "*test*";

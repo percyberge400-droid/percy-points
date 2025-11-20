@@ -17,6 +17,7 @@ using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
 using POSPRA.Application.Services.FiscalService;
+using System.Configuration;
 using System.Text;
 using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -155,7 +156,7 @@ namespace Pos.Application.Services.InvoiceService
         /// </summary>
         /// <param name="dto">The invoice object to create.</param>
         /// <returns>An ApiResponse containing the result of the operation.</returns>
-        public async Task<ApiResponse<InvoiceDto>> CreateAsync(InvoiceDto dto)
+        public async Task<ApiResponse<InvoiceDto>> CreateAsync(InvoiceDto dto, string environment)
         {
             try
             {
@@ -175,8 +176,11 @@ namespace Pos.Application.Services.InvoiceService
                     return ErrorResponse("Invoice validation failed", validation.ErrorMessages);
                 }
 
+                if (String.IsNullOrEmpty(environment))
+                    environment = _settings.Environment;
+
                 // ✅ 2. Create fiscal invoice (runs regardless of validation)
-                var fiscalResponse = await GenerateInvoicePackageAsync(invoiceEntity);
+                var fiscalResponse = await GenerateInvoicePackageAsync(invoiceEntity, environment);
                 if (fiscalResponse.StatusCode != ApiStatusCode.Success)
                 {
                     await LogError($"Invoice not available for {dto.InvoiceType}");
@@ -241,13 +245,13 @@ namespace Pos.Application.Services.InvoiceService
         /// A string containing the encrypted invoice package if successful;
         /// otherwise, an empty string.
         /// </returns>
-        private async Task<ApiResponse<(string EncryptedPackage, int InvoiceId)>> GenerateInvoicePackageAsync(Invoice invoice)
+        private async Task<ApiResponse<(string EncryptedPackage, int InvoiceId)>> GenerateInvoicePackageAsync(Invoice invoice, string? environment)
         {
             try
             {
                 //var posId = _requestHeaderService.GetPosId();
                 // 1️ Generate invoice number
-                string invoiceNumber = GlobalMethods.InvoiceNumber(_settings.POS);
+                string invoiceNumber = GlobalMethods.InvoiceNumber(_settings.POS, environment);
                 invoice.FBRInvoiceNumber = invoiceNumber;
 
                 // 2️ Serialize invoice
