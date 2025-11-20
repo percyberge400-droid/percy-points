@@ -33,7 +33,7 @@ namespace Pos.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool isWinForm = false)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool isWinForm = false, bool isWorker =false)
         {
             // -------------------------
             // Add HttpContextAccessor first
@@ -44,7 +44,7 @@ namespace Pos.Infrastructure
             // Environment Service
             // -------------------------
             // Load Worker config dynamically
-            if (!isWinForm)
+            if (isWorker)
                 services.AddSingleton<IEnvironmentService>(provider =>
                 {
                     var config = provider.GetRequiredService<IConfiguration>();
@@ -55,7 +55,7 @@ namespace Pos.Infrastructure
 
                     return new EnvironmentService(workerConfigPath);
                 });
-            else
+            if (isWinForm)
             {
                 // WinForms mode → Use AppConfigEnvironmentService
                 services.AddSingleton<IEnvironmentService>(provider =>

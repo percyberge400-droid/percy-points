@@ -27,7 +27,7 @@ var builder = Host.CreateDefaultBuilder(args)
         // ----------------------------------------------------
         // Infrastructure & AutoMapper
         // ----------------------------------------------------
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration,false , true);
         services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
 
         // ----------------------------------------------------
