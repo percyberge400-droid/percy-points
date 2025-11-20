@@ -1,24 +1,21 @@
 ﻿using pos.Application.Services.ConfigurationService;
 using Pos.Application.DTOs.CommanDtos;
-using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
-using Pos.Domain.Entities;
 
 namespace Pos.Application.Services.ConfigurationService
 {
-    public class ConfigurationService(ISqlServerRepositoryFactory sqlRepositoryFactory) : IConfigurationService
+    public class ConfigurationService(IConfigurationRepository configurationRepository) : IConfigurationService
     {
 
-        private readonly IRepository<POSConfigurations> _sqlConfigurationRepository = sqlRepositoryFactory.CreateRepository<POSConfigurations>();
+        private readonly IConfigurationRepository _configurationRepository = configurationRepository;
 
         public async Task<bool> IsCloudSyncEnabledAsync(GetByPosIdDto dto)
         {
             try
             {
-                var config = await _sqlConfigurationRepository
-                .FirstOrDefaultAsync(x => x.POSID == dto.PosId);
+                var isEnabled = await _configurationRepository.IsCloudSyncEnabledAsync(dto.PosId, dto.Environment!);
 
-                return config?.IsCloudSyncEnabled ?? false;
+                return isEnabled;
             }
             catch (Exception ex)
             {
