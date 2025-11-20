@@ -629,11 +629,8 @@ namespace POSPRA.SetupUI
 
                 ShowMessage("Saving configurations...", true, false);
 
-                // Assume selectedEnvironment is "Production" or "Sandbox"
-                bool isProduction = selectedEnvironment.Equals("Production", StringComparison.OrdinalIgnoreCase);
-
                 // Pass the boolean to SaveAllConfigs
-                SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName, AccessCode, isProduction);
+                SaveAllConfigs(username, password, mac, dbPath, branchName, branchAddress, businessName, AccessCode, selectedEnvironment);
                 UpdateSetupConfig(dbPath);
                 await Task.Delay(300);
 
@@ -1719,7 +1716,7 @@ namespace POSPRA.SetupUI
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string dbPath,
-            string branchName, string branchAddress, string businessName, string AccessCode, bool selectedEnvironment)
+            string branchName, string branchAddress, string businessName, string AccessCode, string selectedEnvironment)
         {
             SaveXmlConfig(username, password, mac, AccessCode);
             SaveJsonConfigs(dbPath, username, selectedEnvironment);
@@ -1743,7 +1740,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private void SaveJsonConfigs(string dbPath, string username, bool selectedEnvironment)
+        private void SaveJsonConfigs(string dbPath, string username, string selectedEnvironment)
         {
             try
             {
@@ -1756,7 +1753,7 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private void SaveWinFormsConfig(string dbPath, string branchName, string branchAddress, string businessName, bool selectedEnvironment)
+        private void SaveWinFormsConfig(string dbPath, string branchName, string branchAddress, string businessName, string selectedEnvironment)
         {
             try
             {
@@ -1767,7 +1764,7 @@ namespace POSPRA.SetupUI
                 UpdateOrCreateNode(doc, "branchName", branchName);
                 UpdateOrCreateNode(doc, "branchAddress", branchAddress);
                 UpdateOrCreateNode(doc, "businessName", businessName);
-                UpdateOrCreateNode(doc, "IsProduction", Convert.ToString(selectedEnvironment));
+                UpdateOrCreateNode(doc, "Environment", selectedEnvironment);
 
                 doc.Save(_winformsConfigPath);
             }
@@ -1820,7 +1817,6 @@ namespace POSPRA.SetupUI
 
                 // Update Environment
                 root["AppSettings"]["Environment"] = selectedEnvironment;
-
 
             }
             catch (Exception ex)
@@ -1897,7 +1893,7 @@ namespace POSPRA.SetupUI
         }
 
 
-        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId, bool selectedEnvironment)
+        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId, string selectedEnvironment)
         {
             try
             {
@@ -1918,7 +1914,7 @@ namespace POSPRA.SetupUI
 
                 root["AppSettings"]["DefaultDBFilePath"] = dbPath;
                 root["AppSettings"]["POS"] = posId;
-                root["AppSettings"]["IsProduction"] = selectedEnvironment;
+                root["AppSettings"]["Environment"] = selectedEnvironment;
 
                 File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
             }
@@ -1960,9 +1956,7 @@ namespace POSPRA.SetupUI
                     if (config["AppSettings"] == null)
                         config["AppSettings"] = new JObject();
 
-                    // Set isProduction based on environment
-                    bool isProd = environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
-                    config["AppSettings"]["IsProduction"] = isProd;
+                    config["AppSettings"]["Environment"] = environment;
 
                     // Save the updated JSON
                     File.WriteAllText(path, JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented));
