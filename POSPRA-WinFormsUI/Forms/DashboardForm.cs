@@ -1330,7 +1330,9 @@ namespace POSPRA_WinFormsUI.Forms
             btnSyncLogs.Text = "Syncing...";
             try
             {
-                await _sendLogToCloudService.SyncLogAsync();
+                string selectedEnvironment = ConfigurationManager.AppSettings["Environment"];
+
+                await _sendLogToCloudService.SyncLogAsync(selectedEnvironment);
             }
             catch (Exception ex)
             {

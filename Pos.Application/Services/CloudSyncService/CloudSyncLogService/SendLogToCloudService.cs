@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
+using Pos.Application.DTOs;
+using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.HttpClientService;
 using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
-using Pos.Application.DTOs;
-using Pos.Application.DTOs.LogDTOs;
 using System.Text;
 using System.Text.Json;
 
@@ -32,12 +32,12 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
             _mapper = mapper;
         }
 
-        public async Task SyncLogAsync()
+        public async Task SyncLogAsync(string env)
         {
-            await ProcessHealthCheck();
+            await ProcessHealthCheck(env);
         }
 
-        private async Task ProcessHealthCheck()
+        private async Task ProcessHealthCheck(string env)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
 
                 if (response.StatusCode == ApiStatusCode.Success)
                 {
-                    var resp = await PostDataAsync(response.Data);
+                    var resp = await PostDataAsync(response.Data, env);
                     if (resp is null || !resp.IsSuccessStatusCode)
                         return;
 
@@ -72,7 +72,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
             }
         }
 
-        private async Task<HttpResponseMessage?> PostDataAsync(List<SyncLogDto> logDtos)
+        private async Task<HttpResponseMessage?> PostDataAsync(List<SyncLogDto> logDtos, string env)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
 
                 var jsonBody = JsonSerializer.Serialize(logDtos);
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                var url = $"{_baseUrl}{Endpoints.CreateCloudLog}";
+                var url = $"{_baseUrl}{Endpoints.CreateCloudLog}?environment={env}";
 
                 var resp = await _http.PostAsync(url, content);
                 if (!resp.IsSuccessStatusCode)

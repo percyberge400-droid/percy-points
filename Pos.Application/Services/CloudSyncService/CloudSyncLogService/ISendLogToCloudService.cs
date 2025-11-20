@@ -2,6 +2,6 @@
 {
     public interface ISendLogToCloudService
     {
-        Task SyncLogAsync();
+        Task SyncLogAsync(string env);
     }
 }
