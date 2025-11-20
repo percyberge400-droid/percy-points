@@ -8,6 +8,11 @@ namespace Pos.Infrastructure.Services
     {
         private readonly string _jsonFilePath;
 
+        public EnvironmentService()
+        {
+          
+        }
+
         public EnvironmentService(string configFilePath)
         {
             if (string.IsNullOrWhiteSpace(configFilePath))

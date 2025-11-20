@@ -91,6 +91,7 @@ namespace Pos.Infrastructure
             services.AddScoped<IScriptService, ScriptService>();
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ICloudLogService, CloudLogService>();
+            services.AddScoped<IEnvironmentService, EnvironmentService>();
 
             // -------------------------
             // SQLite & SQL Server factories
