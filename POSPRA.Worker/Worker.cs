@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
@@ -6,8 +8,6 @@ using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
 using Pos.Worker.Logging;
-using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace Pos.Worker
 {
@@ -56,7 +56,7 @@ namespace Pos.Worker
                     }
 
                     bool enabledWorker = false;
-                    var fullUrl = $"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}?posId={_appSettings.POS}";
+                    var fullUrl = $"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}?posId={_appSettings.POS}&?env={_appSettings.Environment}";
 
                     try
                     {
@@ -86,7 +86,7 @@ namespace Pos.Worker
                     {
                         using var httpClient = httpClientFactory.CreateClient();
                         var apiUrl = $"{_appSettings.BaseUrl}{Endpoints.IsCloudSyncEnabledAsync}";
-                        var response = await httpClient.PostAsJsonAsync(apiUrl, new GetByPosIdDto { PosId = _appSettings.POS }, cancellationToken);
+                        var response = await httpClient.PostAsJsonAsync(apiUrl, new GetByPosIdDto { PosId = _appSettings.POS, Environment = _appSettings.Environment }, cancellationToken);
 
                         if (response.IsSuccessStatusCode)
                         {

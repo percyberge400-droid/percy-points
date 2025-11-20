@@ -14,45 +14,38 @@ namespace Pos.Application.Services.POSService
     public class PosService : IPosService
     {
         private readonly IRequestHeaderService _requestHeaderService;
-        private readonly IRepository<PosClients> _sqlClientRepository;
-        private readonly IRepository<POSConfigurations> _sqlConfigurationsRepository;
-        private readonly IRepository<PosStatus> _sqlStatusRepository;
+        //private readonly IRepository<PosClients> _sqlClientRepository;
+        //private readonly IRepository<POSConfigurations> _sqlConfigurationsRepository;
+        private readonly IPosClientRepository _posClientRepository;
+        private readonly IConfigurationRepository _posConfigurationRepository;
+        //private readonly IRepository<PosStatus> _sqlStatusRepository;
 
 
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         public readonly IMapper _mapper;
         public PosService(
-            ISqlServerRepositoryFactory sqlRepositoryFactory,
+            //ISqlServerRepositoryFactory sqlRepositoryFactory,
+            IPosClientRepository posClientRepository,
+            IConfigurationRepository posConfigurationRepository,
             IRequestHeaderService requestHeaderService,
             IMapper mapper,
             ISqlServerUnitOfWork sqlServerUnitOfWork)
         {
-
-            _sqlClientRepository = sqlRepositoryFactory.CreateRepository<PosClients>();
-            _sqlConfigurationsRepository = sqlRepositoryFactory.CreateRepository<POSConfigurations>();
-            _sqlStatusRepository = sqlRepositoryFactory.CreateRepository<PosStatus>();
+            _posClientRepository = posClientRepository;
+            _posConfigurationRepository = posConfigurationRepository;
+            // _sqlClientRepository = sqlRepositoryFactory.CreateRepository<PosClients>();
+            //_sqlConfigurationsRepository = sqlRepositoryFactory.CreateRepository<POSConfigurations>();
+            // _sqlStatusRepository = sqlRepositoryFactory.CreateRepository<PosStatus>();
             _requestHeaderService = requestHeaderService;
             _mapper = mapper;
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
         }
 
-        public async Task<ApiResponse<HeartBeatDto>> UpdateHeartBeatAsync(int posId)
+        public async Task<ApiResponse<HeartBeatDto>> UpdateHeartBeatAsync(int posId, string env)
         {
             try
             {
-                var client = await _sqlClientRepository.FirstOrDefaultAsync(p => p.POSRegistrationNumber == posId);
-                if (client == null)
-                    return new ApiResponse<HeartBeatDto>(
-                        statusCode: ApiStatusCode.NotFound,
-                        message: ResponseMessages.DataNotFound,
-                        data: null
-                    );
-
-                client.IsConnected = true;
-                client.HeartbeatUpdatedOn = DateTime.Now;
-                client.StoreStatus = "Connected";
-
-                await _sqlServerUnitOfWork.SaveChangesAsync();
+                var client = _posClientRepository.UpdatePosClientHeartBeat(posId, env);
 
                 var dto = _mapper.Map<HeartBeatDto>(client);
 
@@ -73,21 +66,18 @@ namespace Pos.Application.Services.POSService
 
         }
 
-        public async Task<ApiResponse<List<PosConfigurationDto>>> GetConfigurationsAsync()
+        public async Task<ApiResponse<List<PosConfigurationDto>>> GetConfigurationsAsync(string env)
         {
             try
             {
                 var posId = _requestHeaderService.GetPosId();
-                var posConfigurations = await _sqlConfigurationsRepository.FirstOrDefaultAsync(x => x.POSID == posId && x.IsActive == true);
+                var posConfigurations = await _posConfigurationRepository.UpdateConfigurationStatus(posId, env);
                 if (posConfigurations == null)
                     return new ApiResponse<List<PosConfigurationDto>>(
                         statusCode: ApiStatusCode.NotFound,
                         message: ResponseMessages.ConfigurationsNotFound,
                         data: null
                     );
-
-                posConfigurations.IsActive = false;
-                await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 return new ApiResponse<List<PosConfigurationDto>>(
                     statusCode: ApiStatusCode.Success,
@@ -121,7 +111,7 @@ namespace Pos.Application.Services.POSService
                     TypeId = 1                              // Example type (adjust as needed)
                 };
 
-                await _sqlStatusRepository.AddAsync(posStatus);
+                //await _posClientRepository(posStatus);
                 await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 return new ApiResponse<List<PosStatus>>(

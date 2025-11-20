@@ -10,29 +10,70 @@ namespace Pos.Infrastructure.Persistence.Repositories
     {
         private readonly DbContextFactory _dbContextFactory = dbContextFactory;
 
+
+        private async Task<SqlServerDbContext> SetEnvironmentAsync(string env)
+        {
+            EnvironmentType evnironment = env == "Production" ? EnvironmentType.Production : EnvironmentType.Sandbox;
+            var dbContext = await _dbContextFactory.CreateSqlServerDbContextAsync(evnironment);
+            return dbContext!;
+        }
+
         public async Task<PosClients> GetByMacAsync(ClientValidationDto dto)
         {
-            EnvironmentType evnironment = dto.Environment == "Production" ? EnvironmentType.Production : EnvironmentType.Sandbox;
+            var context = await SetEnvironmentAsync(dto.Environment);
+            var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == dto.PosId);
+            return entity!;
+        }
 
-            await using var dbContext = await _dbContextFactory.CreateSqlServerDbContextAsync(evnironment);
-
-            var entity = await dbContext!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == dto.PosId);
+        public async Task<PosClients> GetByPosId(long posId, string env)
+        {
+            var context = await SetEnvironmentAsync(env);
+            var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == posId);
             return entity!;
         }
 
         public async Task<bool> UpdatePosCLientStatus(ClientValidationDto dto)
         {
-            EnvironmentType evnironment = dto.Environment == "Production" ? EnvironmentType.Production : EnvironmentType.Sandbox;
+            var context = await SetEnvironmentAsync(dto.Environment);
 
-            await using var dbContext = await _dbContextFactory.CreateSqlServerDbContextAsync(evnironment);
-
-            var entity = await dbContext!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == dto.PosId);
-            if(entity is null)
+            var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == dto.PosId);
+            if (entity is null)
                 return false;
             entity!.IsActive = true;
-            await dbContext.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<bool> UpdatePosCLientStatus(long posId, bool isActive, string envrionment)
+        {
+            var context = await SetEnvironmentAsync(envrionment);
+
+            var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == posId);
+            if (entity is null)
+                return false;
+            entity!.IsActive = isActive;
+            await context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<PosClients> UpdatePosClientHeartBeat(long posId, string env)
+        {
+            var context = await SetEnvironmentAsync(env);
+
+            var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == posId);
+            if (entity != null)
+            {
+
+                entity.IsConnected = true;
+                entity.HeartbeatUpdatedOn = DateTime.Now;
+                entity.StoreStatus = "Connected";
+
+                await context.SaveChangesAsync();
+            }
+
+            return entity;
         }
     }
 }

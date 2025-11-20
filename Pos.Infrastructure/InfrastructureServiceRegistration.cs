@@ -33,7 +33,7 @@ namespace Pos.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool isWinForm = false, bool isWorker =false)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool isWinForm = false, bool isWorker = false)
         {
             // -------------------------
             // Add HttpContextAccessor first
@@ -41,35 +41,39 @@ namespace Pos.Infrastructure
             services.AddHttpContextAccessor();
 
             // -------------------------
+
             // Environment Service
             // -------------------------
             // Load Worker config dynamically
-            if (isWorker)
-                services.AddSingleton<IEnvironmentService>(provider =>
-                {
-                    var config = provider.GetRequiredService<IConfiguration>();
-                    var workerConfigPath = Path.Combine(AppContext.BaseDirectory, "appsettings.worker.json");
+            //if (isWorker)
+            //    services.AddSingleton<IEnvironmentService>(provider =>
+            //    {
+            //        var config = provider.GetRequiredService<IConfiguration>();
+            //        var workerConfigPath = Path.Combine(AppContext.BaseDirectory, "appsettings.worker.json");
 
-                    if (!File.Exists(workerConfigPath))
-                        throw new FileNotFoundException("Worker config file not found", workerConfigPath);
+            //        if (!File.Exists(workerConfigPath))
+            //            throw new FileNotFoundException("Worker config file not found", workerConfigPath);
 
-                    return new EnvironmentService(workerConfigPath);
-                });
-            if (isWinForm)
-            {
-                // WinForms mode → Use AppConfigEnvironmentService
-                services.AddSingleton<IEnvironmentService>(provider =>
-                {
-                    // No need for path logic now — AppConfigEnvironmentService reads from ConfigurationManager directly
-                    return new AppConfigEnvironmentService();
-                });
-            }
+            //        return new EnvironmentService(workerConfigPath);
+            //    });
+            //if (isWinForm)
+            //{
+            //    // WinForms mode → Use AppConfigEnvironmentService
+            //    services.AddSingleton<IEnvironmentService>(provider =>
+            //    {
+            //        // No need for path logic now — AppConfigEnvironmentService reads from ConfigurationManager directly
+            //        return new AppConfigEnvironmentService();
+            //    });
+            //}
 
             // -------------------------
             // Repositories
             // -------------------------
             services.AddScoped<IProductCatalogueByPosIdRepository, ProductCatalogueByPosIdRepository>();
             services.AddScoped<IPosClientRepository, PosClientRepository>();
+            services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+            services.AddScoped<ICloudLogsRepository, CloudLogsRepository>();
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
             // -------------------------
             // Core Services

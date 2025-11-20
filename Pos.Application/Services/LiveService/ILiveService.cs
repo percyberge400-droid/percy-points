@@ -1,7 +1,7 @@
-﻿using Pos.Domain.Entities;
-using Pos.Application.DTOs;
+﻿using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.InvoiceDtos;
+using Pos.Domain.Entities;
 
 namespace Pos.Application.Services.LiveService
 {
@@ -23,7 +23,7 @@ namespace Pos.Application.Services.LiveService
         /// An <see cref="ApiResponse{FileRecordDto}"/> indicating whether
         /// the operation succeeded or failed, along with optional details.
         /// </returns>
-        Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dto);
+        Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dto, string environment);
 
         /// <summary>
         /// Retrieves invoices filtered by the specified criteria
@@ -35,8 +35,8 @@ namespace Pos.Application.Services.LiveService
         /// <returns>
         /// An <see cref="ApiResponse{String}"/> containing the CSV data of the filtered invoices.
         /// </returns>
-        Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto);
+        Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto, string environment);
 
-        Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto);
+        Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto, string environment);
     }
 }

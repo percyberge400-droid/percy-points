@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Pos.Application.Services.ClientService;
-using Pos.Application.Services.LiveService;
-using Pos.Application.Services.LogService;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.ClientService;
+using Pos.Application.Services.LiveService;
+using Pos.Application.Services.LogService;
 
 namespace Pos.API.Controllers
 {
@@ -20,13 +20,13 @@ namespace Pos.API.Controllers
         private readonly ICloudLogService _cloudLogService = cloudLogService;
 
         [HttpPost("decrypt-save")]
-        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto) =>
-            Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto));
+        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment) =>
+            Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment));
 
         [HttpPost("export-csv")]
-        public async Task<ActionResult<ApiResponse<string>>> GetInvoicesCsv(InvoiceFilterDto dto)
+        public async Task<ActionResult<ApiResponse<string>>> GetInvoicesCsv(InvoiceFilterDto dto, string environment)
         {
-            var response = await _liveService.GetInvoicesCsvAsync(dto);
+            var response = await _liveService.GetInvoicesCsvAsync(dto, environment);
             return Ok(response);
         }
 
@@ -35,16 +35,16 @@ namespace Pos.API.Controllers
             Ok(await _clientService.GetByMacAsync(dto));
 
         [HttpPost("update-configuration-flag")]
-        public async Task<ActionResult<ApiResponse<string>>> UpdateConfigurationFlag(bool isConfiguration) =>
-            Ok(await _clientService.UpdateConfigurationFlag(isConfiguration, null));
+        public async Task<ActionResult<ApiResponse<string>>> UpdateConfigurationFlag(bool isConfiguration, string environment) =>
+            Ok(await _clientService.UpdateConfigurationFlag(isConfiguration, null, environment));
 
         [HttpPost("create-cloud-log")]
-        public async Task<ActionResult<ApiResponse<string>>> CreateCloudLog(List<SyncLogDto> logDtos) =>
-            Ok(await _cloudLogService.CreateCloudLog(logDtos));
+        public async Task<ActionResult<ApiResponse<string>>> CreateCloudLog(List<SyncLogDto> logDtos, string environment) =>
+            Ok(await _cloudLogService.CreateCloudLog(logDtos, environment));
 
         [HttpGet("get-isservice-enable")]
-        public async Task<ActionResult<ApiResponse<bool>>> CreateCloudLog(long posId) =>
-            Ok(await _clientService.IsServiceEnabled(posId));
+        public async Task<ActionResult<ApiResponse<bool>>> CreateCloudLog(long posId, string env) =>
+            Ok(await _clientService.IsServiceEnabled(posId, env));
 
     }
 }

@@ -1,4 +1,6 @@
-﻿using ClosedXML.Excel;
+﻿using System.Configuration;
+using System.Runtime.InteropServices;
+using ClosedXML.Excel;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.LiveService;
@@ -6,8 +8,6 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.Configuration;
-using System.Runtime.InteropServices;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -20,6 +20,7 @@ namespace POSPRA_WinFormsUI.Forms
 
         private readonly ILiveService _liveService;
         private readonly ILogService _logService;
+        private readonly string environment;
 
         public ExportInvoiceForm(ILiveService liveService, ILogService logService)
         {
@@ -27,6 +28,8 @@ namespace POSPRA_WinFormsUI.Forms
 
             _liveService = liveService ?? throw new ArgumentNullException(nameof(liveService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+
+            environment = ConfigurationManager.AppSettings["Environment"];
 
             // --- Date setup ---
             dateTimePickerTo.MaxDate = DateTime.Today;
@@ -113,7 +116,7 @@ namespace POSPRA_WinFormsUI.Forms
                     ToDate = dateTimePickerTo.Value.Date
                 };
 
-                var response = await _liveService.GetInvoicesCsvAsync(filter);
+                var response = await _liveService.GetInvoicesCsvAsync(filter, environment);
 
                 if (response == null)
                 {

@@ -7,7 +7,7 @@ namespace Pos.Application.Services.ClientService
     public interface IClientService
     {
         Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto);
-        Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId);
-        Task<bool> IsServiceEnabled(long posId);
+        Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId, string environment);
+        Task<bool> IsServiceEnabled(long posId, string env);
     }
 }

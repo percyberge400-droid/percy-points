@@ -20,7 +20,7 @@ namespace Pos.API.Controllers
         [HttpPost("HeartBeat")]
         public async Task<IActionResult> HeartBeat(GetByPosIdDto dto)
         {
-            var response = await _posService.UpdateHeartBeatAsync(dto.PosId);
+            var response = await _posService.UpdateHeartBeatAsync(dto.PosId, dto.Environment);
             return Ok(response);
         }
 
@@ -31,9 +31,9 @@ namespace Pos.API.Controllers
         /// List of configuration values
         /// </returns>
         [HttpPost("Configuration")]
-        public async Task<IActionResult> Configuration()
+        public async Task<IActionResult> Configuration(string env)
         {
-            var response = await _posService.GetConfigurationsAsync();
+            var response = await _posService.GetConfigurationsAsync(env);
             return Ok(response);
         }
 

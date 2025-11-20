@@ -67,7 +67,7 @@ namespace Pos.Api
             // --------------------------
             // Middleware
             // --------------------------
-            if (app.Environment.IsDevelopment())
+            //if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();

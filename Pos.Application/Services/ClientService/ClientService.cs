@@ -1,12 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
-using System.Formats.Asn1;
 
 namespace Pos.Application.Services.ClientService
 {
@@ -91,32 +89,21 @@ namespace Pos.Application.Services.ClientService
                 string.Empty);
         }
 
-        public async Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId)
+        public async Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId, string environment)
         {
             // ✅ Use _settings.PosId if posId is null, 0, or not provided
             long effectivePosId = (posId.HasValue && posId.Value > 0)
                 ? posId.Value
                 : _settings.POS;
 
-            var entity = await _sqlClientRepository.FirstOrDefaultAsync(m =>
-                            m.POSRegistrationNumber == effectivePosId);
-
-            if (entity is null)
-            {
-                return ApiStatusCode.NotFound;
-            }
-
-            entity.IsActive = isConfiguration;
-
-            await _sqlClientRepository.UpdateAsync(entity);
-            await _sqlServerUnitOfWork.SaveChangesAsync();
+            await _posClientRepository.UpdatePosCLientStatus(effectivePosId, isConfiguration, environment);
 
             return ApiStatusCode.Success;
         }
 
-        public async Task<bool> IsServiceEnabled(long posId)
+        public async Task<bool> IsServiceEnabled(long posId, string env)
         {
-            PosClients client = await _sqlClientRepository.FirstOrDefaultAsync(x => x.POSRegistrationNumber == posId);
+            PosClients client = await _posClientRepository.GetByPosId(posId, env);
             var retVal = client?.IsServiceEnabled ?? false;
             return retVal;
         }

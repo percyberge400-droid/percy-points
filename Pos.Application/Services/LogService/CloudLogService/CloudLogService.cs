@@ -2,7 +2,6 @@
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.LogDtos;
 using Pos.Application.DTOs.LogDTOs;
-using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
@@ -11,23 +10,26 @@ namespace Pos.Application.Services.LogService
 {
     public class CloudLogService : ICloudLogService
     {
+        ICloudLogsRepository _cloudLogsRepository;
         private readonly IRepository<Logs> _sqlLogRepository;
-        private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
+        //private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         private readonly IMapper _mapper;
 
         public CloudLogService(
-            ISqlServerRepositoryFactory sqlRepositoryFactory,
-            ISqlServerUnitOfWork sqlServerUnitOfWork,
+            //ISqlServerRepositoryFactory sqlRepositoryFactory,
+            //ISqlServerUnitOfWork sqlServerUnitOfWork,
+            ICloudLogsRepository cloudLogsRepository,
             IMapper mapper)
         {
-            _sqlLogRepository = sqlRepositoryFactory.CreateRepository<Logs>();
-            _sqlServerUnitOfWork = sqlServerUnitOfWork;
+            //_sqlLogRepository = sqlRepositoryFactory.CreateRepository<Logs>();
+            //_sqlServerUnitOfWork = sqlServerUnitOfWork;
+            _cloudLogsRepository = cloudLogsRepository;
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<List<LogDto>>> GetAllCloudAsync()
+        public async Task<ApiResponse<List<LogDto>>> GetAllCloudAsync(long posId, string env)
         {
-            var allRecords = await _sqlLogRepository.GetAllAsync();
+            var allRecords = await _cloudLogsRepository.GetAllLogsAsync(posId, env);
             var logDtos = _mapper.Map<List<LogDto>>(allRecords);
 
             if (logDtos.Any())
@@ -44,14 +46,14 @@ namespace Pos.Application.Services.LogService
             var entities = _mapper.Map<List<Logs>>(logDtos);
             entities.ForEach(log => log.IsSynced = true);
 
-            _sqlLogRepository.UpdateRange(entities);
-            await _sqlServerUnitOfWork.SaveChangesAsync();
+            //_sqlLogRepository.UpdateRange(entities);
+            // await _sqlServerUnitOfWork.SaveChangesAsync();
 
             var updatedDtos = _mapper.Map<List<LogDto>>(entities);
             return new ApiResponse<List<LogDto>>(ApiStatusCode.Success, ResponseMessages.RecordUpdated, updatedDtos, string.Empty);
         }
 
-        public async Task<ApiResponse<List<SyncLogDto>>> CreateCloudLog(List<SyncLogDto> dto)
+        public async Task<ApiResponse<List<SyncLogDto>>> CreateCloudLog(List<SyncLogDto> dto, string enironment)
         {
             if (dto is null || !dto.Any())
                 return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Error, ResponseMessages.InvalidInput, null!, string.Empty);
@@ -59,8 +61,10 @@ namespace Pos.Application.Services.LogService
             var logs = _mapper.Map<List<Logs>>(dto);
             logs.ForEach(l => l.Id = 0);
 
-            await _sqlLogRepository.AddRangeAsync(logs);
-            await _sqlServerUnitOfWork.SaveChangesAsync();
+            await _cloudLogsRepository.AddRangeAsync(logs, enironment);
+
+            //await _sqlLogRepository.AddRangeAsync(logs);
+            // await _sqlServerUnitOfWork.SaveChangesAsync();
 
             dto.ForEach(x => x.IsSynced = true);
             return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Success, ResponseMessages.RecordSaved, dto, string.Empty);

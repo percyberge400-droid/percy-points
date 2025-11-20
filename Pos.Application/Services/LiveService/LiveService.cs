@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
@@ -8,7 +8,6 @@ using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
-using System.Text.Json;
 
 namespace Pos.Application.Services.LiveService
 {
@@ -19,12 +18,14 @@ namespace Pos.Application.Services.LiveService
     /// </summary>
     public class LiveService(
         IOptions<AppSettings> options,
-        ISqlServerRepositoryFactory sqlRepositoryFactory,
+        //ISqlServerRepositoryFactory sqlRepositoryFactory,
+        IInvoiceRepository invoiceRepository,
         IMapper mapper,
         ISqlServerUnitOfWork sqlServerUnitOfWork) : ILiveService
     {
         private readonly AppSettings _settings = options.Value;
-        private readonly IRepository<Invoice> _sqlInvoiceRepository = sqlRepositoryFactory.CreateRepository<Invoice>();
+        //private readonly IRepository<Invoice> _sqlInvoiceRepository = sqlRepositoryFactory.CreateRepository<Invoice>();
+        private readonly IInvoiceRepository _invoiceRepository;
         private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork = sqlServerUnitOfWork;
 
@@ -36,7 +37,7 @@ namespace Pos.Application.Services.LiveService
         /// <returns>
         /// An <see cref="ApiResponse{FileRecordDTO}"/> indicating success or failure of the save operation.
         /// </returns>
-        public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos)
+        public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment)
         {
             // Guard-clause: no input
             if (dtos == null || dtos.Count == 0)
@@ -74,7 +75,7 @@ namespace Pos.Application.Services.LiveService
                     if (JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto) continue;
 
                     // Save invoice & items
-                    var response = await CreateInvoiceWithItemsAsync(invoiceDto);
+                    var response = await CreateInvoiceWithItemsAsync(invoiceDto, environment);
                     if (string.Equals(response.StatusCode, ApiStatusCode.Success.ToString(), StringComparison.OrdinalIgnoreCase))
                     {
                         anySaved = true;
@@ -111,7 +112,7 @@ namespace Pos.Application.Services.LiveService
         /// An <see cref="ApiResponse{Invoice}"/> indicating success or failure,
         /// including the saved <see cref="Invoice"/> entity when successful.
         /// </returns>
-        public async Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto)
+        public async Task<ApiResponse<Invoice>> CreateInvoiceWithItemsAsync(InvoiceDto dto, string environment)
         {
             try
             {
@@ -121,8 +122,8 @@ namespace Pos.Application.Services.LiveService
                 invoice.FBRInvoiceNumber = dto.InvoiceNumber;
                 invoice.BuyerNTN = dto.BuyerPNTN;
                 //invoice.FBRInvoiceNumber = GlobalMethods.InvoiceNumber(dto.POSID);
-                await _sqlInvoiceRepository.AddAsync(invoice);
-                await _sqlServerUnitOfWork.SaveChangesAsync();
+                await _invoiceRepository.AddAsync(invoice, environment);
+                //await _sqlServerUnitOfWork.SaveChangesAsync();
 
                 return new ApiResponse<Invoice>(
                     ApiStatusCode.Success.ToString(),
@@ -146,10 +147,10 @@ namespace Pos.Application.Services.LiveService
         /// <returns>
         /// An <see cref="ApiResponse{String}"/> containing the CSV representation of the invoices.
         /// </returns>
-        public async Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto)
+        public async Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto, string environment)
         {
             // Get the filtered invoices
-            var invoices = await GetInvoicesAsync(dto);
+            var invoices = await GetInvoicesAsync(dto, environment);
 
             if (!invoices.Any())
             {
@@ -176,23 +177,15 @@ namespace Pos.Application.Services.LiveService
         /// </summary>
         /// <param name="dto">Filter object containing POS ID and optional date range.</param>
         /// <returns>A filtered collection of <see cref="Invoice"/> entities.</returns>
-        private async Task<IEnumerable<Invoice>> GetInvoicesAsync(InvoiceFilterDto dto)
+        private async Task<IEnumerable<Invoice>> GetInvoicesAsync(InvoiceFilterDto dto, string env)
         {
             try
             {
-                IQueryable<Invoice> query = _sqlInvoiceRepository.Query();
+                var result = await _invoiceRepository.GetInvoicesAsync(dto, env);
 
-                // Only filter POS if given
-                if (dto.PosId > 0 && dto.PosId is not null)
-                    query = query.Where(i => i.POSID == dto.PosId);
 
-                if (dto.FromDate.HasValue)
-                    query = query.Where(i => i.EntryDate.Date >= dto.FromDate.Value.Date);
 
-                if (dto.ToDate.HasValue)
-                    query = query.Where(i => i.EntryDate.Date <= dto.ToDate.Value.Date);
-
-                return await query.ToListAsync();
+                return result;
             }
             catch
             {
