@@ -6,7 +6,7 @@ using Pos.Application.DTOs;
 using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Interfaces;
-using Pos.Application.Interfaces.ProductCatalogue;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 

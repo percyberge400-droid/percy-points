@@ -2,6 +2,7 @@
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 

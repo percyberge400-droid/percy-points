@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using System.Linq.Expressions;
 
 namespace Pos.Infrastructure.Persistence.Repositories

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using pos.Application.Services.ConfigurationService;
 using Pos.Application.DTOs;
 using Pos.Application.Interfaces;
-using Pos.Application.Interfaces.ProductCatalogue;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Services;
 using Pos.Application.Services.ClientService;
 using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
@@ -75,6 +75,7 @@ namespace Pos.Infrastructure
             // Repositories
             // -------------------------
             services.AddScoped<IProductCatalogueByPosIdRepository, ProductCatalogueByPosIdRepository>();
+            services.AddScoped<IPosClientRepository, PosClientRepository>();
 
             // -------------------------
             // Core Services

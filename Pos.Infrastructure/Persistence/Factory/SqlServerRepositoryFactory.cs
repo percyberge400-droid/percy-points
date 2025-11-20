@@ -1,4 +1,5 @@
 ﻿using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Infrastructure.Persistence.Repositories;
 
 public class SqlServerRepositoryFactory : ISqlServerRepositoryFactory

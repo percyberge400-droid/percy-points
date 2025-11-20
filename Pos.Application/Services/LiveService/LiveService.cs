@@ -5,6 +5,7 @@ using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 using System.Text.Json;

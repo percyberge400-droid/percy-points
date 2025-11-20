@@ -1,4 +1,4 @@
-﻿namespace Pos.Application.Interfaces
+﻿namespace Pos.Application.Interfaces.Repositories
 {
     public interface IRepositoryFactory
     {

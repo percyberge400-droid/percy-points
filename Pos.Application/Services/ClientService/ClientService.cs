@@ -1,8 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 
@@ -11,28 +11,25 @@ namespace Pos.Application.Services.ClientService
     public class ClientService : IClientService
     {
         private readonly IRepository<PosClients> _sqlClientRepository;
-        private readonly IMapper _mapper;
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         private readonly AppSettings _settings;
+        private readonly IPosClientRepository _posClientRepository;
         public ClientService(
             ISqlServerRepositoryFactory sqlRepositoryFactory,
-            IMapper mapper,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
-            IOptions<AppSettings> options)
+            IOptions<AppSettings> options,
+            IPosClientRepository posClientRepository)
         {
             _sqlClientRepository = sqlRepositoryFactory.CreateRepository<PosClients>();
-
-            _mapper = mapper;
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
             _settings = options.Value;
+            _posClientRepository = posClientRepository;
         }
 
         public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
         {
             // Check POS ID
-            var entity = await _sqlClientRepository.FirstOrDefaultAsync(m =>
-                                m.POSRegistrationNumber == dto.PosId);
-
+            var entity = await _posClientRepository.GetByMacAsync(dto);
             if (entity == null)
             {
                 return new ApiResponse<PosClients>(

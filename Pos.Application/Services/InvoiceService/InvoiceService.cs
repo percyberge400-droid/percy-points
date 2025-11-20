@@ -7,6 +7,7 @@ using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.InvoiceDTOs;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Services.FileRecordService;
 using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;

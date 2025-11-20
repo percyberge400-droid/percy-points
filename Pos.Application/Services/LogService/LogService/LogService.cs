@@ -6,6 +6,7 @@ using Pos.Application.DTOs.LogDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 using POSPRA.DTOs.LogDTOs;

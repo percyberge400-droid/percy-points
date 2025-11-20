@@ -3,6 +3,7 @@ using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.PosDtos;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Services.HelperService;
 using Pos.Application.Services.PosService;
 using Pos.Application.Utility;

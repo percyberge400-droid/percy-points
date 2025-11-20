@@ -1,6 +1,6 @@
 ﻿using Pos.Application.DTOs.ProductCatalogDtos;
 
-namespace Pos.Application.Interfaces.ProductCatalogue
+namespace Pos.Application.Interfaces.Repositories
 {
     public interface IProductCatalogueByPosIdRepository
     {

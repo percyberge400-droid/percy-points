@@ -1,6 +1,7 @@
 ﻿using pos.Application.Services.ConfigurationService;
 using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Domain.Entities;
 
 namespace Pos.Application.Services.ConfigurationService

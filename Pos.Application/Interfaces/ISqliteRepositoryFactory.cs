@@ -1,4 +1,6 @@
-﻿namespace Pos.Application.Interfaces
+﻿using Pos.Application.Interfaces.Repositories;
+
+namespace Pos.Application.Interfaces
 {
     public interface ISqliteRepositoryFactory
     {

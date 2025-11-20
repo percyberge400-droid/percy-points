@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
 using Pos.Infrastructure.Persistence.Repositories;
 
 namespace Pos.Infrastructure.Persistence.Factory
