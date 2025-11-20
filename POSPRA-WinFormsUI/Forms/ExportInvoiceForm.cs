@@ -1,6 +1,6 @@
-﻿using System.Configuration;
-using System.Runtime.InteropServices;
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Pos.Application.DTOs;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.LiveService;
@@ -8,6 +8,9 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
+using System.Net.Http.Json;
+using System.Runtime.InteropServices;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -21,6 +24,8 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly ILiveService _liveService;
         private readonly ILogService _logService;
         private readonly string environment;
+        private readonly HttpClient _httpClient;
+
 
         public ExportInvoiceForm(ILiveService liveService, ILogService logService)
         {
@@ -40,13 +45,15 @@ namespace POSPRA_WinFormsUI.Forms
             dateTimePickerTo.CustomFormat = "dd MMM yyyy";
 
             // --- Button hover styling ---
-            ExportInvoiceBtn.MouseEnter += (s, e) => ExportInvoiceBtn.BackColor = Color.FromArgb(60, 179, 113);
-            ExportInvoiceBtn.MouseLeave += (s, e) => ExportInvoiceBtn.BackColor = Color.MediumSeaGreen;
+            ExportInvoiceBtn.MouseEnter += (s, e) => ExportInvoiceBtn.BackColor = System.Drawing.Color.FromArgb(60, 179, 113);
+            ExportInvoiceBtn.MouseLeave += (s, e) => ExportInvoiceBtn.BackColor = System.Drawing.Color.MediumSeaGreen;
             ExportInvoiceBtn.Click += async (s, e) => await ExportInvoiceBtn_ClickAsync(s, e);
 
             // --- Rounded panel ---
             panelPending.Region = Region.FromHrgn(
                 CreateRoundRectRgn(0, 0, panelPending.Width, panelPending.Height, 20, 20));
+
+            _httpClient = new HttpClient();
         }
 
         private async Task CreateLog(string message, string type)
@@ -62,21 +69,21 @@ namespace POSPRA_WinFormsUI.Forms
             if (to > DateTime.Today)
             {
                 lblExportStatus.Text = "❌ To date cannot exceed today's date.";
-                lblExportStatus.ForeColor = Color.Red;
+                lblExportStatus.ForeColor = System.Drawing.Color.Red;
                 return false;
             }
 
             if (to < from)
             {
                 lblExportStatus.Text = "❌ End date cannot be earlier than start date.";
-                lblExportStatus.ForeColor = Color.Red;
+                lblExportStatus.ForeColor = System.Drawing.Color.Red;
                 return false;
             }
 
             if ((to - from).TotalDays > 31)
             {
                 lblExportStatus.Text = "❌ Date range cannot exceed one month.";
-                lblExportStatus.ForeColor = Color.Red;
+                lblExportStatus.ForeColor = System.Drawing.Color.Red;
                 return false;
             }
 
@@ -100,7 +107,7 @@ namespace POSPRA_WinFormsUI.Forms
                 progressBarExport.Visible = true;
                 progressBarExport.Style = ProgressBarStyle.Marquee;
                 lblExportStatus.Text = "⏳ Exporting invoices, please wait...";
-                lblExportStatus.ForeColor = Color.DimGray;
+                lblExportStatus.ForeColor = System.Drawing.Color.DimGray;
 
                 await Task.Delay(100); // small delay for smooth UI
 
@@ -108,31 +115,56 @@ namespace POSPRA_WinFormsUI.Forms
                 var DecriptedPOSID = ConfigurationManager.AppSettings["Username"];
                 int EncriptedPOSID = Convert.ToInt32(AesEncryptionHelper.Decrypt(DecriptedPOSID));
 
+                // Get selected environment from config
+                string baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
+                // Construct the full URL for the export CSV API
+                var fullUrl = $"{baseUrl}/{Endpoints.ExportCSV}";
 
-                var filter = new InvoiceFilterDto
+                // Prepare the request body
+                var requestBody = new InvoiceFilterDto
                 {
                     PosId = EncriptedPOSID,
                     FromDate = dateTimePickerFrom.Value.Date,
                     ToDate = dateTimePickerTo.Value.Date
                 };
 
-                var response = await _liveService.GetInvoicesCsvAsync(filter, environment);
+                // Create JSON content
+                var json = JsonContent.Create(requestBody);
+
+                // Add environment as query parameter
+                var urlWithEnv = $"{fullUrl}?environment={environment}";
+
+                // Make the POST request
+                var responseMessage = await _httpClient.PostAsync(urlWithEnv, json);
+                // Handle null response
+                if (responseMessage == null)
+                {
+                    await CreateLog("No response from service", AlertType.Error);
+                    AlertManager.ShowError("No response from service.");
+                    lblExportStatus.Text = "❌ No response from service.";
+                    lblExportStatus.ForeColor = System.Drawing.Color.Red;
+                    return;
+                }
+
+                // Read and deserialize the response
+                var response = await responseMessage.Content.ReadFromJsonAsync<ApiResponse<string>>();
+
+                // Handle empty or missing data
+                if (string.IsNullOrWhiteSpace(response?.Data))
+                {
+                    lblExportStatus.Text = "⚠ No invoices found for the selected range.";
+                    lblExportStatus.ForeColor = System.Drawing.Color.Orange;
+                    AlertManager.ShowInfo("No invoices found for the selected date range.");
+                    await CreateLog("No invoices found in selected range", AlertType.Info);
+                    return;
+                }
 
                 if (response == null)
                 {
                     await CreateLog("No response from service", AlertType.Error);
                     AlertManager.ShowError("No response from service.");
                     lblExportStatus.Text = "❌ No response from service.";
-                    lblExportStatus.ForeColor = Color.Red;
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(response.Data))
-                {
-                    lblExportStatus.Text = "⚠ No invoices found for the selected range.";
-                    lblExportStatus.ForeColor = Color.Orange;
-                    AlertManager.ShowInfo("No invoices found for the selected date range.");
-                    await CreateLog("No invoices found in selected range", AlertType.Info);
+                    lblExportStatus.ForeColor = System.Drawing.Color.Red;
                     return;
                 }
 
@@ -140,7 +172,7 @@ namespace POSPRA_WinFormsUI.Forms
                 if (lines.Length <= 1)
                 {
                     lblExportStatus.Text = "⚠ No invoice records to export.";
-                    lblExportStatus.ForeColor = Color.Orange;
+                    lblExportStatus.ForeColor = System.Drawing.Color.Orange;
                     AlertManager.ShowInfo("No invoice records found.");
                     return;
                 }
@@ -246,21 +278,21 @@ namespace POSPRA_WinFormsUI.Forms
                             await CreateLog("Invoices exported successfully", AlertType.Success);
                             AlertManager.ShowSuccess("Invoices exported successfully!");
                             lblExportStatus.Text = $"✅ Exported successfully:\n{sfd.FileName}";
-                            lblExportStatus.ForeColor = Color.Green;
+                            lblExportStatus.ForeColor = System.Drawing.Color.Green;
                         }
                         catch (Exception ex)
                         {
                             await CreateLog($"Export failed: {ex.Message}", AlertType.Error);
                             AlertManager.ShowError("Export failed!");
                             lblExportStatus.Text = "❌ Export failed.";
-                            lblExportStatus.ForeColor = Color.Red;
+                            lblExportStatus.ForeColor = System.Drawing.Color.Red;
                         }
                     }
                     else
                     {
                         await CreateLog("Export canceled by user", AlertType.Info);
                         lblExportStatus.Text = "⚠ Export canceled by user.";
-                        lblExportStatus.ForeColor = Color.Orange;
+                        lblExportStatus.ForeColor = System.Drawing.Color.Orange;
                     }
                 }
             }
@@ -268,7 +300,7 @@ namespace POSPRA_WinFormsUI.Forms
             {
                 await CreateLog($"Error exporting invoices: {ex.Message}", AlertType.Error);
                 lblExportStatus.Text = $"❌ Error: {ex.Message}";
-                lblExportStatus.ForeColor = Color.Red;
+                lblExportStatus.ForeColor = System.Drawing.Color.Red;
             }
             finally
             {
