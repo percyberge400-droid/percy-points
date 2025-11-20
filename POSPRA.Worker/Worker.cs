@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.CommanDtos;
@@ -8,6 +7,8 @@ using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
 using Pos.Worker.Logging;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Pos.Worker
 {
@@ -56,7 +57,13 @@ namespace Pos.Worker
                     }
 
                     bool enabledWorker = false;
-                    var fullUrl = $"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}?posId={_appSettings.POS}&?env={_appSettings.Environment}";
+                    var query = new Dictionary<string, string?>
+                    {
+                        ["posId"] = _appSettings.POS.ToString(),
+                        ["env"] = _appSettings.Environment
+                    };
+
+                    var fullUrl = QueryHelpers.AddQueryString($"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}", query);
 
                     try
                     {
@@ -116,7 +123,7 @@ namespace Pos.Worker
                         {
                             using var cloudScope = _serviceScopeFactory.CreateScope();
                             var invoiceCloudSyncService = cloudScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
-                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken,_appSettings.Environment, workerInstanceId);
+                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId, _appSettings.Environment);
                         }
                         catch (Exception ex)
                         {

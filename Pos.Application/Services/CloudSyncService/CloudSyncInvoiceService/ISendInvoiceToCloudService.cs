@@ -2,6 +2,6 @@
 {
     public interface ISendInvoiceToCloudService
     {
-        Task SyncInvoicesAsync(CancellationToken token,string environment, string workerId);
+        Task SyncInvoicesAsync(CancellationToken token, string workerId, string env);
     }
 }
