@@ -59,7 +59,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             this.Resize += Main_Resize;
             _baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
-            string isProduction = ConfigurationManager.AppSettings["IsProduction"];
+            string isProduction = ConfigurationManager.AppSettings["Environment"];
             updatelbl(isProduction);
             // 🚀 Initialize catchy status system
             InitializeStatusSystem();
@@ -92,14 +92,12 @@ namespace POSPRA_WinFormsUI.Forms
             StartWorkerServiceStatusChecker();
             StartStatusAnimations();
         }
-        private void updatelbl(string isproduction)
+        private void updatelbl(string enviroment)
         {
-            string enviroment = "Sandbox";
             Color backgroundColor = Color.DarkGoldenrod; // Dark yellow for sandbox
 
-            if (isproduction == "true")
+            if (enviroment == "Production")
             {
-                enviroment = "Production";
                 backgroundColor = ColorTranslator.FromHtml("#3E577D"); // light blue
             }
 
