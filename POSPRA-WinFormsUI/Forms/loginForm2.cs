@@ -125,6 +125,7 @@ namespace POSPRA_WinFormsUI.Forms
                     }
                     catch (InvalidOperationException ex)
                     {
+
                         throw new InvalidOperationException($"Service '{serviceName}' may not exist or is inaccessible.\n{ex.Message}");
                     }
                     catch (System.ServiceProcess.TimeoutException)

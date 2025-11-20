@@ -44,6 +44,7 @@ namespace POSPRA.SetupUI
         private readonly string _jsonMainPath;
         private readonly string _winformsConfigPath;
         private readonly string _setupConfigPath;
+        private readonly string _installationInfo;
 
         private int _isLoadingFlag = 0;
         private System.Windows.Forms.Timer _messageHideTimer;
@@ -61,7 +62,7 @@ namespace POSPRA.SetupUI
 
         #region Constructor
 
-        public ConfigForm2(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath, IScriptService scriptservice)
+        public ConfigForm2(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath, IScriptService scriptservice, string installationInfo)
         {
             InitializeComponent();
 
@@ -70,6 +71,7 @@ namespace POSPRA.SetupUI
             _jsonMainPath = jsonMainPath;
             _setupConfigPath = setupConfigPath;
             _winformsConfigPath = winformsConfigPath;
+            _installationInfo = installationInfo;
 
             _defaultIMSPath = ConfigurationManager.AppSettings["DefaulIMStFilePath"];
             _defaultPassword = ConfigurationManager.AppSettings["DbPassword"];
@@ -441,6 +443,7 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
+
                 //string EnvapiUrl = ConfigurationManager.AppSettings["environmentapiurl"];
                 //if (string.IsNullOrWhiteSpace(EnvapiUrl))
                 //{
@@ -470,6 +473,8 @@ namespace POSPRA.SetupUI
                 //}
 
                 //ShowMessage($"Enviroment set to {selectedEnvironment}", true, false);
+
+                UpdateWorkerPathInJson(_jsonMainPath);
 
                 // Pass the selected environment to your setup method
                 await ProcessSetupAsync(selectedEnvironment);
@@ -1792,12 +1797,13 @@ namespace POSPRA.SetupUI
             }
         }
 
-        private void UpdateEnvironmentInJson(string jsonFilePath, string selectedEnvironment)
+        private async void UpdateEnvironmentInJson(string jsonFilePath, string selectedEnvironment)
         {
             try
             {
                 JObject root;
 
+                // Open or create JSON
                 if (File.Exists(jsonFilePath))
                 {
                     string text = File.ReadAllText(jsonFilePath);
@@ -1808,17 +1814,85 @@ namespace POSPRA.SetupUI
                     root = new JObject();
                 }
 
+                // Ensure AppSettings exists
                 if (root["AppSettings"] == null || root["AppSettings"].Type != JTokenType.Object)
                     root["AppSettings"] = new JObject();
 
-                // Update only IsProduction
+                // Update Environment
                 root["AppSettings"]["Environment"] = selectedEnvironment;
 
-                File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
+
             }
             catch (Exception ex)
             {
                 ShowMessage($"Failed to update {Path.GetFileName(jsonFilePath)}: {ex.Message}", false, true);
+            }
+        }
+
+
+
+        private async void UpdateWorkerPathInJson(string jsonFilePath)
+        {
+            JObject root;
+
+            // Read install path from PRAL file
+            string? installPath = await ReadPralFileAsync("install_info.txt");
+
+            // Open or create JSON
+            if (File.Exists(jsonFilePath))
+            {
+                string text = File.ReadAllText(jsonFilePath);
+                root = string.IsNullOrWhiteSpace(text) ? new JObject() : JObject.Parse(text);
+            }
+            else
+            {
+                root = new JObject();
+            }
+            // ⚡ Correct WorkerConfigPath formatting
+            if (installPath != null)
+            {
+                string workerPath = Path.Combine(
+                    installPath,
+                    "appsettings.worker.json"
+                );
+                root["WorkerConfigPath"] = workerPath;
+
+            }
+            // Save JSON
+            File.WriteAllText(jsonFilePath, root.ToString(Newtonsoft.Json.Formatting.Indented));
+        }
+
+        public async Task<string?> ReadPralFileAsync(string fileName)
+        {
+            try
+            {
+                const string key = "InstallPath=";
+                // Build full path
+                string fullPath = Path.Combine(_installationInfo, fileName);
+
+                // Check if file exists
+                if (!File.Exists(fullPath))
+                    return null;
+
+                // Read file content asynchronously
+                string content = await File.ReadAllTextAsync(fullPath);
+
+                if (string.IsNullOrWhiteSpace(content))
+                    return null;
+
+                // Find where "InstallPath=" starts
+                int index = content.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+                if (index == -1)
+                    return null;
+
+                // Slice out the value after InstallPath=
+                string path = content[(index + key.Length)..].Trim();
+
+                return path;
+            }
+            catch (Exception ex)
+            {
+                return null; // or rethrow if needed
             }
         }
 
@@ -1858,15 +1932,12 @@ namespace POSPRA.SetupUI
             SaveEnvironmentToApiConfig("Sandbox");
             UpdateEnvironmentInJson(_jsonWorkerPath, "Sandbox");
             MessageBox.Show("Sandbox");
-
-
         }
         private async void rdoProduction_Click(object sender, EventArgs e)
         {
             SaveEnvironmentToApiConfig("Production");
             UpdateEnvironmentInJson(_jsonWorkerPath, "Production");
             MessageBox.Show("Production");
-
         }
         private void SaveEnvironmentToApiConfig(string environment)
         {
