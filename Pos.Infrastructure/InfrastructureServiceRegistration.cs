@@ -63,22 +63,11 @@ namespace Pos.Infrastructure
                 });
             else
             {
-                // WinForms mode → Use NullEnvironmentService
+                // WinForms mode → Use AppConfigEnvironmentService
                 services.AddSingleton<IEnvironmentService>(provider =>
                 {
-                    // Read WinForms App.config value
-                    var appConfigPath = System.Configuration.ConfigurationManager.AppSettings["WinFormsAppConfigPath"];
-
-                    if (string.IsNullOrWhiteSpace(appConfigPath))
-                    {
-                        // Fallback: App.config in WinForms EXE directory
-                        appConfigPath = Path.Combine(AppContext.BaseDirectory, "App.config");
-                    }
-
-                    if (!File.Exists(appConfigPath))
-                        throw new FileNotFoundException("WinForms App.config not found", appConfigPath);
-
-                    return new NullEnvironmentService(appConfigPath);
+                    // No need for path logic now — AppConfigEnvironmentService reads from ConfigurationManager directly
+                    return new AppConfigEnvironmentService();
                 });
             }
 

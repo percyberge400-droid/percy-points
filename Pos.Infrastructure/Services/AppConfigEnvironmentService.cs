@@ -1,22 +1,11 @@
-﻿using Pos.Application.Interfaces;
+﻿using System.Configuration;
+using Pos.Application.Interfaces;
 using Pos.Domain.ValueObjects;
-using System.Configuration;
 
 namespace Pos.Infrastructure.Services
 {
-    public class NullEnvironmentService : IEnvironmentService
+    public class AppConfigEnvironmentService : IEnvironmentService
     {
-        private readonly string _appConfigPath; // path to App.config (WinForms)
-
-        public NullEnvironmentService(string appConfigPath = null)
-        {
-            if (string.IsNullOrWhiteSpace(appConfigPath))
-                throw new ArgumentNullException(nameof(appConfigPath));
-
-            _appConfigPath = appConfigPath; // optional
-        }
-
-
         public Task<EnvironmentType> GetCurrentEnvironmentAsync()
         {
             try
