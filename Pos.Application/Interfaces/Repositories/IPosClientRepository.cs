@@ -6,5 +6,6 @@ namespace Pos.Application.Interfaces.Repositories
     public interface IPosClientRepository
     {
         Task<PosClients> GetByMacAsync(ClientValidationDto dto);
+        Task<bool> UpdatePosCLientStatus(ClientValidationDto dto);
     }
 }

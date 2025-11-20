@@ -28,6 +28,7 @@ namespace Pos.Infrastructure.Services
         {
             try
             {
+               
                 if (!File.Exists(_jsonFilePath))
                     return EnvironmentType.Production;
 

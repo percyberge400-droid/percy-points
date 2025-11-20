@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
+using System.Formats.Asn1;
 
 namespace Pos.Application.Services.ClientService
 {
@@ -68,16 +70,16 @@ namespace Pos.Application.Services.ClientService
                     string.Empty);
             }
 
-            var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
+            //var statusCode = await UpdateConfigurationFlag(true, dto.PosId);
 
-            if (statusCode == ApiStatusCode.NotFound)
-            {
+            var statusResponse = await _posClientRepository.UpdatePosCLientStatus(dto);
+
+            if (!statusResponse)
                 return new ApiResponse<PosClients>(
                     ApiStatusCode.NotFound,
                     ResponseMessages.DataNotFound,
                     null!,
                     string.Empty);
-            }
 
             entity.IsActive = true;
 

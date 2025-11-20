@@ -43,6 +43,21 @@ namespace Pos.Infrastructure.Persistence
             return new SqlServerDbContext(optionsBuilder.Options);
         }
 
+        public async Task<SqlServerDbContext?> CreateSqlServerDbContextAsync(EnvironmentType environment)
+        {
+            var connectionString = environment == EnvironmentType.Sandbox
+                ? _configuration.GetConnectionString("SandboxConnection")
+                : _configuration.GetConnectionString("ProductionConnection");
+
+            var optionsBuilder = new DbContextOptionsBuilder<SqlServerDbContext>();
+            optionsBuilder.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+            });
+
+            return new SqlServerDbContext(optionsBuilder.Options);
+        }
+
         /// <summary>
         /// Synchronous wrapper for DI usage.
         /// </summary>
