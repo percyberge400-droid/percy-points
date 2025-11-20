@@ -47,14 +47,8 @@ namespace Pos.Infrastructure
             if (!isWinForm)
                 services.AddSingleton<IEnvironmentService>(provider =>
                 {
-                    // Read worker JSON path from configuration
-                    var workerConfigPath = configuration["WorkerConfigPath"];
-                    if (string.IsNullOrWhiteSpace(workerConfigPath))
-                    {
-                        workerConfigPath = Path.GetFullPath(
-                            Path.Combine(AppContext.BaseDirectory, @"..\..\..\POSPRA.Worker\appsettings.worker.json")
-                        );
-                    }
+                    var config = provider.GetRequiredService<IConfiguration>();
+                    var workerConfigPath = Path.Combine(AppContext.BaseDirectory, "appsettings.worker.json");
 
                     if (!File.Exists(workerConfigPath))
                         throw new FileNotFoundException("Worker config file not found", workerConfigPath);
