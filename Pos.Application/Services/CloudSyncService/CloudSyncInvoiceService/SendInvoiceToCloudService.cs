@@ -33,12 +33,12 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
             _fileRecordService = fileRecordService;
         }
 
-        public async Task SyncInvoicesAsync(CancellationToken token, string workerId)
+        public async Task SyncInvoicesAsync(CancellationToken token, string workerId, string evn)
         {
-            await ProcessHealthCheck(workerId, token);
+            await ProcessHealthCheck(workerId, token, evn);
         }
 
-        private async Task ProcessHealthCheck(string id, CancellationToken token)
+        private async Task ProcessHealthCheck(string id, CancellationToken token, string env)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
 
 
                 // ✅ Send to cloud (now passing List<FileRecordDto>)
-                var resp = await PostEncryptedDataAsync(id, response.Data, token);
+                var resp = await PostEncryptedDataAsync(id, response.Data, token, env);
                 if (resp is null || !resp.IsSuccessStatusCode)
                     return;
 
@@ -84,7 +84,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
             }
         }
 
-        private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, List<FileRecordDto> fileRecordDtos, CancellationToken token)
+        private async Task<HttpResponseMessage?> PostEncryptedDataAsync(string id, List<FileRecordDto> fileRecordDtos, CancellationToken token, string env)
         {
             try
             {
@@ -93,10 +93,11 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
                     await _workerLogService.LogAsync(AlertType.Warning, "No records to send.", nameof(SendInvoiceToCloudService), id, "NoData");
                     return null;
                 }
-
                 var jsonBody = JsonSerializer.Serialize(fileRecordDtos);
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                var url = $"{_baseUrl}{Endpoints.DecryptSave}";
+
+                // Add environment as a query parameter
+                var url = $"{_baseUrl}{Endpoints.DecryptSave}?environment={env}";
 
                 var resp = await _http.PostAsync(url, content, token);
                 if (!resp.IsSuccessStatusCode)

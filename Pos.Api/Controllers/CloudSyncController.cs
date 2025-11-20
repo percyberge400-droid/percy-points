@@ -17,9 +17,9 @@ namespace Pos.API.Controllers
         }
 
         [HttpPost("sync-invoices-async")]
-        public async Task<IActionResult> SyncInvoicesAsync(CancellationToken token, string workerId)
+        public async Task<IActionResult> SyncInvoicesAsync(CancellationToken token, string workerId, string env)
         {
-            await _sendInvoiceToCloudService.SyncInvoicesAsync(token, workerId);
+            await _sendInvoiceToCloudService.SyncInvoicesAsync(token, workerId, env);
             return Ok();
         }
 
