@@ -1,5 +1,4 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
@@ -118,25 +117,27 @@ namespace POSPRA_WinFormsUI.Forms
                 // Get selected environment from config
                 string baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
                 // Construct the full URL for the export CSV API
-                var fullUrl = $"{baseUrl}/{Endpoints.ExportCSV}";
+                // Clean URL to avoid double slashes
+                var fullUrl = $"{baseUrl.TrimEnd('/')}/{Endpoints.ExportCSV.TrimStart('/')}";
 
-                // Prepare the request body
+                // Prepare request body
                 var requestBody = new InvoiceFilterDto
                 {
                     PosId = EncriptedPOSID,
                     FromDate = dateTimePickerFrom.Value.Date,
-                    ToDate = dateTimePickerTo.Value.Date
+                    ToDate = dateTimePickerTo.Value.Date,
+                    RegistrationNumber = 0 // ensure this matches curl
                 };
 
-                // Create JSON content
+                // JSON content
                 var json = JsonContent.Create(requestBody);
 
-                // Add environment as query parameter
+                // Add environment
                 var urlWithEnv = $"{fullUrl}?environment={environment}";
 
-                // Make the POST request
+                // Make POST request
                 var responseMessage = await _httpClient.PostAsync(urlWithEnv, json);
-                // Handle null response
+
                 if (responseMessage == null)
                 {
                     await CreateLog("No response from service", AlertType.Error);
@@ -145,6 +146,7 @@ namespace POSPRA_WinFormsUI.Forms
                     lblExportStatus.ForeColor = System.Drawing.Color.Red;
                     return;
                 }
+
 
                 // Read and deserialize the response
                 var response = await responseMessage.Content.ReadFromJsonAsync<ApiResponse<string>>();
