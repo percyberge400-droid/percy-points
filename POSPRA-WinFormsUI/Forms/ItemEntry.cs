@@ -1,5 +1,4 @@
-﻿using Pos.Application.DTOs;
-using Pos.Application.DTOs.InvoiceDtos;
+﻿using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.InvoiceService;
@@ -12,7 +11,6 @@ using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms;
 using System.Configuration;
 using System.Drawing.Drawing2D;
-using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 
 namespace POSPRA_WinFormsUI
@@ -937,20 +935,20 @@ namespace POSPRA_WinFormsUI
                 // Save + print coordination
                 try
                 {
-                    var _baseUrl = ConfigurationManager.AppSettings["SelfHostUrl"] ?? "";
+                    //var _baseUrl = ConfigurationManager.AppSettings["SelfHostUrl"] ?? "";
 
-                    var url = $"{_baseUrl}{Endpoints.Create}";
+                    //var url = $"{_baseUrl}{Endpoints.Create}";
 
-                    HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, invoiceDto);
+                    //HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, invoiceDto);
 
-                    // Throw if status is not success (4xx or 5xx)
-                    response.EnsureSuccessStatusCode();
+                    //// Throw if status is not success (4xx or 5xx)
+                    //response.EnsureSuccessStatusCode();
 
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
-                    if (result == null)
-                        throw new Exception("Empty or invalid API response.");
+                    //var result = await response.Content.ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
+                    //if (result == null)
+                    //    throw new Exception("Empty or invalid API response.");
 
-                    //var result = await _invoiceService.CreateAsync(invoiceDto);
+                    var result = await _invoiceService.CreateAsync(invoiceDto);
 
                     if (result.StatusCode == ApiStatusCode.Success)
                     {

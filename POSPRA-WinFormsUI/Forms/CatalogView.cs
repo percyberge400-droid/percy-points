@@ -250,6 +250,8 @@ namespace POSPRA_WinFormsUI.Forms
         {
             await CreateLog("Starting data refresh from API", "Info");
 
+            string selectedEnvironment = ConfigurationManager.AppSettings["Environment"];
+
             var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
             var url = $"{_baseUrl}{Endpoints.GetProductCatalogue}";
 
