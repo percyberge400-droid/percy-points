@@ -68,21 +68,23 @@ namespace Pos.Api
             // Middleware
             // --------------------------
             //if (app.Environment.IsDevelopment())
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "POS API v1");
-                c.RoutePrefix = string.Empty; // swagger at root URL
-            });
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "POS API v1");
+                    c.RoutePrefix = string.Empty; // swagger at root URL
+                });
 
-            var url = "http://localhost:8524"; // Change port if needed
+                //var url = "http://localhost:8524"; // Change port if needed
 
-            // Open in default browser
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            });
+                //// Open in default browser
+                //System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                //{
+                //    FileName = url,
+                //    UseShellExecute = true
+                //});
+            }
 
             app.UseHttpsRedirection();
             app.UseAuthorization();

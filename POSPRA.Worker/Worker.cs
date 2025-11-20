@@ -116,7 +116,7 @@ namespace Pos.Worker
                         {
                             using var cloudScope = _serviceScopeFactory.CreateScope();
                             var invoiceCloudSyncService = cloudScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
-                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId);
+                            await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken,_appSettings.Environment, workerInstanceId);
                         }
                         catch (Exception ex)
                         {
