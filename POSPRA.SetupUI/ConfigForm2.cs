@@ -1,12 +1,4 @@
-﻿using LiteDB;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Pos.Application.DTOs.FiscalDtos;
-using Pos.Application.DTOs.LogDTOs;
-using Pos.Application.Services.ScriptService;
-using POSPRA.SecurityEncryption;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -14,6 +6,14 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Xml;
+using LiteDB;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Pos.Application.DTOs.FiscalDtos;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.ScriptService;
+using POSPRA.SecurityEncryption;
 using WinFormsApp = System.Windows.Forms.Application;
 
 
@@ -1511,8 +1511,8 @@ namespace POSPRA.SetupUI
                     macAddress = mac,
                     token = password,
                     Environment = selectedEnvironment
-
                 };
+
 
                 string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
                 if (string.IsNullOrWhiteSpace(apiUrl))
@@ -1521,16 +1521,25 @@ namespace POSPRA.SetupUI
                     return null;
                 }
 
+                // CHANGED: Use HttpRequestMessage to add headers
+                using var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
+                {
+                    Content = new StringContent(
+                        JsonConvert.SerializeObject(payload),
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                };
+
+                // CHANGED: Add Authorization header for middleware
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", password);
+
+                // Send request
                 using var client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                var jsonContent = new StringContent(
-                    JsonConvert.SerializeObject(payload),
-                    Encoding.UTF8,
-                    "application/json"
-                );
+                var response = await client.SendAsync(request);
 
-                var response = await client.PostAsync(apiUrl, jsonContent);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)

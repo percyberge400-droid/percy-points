@@ -10,5 +10,6 @@ namespace Pos.Application.Interfaces.Repositories
         Task<bool> UpdatePosCLientStatus(ClientValidationDto dto);
         Task<PosClients> UpdatePosClientHeartBeat(long posId, string env);
         Task<bool> UpdatePosCLientStatus(long posId, bool isActive, string envrionment);
+        Task<PosClients?> GetByTokenAsync(string token, string env);
     }
 }

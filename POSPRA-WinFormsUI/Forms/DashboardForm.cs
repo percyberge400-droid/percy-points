@@ -1,4 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.ComponentModel;
+using System.Configuration;
+using System.Data;
+using System.Drawing.Drawing2D;
+using System.Net.Http.Json;
+using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.CommanDtos;
@@ -12,12 +18,6 @@ using Pos.Application.Utility;
 using POSPRA.DTOs.LogDTOs;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.ComponentModel;
-using System.Configuration;
-using System.Data;
-using System.Drawing.Drawing2D;
-using System.Net.Http.Json;
-using System.Text;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -88,6 +88,9 @@ namespace POSPRA_WinFormsUI.Forms
 
         private ModernPaginationControl paginationInvoices;
         private ModernPaginationControl paginationLogs;
+
+        private Dictionary<string, Point> _originalButtonPositions = new Dictionary<string, Point>();
+
 
         public DashboardForm(IServiceProvider provider,
             ILogService logService,
@@ -292,6 +295,12 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void InitializePaginationControls()
         {
+            // Initialize button position storage if not already done
+            if (_originalButtonPositions == null)
+            {
+                _originalButtonPositions = new Dictionary<string, Point>();
+            }
+
             // ----- INVOICES PAGINATION -----
             paginationInvoices = new ModernPaginationControl
             {
@@ -300,19 +309,8 @@ namespace POSPRA_WinFormsUI.Forms
                 AutoSizeMode = AutoSizeMode.GrowAndShrink
             };
 
-            // Find the header label and position after it
-            var lblInvoices = panelInvoices.Controls
-                .OfType<Label>()
-                .FirstOrDefault(l => l.Text.Contains("INVOICES", StringComparison.OrdinalIgnoreCase));
-
-            if (lblInvoices != null)
-            {
-                paginationInvoices.Location = new Point(lblInvoices.Right + 15, lblInvoices.Top);
-            }
-            else
-            {
-                paginationInvoices.Location = new Point(10, 8);
-            }
+            // Position pagination responsively
+            PositionInvoicePagination();
 
             paginationInvoices.PageChanged += async (s, page) =>
             {
@@ -323,6 +321,10 @@ namespace POSPRA_WinFormsUI.Forms
             panelInvoices.Controls.Add(paginationInvoices);
             paginationInvoices.BringToFront();
 
+            // Handle resize events
+            panelInvoices.Resize += (s, e) => PositionInvoicePagination();
+            this.Resize += (s, e) => PositionInvoicePagination();
+
 
             // ----- LOGS PAGINATION -----
             paginationLogs = new ModernPaginationControl
@@ -332,18 +334,7 @@ namespace POSPRA_WinFormsUI.Forms
                 AutoSizeMode = AutoSizeMode.GrowAndShrink
             };
 
-            var lblLogs = panelLogs.Controls
-                .OfType<Label>()
-                .FirstOrDefault(l => l.Text.Contains("LOGS", StringComparison.OrdinalIgnoreCase));
-
-            if (lblLogs != null)
-            {
-                paginationLogs.Location = new Point(lblLogs.Right + 15, lblLogs.Top);
-            }
-            else
-            {
-                paginationLogs.Location = new Point(10, 8);
-            }
+            PositionLogsPagination();
 
             paginationLogs.PageChanged += async (s, page) =>
             {
@@ -353,7 +344,177 @@ namespace POSPRA_WinFormsUI.Forms
 
             panelLogs.Controls.Add(paginationLogs);
             paginationLogs.BringToFront();
+
+            // Handle resize events
+            panelLogs.Resize += (s, e) => PositionLogsPagination();
+            this.Resize += (s, e) => PositionLogsPagination();
         }
+
+        private void PositionInvoicePagination()
+        {
+            if (paginationInvoices == null || panelInvoices == null) return;
+
+            var lblInvoices = panelInvoices.Controls
+                .OfType<Label>()
+                .FirstOrDefault(l => l.Text.Contains("INVOICES", StringComparison.OrdinalIgnoreCase));
+
+            if (lblInvoices == null) return;
+
+            int screenWidth = this.Width;
+            int availableWidth = panelInvoices.Width;
+
+            // Handle button visibility and repositioning based on screen width
+            HandleInvoiceButtonLayout(screenWidth);
+
+            // Calculate available space after the label
+            int spaceAfterLabel = availableWidth - lblInvoices.Right;
+
+            // Pagination control width (approximately 250px)
+            int paginationWidth = 250;
+
+            // Minimum safe spacing
+            int minSpacing = 5;
+
+            //if (screenWidth <= 1280)
+            //{
+            //    // For small screens, position below the label
+            //    paginationInvoices.Location = new Point(lblInvoices.Left, lblInvoices.Bottom + 5);
+            //}
+            //else if (spaceAfterLabel < paginationWidth + minSpacing)
+            //{
+            //    // Not enough horizontal space, position below
+            //    paginationInvoices.Location = new Point(lblInvoices.Left, lblInvoices.Bottom + 5);
+            //}
+            //else
+            //{
+            // Enough space, position next to label
+            paginationInvoices.Location = new Point(lblInvoices.Right + minSpacing, lblInvoices.Top - 3);
+            //}
+        }
+        private void HandleInvoiceButtonLayout(int screenWidth)
+        {
+
+            // Find the buttons and calendar control
+            if (btnFilterSynced == null || btnExportInvoice == null) return;
+
+            // Find the date range label (calendar control)
+            Control lblDateRange = this.Controls.Find("lblDateRange", true).FirstOrDefault();
+            if (lblDateRange == null) return;
+
+            // Store original sizes on first call
+            if (!_originalButtonPositions.ContainsKey("btnFilterSyncedSize"))
+            {
+                _originalButtonPositions["btnFilterSyncedSize"] = new Point(btnFilterSynced.Width, btnFilterSynced.Height);
+            }
+
+            if (!_originalButtonPositions.ContainsKey("btnExportInvoiceSize"))
+            {
+                _originalButtonPositions["btnExportInvoiceSize"] = new Point(btnExportInvoice.Width, btnExportInvoice.Height);
+            }
+
+            // Define spacing between buttons and calendar
+            int spacingBetweenButtons = 10; // Space between Export and FilterSynced
+            int spacingToCalendar = 5;     // Space between buttons and calendar
+
+            // Threshold for button overlap
+            int overlapThreshold = 1366;
+
+            if (screenWidth <= overlapThreshold)
+            {
+                btnExportInvoice.Text = "  EXPORT  ";
+                btnExportInvoice.Font = new Font("Arial", 10.8f);
+                btnExportInvoice.AutoSize = true;
+
+
+                // COMPACT MODE: Hide btnFilterSynced
+                btnFilterSynced.Visible = false;
+
+                // Position btnExportInvoice to the left of calendar
+                int exportLeft = lblDateRange.Left - _originalButtonPositions["btnExportInvoiceSize"].X - spacingToCalendar;
+
+                btnExportInvoice.Location = new Point(
+                    exportLeft,
+                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnExportInvoiceSize"].Y) / 2) // Vertically center with calendar
+                );
+
+                btnExportInvoice.Size = new Size(
+                    _originalButtonPositions["btnExportInvoiceSize"].X,
+                    _originalButtonPositions["btnExportInvoiceSize"].Y
+                );
+            }
+            else
+            {
+                btnExportInvoice.Font = new Font("Arial", 12F);
+                btnExportInvoice.Text = "📄 Export Invoices";
+
+
+                // 
+                // NORMAL MODE: Show both buttons
+                btnFilterSynced.Visible = true;
+
+
+                // Position btnFilterSynced to the left of calendar
+                int syncedLeft = lblDateRange.Left - _originalButtonPositions["btnFilterSyncedSize"].X - spacingToCalendar;
+
+                btnFilterSynced.Location = new Point(
+                    syncedLeft,
+                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnFilterSyncedSize"].Y) / 2) // Vertically center with calendar
+                );
+
+                btnFilterSynced.Size = new Size(190, 37);
+
+
+                // Position btnExportInvoice to the left of btnFilterSynced
+                int exportLeft = btnFilterSynced.Left - _originalButtonPositions["btnExportInvoiceSize"].X - spacingBetweenButtons;
+
+                btnExportInvoice.Location = new Point(
+                    exportLeft,
+                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnExportInvoiceSize"].Y) / 2) // Vertically center with calendar
+                );
+
+                btnExportInvoice.Size = new Size(182, 37);
+
+            }
+        }
+        private void PositionLogsPagination()
+        {
+            if (paginationLogs == null || panelLogs == null) return;
+
+            var lblLogs = panelLogs.Controls
+                .OfType<Label>()
+                .FirstOrDefault(l => l.Text.Contains("LOGS", StringComparison.OrdinalIgnoreCase));
+
+            if (lblLogs == null) return;
+
+            int screenWidth = this.Width;
+            int availableWidth = panelLogs.Width;
+
+            // Calculate available space after the label
+            int spaceAfterLabel = availableWidth - lblLogs.Right;
+
+            // Pagination control width (approximately 250px)
+            int paginationWidth = 250;
+
+            // Minimum safe spacing
+            int minSpacing = 15;
+
+            //if (screenWidth <= 1280)
+            //{
+            //    // For small screens, position below the label
+            //    paginationLogs.Location = new Point(lblLogs.Left, lblLogs.Bottom + 5);
+            //}
+            //else if (spaceAfterLabel < paginationWidth + minSpacing)
+            //{
+            //    // Not enough horizontal space, position below
+            //    paginationLogs.Location = new Point(lblLogs.Left, lblLogs.Bottom + 5);
+            //}
+            //else
+            //{
+            // Enough space, position next to label
+            paginationLogs.Location = new Point(lblLogs.Right + minSpacing, lblLogs.Top - 3);
+            //}
+        }
+
         private void InvoicesDataGridView_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
         {
             if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count) return;
@@ -450,15 +611,31 @@ namespace POSPRA_WinFormsUI.Forms
                     UpdateHeartbeatLabel(isError: true);
                     return;
                 }
-                string selectedEnvironment = ConfigurationManager.AppSettings["Environment"];
+                // Get environment and token from appsettings
+                string selectedEnvironment = ConfigurationManager.AppSettings["Environment"]!;
+                string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED: get token from appsettings
+
                 var fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
+
+                // Prepare request body
                 var requestBody = new GetByPosIdDto
                 {
                     PosId = posId,
                     Environment = selectedEnvironment
                 };
                 var json = JsonContent.Create(requestBody);
-                var response = await _httpClient.PostAsync(fullUrl, json);
+
+                // Create HttpRequestMessage to add headers
+                using var request = new HttpRequestMessage(HttpMethod.Post, fullUrl)
+                {
+                    Content = json
+                };
+
+                // CHANGED: Add Authorization header for middleware
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                // Send request
+                var response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -2480,33 +2657,36 @@ namespace POSPRA_WinFormsUI.Forms
             this.Margin = new Padding(0);
             this.BackColor = Color.Transparent;
 
-            // Navigation buttons
-            btnFirstPage = CreateNavButton("⏮", "First Page");
-            btnPrevPage = CreateNavButton("◀", "Previous Page");
-            btnNextPage = CreateNavButton("▶", "Next Page");
-            btnLastPage = CreateNavButton("⏭", "Last Page");
+            // Compact button size for lower resolutions
+            int buttonSize = 28; // Reduced from 32
 
-            // Editable page number textbox
+            // Navigation buttons with compact size
+            btnFirstPage = CreateNavButton("⏮", "First Page", buttonSize);
+            btnPrevPage = CreateNavButton("◀", "Previous Page", buttonSize);
+            btnNextPage = CreateNavButton("▶", "Next Page", buttonSize);
+            btnLastPage = CreateNavButton("⏭", "Last Page", buttonSize);
+
+            // Compact page number textbox
             txtPageNumber = new TextBox
             {
-                Width = 50,
-                Height = 32,
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                Width = 45, // Reduced from 50
+                Height = buttonSize,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular), // Smaller font
                 TextAlign = HorizontalAlignment.Center,
                 BorderStyle = BorderStyle.FixedSingle,
-                Margin = new Padding(3, 6, 3, 2),
+                Margin = new Padding(2, 4, 2, 2), // Reduced margins
                 BackColor = Color.White
             };
 
-            // Total pages label
+            // Compact total pages label
             lblTotalPages = new Label
             {
                 AutoSize = true,
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular), // Smaller font
                 ForeColor = Color.FromArgb(55, 65, 81),
                 TextAlign = ContentAlignment.MiddleCenter,
-                Padding = new Padding(0, 9, 8, 0),
-                Margin = new Padding(0, 0, 3, 0)
+                Padding = new Padding(0, 7, 4, 0), // Adjusted padding
+                Margin = new Padding(0, 0, 2, 0)
             };
 
             // Event handlers
@@ -2519,7 +2699,7 @@ namespace POSPRA_WinFormsUI.Forms
             txtPageNumber.Leave += TxtPageNumber_Leave;
             txtPageNumber.Enter += (s, e) => txtPageNumber.SelectAll();
 
-            // Add all controls ONCE during initialization
+            // Add all controls
             this.Controls.Add(btnFirstPage);
             this.Controls.Add(btnPrevPage);
             this.Controls.Add(txtPageNumber);
@@ -2532,13 +2712,11 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void TxtPageNumber_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Only allow numbers and control keys (backspace, etc.)
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
             {
                 e.Handled = true;
             }
 
-            // Handle Enter key to navigate to page
             if (e.KeyChar == (char)Keys.Enter)
             {
                 e.Handled = true;
@@ -2561,7 +2739,6 @@ namespace POSPRA_WinFormsUI.Forms
                 }
                 else
                 {
-                    // Reset to current page if invalid
                     txtPageNumber.Text = _currentPage.ToString();
                 }
             }
@@ -2571,18 +2748,18 @@ namespace POSPRA_WinFormsUI.Forms
             }
         }
 
-        private Button CreateNavButton(string text, string tooltip)
+        private Button CreateNavButton(string text, string tooltip, int buttonSize)
         {
             var btn = new Button
             {
                 Text = text,
-                Size = new Size(32, 32),
+                Size = new Size(buttonSize, buttonSize),
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold), // Smaller font
                 BackColor = Color.White,
                 ForeColor = Color.FromArgb(55, 65, 81),
                 Cursor = Cursors.Hand,
-                Margin = new Padding(2, 2, 2, 2),
+                Margin = new Padding(1, 2, 1, 2), // Reduced margins
                 TabStop = false
             };
 
@@ -2596,7 +2773,6 @@ namespace POSPRA_WinFormsUI.Forms
 
         private void UpdatePaginationUI()
         {
-            // Don't recreate controls - just update their values
             if (txtPageNumber.InvokeRequired)
             {
                 txtPageNumber.Invoke(new Action(() =>
@@ -2621,7 +2797,6 @@ namespace POSPRA_WinFormsUI.Forms
                 lblTotalPages.Text = $"of {_totalPages}";
             }
 
-            // Update button states
             btnFirstPage.Enabled = _currentPage > 1;
             btnPrevPage.Enabled = _currentPage > 1;
             btnNextPage.Enabled = _currentPage < _totalPages;

@@ -1,4 +1,7 @@
-﻿using ClosedXML.Excel;
+﻿using System.Configuration;
+using System.Net.Http.Json;
+using System.Runtime.InteropServices;
+using ClosedXML.Excel;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
@@ -7,9 +10,6 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.Configuration;
-using System.Net.Http.Json;
-using System.Runtime.InteropServices;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -112,12 +112,14 @@ namespace POSPRA_WinFormsUI.Forms
 
                 int.TryParse(ConfigurationManager.AppSettings["Username"], out var posId);
                 var DecriptedPOSID = ConfigurationManager.AppSettings["Username"];
-                int EncriptedPOSID = Convert.ToInt32(AesEncryptionHelper.Decrypt(DecriptedPOSID));
+                int EncriptedPOSID = Convert.ToInt32(AesEncryptionHelper.Decrypt(DecriptedPOSID!));
 
-                // Get selected environment from config
-                string baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
+                // Get environment and token from config
+                string environment = ConfigurationManager.AppSettings["Environment"]!;
+                string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED
+
+                string baseUrl = ConfigurationManager.AppSettings["BaseUrl"]!;
                 // Construct the full URL for the export CSV API
-                // Clean URL to avoid double slashes
                 var fullUrl = $"{baseUrl.TrimEnd('/')}/{Endpoints.ExportCSV.TrimStart('/')}";
 
                 // Prepare request body
@@ -132,11 +134,22 @@ namespace POSPRA_WinFormsUI.Forms
                 // JSON content
                 var json = JsonContent.Create(requestBody);
 
-                // Add environment
-                var urlWithEnv = $"{fullUrl}?environment={environment}";
+                // Create HttpRequestMessage to add headers
+                using var request = new HttpRequestMessage(HttpMethod.Post, fullUrl)
+                {
+                    Content = json
+                };
 
-                // Make POST request
-                var responseMessage = await _httpClient.PostAsync(urlWithEnv, json);
+                // CHANGED: Add Authorization header
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                // Optionally keep environment in query string as well
+                var urlWithEnv = $"{fullUrl}?environment={environment}";
+                request.RequestUri = new Uri(urlWithEnv);
+
+                // Send request
+                var responseMessage = await _httpClient.SendAsync(request);
+
 
                 if (responseMessage == null)
                 {

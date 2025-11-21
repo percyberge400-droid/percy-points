@@ -1,11 +1,11 @@
-﻿using Pos.Application.DTOs;
+﻿using System.Configuration;
+using System.Net.Http.Json;
+using Pos.Application.DTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Utility;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.Configuration;
-using System.Net.Http.Json;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -250,12 +250,22 @@ namespace POSPRA_WinFormsUI.Forms
         {
             await CreateLog("Starting data refresh from API", "Info");
 
-            string selectedEnvironment = ConfigurationManager.AppSettings["Environment"];
+            // Get environment and token from appsettings
+            string selectedEnvironment = ConfigurationManager.AppSettings["Environment"]!;
+            string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED
 
             var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
             var url = $"{_baseUrl}{Endpoints.GetProductCatalogue}";
 
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            // Create HttpRequestMessage to add headers
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // CHANGED: Add Authorization header for middleware
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // Send request
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<ProductCatalogueDto>>>();

@@ -75,5 +75,13 @@ namespace Pos.Infrastructure.Persistence.Repositories
 
             return entity;
         }
+
+        public async Task<PosClients?> GetByTokenAsync(string token, string env)
+        {
+            var context = await SetEnvironmentAsync(env);
+
+            return await context.PosClients
+                .FirstOrDefaultAsync(x => x.Token == token);
+        }
     }
 }

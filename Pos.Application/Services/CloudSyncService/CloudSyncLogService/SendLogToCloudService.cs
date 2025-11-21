@@ -1,4 +1,7 @@
-﻿using AutoMapper;
+﻿using System.Net.Http.Headers; // CHANGED
+using System.Text;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.LogDTOs;
@@ -7,8 +10,6 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
-using System.Text;
-using System.Text.Json;
 
 namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
 {
@@ -19,6 +20,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
         private readonly ILogService _logService;
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
         private readonly IMapper _mapper;
+        private readonly AppSettings _appSettings; // CHANGED: access token
 
         public SendLogToCloudService(
             HttpService http,
@@ -30,6 +32,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
             _baseUrl = options.Value.BaseUrl;
             _logService = logService;
             _mapper = mapper;
+            _appSettings = options.Value; // CHANGED
         }
 
         public async Task SyncLogAsync(string env)
@@ -83,14 +86,28 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
                 }
 
                 var jsonBody = JsonSerializer.Serialize(logDtos);
-                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                // Construct URL
                 var url = $"{_baseUrl}{Endpoints.CreateCloudLog}?environment={env}";
 
-                var resp = await _http.PostAsync(url, content);
+                // CHANGED: Use HttpRequestMessage to add headers
+                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = content
+                };
+
+                // CHANGED: Add Authorization header from appsettings
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _appSettings.Token);
+
+                // CHANGED: Use SendAsync
+                var resp = await _http.SendAsync(request);
+
                 if (!resp.IsSuccessStatusCode)
                 {
                     await _logService.CreateLogAsync(new CreateLogDto(ResponseMessages.DatabaseError, AlertType.Warning, false));
                 }
+
                 return resp;
             }
             catch (Exception ex)
@@ -100,6 +117,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
 
                 await _logService.CreateLogAsync(new CreateLogDto(errorMessage, AlertType.Exception, false));
             }
+
             return null;
         }
     }

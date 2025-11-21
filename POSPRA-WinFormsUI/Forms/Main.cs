@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Configuration;
+using System.Drawing.Drawing2D;
+using System.Net.NetworkInformation;
+using System.ServiceProcess;
+using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
-using System.Configuration;
-using System.Drawing.Drawing2D;
-using System.Net.NetworkInformation;
-using System.ServiceProcess;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -365,28 +365,166 @@ namespace POSPRA_WinFormsUI.Forms
             RepositionStatusControls();
         }
 
-        private void RepositionStatusControls()
+        private void RepositionStatusControls(string activeView = "Dashboard")
         {
-            // Update total width calculation to include environment badge in panel2 with increased width
-            int totalWidth = lblEnvironment.Width + 30 +
-                            lblNetworkStatus.Width + 10 + internetStatus.Width + 30 +
-                            lblWorkerService.Width + 10 + posStatus.Width + 60;
+            int screenWidth = Screen.PrimaryScreen.Bounds.Width; // full monitor width
+            bool compactMode = screenWidth < 1360;
 
-            panel2.Width = Math.Max(totalWidth, 670); // Increased minimum width from 650 to 670
-            panel2.Location = new Point(panel1.Width - panel2.Width, 0);
 
-            int startX = 20; // Start with some padding from left edge
-            int centerY = (panel2.Height - lblEnvironment.Height) / 2;
+            // All panels hidden by default
+            panDashboard.Visible = false;
+            panInvoiceSelection.Visible = false;
+            panExportInvoice.Visible = false;
+            panCatalogView.Visible = false;
 
-            // Position environment badge first in panel2
-            lblEnvironment.Location = new Point(startX, centerY);
+            // Show the active panel
+            switch (activeView)
+            {
+                case "Dashboard":
+                    panDashboard.Visible = true;
+                    panDashboard.BringToFront();
+                    break;
+                case "Invoice Entry":
+                    panInvoiceSelection.Visible = true;
+                    panInvoiceSelection.BringToFront();
+                    break;
+                case "Export Invoice":
+                    panExportInvoice.Visible = true;
+                    panExportInvoice.BringToFront();
+                    break;
+                case "Catalog View":
+                    panCatalogView.Visible = true;
+                    panCatalogView.BringToFront();
+                    break;
+            }
+            if (compactMode && activeView == "Catalog View")
+            {
+                panCatalogView.Visible = true;
 
-            // Then position other controls with proper spacing
-            lblNetworkStatus.Location = new Point(lblEnvironment.Right + 30, centerY);
-            internetStatus.Location = new Point(lblNetworkStatus.Right + 10, centerY);
-            lblWorkerService.Location = new Point(internetStatus.Right + 30, centerY);
-            posStatus.Location = new Point(lblWorkerService.Right + 10, centerY);
+                // Calculate center alignment
+                int panelX = btnCatalogView.Location.X + (btnCatalogView.Width / 2) - (panCatalogView.Width / 2);
+                int panelY = btnCatalogView.Location.Y + btnCatalogView.Height; // Right below the button
+
+                panCatalogView.Location = new Point(panelX, panelY - 4);
+                panCatalogView.BringToFront();
+            }
+
+            // Setup label properties first - use LEFT anchoring for manual positioning
+            lblNetworkStatus.AutoSize = true;
+            lblNetworkStatus.Anchor = AnchorStyles.Left;
+            lblWorkerService.AutoSize = true;
+            lblWorkerService.Anchor = AnchorStyles.Left;
+            lblEnvironment.Anchor = AnchorStyles.Left;
+            internetStatus.Anchor = AnchorStyles.Left;
+            posStatus.Anchor = AnchorStyles.Left;
+
+            if (compactMode)
+            {
+                btnCatalogView.Text = "CONFIGURATION";
+
+
+
+                int spacing = 0;          // space between groups
+                int badgeSpacing = -2;      // space between label and badge
+                int panelPadding = 10;
+
+                // Calculate total required width
+                int totalWidth =
+                    lblEnvironment.Width +
+                    spacing +
+                    lblNetworkStatus.Width +
+                    badgeSpacing +
+                    internetStatus.Width +
+                    spacing +
+                    lblWorkerService.Width +
+                    badgeSpacing +
+                    posStatus.Width +
+                    panelPadding;
+
+                panel2.Width = totalWidth;
+                panel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                panel2.Location = new Point(panel1.Width - panel2.Width, 0);
+
+                int centerY = (panel2.Height - lblEnvironment.Height) / 2;
+                int x = 0;
+
+                // -----------------------------
+                // 1. Environment Badge / Label
+                // -----------------------------
+                lblEnvironment.Location = new Point(x, centerY);
+                lblEnvironment.BringToFront();
+                x += lblEnvironment.Width + spacing;
+
+                // -----------------------------
+                // 2. Internet Status Label
+                // -----------------------------
+                lblNetworkStatus.Location = new Point(x, centerY);
+                lblNetworkStatus.BringToFront();
+                x += lblNetworkStatus.Width + badgeSpacing;
+
+                // Internet Status Badge
+                internetStatus.Location = new Point(x, centerY);
+                internetStatus.BringToFront();
+                x += internetStatus.Width + spacing;
+
+                // -----------------------------
+                // 3. POS Service Label
+                // -----------------------------
+                lblWorkerService.Location = new Point(x, centerY);
+                lblWorkerService.BringToFront();
+                x += lblWorkerService.Width + badgeSpacing;
+
+                // POS Service Badge
+                posStatus.Location = new Point(x, centerY);
+                posStatus.BringToFront();
+
+                return;
+            }
+
+            else
+            {
+
+                // Calculate total width needed for all controls with compact spacing
+                int totalNeededWidth = lblEnvironment.Width + 15 + lblNetworkStatus.Width + 8 + internetStatus.Width + 15 + lblWorkerService.Width + 8 + posStatus.Width + 35;
+
+                // Make panel2 SMALLER so it doesn't cover menu items
+                panel2.Width = totalNeededWidth;
+                panel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                panel2.Location = new Point(panel1.Width - panel2.Width, 0);
+
+                int centerY = (panel2.Height - lblEnvironment.Height) / 2;
+
+                // Position from RIGHT to LEFT with compact spacing
+                int rightMargin = 5; // Space from right edge
+                int badgeToLabelSpacing = 8; // Tight spacing between badge and its label
+                int groupSpacing = 15; // Space between different groups
+
+                // Start from the rightmost element and work backwards
+                // Group 1: POS Status (rightmost)
+                int currentX = panel2.Width - posStatus.Width - rightMargin;
+                posStatus.Location = new Point(currentX, centerY);
+                posStatus.BringToFront();
+
+                currentX = posStatus.Left - badgeToLabelSpacing - lblWorkerService.Width;
+                lblWorkerService.Location = new Point(currentX, centerY + 10);
+                lblWorkerService.BringToFront();
+
+                // Group 2: Internet Status
+                currentX = lblWorkerService.Left - groupSpacing - internetStatus.Width;
+                internetStatus.Location = new Point(currentX, centerY);
+                internetStatus.BringToFront();
+
+                currentX = internetStatus.Left - badgeToLabelSpacing - lblNetworkStatus.Width;
+                lblNetworkStatus.Location = new Point(currentX, centerY + 10);
+                lblNetworkStatus.BringToFront();
+
+                // Group 3: Environment (leftmost of status indicators)
+                currentX = lblNetworkStatus.Left - groupSpacing - lblEnvironment.Width;
+                lblEnvironment.Location = new Point(currentX, centerY);
+                lblEnvironment.BringToFront();
+            }
         }
+
         private void PositionEnvironmentBadge()
         {
             if (lblEnvironment == null) return;
@@ -599,7 +737,9 @@ namespace POSPRA_WinFormsUI.Forms
                         internetStatus = await CheckInternetConnectivityAsync();
                         if (internetStatus)
                         {
-                            string selectedenvironment = ConfigurationManager.AppSettings["Environment"];
+                            string selectedenvironment = ConfigurationManager.AppSettings["Environment"]!;
+                            string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED
+
                             var fullUrl = $"{_baseUrl}{Endpoints.IsServiceEnabled}?posId={decryptedPosId}&env={selectedenvironment}";
                             bool isEnabled = true;
 
@@ -607,7 +747,14 @@ namespace POSPRA_WinFormsUI.Forms
                             {
                                 try
                                 {
-                                    var response = await httpClient.GetAsync(fullUrl);
+                                    using var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
+
+                                    // CHANGED: Add Authorization header for middleware
+                                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                                    // CHANGED: Use SendAsync instead of GetAsync
+                                    var response = await httpClient.SendAsync(request);
+
                                     response.EnsureSuccessStatusCode();
 
                                     string result = await response.Content.ReadAsStringAsync();
@@ -804,7 +951,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             ResetNavStyles();
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#48A787");
-            panDashboard.Visible = true;
+            RepositionStatusControls("Dashboard");
             LoadView("Dashboard");
         }
 
@@ -812,7 +959,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             ResetNavStyles();
             btnInvoiceSelection.ForeColor = ColorTranslator.FromHtml("#48A787");
-            panInvoiceSelection.Visible = true;
+            RepositionStatusControls("Invoice Entry");
             LoadView("Invoice Entry");
         }
 
@@ -820,7 +967,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             ResetNavStyles();
             btnExportInvoice.ForeColor = ColorTranslator.FromHtml("#48A787");
-            panExportInvoice.Visible = true;
+            RepositionStatusControls("Export Invoice");
             LoadView("Export Invoice");
         }
 
@@ -833,7 +980,7 @@ namespace POSPRA_WinFormsUI.Forms
         {
             ResetNavStyles();
             btnCatalogView.ForeColor = ColorTranslator.FromHtml("#48A787");
-            panCatalogView.Visible = true;
+            RepositionStatusControls("Catalog View");
 
             // Call LoadView here
             LoadView("Catalog View");
@@ -901,6 +1048,11 @@ namespace POSPRA_WinFormsUI.Forms
                 item.ForeColor = Color.FromArgb(33, 37, 41);
                 item.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             }
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+
         }
     }
 

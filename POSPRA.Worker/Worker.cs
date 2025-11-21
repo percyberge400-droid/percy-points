@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.CommanDtos;
@@ -7,8 +9,6 @@ using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
 using Pos.Worker.Logging;
-using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace Pos.Worker
 {
@@ -68,6 +68,11 @@ namespace Pos.Worker
                     try
                     {
                         using var httpClient = httpClientFactory.CreateClient();
+
+                        // CHANGED: Add Authorization header for token validation middleware
+                        httpClient.DefaultRequestHeaders.Authorization =
+                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _appSettings.Token); // CHANGED
+
                         var response = await httpClient.GetAsync(fullUrl, cancellationToken);
                         response.EnsureSuccessStatusCode();
 
@@ -92,6 +97,11 @@ namespace Pos.Worker
                     try
                     {
                         using var httpClient = httpClientFactory.CreateClient();
+
+                        // CHANGED: Add Authorization header for token validation middleware
+                        httpClient.DefaultRequestHeaders.Authorization =
+                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _appSettings.Token); // CHANGED
+
                         var apiUrl = $"{_appSettings.BaseUrl}{Endpoints.IsCloudSyncEnabledAsync}";
                         var response = await httpClient.PostAsJsonAsync(apiUrl, new GetByPosIdDto { PosId = _appSettings.POS, Environment = _appSettings.Environment }, cancellationToken);
 

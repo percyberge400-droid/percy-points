@@ -29,12 +29,12 @@
         {
             components = new System.ComponentModel.Container();
             panel1 = new Panel();
-            lblEnvironment = new Label();
             panel2 = new Panel();
+            lblNetworkStatus = new Label();
+            lblEnvironment = new Label();
             posStatus = new Label();
             lblWorkerService = new Label();
             internetStatus = new Label();
-            lblNetworkStatus = new Label();
             pictureBox2 = new PictureBox();
             panCatalogView = new Panel();
             btnCatalogView = new Button();
@@ -59,7 +59,6 @@
             // panel1
             // 
             panel1.BackColor = Color.White;
-            panel1.Controls.Add(lblEnvironment);
             panel1.Controls.Add(panel2);
             panel1.Controls.Add(pictureBox2);
             panel1.Controls.Add(panCatalogView);
@@ -74,42 +73,57 @@
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(3, 4, 3, 4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1753, 60);
+            panel1.Size = new Size(1285, 60);
             panel1.TabIndex = 4;
+            // 
+            // panel2
+            // 
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            panel2.BackColor = Color.White;
+            panel2.Controls.Add(lblNetworkStatus);
+            panel2.Controls.Add(lblEnvironment);
+            panel2.Controls.Add(posStatus);
+            panel2.Controls.Add(lblWorkerService);
+            panel2.Controls.Add(internetStatus);
+            panel2.Location = new Point(711, 0);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(570, 60);
+            panel2.TabIndex = 6;
+            // 
+            // lblNetworkStatus
+            // 
+            lblNetworkStatus.Anchor = AnchorStyles.Right;
+            lblNetworkStatus.AutoSize = true;
+            lblNetworkStatus.Font = new Font("Segoe UI", 11F);
+            lblNetworkStatus.ForeColor = Color.Black;
+            lblNetworkStatus.Location = new Point(166, 15);
+            lblNetworkStatus.Name = "lblNetworkStatus";
+            lblNetworkStatus.Size = new Size(133, 25);
+            lblNetworkStatus.TabIndex = 3;
+            lblNetworkStatus.Text = "Internet Status";
+            lblNetworkStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lblEnvironment
             // 
             lblEnvironment.Anchor = AnchorStyles.Left;
             lblEnvironment.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblEnvironment.ForeColor = Color.Teal;
-            lblEnvironment.Location = new Point(1122, 33);
+            lblEnvironment.Location = new Point(38, 33);
             lblEnvironment.Name = "lblEnvironment";
-            lblEnvironment.Size = new Size(136, 23);
+            lblEnvironment.Size = new Size(133, 23);
             lblEnvironment.TabIndex = 8;
             lblEnvironment.Text = "Sandbox";
             lblEnvironment.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // panel2
-            // 
-            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            panel2.BackColor = Color.White;
-            panel2.Controls.Add(posStatus);
-            panel2.Controls.Add(lblWorkerService);
-            panel2.Controls.Add(internetStatus);
-            panel2.Controls.Add(lblNetworkStatus);
-            panel2.Location = new Point(1277, 0);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(473, 60);
-            panel2.TabIndex = 6;
-            // 
             // posStatus
             // 
             posStatus.Anchor = AnchorStyles.Right;
+            posStatus.AutoSize = true;
             posStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             posStatus.ForeColor = Color.Black;
-            posStatus.Location = new Point(384, 15);
+            posStatus.Location = new Point(495, 17);
             posStatus.Name = "posStatus";
-            posStatus.Size = new Size(86, 30);
+            posStatus.Size = new Size(72, 23);
             posStatus.TabIndex = 0;
             posStatus.Text = "Inactive";
             posStatus.TextAlign = ContentAlignment.MiddleLeft;
@@ -117,11 +131,12 @@
             // lblWorkerService
             // 
             lblWorkerService.Anchor = AnchorStyles.Right;
+            lblWorkerService.AutoSize = true;
             lblWorkerService.Font = new Font("Segoe UI", 11F);
             lblWorkerService.ForeColor = Color.Black;
-            lblWorkerService.Location = new Point(259, 15);
+            lblWorkerService.Location = new Point(378, 15);
             lblWorkerService.Name = "lblWorkerService";
-            lblWorkerService.Size = new Size(116, 30);
+            lblWorkerService.Size = new Size(112, 25);
             lblWorkerService.TabIndex = 1;
             lblWorkerService.Text = "POS Service";
             lblWorkerService.TextAlign = ContentAlignment.MiddleLeft;
@@ -129,31 +144,20 @@
             // internetStatus
             // 
             internetStatus.Anchor = AnchorStyles.Right;
+            internetStatus.AutoSize = true;
             internetStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             internetStatus.ForeColor = Color.Black;
-            internetStatus.Location = new Point(162, 15);
+            internetStatus.Location = new Point(304, 17);
             internetStatus.Name = "internetStatus";
-            internetStatus.Size = new Size(90, 30);
+            internetStatus.Size = new Size(66, 23);
             internetStatus.TabIndex = 2;
             internetStatus.Text = "Offline";
             internetStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // lblNetworkStatus
-            // 
-            lblNetworkStatus.Anchor = AnchorStyles.Right;
-            lblNetworkStatus.Font = new Font("Segoe UI", 11F);
-            lblNetworkStatus.ForeColor = Color.Black;
-            lblNetworkStatus.Location = new Point(18, 15);
-            lblNetworkStatus.Name = "lblNetworkStatus";
-            lblNetworkStatus.Size = new Size(138, 30);
-            lblNetworkStatus.TabIndex = 3;
-            lblNetworkStatus.Text = "Internet Status";
-            lblNetworkStatus.TextAlign = ContentAlignment.MiddleLeft;
-            // 
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            pictureBox2.Location = new Point(12, 3);
+            pictureBox2.Location = new Point(2, 3);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(182, 53);
             pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
@@ -164,7 +168,7 @@
             // 
             panCatalogView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panCatalogView.BackColor = Color.FromArgb(72, 167, 135);
-            panCatalogView.Location = new Point(937, 46);
+            panCatalogView.Location = new Point(731, 45);
             panCatalogView.Margin = new Padding(3, 4, 3, 4);
             panCatalogView.Name = "panCatalogView";
             panCatalogView.Size = new Size(33, 5);
@@ -172,15 +176,16 @@
             // 
             // btnCatalogView
             // 
+            btnCatalogView.AutoSize = true;
             btnCatalogView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             btnCatalogView.FlatAppearance.BorderSize = 0;
             btnCatalogView.FlatStyle = FlatStyle.Flat;
             btnCatalogView.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnCatalogView.ForeColor = Color.Black;
-            btnCatalogView.Location = new Point(837, 14);
+            btnCatalogView.Location = new Point(638, 13);
             btnCatalogView.Margin = new Padding(3, 4, 3, 4);
             btnCatalogView.Name = "btnCatalogView";
-            btnCatalogView.Size = new Size(232, 31);
+            btnCatalogView.Size = new Size(228, 33);
             btnCatalogView.TabIndex = 5;
             btnCatalogView.Text = "SYSTEM CONFIGURATION";
             btnCatalogView.TextAlign = ContentAlignment.BottomCenter;
@@ -191,7 +196,7 @@
             // 
             panExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panExportInvoice.BackColor = Color.FromArgb(72, 167, 135);
-            panExportInvoice.Location = new Point(735, 46);
+            panExportInvoice.Location = new Point(538, 45);
             panExportInvoice.Margin = new Padding(3, 4, 3, 4);
             panExportInvoice.Name = "panExportInvoice";
             panExportInvoice.Size = new Size(33, 5);
@@ -199,15 +204,16 @@
             // 
             // btnDashboard
             // 
+            btnDashboard.AutoSize = true;
             btnDashboard.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             btnDashboard.FlatAppearance.BorderSize = 0;
             btnDashboard.FlatStyle = FlatStyle.Flat;
             btnDashboard.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnDashboard.ForeColor = Color.Black;
-            btnDashboard.Location = new Point(377, 12);
+            btnDashboard.Location = new Point(194, 12);
             btnDashboard.Margin = new Padding(3, 4, 3, 4);
             btnDashboard.Name = "btnDashboard";
-            btnDashboard.Size = new Size(127, 33);
+            btnDashboard.Size = new Size(128, 33);
             btnDashboard.TabIndex = 1;
             btnDashboard.Text = "DASHBOARD";
             btnDashboard.TextAlign = ContentAlignment.BottomCenter;
@@ -216,15 +222,16 @@
             // 
             // btnInvoiceSelection
             // 
+            btnInvoiceSelection.AutoSize = true;
             btnInvoiceSelection.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             btnInvoiceSelection.FlatAppearance.BorderSize = 0;
             btnInvoiceSelection.FlatStyle = FlatStyle.Flat;
             btnInvoiceSelection.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnInvoiceSelection.ForeColor = Color.Black;
-            btnInvoiceSelection.Location = new Point(515, 13);
+            btnInvoiceSelection.Location = new Point(325, 13);
             btnInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             btnInvoiceSelection.Name = "btnInvoiceSelection";
-            btnInvoiceSelection.Size = new Size(151, 32);
+            btnInvoiceSelection.Size = new Size(145, 33);
             btnInvoiceSelection.TabIndex = 1;
             btnInvoiceSelection.Text = "INVOICE ENTRY";
             btnInvoiceSelection.TextAlign = ContentAlignment.BottomCenter;
@@ -233,15 +240,16 @@
             // 
             // btnExportInvoice
             // 
+            btnExportInvoice.AutoSize = true;
             btnExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             btnExportInvoice.FlatAppearance.BorderSize = 0;
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnExportInvoice.ForeColor = Color.Black;
-            btnExportInvoice.Location = new Point(672, 14);
+            btnExportInvoice.Location = new Point(475, 13);
             btnExportInvoice.Margin = new Padding(3, 4, 3, 4);
             btnExportInvoice.Name = "btnExportInvoice";
-            btnExportInvoice.Size = new Size(163, 31);
+            btnExportInvoice.Size = new Size(156, 33);
             btnExportInvoice.TabIndex = 1;
             btnExportInvoice.Text = "EXPORT INVOICE";
             btnExportInvoice.TextAlign = ContentAlignment.BottomCenter;
@@ -252,7 +260,7 @@
             // 
             panDashboard.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panDashboard.BackColor = Color.FromArgb(72, 167, 135);
-            panDashboard.Location = new Point(422, 46);
+            panDashboard.Location = new Point(239, 45);
             panDashboard.Margin = new Padding(3, 4, 3, 4);
             panDashboard.Name = "panDashboard";
             panDashboard.Size = new Size(33, 5);
@@ -262,7 +270,7 @@
             // 
             panInvoiceSelection.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panInvoiceSelection.BackColor = Color.FromArgb(72, 167, 135);
-            panInvoiceSelection.Location = new Point(573, 46);
+            panInvoiceSelection.Location = new Point(379, 45);
             panInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             panInvoiceSelection.Name = "panInvoiceSelection";
             panInvoiceSelection.Size = new Size(33, 5);
@@ -306,14 +314,17 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1753, 1105);
+            ClientSize = new Size(1285, 749);
             Controls.Add(panel1);
             Controls.Add(pictureBox1);
             Margin = new Padding(3, 4, 3, 4);
             Name = "Main";
             Text = "Main";
+            Load += Main_Load;
             panel1.ResumeLayout(false);
+            panel1.PerformLayout();
             panel2.ResumeLayout(false);
+            panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             contextMenuCatalog.ResumeLayout(false);
