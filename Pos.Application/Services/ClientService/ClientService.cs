@@ -62,7 +62,7 @@ namespace Pos.Application.Services.ClientService
             }
 
             // //✅ 6.Check configuration status
-            if (entity.IsActive == true)
+            if (entity.IsConnected.HasValue && entity.IsConnected.Value == true)
             {
                 return new ApiResponse<PosClients>(
                     ApiStatusCode.NotFound,
@@ -85,7 +85,7 @@ namespace Pos.Application.Services.ClientService
             }
             else
             {
-                entity.IsActive = true;
+                entity.IsConnected = true;
             }
 
             // ✅ 8. Return success
