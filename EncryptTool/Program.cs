@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using POSPRA.SecurityEncryption; // Your AES helper
 using System.Xml.Linq;
-using POSPRA.SecurityEncryption; // Your AES helper
 
 namespace EncryptTool
 {
@@ -110,19 +106,31 @@ namespace EncryptTool
                 string raw = File.ReadAllText(filePath).Trim();
                 string blob;
 
-                // Case 1: File contains the full <add key=".." value=".."/>
-                if (raw.StartsWith("<add"))
+                // CASE 1: full <add> element
+                if (raw.TrimStart().StartsWith("<add"))
                 {
-                    // parse XML and extract value="..."
-                    var xml = XElement.Parse(raw);
-                    blob = xml.Attribute("value")?.Value;
+                    blob = XElement.Parse(raw).Attribute("value")?.Value;
+                }
+
+                // CASE 2: full App.config file
+                else if (raw.Contains("EncryptedSettings"))
+                {
+                    var xml = XDocument.Parse(raw);
+                    var node = xml.Descendants("add")
+                                  .FirstOrDefault(x => (string)x.Attribute("key") == "EncryptedSettings");
+
+                    if (node == null)
+                        throw new Exception("EncryptedSettings key not found in App.config");
+
+                    blob = node.Attribute("value")?.Value;
 
                     if (string.IsNullOrWhiteSpace(blob))
-                        throw new Exception("Cannot extract 'value' attribute.");
+                        throw new Exception("EncryptedSettings value is empty.");
                 }
+
+                // CASE 3: raw blob only
                 else
                 {
-                    // Case 2: File contains only the Base64 blob
                     blob = raw;
                 }
 
