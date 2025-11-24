@@ -1,6 +1,5 @@
-﻿using System;
-using System.IO;
-using POSPRA.SecurityEncryption; // Your AES helper
+﻿using POSPRA.SecurityEncryption; // Your AES helper
+using System.Xml.Linq;
 
 namespace EncryptTool
 {
@@ -12,103 +11,165 @@ namespace EncryptTool
             {
                 Console.Clear();
                 Console.WriteLine("=== APP SETTINGS ENCRYPT / DECRYPT TOOL ===\n");
-                Console.WriteLine("1 = Encrypt App.config");
-                Console.WriteLine("2 = Decrypt encrypted blob file");
+                Console.WriteLine("1 = Encrypt App.config -> Encrypted Blob for ConfigManager");
+                Console.WriteLine("2 = Decrypt Blob -> Original appSettings XML");
                 Console.WriteLine("0 = Exit");
                 Console.Write("\nEnter choice: ");
 
                 string choice = Console.ReadLine()?.Trim();
                 if (choice == "0") break;
 
-                switch (choice)
+                if (choice == "1") EncryptMode();
+                else if (choice == "2") DecryptMode();
+                else
                 {
-                    case "1":
-                        EncryptFileMode();
-                        break;
-                    case "2":
-                        DecryptFileMode();
-                        break;
-                    default:
-                        Console.WriteLine("❌ Invalid selection. Press any key to continue...");
-                        Console.ReadKey();
-                        break;
+                    Console.WriteLine("❌ Invalid choice.");
+                    Console.ReadKey();
                 }
             }
         }
 
-        private static void EncryptFileMode()
+        // ---------------------------------------------------
+        // ENCRYPT MODE
+        // ---------------------------------------------------
+        private static void EncryptMode()
         {
-            Console.WriteLine("\nEnter full path of the App.config file to encrypt:");
+            Console.WriteLine("\nEnter full path of App.config:");
             string filePath = Console.ReadLine()?.Trim();
-
-            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
-            {
-                Console.WriteLine("❌ Invalid file path.");
-                Console.ReadKey();
-                return;
-            }
-
-            try
-            {
-                string content = File.ReadAllText(filePath);
-
-                // Encrypt entire content
-                string encryptedBlob = AesEncryptionHelper.Encrypt(content);
-
-                // Save encrypted blob to file
-                string output = Path.Combine(Path.GetDirectoryName(filePath), "appsettings.encrypted.txt");
-                File.WriteAllText(output, encryptedBlob);
-
-                Console.WriteLine("\n✅ Encryption successful!");
-                Console.WriteLine($"Encrypted blob saved to: {output}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"\n❌ Error: {ex.Message}");
-            }
-
-            Console.WriteLine("\nPress any key to return to menu...");
-            Console.ReadKey();
-        }
-
-        private static void DecryptFileMode()
-        {
-            Console.WriteLine("\nEnter full path of the encrypted file to decrypt (default: appsettings.encrypted.txt):");
-            string filePath = Console.ReadLine()?.Trim();
-
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                filePath = "appsettings.encrypted.txt";
-            }
 
             if (!File.Exists(filePath))
             {
-                Console.WriteLine("❌ File does not exist.");
+                Console.WriteLine("❌ File not found.");
                 Console.ReadKey();
                 return;
             }
 
             try
             {
-                string encryptedBlob = File.ReadAllText(filePath);
+                var xml = XDocument.Load(filePath);
 
-                // Decrypt
-                string decryptedContent = AesEncryptionHelper.Decrypt(encryptedBlob);
+                // Extract all <appSettings><add> key/value pairs
+                var settings = xml.Descendants("appSettings")
+                                  .Descendants("add")
+                                  .ToDictionary(
+                                      x => (string)x.Attribute("key"),
+                                      x => (string)x.Attribute("value")
+                                  );
 
-                // Save decrypted content to file
-                string output = Path.Combine(Path.GetDirectoryName(filePath), "appsettings.decrypted.xml");
-                File.WriteAllText(output, decryptedContent);
+                // Convert to JSON
+                string json = System.Text.Json.JsonSerializer.Serialize(settings);
 
-                Console.WriteLine("\n✅ Decryption successful!");
-                Console.WriteLine($"Decrypted file saved to: {output}");
+                // Encrypt JSON
+                string encryptedBlob = AesEncryptionHelper.Encrypt(json);
+
+                // Prepare output line for ConfigurationManager
+                string configLine = $"<add key=\"EncryptedSettings\" value=\"{encryptedBlob}\" />";
+
+                // Output to console
+                Console.WriteLine("\n========== COPY THIS LINE INTO App.config ==========\n");
+                Console.WriteLine(configLine);
+                Console.WriteLine("\n====================================================");
+
+                // Save the full line to the same directory as App.config
+                string dir = Path.GetDirectoryName(filePath);
+                string encryptedFile = Path.Combine(dir, "encrypted_blob.txt");
+                File.WriteAllText(encryptedFile, configLine); // <-- write full <add ... /> line
+
+                Console.WriteLine($"\n✅ Encrypted blob saved to: {encryptedFile}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\n❌ Decryption error: {ex.Message}");
+                Console.WriteLine($"\n❌ ERROR: {ex.Message}");
             }
 
-            Console.WriteLine("\nPress any key to return to menu...");
+            Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
+
+        // ---------------------------------------------------
+        // DECRYPT MODE
+        // ---------------------------------------------------
+        private static void DecryptMode()
+        {
+            Console.WriteLine("\nEnter full path of the encrypted blob file:");
+            string filePath = Console.ReadLine()?.Trim();
+
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("❌ File not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            try
+            {
+                string raw = File.ReadAllText(filePath).Trim();
+                string blob;
+
+                // CASE 1: full <add> element
+                if (raw.TrimStart().StartsWith("<add"))
+                {
+                    blob = XElement.Parse(raw).Attribute("value")?.Value;
+                }
+
+                // CASE 2: full App.config file
+                else if (raw.Contains("EncryptedSettings"))
+                {
+                    var xml = XDocument.Parse(raw);
+                    var node = xml.Descendants("add")
+                                  .FirstOrDefault(x => (string)x.Attribute("key") == "EncryptedSettings");
+
+                    if (node == null)
+                        throw new Exception("EncryptedSettings key not found in App.config");
+
+                    blob = node.Attribute("value")?.Value;
+
+                    if (string.IsNullOrWhiteSpace(blob))
+                        throw new Exception("EncryptedSettings value is empty.");
+                }
+
+                // CASE 3: raw blob only
+                else
+                {
+                    blob = raw;
+                }
+
+                // 🔑 Now decrypt the blob safely
+                string json = AesEncryptionHelper.Decrypt(blob);
+
+                var settings = System.Text.Json.JsonSerializer
+                                  .Deserialize<Dictionary<string, string>>(json);
+
+                // Build XML
+                var appSettingsXml = new XElement("appSettings",
+                    settings.Select(kv =>
+                        new XElement("add",
+                            new XAttribute("key", kv.Key),
+                            new XAttribute("value", kv.Value)
+                        )
+                    )
+                );
+
+                string xmlString = appSettingsXml.ToString();
+
+                Console.WriteLine("\n========= DECRYPTED APP SETTINGS XML =========\n");
+                Console.WriteLine(xmlString);
+                Console.WriteLine("\n==============================================");
+
+                string dir = Path.GetDirectoryName(filePath);
+                string decryptedFile = Path.Combine(dir, "decrypted_appsettings.xml");
+                File.WriteAllText(decryptedFile, xmlString);
+
+                Console.WriteLine($"\n✅ Decrypted file saved to: {decryptedFile}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\n❌ ERROR: {ex.Message}");
+            }
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
+
     }
 }

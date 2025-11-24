@@ -41,9 +41,12 @@ namespace Pos.Application.Services.ClientService
 
             //// ✅ 5. Validate MAC and Token
             var errors = new List<string>();
-
-            if (entity.MacAddressInput != dto.MacAddress)
-                errors.Add(ResponseMessages.InvalidMacAddress);
+            // In case of sandbox no need to check mac address of the system
+            if (dto.Environment != "Sandbox")
+            {
+                if (entity.MacAddressInput != dto.MacAddress)
+                    errors.Add(ResponseMessages.InvalidMacAddress);
+            }
 
             if (entity.Token != dto.Token)
                 errors.Add(ResponseMessages.InvalidToken);
@@ -59,7 +62,7 @@ namespace Pos.Application.Services.ClientService
             }
 
             // //✅ 6.Check configuration status
-            if (entity.IsActive == true)
+            if (entity.IsConnected.HasValue && entity.IsConnected.Value == true)
             {
                 return new ApiResponse<PosClients>(
                     ApiStatusCode.NotFound,
@@ -73,13 +76,17 @@ namespace Pos.Application.Services.ClientService
             var statusResponse = await _posClientRepository.UpdatePosCLientStatus(dto);
 
             if (!statusResponse)
+            {
                 return new ApiResponse<PosClients>(
                     ApiStatusCode.NotFound,
                     ResponseMessages.DataNotFound,
                     null!,
                     string.Empty);
-
-            entity.IsActive = true;
+            }
+            else
+            {
+                entity.IsConnected = true;
+            }
 
             // ✅ 8. Return success
             return new ApiResponse<PosClients>(
