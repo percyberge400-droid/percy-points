@@ -56,7 +56,6 @@
     <Reference Include="CommunityToolkit.WinUI.Notifications">
       <HintPath>bin\Debug\net9.0-windows10.0.17763.0\Microsoft.CommunityToolkit.WinUI.Notifications.dll</HintPath>
     </Reference>
-	  <ProjectReference Include="..\POSPRA.Api\POSPRA.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
