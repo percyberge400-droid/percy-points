@@ -98,11 +98,11 @@ namespace Pos.Infrastructure
 
             if (!string.IsNullOrWhiteSpace(configuration["AppSettings:DefaultDBFilePath"]))
             {
-                dbFilePath = configuration["AppSettings:DefaultDBFilePath"];
+                dbFilePath = configuration["AppSettings:DefaultDBFilePath"]!;
             }
             else if (!string.IsNullOrWhiteSpace(configuration["DefaultDBFilePath"]))
             {
-                dbFilePath = configuration["DefaultDBFilePath"];
+                dbFilePath = configuration["DefaultDBFilePath"]!;
             }
             else
             {
@@ -118,11 +118,11 @@ namespace Pos.Infrastructure
 
             if (!string.IsNullOrWhiteSpace(configuration["AppSettings:DefaultDBPassword"]))
             {
-                sqlitePassword = configuration["AppSettings:DefaultDBPassword"];
+                sqlitePassword = configuration["AppSettings:DefaultDBPassword"]!;
             }
             else if (!string.IsNullOrWhiteSpace(configuration["DefaultDBPassword"]))
             {
-                sqlitePassword = configuration["DefaultDBPassword"];
+                sqlitePassword = configuration["DefaultDBPassword"]!;
             }
             else
             {
@@ -150,15 +150,14 @@ namespace Pos.Infrastructure
 
             services.AddScoped<ISqliteUnitOfWork>(provider =>
             {
-                var factory = provider.GetRequiredService<DbContextFactory>();
-                var sqlCtx = factory.CreateSqlServerDbContext();
-                return new SqlServerUnitOfWork(sqlCtx);
+                var sqliteCtx = provider.GetRequiredService<SqliteDbContext>();
+                return new SqliteUnitOfWork(sqliteCtx);
             });
 
-            services.AddScoped<ISqlServerRepositoryFactory>(provider =>
+            services.AddScoped<ISqliteRepositoryFactory>(provider =>
             {
-                var uow = provider.GetRequiredService<ISqlServerUnitOfWork>() as SqlServerUnitOfWork;
-                return new SqlServerRepositoryFactory(uow.DbContext);
+                var uow = provider.GetRequiredService<ISqliteUnitOfWork>() as SqliteUnitOfWork;
+                return new SqliteRepositoryFactory(uow.DbContext);
             });
 
             // -------------------------
