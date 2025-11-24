@@ -1,6 +1,6 @@
-﻿using POSPRA.SecurityEncryption; // Your AES helper
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Xml.Linq;
+using POSPRA.SecurityEncryption; // Your AES helper
 
 namespace EncryptTool
 {
@@ -251,7 +251,7 @@ namespace EncryptTool
                 // --------------------------------------------
                 // DEFINE PATHS
                 // --------------------------------------------
-                string baseProjectPath = @"D:\Project\POS_2.0\";
+                string baseProjectPath = @"D:\workspace\apis\pos2.0\POS_2.0\";
 
                 string root = ProjectRoot(); // EncryptTool project root
 

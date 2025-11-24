@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using Pos.Domain.ValueObjects;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.ServiceProcess;
+using Newtonsoft.Json;
+using Pos.Domain.ValueObjects;
 
 namespace Pos.Application.Utility
 {
@@ -443,9 +443,9 @@ namespace Pos.Application.Utility
             }
 
             if (environment == "Production")
-                number = POSID.ToString() + year + month + day + hour + DateTime.Now.Minute + DateTime.Now.Second + RandomKey.GenerateNumericKey(4);
+                number = POSID.ToString() + year + month + day + hour + DateTime.Now.Minute + DateTime.Now.Second + RandomKey.GenerateNumericKey(6);
             else
-                number = POSID.ToString() + year + month + day + hour + DateTime.Now.Minute + DateTime.Now.Second + RandomKey.GenerateNumericKey(4) + "*test*";
+                number = POSID.ToString() + year + month + day + hour + DateTime.Now.Minute + DateTime.Now.Second + RandomKey.GenerateNumericKey(6) + "*test*";
 
             return number;
         }
