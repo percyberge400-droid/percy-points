@@ -14,6 +14,7 @@ using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.ConfigurationService;
 using Pos.Application.Services.FileRecordService;
 using Pos.Application.Services.HelperService;
+using Pos.Application.Services.HttpClientService;
 using Pos.Application.Services.InvoiceService;
 using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;
