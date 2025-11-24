@@ -1,4 +1,5 @@
-﻿using Pos.Application.DTOs;
+﻿using Microsoft.Extensions.Options;
+using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Interfaces;
@@ -11,10 +12,15 @@ namespace Pos.Application.Services.ScriptService
     public class ScriptService : IScriptService
     {
         private readonly ISqliteDynamicFactory _dynamicFactory;
+        private readonly AppSettings _settings;
 
-        public ScriptService(ISqliteDynamicFactory dynamicFactory)
+        public ScriptService(ISqliteDynamicFactory dynamicFactory,
+            IOptions<AppSettings> options
+            )
         {
             _dynamicFactory = dynamicFactory;
+            _settings = options.Value;
+
         }
 
         public async Task<ApiResponse<ScriptDTO>> CreateScript(ScriptDTO dto)
@@ -24,20 +30,32 @@ namespace Pos.Application.Services.ScriptService
                 if (string.IsNullOrWhiteSpace(dto.NewDbPath))
                     return new ApiResponse<ScriptDTO>(ApiStatusCode.Error, "NewDbPath is required", null!, "");
 
-                // Create new temp sqlite instance based on db path
-                var (fileRepo, fileUow) = _dynamicFactory.Create<FileRecord>(dto.NewDbPath);
-                var (logRepo, logUow) = _dynamicFactory.Create<Logs>(dto.NewDbPath);
+                // -----------------------------
+                // Get SQLite password from AppSettings
+                // -----------------------------
+                if (string.IsNullOrWhiteSpace(_settings.Password))
+                    return new ApiResponse<ScriptDTO>(ApiStatusCode.Error, "SQLite password is not configured", null!, "");
+
+                // -----------------------------
+                // Create new encrypted SQLite instance
+                // -----------------------------
+                var (fileRepo, fileUow) = _dynamicFactory.Create<FileRecord>(dto.NewDbPath, _settings.Password);
+                var (logRepo, logUow) = _dynamicFactory.Create<Logs>(dto.NewDbPath, _settings.Password);
 
                 int posId = 0;
 
+                // -----------------------------
                 // Insert File Records
+                // -----------------------------
                 if (dto.FileRecord?.Any() == true)
                 {
                     await CreateScriptFileRecord(dto.FileRecord, fileRepo, fileUow);
                     posId = dto.FileRecord[0].POSID;
                 }
 
+                // -----------------------------
                 // Insert Logs
+                // -----------------------------
                 if (dto.Log?.Any() == true && posId > 0)
                 {
                     await CreateScriptLog(dto.Log, logRepo, logUow, posId);

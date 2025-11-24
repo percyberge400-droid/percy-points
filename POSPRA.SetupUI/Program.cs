@@ -1,17 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Configuration;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Pos.Application.Interfaces;
 using Pos.Application.Services.ScriptService;
 using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
-using System.Configuration;
 
 namespace POSPRA.SetupUI
 {
     public static class Program
     {
-
         [STAThread]
         public static void Main(string[] args)
         {
@@ -44,8 +44,9 @@ namespace POSPRA.SetupUI
             string setupConfig = Path.Combine(baseFolder, "POSPRA.SetupUI.dll.config");
             string installationInfo = @"C:\ProgramData\PRAL";
 
-            // 🔹 Step 2: Read DB path from JSON → SetupUI.config → fallback
+            // 🔹 Step 2: Read DB path and password from JSON → SetupUI.config → fallback
             string? dbPath = null;
+            string? dbPassword = null;
 
             // 2a: Try worker JSON
             if (File.Exists(jsonWorkerPath))
@@ -54,46 +55,53 @@ namespace POSPRA.SetupUI
                 {
                     var json = JObject.Parse(File.ReadAllText(jsonWorkerPath));
                     dbPath = json["AppSettings"]?["DefaultDBFilePath"]?.ToString();
+                    dbPassword = json["AppSettings"]?["DefaultDBPassword"]?.ToString();
                 }
                 catch { /* ignore */ }
             }
 
-            // 2b: If not found → try SetupUI.config
+            // 2b: If not found → try AppConfig
             if (string.IsNullOrWhiteSpace(dbPath))
-            {
-                try
-                {
-                    dbPath = ConfigurationManager.AppSettings["DefaultDBFilePath"];
-                }
-                catch { /* ignore */ }
-            }
+                dbPath = ConfigurationManager.AppSettings["DefaultDBFilePath"];
 
-            // 2c: Fallback → default db
+            if (string.IsNullOrWhiteSpace(dbPassword))
+                dbPassword = ConfigurationManager.AppSettings["DefaultDBPassword"];
+
+            // 2c: Fallback defaults
             if (string.IsNullOrWhiteSpace(dbPath))
-            {
                 dbPath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
-            }
+
+            if (string.IsNullOrWhiteSpace(dbPassword))
+                dbPassword = "DefaultPassword123"; // fallback password if missing
 
             // 🔹 Step 3: Ensure directory exists
             string? dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                //Directory.CreateDirectory(dbDirectory);
+                Directory.CreateDirectory(dbDirectory);
             }
 
-            // 🔹 Step 4: Initialize SQLite database
-            var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
-                .UseSqlite($"Data Source={dbPath}")
-                .Options;
-
-            using (var context = new SqliteDbContext(sqliteOptions))
+            // 🔹 Step 4: Create encrypted SQLite connection
+            var connectionStringBuilder = new SqliteConnectionStringBuilder
             {
-                //context.Database.EnsureCreated();
-            }
+                DataSource = dbPath,
+                Mode = SqliteOpenMode.ReadWriteCreate,
+                Password = dbPassword
+            };
+
+            var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
+            sqliteConnection.Open(); // SQLCipher key applied here
 
             // 🔹 Step 5: Build DI container
             var services = new ServiceCollection();
-            services.AddDbContext<SqliteDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
+
+            // Register DbContext with open encrypted connection
+            services.AddDbContext<SqliteDbContext>(options =>
+            {
+                options.UseSqlite(sqliteConnection);
+            });
+
+            // Register services, repositories, UoW, factory
             services.AddScoped<IScriptService, ScriptService>();
             services.AddScoped<ISqliteRepositoryFactory, SqliteRepositoryFactory>();
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
@@ -102,14 +110,17 @@ namespace POSPRA.SetupUI
             // ✅ Build the provider to resolve services
             using (var serviceProvider = services.BuildServiceProvider())
             {
-                // ✅ Get an actual instance of IScriptService from DI
+                // Ensure database and tables exist
+                using (var context = serviceProvider.GetRequiredService<SqliteDbContext>())
+                {
+                    context.Database.EnsureCreated();
+                }
+
+                // ✅ Get an instance of IScriptService from DI
                 var scriptService = serviceProvider.GetRequiredService<IScriptService>();
 
-
-                // 🔹 Step 6: Configure and launch the application
+                // 🔹 Step 6: Configure and launch the WinForms application
                 ApplicationConfiguration.Initialize();
-
-                // Use Application.Run() instead of app.Run()
                 System.Windows.Forms.Application.Run(new ConfigForm2(
                     configPath,
                     jsonWorkerPath,

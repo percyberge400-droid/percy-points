@@ -29,6 +29,7 @@
         public bool IsBackupTestMode { get; set; }
         public string? BackupDirectoryPath { get; set; }          // e.g., "C:\\POS_Backups"
         public string? Environment { get; set; }          // e.g., "C:\\POS_Backups"
+        public string? Password { get; set; }          // e.g., "C:\\POS_Backups"
 
 
     }

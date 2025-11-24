@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using pos.Application.Services.ConfigurationService;
-using Pos.Application.DTOs;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Services;
@@ -13,7 +13,6 @@ using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.ConfigurationService;
 using Pos.Application.Services.FileRecordService;
 using Pos.Application.Services.HelperService;
-using Pos.Application.Services.HttpClientService;
 using Pos.Application.Services.InvoiceService;
 using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;
@@ -29,6 +28,7 @@ using Pos.Infrastructure.Persistence.Repositories;
 using Pos.Infrastructure.Persistence.Repositories.ProductCatalogue;
 using Pos.Infrastructure.Services;
 using POSPRA.Application.Services.FiscalService;
+
 namespace Pos.Infrastructure
 {
     public static class ServiceCollectionExtensions
@@ -39,32 +39,6 @@ namespace Pos.Infrastructure
             // Add HttpContextAccessor first
             // -------------------------
             services.AddHttpContextAccessor();
-
-            // -------------------------
-
-            // Environment Service
-            // -------------------------
-            // Load Worker config dynamically
-            //if (isWorker)
-            //    services.AddSingleton<IEnvironmentService>(provider =>
-            //    {
-            //        var config = provider.GetRequiredService<IConfiguration>();
-            //        var workerConfigPath = Path.Combine(AppContext.BaseDirectory, "appsettings.worker.json");
-
-            //        if (!File.Exists(workerConfigPath))
-            //            throw new FileNotFoundException("Worker config file not found", workerConfigPath);
-
-            //        return new EnvironmentService(workerConfigPath);
-            //    });
-            //if (isWinForm)
-            //{
-            //    // WinForms mode → Use AppConfigEnvironmentService
-            //    services.AddSingleton<IEnvironmentService>(provider =>
-            //    {
-            //        // No need for path logic now — AppConfigEnvironmentService reads from ConfigurationManager directly
-            //        return new AppConfigEnvironmentService();
-            //    });
-            //}
 
             // -------------------------
             // Repositories
@@ -81,7 +55,7 @@ namespace Pos.Infrastructure
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
-            services.AddScoped<IRequestHeaderService, RequestHeaderService>(); // depends on IHttpContextAccessor
+            services.AddScoped<IRequestHeaderService, RequestHeaderService>();
             services.AddScoped<ILiveService, LiveService>();
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
@@ -98,45 +72,48 @@ namespace Pos.Infrastructure
             services.AddScoped<IEnvironmentService, EnvironmentService>();
 
             // -------------------------
-            // SQLite & SQL Server factories
+            // SQLite Dynamic Factory
             // -------------------------
             services.AddSingleton<ISqliteDynamicFactory, SqliteDynamicFactory>();
-            services.AddScoped<DbContextFactory>();
 
             // -------------------------
-            // Configuration
-            // -------------------------
-            services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
-            services.AddHttpClient<HttpService>();
-
-            // -------------------------
-            // SQLite DbContext
+            // SQLite DbContext with encryption
             // -------------------------
             var dbFilePath = configuration["AppSettings:DefaultDBFilePath"];
-            var sqliteConnectionString = $"Data Source={dbFilePath}";
+            if (string.IsNullOrEmpty(dbFilePath))
+                throw new FileNotFoundException("SQLite DB path is not configured in AppSettings");
+
+            // Ensure folder exists
+            var folder = Path.GetDirectoryName(dbFilePath);
+            if (!string.IsNullOrEmpty(folder))
+                Directory.CreateDirectory(folder);
+
+            // Password for SQLCipher
+            var sqlitePassword = configuration["AppSettings:DefaultDBPassword"];
+            if (string.IsNullOrEmpty(sqlitePassword))
+                throw new InvalidOperationException("SQLite password is not set in AppSettings");
+
+            // Build encrypted connection
+            var connectionStringBuilder = new SqliteConnectionStringBuilder
+            {
+                DataSource = dbFilePath,
+                Mode = SqliteOpenMode.ReadWriteCreate,
+                Password = sqlitePassword
+            };
+
+            var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
+            sqliteConnection.Open(); // Key is applied here
+
+            // Register DbContext with open connection
             services.AddDbContext<SqliteDbContext>(options =>
-                options.UseSqlite(sqliteConnectionString));
+            {
+                options.UseSqlite(sqliteConnection);
+            });
 
             // -------------------------
             // Generic Repository
             // -------------------------
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-
-            // -------------------------
-            // SQL Server UnitOfWork
-            // -------------------------
-            services.AddScoped<ISqlServerUnitOfWork>(provider =>
-            {
-                var factory = provider.GetRequiredService<DbContextFactory>();
-                var sqlCtx = factory.CreateSqlServerDbContext(); // synchronous wrapper
-                return new SqlServerUnitOfWork(sqlCtx);
-            });
-
-            services.AddScoped<ISqlServerRepositoryFactory>(provider =>
-            {
-                var uow = provider.GetRequiredService<ISqlServerUnitOfWork>() as SqlServerUnitOfWork;
-                return new SqlServerRepositoryFactory(uow.DbContext);
-            });
 
             // -------------------------
             // SQLite UnitOfWork
@@ -154,12 +131,28 @@ namespace Pos.Infrastructure
             });
 
             // -------------------------
+            // SQL Server setup (unchanged)
+            // -------------------------
+            services.AddScoped<ISqlServerUnitOfWork>(provider =>
+            {
+                var factory = provider.GetRequiredService<DbContextFactory>();
+                var sqlCtx = factory.CreateSqlServerDbContext();
+                return new SqlServerUnitOfWork(sqlCtx);
+            });
+
+            services.AddScoped<ISqlServerRepositoryFactory>(provider =>
+            {
+                var uow = provider.GetRequiredService<ISqlServerUnitOfWork>() as SqlServerUnitOfWork;
+                return new SqlServerRepositoryFactory(uow.DbContext);
+            });
+
+            // -------------------------
             // Unified UnitOfWork per environment
             // -------------------------
             services.AddScoped<IUnitOfWork>(provider =>
             {
                 var envService = provider.GetRequiredService<IEnvironmentService>();
-                var env = envService.GetCurrentEnvironmentAsync().Result; // synchronous
+                var env = envService.GetCurrentEnvironmentAsync().Result;
 
                 return env == EnvironmentType.Sandbox
                     ? provider.GetRequiredService<ISqliteUnitOfWork>()

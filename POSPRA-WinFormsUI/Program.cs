@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Drawing.Text;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Pos.Infrastructure;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA_WinFormsUI.Forms;
-using System.Drawing.Text;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 namespace POSPRA_WinFormsUI
@@ -32,27 +33,31 @@ namespace POSPRA_WinFormsUI
             // 2️⃣ Read value from app.config
             // ------------------------------
             string dbPathFromAppConfig = ConfigurationManager.AppSettings["DefaultDBFilePath"]!;
+            string dbPassword = ConfigurationManager.AppSettings["DefaultDBPassword"]!;
+
             if (string.IsNullOrWhiteSpace(dbPathFromAppConfig))
             {
                 dbPathFromAppConfig = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
             }
 
+            if (string.IsNullOrWhiteSpace(dbPassword))
+            {
+                dbPassword = "DefaultPassword123"; // fallback password
+            }
+
             // ------------------------------
             // 3️⃣ Inject app.config value into IConfiguration
             // ------------------------------
-            // 3️⃣ Merge ALL App.config values into IConfiguration
             var appConfigValues = ConfigurationManager.AppSettings.AllKeys
                 .ToDictionary(
-                    key => key.StartsWith("AppSettings:") ? key : $"AppSettings:{key}", // keep structure consistent
+                    key => key.StartsWith("AppSettings:") ? key : $"AppSettings:{key}",
                     key => ConfigurationManager.AppSettings[key]
                 );
 
-            // Ensure DB Path is included
             appConfigValues["AppSettings:DefaultDBFilePath"] = dbPathFromAppConfig;
+            appConfigValues["AppSettings:DefaultDBPassword"] = dbPassword;
 
-            // Add to builder
             builder.AddInMemoryCollection(appConfigValues);
-
             var configuration = builder.Build();
 
             // ------------------------------
@@ -62,26 +67,38 @@ namespace POSPRA_WinFormsUI
             var dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
             {
-                //Directory.CreateDirectory(dbDirectory);
+                Directory.CreateDirectory(dbDirectory);
             }
 
-            // ✅ Setup DI
+            // ------------------------------
+            // 5️⃣ Create encrypted SQLCipher connection
+            // ------------------------------
+            var connectionStringBuilder = new SqliteConnectionStringBuilder
+            {
+                DataSource = dbPath,
+                Mode = SqliteOpenMode.ReadWriteCreate,
+                Password = dbPassword
+            };
+
+            var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
+            sqliteConnection.Open(); // encryption key applied
+
+            // ------------------------------
+            // 6️⃣ Setup DI
+            // ------------------------------
             var services = new ServiceCollection();
 
-            // ✅ Register IConfiguration first
             services.AddSingleton<IConfiguration>(configuration);
-
-            // ✅ Add all infrastructure services (repositories, unit of work, core services)
             services.AddInfrastructure(configuration, true);
 
-            // ✅ Register SQLite DbContext manually for file path override
+            // Register SQLite DbContext with encrypted connection
             services.AddDbContext<SqliteDbContext>(options =>
-                options.UseSqlite($"Data Source={dbPath}"));
+                options.UseSqlite(sqliteConnection));
 
-            // ✅ AutoMapper
+            // AutoMapper
             services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
 
-            // ✅ Register WinForms forms
+            // Register WinForms forms
             services.AddTransient<LoginForm2>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
@@ -91,13 +108,18 @@ namespace POSPRA_WinFormsUI
 
             using var provider = services.BuildServiceProvider();
 
+            // ------------------------------
+            // 7️⃣ Ensure DB + tables exist
+            // ------------------------------
             using (var scope = provider.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-                //dbContext.Database.EnsureCreated();
+                dbContext.Database.EnsureCreated();
             }
 
-            // ✅ Launch WinForms
+            // ------------------------------
+            // 8️⃣ Launch WinForms
+            // ------------------------------
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
