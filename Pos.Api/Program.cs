@@ -35,9 +35,15 @@ namespace Pos.Api
             // --------------------------
             var decryptedSettings = EncryptedSettingsHelper.DecryptSettingsFile("appsettings.json");
 
+            var flattened = decryptedSettings.ToDictionary(
+    x => $"AppSettings:{x.Key}",
+    x => x.Value
+);
+
+
             builder.Configuration
                 .AddConfiguration(originalConfig)       // original JSON
-                .AddInMemoryCollection(decryptedSettings) // override encrypted keys
+                .AddInMemoryCollection(flattened) // override encrypted keys
                 .AddEnvironmentVariables();             // environment variables override everything
 
             // --------------------------
