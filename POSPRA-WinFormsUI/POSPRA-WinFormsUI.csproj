@@ -47,12 +47,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Pos.Api\Pos.Api.csproj" />
     <ProjectReference Include="..\Pos.Application\Pos.Application.csproj" />
-    <ProjectReference Include="..\POSPRA.API\POSPRA.API.csproj" />
-    <ProjectReference Include="..\POSPRA.Application\POSPRA.Application.csproj" />
-    <ProjectReference Include="..\POSPRA.Domain\POSPRA.Domain.csproj" />
-    <ProjectReference Include="..\POSPRA.DTOs\POSPRA.DTOs.csproj" />
-    <ProjectReference Include="..\POSPRA.Infrastructure\POSPRA.Infrastructure.csproj" />
-    <ProjectReference Include="..\POSPRA.Repositories\POSPRA.Repositories.csproj" />
     <ProjectReference Include="..\POSPRA.SecurityEncryption\POSPRA.SecurityEncryption.csproj" />
     <ProjectReference Include="..\POSPRA.SetupUI\POSPRA.SetupUI.csproj" />
 	<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.10" />
