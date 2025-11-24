@@ -1,10 +1,4 @@
-﻿using System.ComponentModel;
-using System.Configuration;
-using System.Data;
-using System.Drawing.Drawing2D;
-using System.Net.Http.Json;
-using System.Text;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.CommanDtos;
@@ -18,6 +12,12 @@ using Pos.Application.Utility;
 using POSPRA.DTOs.LogDTOs;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.ComponentModel;
+using System.Configuration;
+using System.Data;
+using System.Drawing.Drawing2D;
+using System.Net.Http.Json;
+using System.Text;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -1170,7 +1170,7 @@ namespace POSPRA_WinFormsUI.Forms
             try
             {
                 AddButtonTooltips();
-                var encryptedPosId = System.Configuration.ConfigurationManager.AppSettings["Username"] ?? "0";
+                var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
                 var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
                 StartHeartbeatTimer(decryptedPosId);
 

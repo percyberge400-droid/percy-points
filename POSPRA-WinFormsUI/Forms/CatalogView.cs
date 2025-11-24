@@ -5,6 +5,7 @@ using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Utility;
+using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 
 namespace POSPRA_WinFormsUI.Forms
@@ -252,10 +253,11 @@ namespace POSPRA_WinFormsUI.Forms
 
             // Get environment and token from appsettings
             string selectedEnvironment = ConfigurationManager.AppSettings["Environment"]!;
-            string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED
+            string token = ConfigurationManager.AppSettings["Token"]!;
+            string posId = AesEncryptionHelper.Decrypt(ConfigurationManager.AppSettings["Username"]!);
 
             var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
-            var url = $"{_baseUrl}{Endpoints.GetProductCatalogue}";
+            var url = $"{_baseUrl}{Endpoints.GetProductCatalogue}?posId={posId}";
 
             // Create HttpRequestMessage to add headers
             using var request = new HttpRequestMessage(HttpMethod.Get, url);

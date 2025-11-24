@@ -45,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Pos.Api\Pos.Api.csproj" />
     <ProjectReference Include="..\Pos.Application\Pos.Application.csproj" />
     <ProjectReference Include="..\POSPRA.API\POSPRA.API.csproj" />
     <ProjectReference Include="..\POSPRA.Application\POSPRA.Application.csproj" />

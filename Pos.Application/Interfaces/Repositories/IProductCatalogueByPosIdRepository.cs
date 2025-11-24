@@ -7,6 +7,6 @@ namespace Pos.Application.Interfaces.Repositories
         /// <summary>
         /// Retrieves product catalogue with joined data by POS ID.
         /// </summary>
-        Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(int posId);
+        Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(long posId);
     }
 }

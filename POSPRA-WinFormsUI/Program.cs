@@ -1,12 +1,15 @@
 ﻿using System.Drawing.Text;
+using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.Forms;
-using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 namespace POSPRA_WinFormsUI
 {
@@ -22,57 +25,55 @@ namespace POSPRA_WinFormsUI
 
         static async Task MainAsync()
         {
-            // ------------------------------
-            // 1️⃣ Read appsettings.json
-            // ------------------------------
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            // 1️⃣ Decrypt appsettings.json
+            var decryptedSettings = EncryptedSettingsHelper.DecryptSettingsFile("appsettings.json");
 
-            // ------------------------------
-            // 2️⃣ Read value from app.config
-            // ------------------------------
-            string dbPathFromAppConfig = ConfigurationManager.AppSettings["DefaultDBFilePath"]!;
-            string dbPassword = ConfigurationManager.AppSettings["DefaultDBPassword"]!;
+            // 2️⃣ Decrypt app.config settings
+            var decryptedAppConfigValues = EncryptedSettingsHelper.DecryptAppConfigFile();
 
-            if (string.IsNullOrWhiteSpace(dbPathFromAppConfig))
-            {
-                dbPathFromAppConfig = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
-            }
+            // 3️⃣ Inject decrypted values into ConfigurationManager
+            InjectIntoConfigurationManager(decryptedAppConfigValues);
 
-            if (string.IsNullOrWhiteSpace(dbPassword))
-            {
-                dbPassword = "DefaultPassword123"; // fallback password
-            }
+            // 4️⃣ Merge app.config values (override appsettings.json)
+            foreach (var kvp in decryptedAppConfigValues)
+                decryptedSettings[kvp.Key] = kvp.Value;
 
-            // ------------------------------
-            // 3️⃣ Inject app.config value into IConfiguration
-            // ------------------------------
-            var appConfigValues = ConfigurationManager.AppSettings.AllKeys
-                .ToDictionary(
-                    key => key.StartsWith("AppSettings:") ? key : $"AppSettings:{key}",
-                    key => ConfigurationManager.AppSettings[key]
-                );
+            // 5️⃣ Resolve DB path with fallback
+            string dbPath = decryptedSettings.TryGetValue("AppSettings:DefaultDBFilePath", out var dbPathValue) &&
+                            !string.IsNullOrWhiteSpace(dbPathValue)
+                ? dbPathValue
+                : Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            decryptedSettings["AppSettings:DefaultDBFilePath"] = dbPath;
 
-            appConfigValues["AppSettings:DefaultDBFilePath"] = dbPathFromAppConfig;
-            appConfigValues["AppSettings:DefaultDBPassword"] = dbPassword;
+            // 6️⃣ Resolve DB password with fallback
+            string dbPassword = decryptedSettings.TryGetValue("AppSettings:DefaultDBPassword", out var passValue) &&
+                                !string.IsNullOrWhiteSpace(passValue)
+                ? passValue
+                : "DefaultPassword123";
+            decryptedSettings["AppSettings:DefaultDBPassword"] = dbPassword;
 
-            builder.AddInMemoryCollection(appConfigValues);
-            var configuration = builder.Build();
+            // 7️⃣ Build merged configuration
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(decryptedSettings)
+                .Build();
 
-            // ------------------------------
-            // 4️⃣ Ensure DB directory exists
-            // ------------------------------
-            string dbPath = configuration["AppSettings:DefaultDBFilePath"]!;
+            // 8️⃣ Ensure DB directory exists
             var dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
-            {
                 Directory.CreateDirectory(dbDirectory);
+
+            // 9️⃣ Check DB file validity
+            if (File.Exists(dbPath))
+            {
+                var length = new FileInfo(dbPath).Length;
+                if (length == 0)
+                {
+                    // Empty file cannot be opened by SQLite
+                    File.Delete(dbPath);
+                }
             }
 
-            // ------------------------------
-            // 5️⃣ Create encrypted SQLCipher connection
-            // ------------------------------
+            // 1️⃣0️⃣ SQLCipher encrypted connection
             var connectionStringBuilder = new SqliteConnectionStringBuilder
             {
                 DataSource = dbPath,
@@ -80,25 +81,51 @@ namespace POSPRA_WinFormsUI
                 Password = dbPassword
             };
 
-            var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
-            sqliteConnection.Open(); // encryption key applied
+            using var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
 
-            // ------------------------------
-            // 6️⃣ Setup DI
-            // ------------------------------
+            try
+            {
+                sqliteConnection.Open();
+            }
+            catch (SqliteException ex)
+            {
+                Console.WriteLine($"SQLite Exception: {ex.Message}");
+                // If corrupted file exists, delete and recreate
+                if (File.Exists(dbPath))
+                {
+                    File.Delete(dbPath);
+                    sqliteConnection.Open();
+                    Console.WriteLine("Database recreated successfully.");
+                }
+                else
+                {
+                    throw; // Rethrow for unexpected exceptions
+                }
+            }
+
+            // 1️⃣1️⃣ Dependency Injection Setup
             var services = new ServiceCollection();
 
+            // Register configuration
             services.AddSingleton<IConfiguration>(configuration);
-            services.AddInfrastructure(configuration, true);
+            services.Configure<AppSettings>(configuration);
 
-            // Register SQLite DbContext with encrypted connection
+            // Logging
+            services.AddLogging(builder =>
+            {
+                builder.AddConsole();
+                builder.AddDebug();
+            });
+
+            // Infrastructure & EF Core
+            services.AddInfrastructure(configuration, true);
             services.AddDbContext<SqliteDbContext>(options =>
                 options.UseSqlite(sqliteConnection));
 
             // AutoMapper
-            services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
+            services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>(), Assembly.GetExecutingAssembly());
 
-            // Register WinForms forms
+            // WinForms DI registration
             services.AddTransient<LoginForm2>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();
@@ -108,24 +135,53 @@ namespace POSPRA_WinFormsUI
 
             using var provider = services.BuildServiceProvider();
 
-            // ------------------------------
-            // 7️⃣ Ensure DB + tables exist
-            // ------------------------------
+            // 1️⃣2️⃣ Ensure DB + tables exist
             using (var scope = provider.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
                 dbContext.Database.EnsureCreated();
             }
 
-            // ------------------------------
-            // 8️⃣ Launch WinForms
-            // ------------------------------
+            // 1️⃣3️⃣ Start WinForms App
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             var loginForm = provider.GetRequiredService<LoginForm2>();
             Application.Run(loginForm);
+        }
+
+        // Inject decrypted values into ConfigurationManager.AppSettings
+        private static void InjectIntoConfigurationManager(Dictionary<string, string> decryptedValues)
+        {
+            try
+            {
+                var settings = System.Configuration.ConfigurationManager.AppSettings;
+
+                foreach (var kvp in decryptedValues)
+                {
+                    string key = kvp.Key.Replace("AppSettings:", "");
+
+                    var existing = settings[key];
+                    if (existing != null)
+                    {
+                        settings[key] = kvp.Value;
+                    }
+                    else
+                    {
+                        var readonlyField = typeof(System.Collections.Specialized.NameValueCollection)
+                            .GetField("_readOnly", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                        readonlyField?.SetValue(settings, false);
+                        settings[key] = kvp.Value;
+                        readonlyField?.SetValue(settings, true);
+                    }
+                }
+            }
+            catch
+            {
+                // ignore; fallback is stored in decryptedSettings anyway
+            }
         }
     }
 }

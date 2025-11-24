@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,20 +32,26 @@ namespace POSPRA.Launcher
                 }
 
                 string localVersionPath = Path.Combine(LocalFolder, "launcher-version.txt");
-                string serverUpdaterPath = Path.Combine(ServerRoot, "Updater");
-                string serverVersionPath = Path.Combine(serverUpdaterPath, "launcher-version.txt");
 
-                // STEP 3️⃣ Check required version files exist
-                if (!File.Exists(serverVersionPath))
+                // STEP 3️⃣ Fetch server version via HTTP
+                string serverVersionUrl = $"{ServerRoot}Updater/launcher-version.txt";
+                string serverVersion;
+                using (var client = new HttpClient())
                 {
-                    Log($"❌ Server version file missing at: {serverVersionPath}");
-                    return;
+                    try
+                    {
+                        serverVersion = (await client.GetStringAsync(serverVersionUrl)).Trim();
+                    }
+                    catch
+                    {
+                        Log($"❌ Failed to fetch server launcher-version.txt at {serverVersionUrl}");
+                        return;
+                    }
                 }
 
                 string localVersion = File.Exists(localVersionPath)
                     ? File.ReadAllText(localVersionPath).Trim()
                     : "0.0.0";
-                string serverVersion = File.ReadAllText(serverVersionPath).Trim();
 
                 // STEP 4️⃣ Compare versions
                 bool updateNeeded = localVersion != serverVersion;
@@ -58,18 +65,53 @@ namespace POSPRA.Launcher
                         return;
                     }
 
-                    string versionFolderPath = Path.Combine(serverUpdaterPath, serverVersion);
-                    if (!Directory.Exists(versionFolderPath) || !Directory.EnumerateFileSystemEntries(versionFolderPath).Any())
+                    // STEP 6️⃣ Fetch filelist.txt from server
+                    string filelistUrl = $"{ServerRoot}Updater/{serverVersion}/filelist.txt";
+                    string[] filesToDownload;
+                    using (var client = new HttpClient())
                     {
-                        Log($"❌ Update folder not found or empty on server: {versionFolderPath}");
-                        return;
+                        try
+                        {
+                            string filelistContent = await client.GetStringAsync(filelistUrl);
+                            filesToDownload = filelistContent
+                                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        }
+                        catch
+                        {
+                            Log($"❌ Failed to fetch filelist.txt at {filelistUrl}");
+                            return;
+                        }
                     }
 
-                    // STEP 6️⃣ Apply update
-                    Log($"Starting update from: {versionFolderPath}");
-                    await Task.Run(() => CopyFilesRecursive(versionFolderPath, LocalFolder));
-                    Log($"✅ Update completed successfully (local: {localVersion} → server: {serverVersion})");
+                    // STEP 7️⃣ Download each file
+                    using (var client = new HttpClient())
+                    {
+                        foreach (var file in filesToDownload)
+                        {
+                            string fileName = Path.GetFileName(file);
+                            if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)) ||
+                                file.StartsWith(RuntimesFolder + "/", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Log($"Skipped: {file}");
+                                continue;
+                            }
 
+                            string destFile = Path.Combine(LocalFolder, file.Replace('/', Path.DirectorySeparatorChar));
+                            try
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+                                byte[] fileBytes = await client.GetByteArrayAsync($"{ServerRoot}Updater/{serverVersion}/{file}");
+                                await File.WriteAllBytesAsync(destFile, fileBytes);
+                                Log($"Downloaded: {file}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log($"❌ Failed to download {file}: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // STEP 8️⃣ Update local version
                     try
                     {
                         File.WriteAllText(localVersionPath, serverVersion);
@@ -79,13 +121,15 @@ namespace POSPRA.Launcher
                     {
                         Log($"⚠ Failed to update launcher-version.txt: {ex.Message}");
                     }
+
+                    Log($"✅ Launcher updated successfully (local: {localVersion} → server: {serverVersion})");
                 }
                 else
                 {
                     Log($"Launcher already up to date (v{localVersion}).");
                 }
 
-                // STEP 7️⃣ Signal completion to parent app
+                // STEP 9️⃣ Signal completion to parent app
                 using (EventWaitHandle launcherEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "POSPRA_LauncherDone"))
                 {
                     launcherEvent.Set();
@@ -165,7 +209,7 @@ namespace POSPRA.Launcher
                 if (string.IsNullOrWhiteSpace(ServerRoot))
                     return false;
 
-                if (!ServerRoot.EndsWith("\\")) ServerRoot += "\\";
+                if (!ServerRoot.EndsWith("/")) ServerRoot += "/";
 
                 Log($"Loaded server path: {ServerRoot}");
                 return true;
@@ -186,36 +230,6 @@ namespace POSPRA.Launcher
             catch
             {
                 return false;
-            }
-        }
-
-        private static void CopyFilesRecursive(string src, string dst)
-        {
-            var files = Directory.GetFiles(src, "*", SearchOption.AllDirectories);
-            foreach (string file in files)
-            {
-                string relPath = file.Substring(src.Length).TrimStart('\\');
-                string destFile = Path.Combine(dst, relPath);
-                string fileName = Path.GetFileName(file);
-
-                // Skip excluded and runtime files
-                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)) ||
-                    relPath.StartsWith(RuntimesFolder + "\\", StringComparison.OrdinalIgnoreCase))
-                {
-                    Log($"Skipped: {relPath}");
-                    continue;
-                }
-
-                try
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
-                    File.Copy(file, destFile, true);
-                    Log($"Copied: {relPath}");
-                }
-                catch (Exception ex)
-                {
-                    Log($"❌ Failed to copy file {relPath}: {ex.Message}");
-                }
             }
         }
 

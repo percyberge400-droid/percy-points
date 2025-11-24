@@ -1,42 +1,40 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using Pos.Worker;
 using Pos.Worker.Logging;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.SecurityEncryption;
 using POSPRA.Worker;
 using System.Reflection;
+
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseWindowsService()
     .ConfigureAppConfiguration((context, config) =>
     {
-        // Clear default sources if needed
         config.Sources.Clear();
 
-        // Load worker-specific config
-        config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-              .AddJsonFile("appsettings.worker.json", optional: true, reloadOnChange: true)
-              .AddEnvironmentVariables();
+        // Use the helper to decrypt settings - much cleaner!
+        var decryptedSettings = EncryptedSettingsHelper.DecryptSettingsFiles(
+            "appsettings.json",
+            "appsettings.worker.json"
+        );
+
+        // Add decrypted settings as in-memory collection
+        config.AddInMemoryCollection(decryptedSettings);
+        config.AddEnvironmentVariables();
     })
-
-
     .ConfigureServices((context, services) =>
     {
         var configuration = context.Configuration;
-
-        // ----------------------------------------------------
-        // Infrastructure & AutoMapper
-        // ----------------------------------------------------
-        services.AddInfrastructure(configuration,false , true);
+        services.Configure<AppSettings>(configuration);
+        services.AddInfrastructure(configuration, false, true);
         services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
-
-        // ----------------------------------------------------
-        // Worker-specific Hosted Services
-        // ----------------------------------------------------
         services.AddHostedService<Worker>();
         services.AddHostedService<SqliteBackupService>();
-
     });
+
 // Global exception handlers
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {

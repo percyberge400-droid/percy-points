@@ -22,8 +22,32 @@ namespace Pos.Infrastructure.Persistence.Repositories
         public async Task<PosClients> GetByMacAsync(ClientValidationDto dto)
         {
             var context = await SetEnvironmentAsync(dto.Environment);
-            var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == dto.PosId);
-            return entity!;
+            //var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == dto.PosId);
+            //return entity!;
+
+            var entity = await (from c in context!.PosClients
+                                join b in context.POSBranches
+                                    on c.POSBranchID equals b.POSBranchID
+                                join m in context.POSMASTER
+                                    on b.POSMASTERID equals m.POSMASTERID
+                                join pc in context.POSContact
+                                    on m.POSMASTERID equals pc.POSMASTERID
+                                where c.POSRegistrationNumber == dto.PosId
+                                //&& c.Province_Id == m.Province_Id
+                                select new
+                                {
+                                    Client = c,
+                                    BrandName = m.BrandName,
+                                    PhoneNumber = pc.LandLine
+                                }).FirstOrDefaultAsync();
+
+            if (entity == null)
+                return null!;
+
+            entity.Client.BusinessName = entity.BrandName;
+            entity.Client.PhoneNumber = entity.PhoneNumber;
+
+            return entity.Client;
         }
 
         public async Task<PosClients> GetByPosId(long posId, string env)
@@ -42,10 +66,10 @@ namespace Pos.Infrastructure.Persistence.Repositories
             {
                 // Activate the POS Client
                 entity.IsConnected = true;
-               
+
                 var exists = await context.POSConfigurations.FirstOrDefaultAsync(x => x.IsActive == true && x.POSID == dto.PosId);
                 // Added default POS configuration 
-                if (exists == null)                                        
+                if (exists == null)
                 {
                     var defaultConfiguration = await context.POSConfigurations.FirstOrDefaultAsync(x => x.IsActive == true);
 
@@ -68,7 +92,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
                         Version = defaultConfiguration is not null ? defaultConfiguration.Version : ""
                     };
 
-                    await context.POSConfigurations.AddAsync(pOSConfiguration);                   
+                    await context.POSConfigurations.AddAsync(pOSConfiguration);
                 }
                 await context.SaveChangesAsync();
 

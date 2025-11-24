@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.Interfaces;
 using Pos.Domain.ValueObjects;
 
@@ -8,24 +9,23 @@ namespace Pos.Infrastructure.Persistence
     public class DbContextFactory
     {
         private readonly IConfiguration _configuration;
-        private readonly IEnvironmentService _environmentService;
+        private readonly IServiceProvider _serviceProvider;
 
-        public DbContextFactory(IConfiguration configuration, IEnvironmentService environmentService)
+        public DbContextFactory(IConfiguration configuration, IServiceProvider serviceProvider)
         {
             _configuration = configuration;
-            _environmentService = environmentService;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
-        /// Creates a new SqlServerDbContext based on the current process environment (async).
+        /// Creates a new SqlServerDbContext based on the current environment (async).
         /// </summary>
-        public async Task<SqlServerDbContext?> CreateSqlServerDbContextAsync(bool forceProduction = false)
+        public async Task<SqlServerDbContext> CreateSqlServerDbContextAsync(bool forceProduction = false)
         {
-            var env = await _environmentService.GetCurrentEnvironmentAsync();
+            using var scope = _serviceProvider.CreateScope();
+            var envService = scope.ServiceProvider.GetRequiredService<IEnvironmentService>();
 
-            // If environment is null → stop and return null (or throw if you prefer)
-            if (env == null)
-                return null;
+            var env = await envService.GetCurrentEnvironmentAsync();
 
             if (forceProduction)
                 env = EnvironmentType.Production;
@@ -43,7 +43,10 @@ namespace Pos.Infrastructure.Persistence
             return new SqlServerDbContext(optionsBuilder.Options);
         }
 
-        public async Task<SqlServerDbContext?> CreateSqlServerDbContextAsync(EnvironmentType environment)
+        /// <summary>
+        /// Creates a SqlServerDbContext for a specific environment (async).
+        /// </summary>
+        public async Task<SqlServerDbContext> CreateSqlServerDbContextAsync(EnvironmentType environment)
         {
             var connectionString = environment == EnvironmentType.Sandbox
                 ? _configuration.GetConnectionString("SandboxConnection")
@@ -59,11 +62,10 @@ namespace Pos.Infrastructure.Persistence
         }
 
         /// <summary>
-        /// Synchronous wrapper for DI usage.
+        /// Synchronous wrapper (if needed, but prefer async usage).
         /// </summary>
         public SqlServerDbContext CreateSqlServerDbContext(bool forceProduction = false)
         {
-            // Use .GetAwaiter().GetResult() to block until async completes
             return CreateSqlServerDbContextAsync(forceProduction).GetAwaiter().GetResult();
         }
     }

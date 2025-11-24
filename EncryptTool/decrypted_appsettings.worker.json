@@ -1,0 +1,20 @@
+{
+  "AppSettings": {
+    "BaseUrl": "http://10.105.200.161/",
+    "POS": 128762,
+    "WorkerDelayTime": 20000,
+    "IsBackupTestMode": true,
+    "BackupDirectoryPath": "C:\\POS_Backups",
+    "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db",
+    "DefaultDBPassword": "Pral@123",
+    "Token": "1395fea9-4750-308f-9010-71b12ad02b32",
+    "Environment": "Sandbox",
+    "IsProduction": false
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  }
+}

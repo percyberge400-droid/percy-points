@@ -15,7 +15,7 @@ namespace Pos.Infrastructure.Persistence.Repositories.ProductCatalogue
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(int posId)
+        public async Task<IEnumerable<ProductCatalogueDto>> GetProductCatalogueByPosIdAsync(long posId)
         {
             // Use the DbContextFactory to always get Production DB instance
             await using var dbContext = await _dbContextFactory.CreateSqlServerDbContextAsync(forceProduction: true);

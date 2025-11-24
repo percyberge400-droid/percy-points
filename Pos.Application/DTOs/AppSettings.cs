@@ -26,6 +26,7 @@
         public int IMSUpdateInterval { get; set; }
         public int WorkerDelayTime { get; set; }
         public string? DefaultDBFilePath { get; set; }
+        public string? DefaultDBPassword { get; set; }
         public bool IsBackupTestMode { get; set; }
         public string? BackupDirectoryPath { get; set; }          // e.g., "C:\\POS_Backups"
         public string? Environment { get; set; }          // e.g., "C:\\POS_Backups"

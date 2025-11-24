@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using pos.Application.Services.ConfigurationService;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
@@ -36,9 +37,22 @@ namespace Pos.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool isWinForm = false, bool isWorker = false)
         {
             // -------------------------
-            // Add HttpContextAccessor first
+            // Logging (Debug only for WinForms)
+            // -------------------------
+            services.AddLogging(builder =>
+            {
+                builder.AddDebug(); // Logs to Visual Studio Output window
+            });
+
+            // -------------------------
+            // HttpContextAccessor (optional for WinForms)
             // -------------------------
             services.AddHttpContextAccessor();
+
+            // -------------------------
+            // Register HttpService for CloudSync
+            // -------------------------
+            services.AddHttpClient<HttpService>(); // Recommended for HttpClient usage
 
             // -------------------------
             // Repositories
@@ -79,21 +93,43 @@ namespace Pos.Infrastructure
             // -------------------------
             // SQLite DbContext with encryption
             // -------------------------
-            var dbFilePath = configuration["AppSettings:DefaultDBFilePath"];
-            if (string.IsNullOrEmpty(dbFilePath))
-                throw new FileNotFoundException("SQLite DB path is not configured in AppSettings");
+            string dbFilePath;
 
-            // Ensure folder exists
+            if (!string.IsNullOrWhiteSpace(configuration["AppSettings:DefaultDBFilePath"]))
+            {
+                dbFilePath = configuration["AppSettings:DefaultDBFilePath"];
+            }
+            else if (!string.IsNullOrWhiteSpace(configuration["DefaultDBFilePath"]))
+            {
+                dbFilePath = configuration["DefaultDBFilePath"];
+            }
+            else
+            {
+                dbFilePath = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            }
+
+
             var folder = Path.GetDirectoryName(dbFilePath);
             if (!string.IsNullOrEmpty(folder))
                 Directory.CreateDirectory(folder);
 
-            // Password for SQLCipher
-            var sqlitePassword = configuration["AppSettings:DefaultDBPassword"];
-            if (string.IsNullOrEmpty(sqlitePassword))
-                throw new InvalidOperationException("SQLite password is not set in AppSettings");
+            string sqlitePassword;
 
-            // Build encrypted connection
+            if (!string.IsNullOrWhiteSpace(configuration["AppSettings:DefaultDBPassword"]))
+            {
+                sqlitePassword = configuration["AppSettings:DefaultDBPassword"];
+            }
+            else if (!string.IsNullOrWhiteSpace(configuration["DefaultDBPassword"]))
+            {
+                sqlitePassword = configuration["DefaultDBPassword"];
+            }
+            else
+            {
+                sqlitePassword = Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            }
+
+
+
             var connectionStringBuilder = new SqliteConnectionStringBuilder
             {
                 DataSource = dbFilePath,
@@ -102,37 +138,39 @@ namespace Pos.Infrastructure
             };
 
             var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
-            sqliteConnection.Open(); // Key is applied here
+            sqliteConnection.Open();
 
-            // Register DbContext with open connection
             services.AddDbContext<SqliteDbContext>(options =>
             {
                 options.UseSqlite(sqliteConnection);
             });
 
-            // -------------------------
-            // Generic Repository
-            // -------------------------
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-            // -------------------------
-            // SQLite UnitOfWork
-            // -------------------------
             services.AddScoped<ISqliteUnitOfWork>(provider =>
             {
-                var sqliteCtx = provider.GetRequiredService<SqliteDbContext>();
-                return new SqliteUnitOfWork(sqliteCtx);
+                var factory = provider.GetRequiredService<DbContextFactory>();
+                var sqlCtx = factory.CreateSqlServerDbContext();
+                return new SqlServerUnitOfWork(sqlCtx);
             });
 
-            services.AddScoped<ISqliteRepositoryFactory>(provider =>
+            services.AddScoped<ISqlServerRepositoryFactory>(provider =>
             {
-                var uow = provider.GetRequiredService<ISqliteUnitOfWork>() as SqliteUnitOfWork;
-                return new SqliteRepositoryFactory(uow.DbContext);
+                var uow = provider.GetRequiredService<ISqlServerUnitOfWork>() as SqlServerUnitOfWork;
+                return new SqlServerRepositoryFactory(uow.DbContext);
             });
 
             // -------------------------
-            // SQL Server setup (unchanged)
+            // SQL Server Factory & DbContext
             // -------------------------
+            services.AddScoped<DbContextFactory>(); // Custom factory
+
+            services.AddDbContextFactory<SqlServerDbContext>(options =>
+            {
+                var sqlConnString = configuration.GetConnectionString("SqlServerConnection");
+                options.UseSqlServer(sqlConnString);
+            });
+
             services.AddScoped<ISqlServerUnitOfWork>(provider =>
             {
                 var factory = provider.GetRequiredService<DbContextFactory>();

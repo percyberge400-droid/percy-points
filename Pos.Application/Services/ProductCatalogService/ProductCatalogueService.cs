@@ -42,11 +42,11 @@ namespace Pos.Application.Services.ProductCatalogService
             _productCatalogueByPosIdRepository = productCatalogueByPosIdRepository;
         }
 
-        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync()
+        public async Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(long posId)
         {
             try
             {
-                var result = await _productCatalogueByPosIdRepository.GetProductCatalogueByPosIdAsync(_settings.POS);
+                var result = await _productCatalogueByPosIdRepository.GetProductCatalogueByPosIdAsync(posId);
 
                 var productCatalogueDTO = _mapper.Map<List<ProductCatalogueDto>>(result);
 

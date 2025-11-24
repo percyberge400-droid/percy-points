@@ -1,7 +1,4 @@
-﻿using System.Configuration;
-using System.Net.Http.Json;
-using System.Runtime.InteropServices;
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
@@ -10,6 +7,9 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
+using System.Net.Http.Json;
+using System.Runtime.InteropServices;
 
 namespace POSPRA_WinFormsUI.Forms
 {

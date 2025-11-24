@@ -6,7 +6,7 @@ namespace Pos.Application.Services.ProductCatalogService
 {
     public interface IProductCatalogueService
     {
-        Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync();
+        Task<ApiResponse<List<ProductCatalogueDto>>> GetAllAsync(long posId);
 
         /// <summary>
         /// This method is used to create product catalogue in SQLite.

@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
 using Microsoft.OpenApi.Models;
+using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using POSPRA.Application.AutoMapperProfile;
+using POSPRA.SecurityEncryption;
 
 namespace Pos.Api
 {
@@ -20,17 +22,32 @@ namespace Pos.Api
                 ContentRootPath = apiBasePath
             });
 
-            // Load API appsettings.json
-            builder.Configuration
+            // --------------------------
+            // Load original JSON settings
+            // --------------------------
+            var originalConfig = new ConfigurationBuilder()
                 .SetBasePath(apiBasePath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables();
+                .Build();
+
+            // --------------------------
+            // Decrypt settings and merge
+            // --------------------------
+            var decryptedSettings = EncryptedSettingsHelper.DecryptSettingsFile("appsettings.json");
+
+            builder.Configuration
+                .AddConfiguration(originalConfig)       // original JSON
+                .AddInMemoryCollection(decryptedSettings) // override encrypted keys
+                .AddEnvironmentVariables();             // environment variables override everything
 
             // --------------------------
             // Add services
             // --------------------------
             builder.Services.AddControllers()
                 .PartManager.ApplicationParts.Add(new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(typeof(Program).Assembly));
+
+            // Bind AppSettings from configuration
+            builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
             builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -53,33 +70,17 @@ namespace Pos.Api
             var app = builder.Build();
 
             // --------------------------
-            // Optional: verify SQLite DB
-            // --------------------------
-            var configuration = builder.Configuration;
-
-            //var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>()
-            //    ?? throw new InvalidOperationException("AppSettings section missing.");
-
-            //var sqliteConnectionString = appSettings?.DefaultDBFilePath
-            //    ?? throw new InvalidOperationException("SqliteConnection not found in AppSettings.");
-
-            // --------------------------
             // Middleware
             // --------------------------
-            //if (app.Environment.IsDevelopment())
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "POS API v1");
-                    c.RoutePrefix = string.Empty; // swagger at root URL
-                });
-            }
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "POS API v1");
+                c.RoutePrefix = string.Empty; // swagger at root URL
+            });
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
             app.MapControllers();
 
             return app;

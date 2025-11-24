@@ -1,13 +1,13 @@
-﻿using System.Configuration;
-using System.Drawing.Drawing2D;
-using System.Net.NetworkInformation;
-using System.ServiceProcess;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
+using System.Configuration;
+using System.Drawing.Drawing2D;
+using System.Net.NetworkInformation;
+using System.ServiceProcess;
 
 namespace POSPRA_WinFormsUI.Forms
 {

@@ -9,7 +9,6 @@ using Pos.Domain.Entities;
 using POSPRA.SecurityEncryption;
 using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms;
-using System;
 using System.Configuration;
 using System.Drawing.Drawing2D;
 using System.Text.RegularExpressions;

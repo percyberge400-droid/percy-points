@@ -150,7 +150,7 @@ namespace Pos.Application.Services.LogService
                 {
                     var errorLog = new Logs
                     {
-                        Message = $"{DateTime.UtcNow}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
+                        Message = $"{DateTime.Now}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
                         Type = AlertType.Exception,
                         IsSynced = false,
                         Module = "Logging",
@@ -167,7 +167,7 @@ namespace Pos.Application.Services.LogService
                 }
                 catch
                 {
-                    File.AppendAllText("log_fallback.txt", $"{DateTime.UtcNow:o}: Failed to log -> {ex.Message}{Environment.NewLine}");
+                    File.AppendAllText("log_fallback.txt", $"{DateTime.Now:o}: Failed to log -> {ex.Message}{Environment.NewLine}");
                 }
 
                 return new ApiResponse<CreateLogDto>(ApiStatusCode.ServiceUnavailable, ResponseMessages.UnknownError, null!, ex.Message);

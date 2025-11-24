@@ -46,6 +46,8 @@ namespace Pos.Domain.Entities
         public string? ClientType { get; set; }
         public bool? IsLogSynced { get; set; }
         public bool? IsServiceEnabled { get; set; }
+        [NotMapped]
+        public string? PhoneNumber { get; set; }
 
     }
 }

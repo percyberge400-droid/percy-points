@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace POSPRA.Updater
         {
             InitializeComponent();
         }
+
         private async void UpdateForm_Load(object sender, EventArgs e)
         {
             try
@@ -59,7 +61,7 @@ namespace POSPRA.Updater
             }
             catch (Exception ex)
             {
-                ShowErrorAndClose($"Updater failed: ");
+                ShowErrorAndClose($"Updater failed: {ex.Message}");
             }
         }
 
@@ -92,12 +94,12 @@ namespace POSPRA.Updater
                 if (!LocalFolder.EndsWith(Path.DirectorySeparatorChar.ToString()))
                     LocalFolder += Path.DirectorySeparatorChar;
 
-                Log($"Detected install path");
+                Log($"Detected install path: {LocalFolder}");
             }
             catch (Exception ex)
             {
                 LocalFolder = AppDomain.CurrentDomain.BaseDirectory;
-                Log($"DetectInstallPath error: ");
+                Log($"DetectInstallPath error: {ex.Message}");
             }
         }
 
@@ -120,14 +122,25 @@ namespace POSPRA.Updater
 
                 ServerRoot = (string)serverPathElement.Attribute("value") ?? "";
                 if (string.IsNullOrWhiteSpace(ServerRoot)) return false;
-                if (!ServerRoot.EndsWith("\\")) ServerRoot += "\\";
 
-                Log($"Loaded server path");
+                // Ensure proper trailing slash for HTTP/HTTPS
+                if (ServerRoot.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!ServerRoot.EndsWith("/"))
+                        ServerRoot += "/";
+                }
+                else
+                {
+                    if (!ServerRoot.EndsWith("\\"))
+                        ServerRoot += "\\";
+                }
+
+                Log($"Loaded server path: {ServerRoot}");
                 return true;
             }
             catch (Exception ex)
             {
-                Log($"Error reading Updater-Version.config");
+                Log($"Error reading Updater-Version.config: {ex.Message}");
                 return false;
             }
         }
@@ -147,23 +160,23 @@ namespace POSPRA.Updater
         private async Task RunUpdateAsync()
         {
             string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
-            string serverVersionPath = Path.Combine(ServerRoot, "app-version.txt");
+            string serverVersionUrl = ServerRoot + "app-version.txt";
 
-            if (!File.Exists(serverVersionPath))
+            string serverVersion;
+            try
             {
-                ShowErrorAndClose("Server version file missing. Update aborted.");
+                using var client = new HttpClient();
+                serverVersion = (await client.GetStringAsync(serverVersionUrl)).Trim();
+            }
+            catch
+            {
+                ShowErrorAndClose("Failed to fetch server version. Update aborted.");
                 return;
             }
 
-            string serverVersion = File.ReadAllText(serverVersionPath).Trim();
             string localVersion = File.Exists(localVersionPath) ? File.ReadAllText(localVersionPath).Trim() : "0.0.0";
 
-            string serverVersionFolder = Path.Combine(ServerRoot, serverVersion);
-            if (!Directory.Exists(serverVersionFolder) || !Directory.EnumerateFileSystemEntries(serverVersionFolder).Any())
-            {
-                ShowErrorAndClose("Server version folder missing or empty. Update aborted.");
-                return;
-            }
+            string serverVersionFolderUrl = $"{ServerRoot}{serverVersion}/";
 
             Log($"Local version: {localVersion}, Server version: {serverVersion}");
 
@@ -176,17 +189,17 @@ namespace POSPRA.Updater
                 Invoke((Action)(() => lblStatus.Text = "Stopping running applications..."));
                 StopProcess(AppProcessName);
 
-                // Wait briefly to ensure all file handles are released
                 await Task.Delay(1000);
 
-                // Copy update files
+                // Download update files
                 Invoke((Action)(() => lblStatus.Text = "Applying updates..."));
                 Invoke((Action)(() =>
                 {
                     progressBar.Style = ProgressBarStyle.Continuous;
                     progressBar.Value = 0;
                 }));
-                await Task.Run(() => CopyFilesRecursive(serverVersionFolder, LocalFolder));
+
+                await DownloadFilesFromHttpAsync(serverVersionFolderUrl, LocalFolder);
 
                 // Update version file
                 File.WriteAllText(localVersionPath, serverVersion);
@@ -212,28 +225,73 @@ namespace POSPRA.Updater
             }
             catch (Exception ex)
             {
-                ShowErrorAndClose($"Unexpected error during update ");
+                ShowErrorAndClose($"Unexpected error during update: {ex.Message}");
+            }
+        }
+
+        private async Task DownloadFilesFromHttpAsync(string serverFolderUrl, string localFolder)
+        {
+            using var client = new HttpClient();
+            string fileListUrl = serverFolderUrl + "filelist.txt";
+
+            string[] files;
+            try
+            {
+                string fileListContent = await client.GetStringAsync(fileListUrl);
+                files = fileListContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            catch
+            {
+                ShowErrorAndClose("Failed to fetch file list from server.");
+                return;
             }
 
+            int copiedCount = 0;
+            int totalFiles = files.Length;
+
+            foreach (var file in files)
+            {
+                string fileName = Path.GetFileName(file);
+
+                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    Log($"Skipped file: {fileName}");
+                    continue;
+                }
+
+                string localPath = Path.Combine(localFolder, file.Replace("/", "\\"));
+
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(localPath)!);
+                    byte[] data = await client.GetByteArrayAsync(serverFolderUrl + file);
+                    await File.WriteAllBytesAsync(localPath, data);
+                    Log($"Downloaded file: {file}");
+                }
+                catch (Exception ex)
+                {
+                    ShowErrorAndClose($"Failed to download file {file}: {ex.Message}");
+                }
+
+                copiedCount++;
+                int percent = (int)((copiedCount * 100.0) / totalFiles);
+                Invoke((Action)(() => progressBar.Value = Math.Min(percent, 100)));
+            }
+
+            Log($"Download complete: {copiedCount}/{totalFiles} files processed.");
         }
+
         private void StopService(string serviceName)
         {
             try
             {
-                // Wait for LoginForm2 to finish if it is restarting the service
                 using (var mutex = Mutex.OpenExisting("POSPRAWorkerServiceMutex"))
                 {
                     mutex.WaitOne(TimeSpan.FromSeconds(60));
                 }
             }
-            catch (WaitHandleCannotBeOpenedException)
-            {
-                // Mutex doesn't exist, proceed normally
-            }
-            catch (AbandonedMutexException)
-            {
-                // Mutex was abandoned, safe to continue
-            }
+            catch (WaitHandleCannotBeOpenedException) { }
+            catch (AbandonedMutexException) { }
 
             using var sc = new ServiceController(serviceName);
             if (sc.Status == ServiceControllerStatus.Running ||
@@ -243,7 +301,6 @@ namespace POSPRA.Updater
                 sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
             }
         }
-
 
         private void StartService(string serviceName)
         {
@@ -267,54 +324,9 @@ namespace POSPRA.Updater
                 }
                 catch (Exception ex)
                 {
-                    ShowErrorAndClose($"Failed to stop process {name} ");
+                    ShowErrorAndClose($"Failed to stop process {name}: {ex.Message}");
                 }
             }
-        }
-
-        private void CopyFilesRecursive(string src, string dst)
-        {
-            var files = Directory.GetFiles(src, "*", SearchOption.AllDirectories);
-            int copiedCount = 0;
-            int totalFiles = files.Length;
-
-            foreach (string file in files)
-            {
-                string relPath = file.Substring(src.Length).TrimStart('\\');
-                string destFile = Path.Combine(dst, relPath);
-                string fileName = Path.GetFileName(file);
-
-                // Skip excluded files
-                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
-                {
-                    Log($"Skipped file");
-                    continue;
-                }
-
-                // Skip entire runtimes folder to avoid locking DLLs
-                if (relPath.StartsWith("runtimes\\", StringComparison.OrdinalIgnoreCase))
-                {
-                    Log($"Skipped folder");
-                    continue;
-                }
-
-                try
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
-                    File.Copy(file, destFile, true);
-                    Log($"Copied file");
-                }
-                catch (Exception ex)
-                {
-                    ShowErrorAndClose($"Failed to copy {relPath} ");
-                }
-
-                copiedCount++;
-                int percent = (int)((copiedCount * 100.0) / totalFiles);
-                Invoke((Action)(() => progressBar.Value = Math.Min(percent, 100)));
-            }
-
-            Log($"Copy complete: {copiedCount}/{totalFiles} files processed.");
         }
 
         private void ShowErrorAndClose(string msg)
@@ -327,7 +339,7 @@ namespace POSPRA.Updater
         private void Log(string msg)
         {
             try { File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n"); }
-            catch { /* ignore */ }
+            catch { }
         }
     }
 }

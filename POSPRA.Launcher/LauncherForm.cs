@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace POSPRA.Launcher
 {
@@ -14,6 +16,7 @@ namespace POSPRA.Launcher
         private string LogFile => Path.Combine(LocalFolder, "launcher_log.txt");
         private readonly string[] ExcludedFiles = { "System.ServiceProcess.ServiceController.dll" };
         private readonly string RuntimesFolder = "runtimes";
+        private readonly HttpClient http = new HttpClient();
 
         public LauncherForm() => InitializeComponent();
 
@@ -32,45 +35,39 @@ namespace POSPRA.Launcher
                 }
 
                 string localVersionPath = Path.Combine(LocalFolder, "launcher-version.txt");
-                string serverUpdaterPath = Path.Combine(ServerRoot, "Updater");
-                string serverVersionPath = Path.Combine(serverUpdaterPath, "launcher-version.txt");
+                string serverUpdaterUrl = ServerRoot.EndsWith("/") ? $"{ServerRoot}Updater/" : $"{ServerRoot}/Updater/";
+                string serverVersionUrl = $"{serverUpdaterUrl}launcher-version.txt";
 
-                // STEP 3️⃣ Check required version files exist
-                if (!File.Exists(serverVersionPath))
+                // STEP 3️⃣ Fetch server version over HTTP
+                string serverVersion;
+                try
                 {
-                    ShowErrorAndExit($"❌ Server version file missing at:\n{serverVersionPath}");
+                    serverVersion = (await http.GetStringAsync(serverVersionUrl)).Trim();
+                }
+                catch
+                {
+                    ShowErrorAndExit($"❌ Cannot fetch server launcher-version.txt at:\n{serverVersionUrl}");
                     return;
                 }
 
-                string localVersion = File.Exists(localVersionPath)
-                    ? File.ReadAllText(localVersionPath).Trim()
-                    : "0.0.0";
-                string serverVersion = File.ReadAllText(serverVersionPath).Trim();
-
-                // STEP 4️⃣ Compare versions
+                string localVersion = File.Exists(localVersionPath) ? File.ReadAllText(localVersionPath).Trim() : "0.0.0";
                 bool updateNeeded = localVersion != serverVersion;
 
                 if (updateNeeded)
                 {
-                    // STEP 5️⃣ Pre-update safety checks
+                    // STEP 4️⃣ Pre-update safety checks
                     if (!CheckInternetConnection())
                     {
                         ShowErrorAndExit("❌ No internet connection. Please check your network and try again.");
                         return;
                     }
 
-                    string versionFolderPath = Path.Combine(serverUpdaterPath, serverVersion);
-                    if (!Directory.Exists(versionFolderPath) || !Directory.EnumerateFileSystemEntries(versionFolderPath).Any())
-                    {
-                        ShowErrorAndExit($"❌ Update folder not found or empty on server:\n{versionFolderPath}");
-                        return;
-                    }
+                    string versionFolderUrl = $"{serverUpdaterUrl}{serverVersion}/";
 
-                    // STEP 6️⃣ Apply update
-                    Log($"Starting update from: {versionFolderPath}");
-                    await Task.Run(() => CopyFilesRecursive(versionFolderPath, LocalFolder));
+                    Log($"Starting update from: {versionFolderUrl}");
+                    await DownloadFilesRecursive(versionFolderUrl, LocalFolder);
                     Log($"✅ Update completed successfully (local: {localVersion} → server: {serverVersion})");
-                    // Write updated version to local launcher-version.txt
+
                     try
                     {
                         File.WriteAllText(localVersionPath, serverVersion);
@@ -86,10 +83,10 @@ namespace POSPRA.Launcher
                     Log($"Launcher already up to date (v{localVersion}).");
                 }
 
-                // STEP 7️⃣ Signal LoginForm using EventWaitHandle
+                // STEP 5️⃣ Signal LoginForm using EventWaitHandle
                 using (EventWaitHandle launcherEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "POSPRA_LauncherDone"))
                 {
-                    launcherEvent.Set(); // Signal LoginForm that launcher is finished
+                    launcherEvent.Set();
                     Log("✅ Launcher signaled completion to LoginForm.");
                 }
 
@@ -157,7 +154,7 @@ namespace POSPRA.Launcher
                     return false;
                 }
 
-                var xml = System.Xml.Linq.XDocument.Load(configPath);
+                var xml = XDocument.Load(configPath);
                 var serverPathElement = xml.Descendants("add")
                     .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
 
@@ -168,7 +165,7 @@ namespace POSPRA.Launcher
                 if (string.IsNullOrWhiteSpace(ServerRoot))
                     return false;
 
-                if (!ServerRoot.EndsWith("\\")) ServerRoot += "\\";
+                if (!ServerRoot.EndsWith("/")) ServerRoot += "/";
 
                 Log($"Loaded server path: {ServerRoot}");
                 return true;
@@ -192,38 +189,47 @@ namespace POSPRA.Launcher
             }
         }
 
-        private void CopyFilesRecursive(string src, string dst)
+        private async Task DownloadFilesRecursive(string baseUrl, string localDst)
         {
-            var files = Directory.GetFiles(src, "*", SearchOption.AllDirectories);
-            foreach (string file in files)
+            // Assume server has a filelist.txt describing files in the update folder
+            string fileListUrl = $"{baseUrl}filelist.txt";
+
+            string[] files;
+            try
             {
-                string relPath = file.Substring(src.Length).TrimStart('\\');
-                string destFile = Path.Combine(dst, relPath);
+                var content = await http.GetStringAsync(fileListUrl);
+                files = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            catch
+            {
+                Log($"❌ Cannot fetch filelist.txt at {fileListUrl}, skipping update.");
+                return;
+            }
+
+            foreach (var file in files)
+            {
+                string remoteUrl = $"{baseUrl}{file}";
+                string localFile = Path.Combine(localDst, file.Replace('/', Path.DirectorySeparatorChar));
+
                 string fileName = Path.GetFileName(file);
-
-                // Skip excluded files
-                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
+                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)) ||
+                    file.StartsWith($"{RuntimesFolder}/", StringComparison.OrdinalIgnoreCase))
                 {
-                    Log($"Skipped excluded file: {relPath}");
-                    continue;
-                }
-
-                // Skip runtimes folder
-                if (relPath.StartsWith(RuntimesFolder + "\\", StringComparison.OrdinalIgnoreCase))
-                {
-                    Log($"Skipped folder: {relPath}");
+                    Log($"Skipped: {file}");
                     continue;
                 }
 
                 try
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
-                    File.Copy(file, destFile, true);
-                    Log($"Copied: {relPath}");
+                    Directory.CreateDirectory(Path.GetDirectoryName(localFile)!);
+                    using var fs = new FileStream(localFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                    var stream = await http.GetStreamAsync(remoteUrl);
+                    await stream.CopyToAsync(fs);
+                    Log($"Downloaded: {file}");
                 }
                 catch (Exception ex)
                 {
-                    ShowErrorAndExit($"❌ Failed to copy file:\n{relPath}\n\n{ex.Message}");
+                    Log($"❌ Failed to download {file}: {ex.Message}");
                 }
             }
         }
@@ -233,15 +239,12 @@ namespace POSPRA.Launcher
             try
             {
                 Log(msg);
-
-                // Ensure message box is visible above all windows
                 this.Invoke((MethodInvoker)(() =>
                 {
                     this.TopMost = true;
                     this.BringToFront();
                     MessageBox.Show(this, msg, "Launcher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }));
-
                 Application.DoEvents();
                 System.Threading.Thread.Sleep(500);
                 Application.Exit();
@@ -258,10 +261,7 @@ namespace POSPRA.Launcher
             {
                 File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
             }
-            catch
-            {
-                // Ignore logging errors
-            }
+            catch { }
         }
     }
 }

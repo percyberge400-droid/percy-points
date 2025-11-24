@@ -7,7 +7,12 @@ namespace Pos.Domain.Entities
     {
         [Key]
         [Required]
-        [MaxLength(100)]
+        [MaxLength(8)]
+        [Column("ID")]
+        public long? ID { get; set; }
+
+        [Required]
+        [MaxLength(8)]
         [Column("ProductCode")]
         public long? ProductCode { get; set; }
 

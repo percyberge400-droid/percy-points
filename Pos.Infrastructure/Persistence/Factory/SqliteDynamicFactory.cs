@@ -18,9 +18,9 @@ namespace Pos.Infrastructure.Persistence.Factory
         public (IRepository<T> repo, IUnitOfWork uow) Create<T>(string dbPath, string password) where T : class
         {
             // Ensure the folder exists
-            var folder = System.IO.Path.GetDirectoryName(dbPath);
+            var folder = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrEmpty(folder))
-                System.IO.Directory.CreateDirectory(folder);
+                Directory.CreateDirectory(folder);
 
             // Build connection string with password for SQLCipher
             var connectionString = new SqliteConnectionStringBuilder
