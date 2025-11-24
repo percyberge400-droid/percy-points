@@ -1,4 +1,6 @@
-﻿using Pos.Domain.Entities;
+﻿using Microsoft.Extensions.Options;
+using Pos.Application.DTOs;
+using Pos.Domain.Entities;
 
 namespace POSPRA.Application.Services.FiscalService
 {
@@ -13,7 +15,13 @@ namespace POSPRA.Application.Services.FiscalService
         private const decimal MAX_QTY = 99_999.99m;                   // (5,2) for quantity - 8 digits before decimal
         private const decimal MAX_UNIT_PRICE = 9_999_999_999.99m;        // (10,2) for unit price
         private const int MAX_DECIMAL_PLACES = 2;
-        private const int MAX_POSID_DIGITS = 6;                         // POSID limited to 6 digits
+        private const int MAX_POSID_DIGITS = 6;
+        private readonly AppSettings _settings;
+
+        public InvoiceValidatorService(IOptions<AppSettings> options)
+        {
+            _settings = options.Value;
+        }
 
         /// <summary>
         /// Validates an entire invoice, including all items.
@@ -50,6 +58,10 @@ namespace POSPRA.Application.Services.FiscalService
                 else if (posIdStr.Length > MAX_POSID_DIGITS)
                 {
                     AddError($"POS ID cannot exceed {MAX_POSID_DIGITS} digits");
+                }
+                else if (invoice.POSID != _settings.POS)
+                {
+                    AddError($"POS ID does not match.");
                 }
             }
 
