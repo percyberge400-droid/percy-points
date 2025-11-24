@@ -10,6 +10,8 @@ namespace POSPRA.Worker
         private readonly ILogger<SqliteBackupService> _logger;
         private readonly AppSettings _settings;
         private readonly string _dbPath;
+        private readonly string _dbPassword;
+
         private readonly string _backupDirectory;
         private readonly TimeSpan _backupTime;
         private readonly int _maxBackupDays = 30;
@@ -21,6 +23,7 @@ namespace POSPRA.Worker
             _settings = options.Value;
 
             _dbPath = _settings.DefaultDBFilePath ?? Path.Combine(AppContext.BaseDirectory, "POSPRA.db");
+            _dbPassword = _settings.DefaultDBPassword;
             _backupDirectory = _settings.BackupDirectoryPath ?? Path.Combine(AppContext.BaseDirectory, "Backups");
             _backupTime = new TimeSpan(0, 0, 0); // midnight
 
@@ -56,20 +59,20 @@ namespace POSPRA.Worker
                     }
                     else
                     {
-                    var now = DateTime.Now;
-                    var nextRun = DateTime.Today.Add(_backupTime);
+                        var now = DateTime.Now;
+                        var nextRun = DateTime.Today.Add(_backupTime);
 
-                    if (now > nextRun)
+                        if (now > nextRun)
                             nextRun = nextRun.AddDays(1);
 
-                    var delay = nextRun - now;
+                        var delay = nextRun - now;
                         LogToFile($"Next backup scheduled at {nextRun}");
-                    await Task.Delay(delay, stoppingToken);
+                        await Task.Delay(delay, stoppingToken);
 
                         EnsureDirectoriesExist();
-                    await CreateBackupAsync(stoppingToken);
+                        await CreateBackupAsync(stoppingToken);
                         CleanupOldBackups();
-                }
+                    }
                 }
                 catch (TaskCanceledException)
                 {
@@ -124,9 +127,9 @@ namespace POSPRA.Worker
                     await RestoreLatestBackupAsync();
                     return;
                 }
-
+                var connectionstring = GetDbConnectionStringForConfig();
                 // 🔸 Force SQLite to flush all pending writes to disk before backup
-                await using (var conn = new SqliteConnection($"Data Source={_dbPath};Mode=ReadWrite;Cache=Shared"))
+                await using (var conn = new SqliteConnection($"Data Source={connectionstring}"))
                 {
                     await conn.OpenAsync();
                     var cmd = conn.CreateCommand();
@@ -177,7 +180,8 @@ namespace POSPRA.Worker
                 if (!File.Exists(_dbPath))
                     return false;
 
-                await using var conn = new SqliteConnection($"Data Source={_dbPath}");
+                var connectionstring = GetDbConnectionStringForConfig();
+                await using var conn = new SqliteConnection($"Data Source={connectionstring}");
                 await conn.OpenAsync();
 
                 var cmd = conn.CreateCommand();
@@ -279,10 +283,10 @@ namespace POSPRA.Worker
                 }
             }
             catch (Exception ex)
-                {
+            {
                 LogToFile($"❌ Cleanup failed: {ex}");
             }
-                }
+        }
 
         private void SimulateCorruption()
         {
@@ -309,7 +313,19 @@ namespace POSPRA.Worker
                 LogToFile($"❌ Failed to simulate corruption: {ex}");
             }
         }
+        private string GetDbConnectionStringForConfig()
+        {
+            if (string.IsNullOrWhiteSpace(_dbPath))
+                throw new ArgumentException("dbPath cannot be null or empty.", nameof(_dbPath));
 
+            // Replace single backslashes with double for storing in config
+            string escapedPath = _dbPath.Replace("\\", "\\\\");
+
+            // Return only path + mode + password, no "Data Source="
+            string connectionString = $"{escapedPath};Mode=ReadWriteCreate;Password={_dbPassword}";
+
+            return connectionString;
+        }
         private void LogToFile(string message)
         {
             try
