@@ -3,7 +3,7 @@
         "BaseUrl": "https://ims.fbr.gov.pk/POS2/",
         "POS": 128762,
         "WorkerDelayTime": 20000,
-        "IsBackupTestMode": true,
+        "IsBackupTestMode": false,
         "BackupDirectoryPath": "C:\\POS_Backups",
         "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db",
         "DefaultDBPassword": "Pral@123",
