@@ -1,12 +1,12 @@
-﻿using Microsoft.Reporting.WinForms;
+﻿using System.Configuration;
+using System.Data;
+using System.Drawing.Imaging;
+using System.Drawing.Printing;
+using Microsoft.Reporting.WinForms;
 using Pos.Application.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms.Logo;
 using QRCoder;
-using System.Configuration;
-using System.Data;
-using System.Drawing.Imaging;
-using System.Drawing.Printing;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -21,10 +21,10 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly bool _isFromDashboard;
         private readonly bool _printDirectly; // New flag for direct printing
         private ReportViewer _reportViewer;
-        private static readonly string businessname = ConfigurationManager.AppSettings["businessName"]; //
-        private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];     //
-        private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"]; //
-        private static readonly string PhoneNumber = ConfigurationManager.AppSettings["phoneNumber "]; //
+        private static readonly string businessname = ConfigurationManager.AppSettings["businessName"]!; //
+        private static readonly string branchName = ConfigurationManager.AppSettings["branchName"]!;     //
+        private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"]!; //
+        private static readonly string PhoneNumber = ConfigurationManager.AppSettings["phoneNumber"]!; //
         private static readonly Dictionary<string, byte[]> _qrCache = new();
         private static LocalReport _cachedReportTemplate;
         private int _itemCount; // To store the number of invoice items for dynamic height
@@ -175,7 +175,7 @@ namespace POSPRA_WinFormsUI.Forms
                 _ => "N/A"
             };
             headerRow["InvoiceType"] = invoiceType;
-            
+
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
