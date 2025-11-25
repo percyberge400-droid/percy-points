@@ -317,7 +317,6 @@
                         <VerticalAlign>Middle</VerticalAlign>
                       </Style>
                     </Textbox>
-                    <rd:Selected>true</rd:Selected>
                   </CellContents>
                 </TablixCell>
                 <TablixCell>
@@ -1216,7 +1215,7 @@
         <Top>1.76111in</Top>
         <Left>0.29024cm</Left>
         <Height>0.19167in</Height>
-        <Width>3.16356cm</Width>
+        <Width>3.52923cm</Width>
         <ZIndex>27</ZIndex>
         <Style>
           <Border>
@@ -1303,7 +1302,7 @@
         <Top>1.99444in</Top>
         <Left>2.04074cm</Left>
         <Height>0.2in</Height>
-        <Width>1.43925cm</Width>
+        <Width>1.77873cm</Width>
         <ZIndex>29</ZIndex>
         <Style>
           <Border>

@@ -25,6 +25,7 @@ namespace POSPRA_WinFormsUI.Forms
         private static readonly string branchName = ConfigurationManager.AppSettings["branchName"]!;     //
         private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"]!; //
         private static readonly string PhoneNumber = ConfigurationManager.AppSettings["phoneNumber"]!; //
+        private static readonly string NTN = ConfigurationManager.AppSettings["NTN"]!;
         private static readonly Dictionary<string, byte[]> _qrCache = new();
         private static LocalReport _cachedReportTemplate;
         private int _itemCount; // To store the number of invoice items for dynamic height
@@ -179,7 +180,7 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
-            headerRow["NTN"] = dto.BuyerPNTN ?? string.Empty;
+            headerRow["NTN"] = NTN ?? string.Empty;
             headerRow["Address"] = $"{branchName}, {branchAddress}";
             headerRow["STRN"] = dto.USIN ?? string.Empty;
             headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;

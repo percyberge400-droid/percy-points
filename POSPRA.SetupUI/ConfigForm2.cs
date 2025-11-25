@@ -1664,7 +1664,7 @@ namespace POSPRA.SetupUI
                         data["isActive"]?.ToString() ?? "N/A",
                         data["password"]?.ToString() ?? "N/A",
                         data["phoneNumber"]?.ToString() ?? "N/A",
-                        data["NTN"]?.ToString() ?? "N/A"
+                        data["ntn"]?.ToString() ?? "N/A"
                     );
                 }
             }

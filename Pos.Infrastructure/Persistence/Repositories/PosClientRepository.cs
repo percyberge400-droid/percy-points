@@ -37,7 +37,8 @@ namespace Pos.Infrastructure.Persistence.Repositories
                                 {
                                     Client = c,
                                     BrandName = m.BrandName,
-                                    PhoneNumber = pc.LandLine
+                                    PhoneNumber = pc.LandLine,
+                                    NTN = m.NTN
                                 }).FirstOrDefaultAsync();
 
             if (entity == null)
@@ -45,6 +46,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
 
             entity.Client.BusinessName = entity.BrandName;
             entity.Client.PhoneNumber = entity.PhoneNumber;
+            entity.Client.NTN = entity.NTN;
 
             return entity.Client;
         }

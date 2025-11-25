@@ -794,8 +794,11 @@ namespace POSPRA_WinFormsUI
                 }
 
                 var existingRow = dataGridView1.Rows
-                    .Cast<DataGridViewRow>()
-                    .FirstOrDefault(r => (r.Cells["colProductCode"].Value?.ToString() ?? "") == inputData.ItemCode);
+                .Cast<DataGridViewRow>()
+                .FirstOrDefault(r =>
+                    (r.Cells["colProductCode"].Value?.ToString() ?? "") == inputData.ItemCode &&
+                    (r.Cells["colProductDescription"].Value?.ToString() ?? "") == inputData.ItemName
+                );
 
                 if (existingRow != null)
                 {
