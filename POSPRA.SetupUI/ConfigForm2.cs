@@ -1,4 +1,12 @@
-﻿using System.Configuration;
+﻿using LiteDB;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Pos.Application.DTOs.FiscalDtos;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.ScriptService;
+using POSPRA.SecurityEncryption;
+using System.Configuration;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -7,14 +15,6 @@ using System.ServiceProcess;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using LiteDB;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Pos.Application.DTOs.FiscalDtos;
-using Pos.Application.DTOs.LogDTOs;
-using Pos.Application.Services.ScriptService;
-using POSPRA.SecurityEncryption;
 using WinFormsApp = System.Windows.Forms.Application;
 
 
@@ -127,10 +127,10 @@ namespace POSPRA.SetupUI
 
             toolTip1.SetToolTip(btnupdateLOGO,
                 "Logo Upload Guidelines:\n" +
-                "â€¢ Allowed formats: PNG, jpg\n" +
-                "â€¢ Size: 2448Ã—2448 pixels\n" +
-                "â€¢ File size < 2 MB\n" +
-                "â€¢ The logo will appear across all forms after upload.");
+                "• Allowed formats: PNG, jpg\n" +
+                "• Size: 2448×2448 pixels\n" +
+                "• File size < 2 MB\n" +
+                "• The logo will appear across all forms after upload.");
 
         }
 
@@ -310,7 +310,7 @@ namespace POSPRA.SetupUI
 
                 ShowMessage("Service uninstalled successfully.", true, true);
 
-                // âœ… Delete EXE file after uninstall
+                // ✅ Delete EXE file after uninstall
                 if (File.Exists(serviceExePath))
                 {
                     try
@@ -466,7 +466,7 @@ namespace POSPRA.SetupUI
                 btnOk.Enabled = false;
                 btnOk.Text = "Processing...";
 
-                // ðŸŸ¢ Get the selected environment value from radio buttons
+                // 🟢 Get the selected environment value from radio buttons
                 string selectedEnvironment = null;
 
                 if (rdoSandbox.Checked)
@@ -573,7 +573,7 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                // Convert image â†’ Base64
+                // Convert image → Base64
                 string base64;
                 using (var img = Image.FromFile(ofd.FileName))
                 using (var ms = new MemoryStream())
@@ -658,7 +658,7 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                var (branchName, branchAddress, businessName, IsActive, AccessCode) = ExtractBranchDetails(json);
+                var (branchName, branchAddress, businessName, IsActive, AccessCode, PhoneNO, NTN) = ExtractBranchDetails(json);
 
                 if (!VerifyAuthentication(json))
                 {
@@ -667,7 +667,7 @@ namespace POSPRA.SetupUI
                 }
 
                 ShowMessage("Saving configurations...", true, false);
-                SaveAllConfigs(username, password, mac, txtPassword.Text, dbPath, branchName, branchAddress, businessName, AccessCode, selectedEnvironment);
+                SaveAllConfigs(username, password, mac, txtPassword.Text, dbPath, branchName, branchAddress, businessName, AccessCode, selectedEnvironment, PhoneNO, NTN);
                 UpdateSetupConfig(dbPath);
 
                 string DBconnection = GetDbConnectionStringForConfig(dbPath, dbPassword);
@@ -1358,7 +1358,7 @@ namespace POSPRA.SetupUI
                     $"{Path.GetFileNameWithoutExtension(dbPath)}_backup_{DateTime.Now:yyyyMMdd_HHmmss}.ims"
                 );
 
-                // Create backup safely â€” read-while-in-use supported
+                // Create backup safely — read-while-in-use supported
                 using (var source = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var destination = new FileStream(backupFile, FileMode.Create, FileAccess.Write))
                 {
@@ -1535,7 +1535,7 @@ namespace POSPRA.SetupUI
                     Environment = selectedEnvironment
                 };
 
-                string apiUrl = ConfigurationManager.AppSettings["EnvironmentApiUrl"]!;
+                string apiUrl = ConfigurationManager.AppSettings["EnvironmentApiUrl"];
                 if (string.IsNullOrWhiteSpace(apiUrl))
                 {
                     ShowMessage("API URL is missing in configuration.", false, false);
@@ -1650,7 +1650,7 @@ namespace POSPRA.SetupUI
 
         #region Configuration Save Methods
 
-        private (string branchName, string branchAddress, string businessName, string IsActive, string AccessCode) ExtractBranchDetails(JObject json)
+        private (string branchName, string branchAddress, string businessName, string IsActive, string AccessCode, string PhoneNumber, string NTN) ExtractBranchDetails(JObject json)
         {
             try
             {
@@ -1662,7 +1662,9 @@ namespace POSPRA.SetupUI
                         data["branchAddress"]?.ToString() ?? "N/A",
                         data["businessName"]?.ToString() ?? "N/A",
                         data["isActive"]?.ToString() ?? "N/A",
-                        data["password"].ToString() ?? "N/A"
+                        data["password"]?.ToString() ?? "N/A",
+                        data["phoneNumber"]?.ToString() ?? "N/A",
+                        data["NTN"]?.ToString() ?? "N/A"
                     );
                 }
             }
@@ -1670,14 +1672,14 @@ namespace POSPRA.SetupUI
             {
                 ShowMessage($"Error extracting branch details: {ex.Message}", false, true);
             }
-            return ("N/A", "N/A", "N/A", "N/A", "N/A");
+            return ("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A");
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string Token, string dbPath,
-            string branchName, string branchAddress, string businessName, string AccessCode, string selectedEnvironment)
+            string branchName, string branchAddress, string businessName, string AccessCode, string selectedEnvironment, string PhoneNO, string NTN)
         {
             SaveJsonConfigs(dbPath, username, selectedEnvironment, Token);
-            SaveWinFormsConfigComplete(username, AccessCode, mac, Token, dbPath, branchName, branchAddress, businessName, selectedEnvironment);
+            SaveWinFormsConfigComplete(username, AccessCode, mac, Token, dbPath, branchName, branchAddress, businessName, selectedEnvironment, PhoneNO, NTN);
         }
 
         private void SaveJsonConfigs(string dbPath, string username, string selectedEnvironment, string Token)
@@ -1695,7 +1697,7 @@ namespace POSPRA.SetupUI
 
         private void SaveWinFormsConfigComplete(
             string username, string AccessCode, string mac, string Token, string dbPath,
-            string branchName, string branchAddress, string businessName, string selectedEnvironment)
+            string branchName, string branchAddress, string businessName, string selectedEnvironment, string PhoneNO, string NTN)
         {
             try
             {
@@ -1753,7 +1755,9 @@ namespace POSPRA.SetupUI
                 settings["branchAddress"] = branchAddress;
                 settings["businessName"] = businessName;
                 settings["Environment"] = selectedEnvironment;
+                settings["phoneNumber"] = PhoneNO;
                 settings["Token"] = Token;
+                settings["NTN"] = NTN;
 
                 // Encrypt the updated blob
                 string updatedJson = settings.ToString(Newtonsoft.Json.Formatting.None);
@@ -1888,7 +1892,7 @@ namespace POSPRA.SetupUI
             {
                 root = new JObject();
             }
-            // âš¡ Correct WorkerConfigPath formatting
+            // ⚡ Correct WorkerConfigPath formatting
             if (installPath != null)
             {
                 string workerPath = Path.Combine(
@@ -2245,7 +2249,7 @@ namespace POSPRA.SetupUI
 
         private void txtUsername_KeyDown(object sender, KeyEventArgs e)
         {
-            // Allow paste â€” will be sanitized in TextChanged
+            // Allow paste — will be sanitized in TextChanged
         }
 
         private void txtUsername_TextChanged(object sender, EventArgs e)
@@ -2300,7 +2304,7 @@ namespace POSPRA.SetupUI
         public bool IsValid { get; set; }
         public bool IsCorrupted { get; set; }
         public bool IsEmpty { get; set; }
-        public string? ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; }
         public List<string> CollectionNames { get; set; } = new List<string>();
         public Dictionary<string, int> CollectionCounts { get; set; } = new Dictionary<string, int>();
     }
