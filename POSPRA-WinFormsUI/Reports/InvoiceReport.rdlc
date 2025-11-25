@@ -1322,7 +1322,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>+923172300912</Value>
+                <Value>=First(Fields!BuyerPhoneNumber.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>7pt</FontSize>
                   <FontWeight>Normal</FontWeight>
