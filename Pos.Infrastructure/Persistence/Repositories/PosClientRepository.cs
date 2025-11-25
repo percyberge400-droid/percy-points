@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Domain.Entities;
@@ -66,6 +65,8 @@ namespace Pos.Infrastructure.Persistence.Repositories
             {
                 // Activate the POS Client
                 entity.IsConnected = true;
+                entity.IsLogSynced = true;
+                entity.IsServiceEnabled = true;
 
                 var exists = await context.POSConfigurations.FirstOrDefaultAsync(x => x.IsActive == true && x.POSID == dto.PosId);
                 // Added default POS configuration 

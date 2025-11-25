@@ -1,12 +1,4 @@
-﻿using LiteDB;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Pos.Application.DTOs.FiscalDtos;
-using Pos.Application.DTOs.LogDTOs;
-using Pos.Application.Services.ScriptService;
-using POSPRA.SecurityEncryption;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -15,6 +7,14 @@ using System.ServiceProcess;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using LiteDB;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Pos.Application.DTOs.FiscalDtos;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.ScriptService;
+using POSPRA.SecurityEncryption;
 using WinFormsApp = System.Windows.Forms.Application;
 
 
@@ -127,10 +127,10 @@ namespace POSPRA.SetupUI
 
             toolTip1.SetToolTip(btnupdateLOGO,
                 "Logo Upload Guidelines:\n" +
-                "• Allowed formats: PNG, jpg\n" +
-                "• Size: 2448×2448 pixels\n" +
-                "• File size < 2 MB\n" +
-                "• The logo will appear across all forms after upload.");
+                "â€¢ Allowed formats: PNG, jpg\n" +
+                "â€¢ Size: 2448Ã—2448 pixels\n" +
+                "â€¢ File size < 2 MB\n" +
+                "â€¢ The logo will appear across all forms after upload.");
 
         }
 
@@ -310,7 +310,7 @@ namespace POSPRA.SetupUI
 
                 ShowMessage("Service uninstalled successfully.", true, true);
 
-                // ✅ Delete EXE file after uninstall
+                // âœ… Delete EXE file after uninstall
                 if (File.Exists(serviceExePath))
                 {
                     try
@@ -466,7 +466,7 @@ namespace POSPRA.SetupUI
                 btnOk.Enabled = false;
                 btnOk.Text = "Processing...";
 
-                // 🟢 Get the selected environment value from radio buttons
+                // ðŸŸ¢ Get the selected environment value from radio buttons
                 string selectedEnvironment = null;
 
                 if (rdoSandbox.Checked)
@@ -573,7 +573,7 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                // Convert image → Base64
+                // Convert image â†’ Base64
                 string base64;
                 using (var img = Image.FromFile(ofd.FileName))
                 using (var ms = new MemoryStream())
@@ -1358,7 +1358,7 @@ namespace POSPRA.SetupUI
                     $"{Path.GetFileNameWithoutExtension(dbPath)}_backup_{DateTime.Now:yyyyMMdd_HHmmss}.ims"
                 );
 
-                // Create backup safely — read-while-in-use supported
+                // Create backup safely â€” read-while-in-use supported
                 using (var source = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var destination = new FileStream(backupFile, FileMode.Create, FileAccess.Write))
                 {
@@ -1535,7 +1535,7 @@ namespace POSPRA.SetupUI
                     Environment = selectedEnvironment
                 };
 
-                string apiUrl = ConfigurationManager.AppSettings["EnvironmentApiUrl"];
+                string apiUrl = ConfigurationManager.AppSettings["EnvironmentApiUrl"]!;
                 if (string.IsNullOrWhiteSpace(apiUrl))
                 {
                     ShowMessage("API URL is missing in configuration.", false, false);
@@ -1888,7 +1888,7 @@ namespace POSPRA.SetupUI
             {
                 root = new JObject();
             }
-            // ⚡ Correct WorkerConfigPath formatting
+            // âš¡ Correct WorkerConfigPath formatting
             if (installPath != null)
             {
                 string workerPath = Path.Combine(
@@ -2245,7 +2245,7 @@ namespace POSPRA.SetupUI
 
         private void txtUsername_KeyDown(object sender, KeyEventArgs e)
         {
-            // Allow paste — will be sanitized in TextChanged
+            // Allow paste â€” will be sanitized in TextChanged
         }
 
         private void txtUsername_TextChanged(object sender, EventArgs e)
@@ -2300,7 +2300,7 @@ namespace POSPRA.SetupUI
         public bool IsValid { get; set; }
         public bool IsCorrupted { get; set; }
         public bool IsEmpty { get; set; }
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
         public List<string> CollectionNames { get; set; } = new List<string>();
         public Dictionary<string, int> CollectionCounts { get; set; } = new Dictionary<string, int>();
     }

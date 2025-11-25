@@ -1,12 +1,12 @@
-﻿using Microsoft.Reporting.WinForms;
+﻿using System.Configuration;
+using System.Data;
+using System.Drawing.Imaging;
+using System.Drawing.Printing;
+using Microsoft.Reporting.WinForms;
 using Pos.Application.DTOs.InvoiceDtos;
 using POSPRA_WinFormsUI.AlertClasses;
 using POSPRA_WinFormsUI.Forms.Logo;
 using QRCoder;
-using System.Configuration;
-using System.Data;
-using System.Drawing.Imaging;
-using System.Drawing.Printing;
 
 namespace POSPRA_WinFormsUI.Forms
 {
@@ -21,9 +21,10 @@ namespace POSPRA_WinFormsUI.Forms
         private readonly bool _isFromDashboard;
         private readonly bool _printDirectly; // New flag for direct printing
         private ReportViewer _reportViewer;
-        private static readonly string businessname = ConfigurationManager.AppSettings["businessName"]; //
-        private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];     //
-        private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"]; //
+        private static readonly string businessname = ConfigurationManager.AppSettings["businessName"]!; //
+        private static readonly string branchName = ConfigurationManager.AppSettings["branchName"]!;     //
+        private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"]!; //
+        private static readonly string PhoneNumber = ConfigurationManager.AppSettings["phoneNumber"]!; //
         private static readonly Dictionary<string, byte[]> _qrCache = new();
         private static LocalReport _cachedReportTemplate;
         private int _itemCount; // To store the number of invoice items for dynamic height
@@ -153,6 +154,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             var headerRow = headerTable.NewRow();
             headerRow["BusinessName"] = businessname;
+            headerRow["PhoneNumber"] = PhoneNumber;
             headerRow["DateCreated"] = dto.DateTime;
 
             string paymentModeText = dto.PaymentMode switch
@@ -182,11 +184,11 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["STRN"] = dto.USIN ?? string.Empty;
             headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;
             headerRow["POSID"] = dto.POSID.ToString();
-            headerRow["PhoneNumber"] = dto.BuyerPhoneNumber ?? string.Empty;
+            //headerRow["PhoneNumber"] = dto.BuyerPhoneNumber ?? string.Empty;
             headerRow["Discount"] = dto.Discount;//Math.Round(dto.Discount, 2, MidpointRounding.AwayFromZero);
             headerRow["TotalTax"] = dto.TotalTaxCharged;//Math.Round(dto.TotalTaxCharged, 2, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
-            headerRow["Total"] = Math.Round(dto.TotalBillAmount, 2, MidpointRounding.AwayFromZero);
+            headerRow["Total"] = dto.TotalBillAmount;// Math.Round(, 2, MidpointRounding.AwayFromZero);
 
             headerTable.Rows.Add(headerRow);
 
