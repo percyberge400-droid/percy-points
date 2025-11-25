@@ -21,7 +21,7 @@ namespace POSPRA_WinFormsUI.AlertClasses
         /// <summary>
         /// Show a notification using system tray balloon tip.
         /// </summary>
-        public static void Show(string title, string message, int duration = 5000)
+        public static void Show(string title, string message, int duration = 30000)
         {
             ShowNotification(title, message, ToolTipIcon.Info, duration);
         }
