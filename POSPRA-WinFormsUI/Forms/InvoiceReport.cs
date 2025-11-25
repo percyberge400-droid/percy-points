@@ -24,6 +24,7 @@ namespace POSPRA_WinFormsUI.Forms
         private static readonly string businessname = ConfigurationManager.AppSettings["businessName"]; //
         private static readonly string branchName = ConfigurationManager.AppSettings["branchName"];     //
         private static readonly string branchAddress = ConfigurationManager.AppSettings["branchAddress"]; //
+        private static readonly string PhoneNumber = ConfigurationManager.AppSettings["phoneNumber "]; //
         private static readonly Dictionary<string, byte[]> _qrCache = new();
         private static LocalReport _cachedReportTemplate;
         private int _itemCount; // To store the number of invoice items for dynamic height
@@ -153,6 +154,7 @@ namespace POSPRA_WinFormsUI.Forms
 
             var headerRow = headerTable.NewRow();
             headerRow["BusinessName"] = businessname;
+            headerRow["PhoneNumber"] = PhoneNumber;
             headerRow["DateCreated"] = dto.DateTime;
 
             string paymentModeText = dto.PaymentMode switch
@@ -173,7 +175,7 @@ namespace POSPRA_WinFormsUI.Forms
                 _ => "N/A"
             };
             headerRow["InvoiceType"] = invoiceType;
-
+            
             headerRow["LogoImage"] = logo;
             headerRow["QRCodeImage"] = qr;
             headerRow["PRALogo"] = praLogo;
@@ -182,7 +184,7 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["STRN"] = dto.USIN ?? string.Empty;
             headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;
             headerRow["POSID"] = dto.POSID.ToString();
-            headerRow["PhoneNumber"] = dto.BuyerPhoneNumber ?? string.Empty;
+            //headerRow["PhoneNumber"] = dto.BuyerPhoneNumber ?? string.Empty;
             headerRow["Discount"] = Math.Round(dto.Discount, 0, MidpointRounding.AwayFromZero);
             headerRow["TotalTax"] = Math.Round(dto.TotalTaxCharged, 0, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
