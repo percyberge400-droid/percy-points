@@ -21,6 +21,7 @@ namespace Pos.Application.Services.LiveService
     {
         private readonly string _ec;
         private readonly IInvoiceRepository _invoiceRepository;
+        private readonly IPosClientRepository _posClientRepository;
         private readonly IMapper _mapper;
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         private readonly AppSettings _appSettings;
@@ -30,7 +31,9 @@ namespace Pos.Application.Services.LiveService
             IMapper mapper,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
             IOptions<AppSettings> options
+            ,
 
+            IPosClientRepository posClientRepository
             )
         {
             // Read EC key from multiple sources
@@ -48,6 +51,7 @@ namespace Pos.Application.Services.LiveService
             _invoiceRepository = invoiceRepository ?? throw new ArgumentNullException(nameof(invoiceRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _sqlServerUnitOfWork = sqlServerUnitOfWork ?? throw new ArgumentNullException(nameof(sqlServerUnitOfWork));
+            _posClientRepository = posClientRepository;
         }
 
         public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment)
@@ -71,12 +75,18 @@ namespace Pos.Application.Services.LiveService
                 var anySaved = false;
                 var syncedRecords = new List<FileRecordDto>();
 
+                var posClient = await _posClientRepository.GetByPosId(dtos[0].POSID, environment);
+
                 foreach (var item in dtos)
                 {
                     if (string.IsNullOrEmpty(item.InvoiceNumber)) continue;
 
-                    var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
-                    if (string.IsNullOrWhiteSpace(decrypted)) continue;
+                    var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key);
+                    if (string.IsNullOrWhiteSpace(decrypted)) {
+                        decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                        if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                    }
+                    ;
 
                     var jsonPart = decrypted.Split('|')[0];
                     if (string.IsNullOrWhiteSpace(jsonPart)) continue;
