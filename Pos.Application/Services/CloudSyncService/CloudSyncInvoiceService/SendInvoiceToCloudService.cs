@@ -21,6 +21,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
 
         private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
+
         public SendInvoiceToCloudService(
             IServiceProvider services,
             HttpService http,
@@ -46,13 +47,18 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
             {
                 var response = await _fileRecordService.GetAllUnsyncedAsync();
                 if (response.StatusCode != ApiStatusCode.Success)
+                {
+                    await _workerLogService.LogAsync(AlertType.Info, response.StatusCode + ":" + response.Message, "", "", env);
                     return;
+                }
 
                 // ✅ Send to cloud (now passing List<FileRecordDto>)
                 var resp = await PostEncryptedDataAsync(id, response.Data, token, env);
                 if (resp is null || !resp.IsSuccessStatusCode)
+                {
+                    await _workerLogService.LogAsync(AlertType.Info, resp?.StatusCode + ":" + resp?.Content.ReadAsStringAsync(token), "", "", env);
                     return;
-
+                }
                 var postJson = await resp.Content.ReadAsStringAsync(token);
                 var apiResp = JsonSerializer.Deserialize<ApiResponse<List<FileRecordDto>>>(postJson, JsonOpts);
                 var syncedFiles = apiResp?.Data ?? new();

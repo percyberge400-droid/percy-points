@@ -87,7 +87,8 @@ namespace Pos.Worker
 
                     if (!enabledWorker)
                     {
-                        FileLogger.Log("Worker disabled via API.");
+                        FileLogger.Log("Worker disabled via API.Worker Not Enabled");
+                        await LogErrorAsync($"Error calling API: Worker Not Enabled", workerName, workerInstanceId);
                         await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                         continue;
                     }
@@ -119,12 +120,12 @@ namespace Pos.Worker
                     catch (HttpRequestException ex)
                     {
                         FileLogger.LogException(ex, "Cloud Sync Network Issue");
-                        await LogWarningAsync($"Network issue while calling cloud sync API: {ex.Message}", workerName, workerInstanceId);
+                        await LogWarningAsync($"Network issue while calling cloud sync API:", workerName, workerInstanceId);
                     }
                     catch (Exception ex)
                     {
                         FileLogger.LogException(ex, "Cloud Sync Unexpected Error");
-                        await LogErrorAsync($"Unexpected error calling cloud sync API: {ex}", workerName, workerInstanceId);
+                        await LogErrorAsync($"Unexpected error calling cloud sync API:", workerName, workerInstanceId);
                     }
 
                     if (isCloudSyncEnabled)
@@ -137,17 +138,24 @@ namespace Pos.Worker
                         }
                         catch (Exception ex)
                         {
-                            FileLogger.LogException(ex, "Invoice Sync");
-                            await LogErrorAsync($"Error during invoice sync: {ex}", workerName, workerInstanceId);
+                            FileLogger.LogException(ex, "Invoice Sync Error:");
+                            await LogErrorAsync($"Error during invoice sync:", workerName, workerInstanceId);
                         }
                     }
+                    else
+                    {
+                        FileLogger.Log("Is Cloud Sync Disabled");
+                        await LogErrorAsync($"Is Cloud Sync Disabled", workerName, workerInstanceId);
+                    }
 
-                    await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
+                        await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                 }
             }
             catch (Exception ex)
             {
-                FileLogger.LogException(ex, "ExecuteAsync Crash");
+                FileLogger.LogException(ex, "POS Windows Service Crashed");
+                await LogErrorAsync("POS Windows Service Crashed", workerName, workerInstanceId);
+
             }
             finally
             {

@@ -8,6 +8,7 @@ using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
+using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
 
 namespace Pos.Application.Services.LiveService
@@ -81,12 +82,25 @@ namespace Pos.Application.Services.LiveService
                 {
                     if (string.IsNullOrEmpty(item.InvoiceNumber)) continue;
 
-                    var decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key);
-                    if (string.IsNullOrWhiteSpace(decrypted)) {
+                    string decrypted = "";
+                    try
+                    {
                         decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
-                        if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                        if (string.IsNullOrWhiteSpace(decrypted))
+                        {
+                            decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key);
+                            if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                        }
                     }
-                    ;
+                    catch
+                    {
+                        decrypted = AESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key);
+                        if (string.IsNullOrWhiteSpace(decrypted))
+                        {
+                            decrypted = AESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                            if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                        }
+                    }
 
                     var jsonPart = decrypted.Split('|')[0];
                     if (string.IsNullOrWhiteSpace(jsonPart)) continue;
