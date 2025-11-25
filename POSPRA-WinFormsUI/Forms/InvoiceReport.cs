@@ -183,17 +183,17 @@ namespace POSPRA_WinFormsUI.Forms
             headerRow["InvoiceNo"] = dto.InvoiceNumber ?? string.Empty;
             headerRow["POSID"] = dto.POSID.ToString();
             headerRow["PhoneNumber"] = dto.BuyerPhoneNumber ?? string.Empty;
-            headerRow["Discount"] = Math.Round(dto.Discount, 0, MidpointRounding.AwayFromZero);
-            headerRow["TotalTax"] = Math.Round(dto.TotalTaxCharged, 0, MidpointRounding.AwayFromZero);
+            headerRow["Discount"] = dto.Discount;//Math.Round(dto.Discount, 2, MidpointRounding.AwayFromZero);
+            headerRow["TotalTax"] = dto.TotalTaxCharged;//Math.Round(dto.TotalTaxCharged, 2, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
-            headerRow["Total"] = Math.Round(dto.TotalBillAmount, 0, MidpointRounding.AwayFromZero);
+            headerRow["Total"] = Math.Round(dto.TotalBillAmount, 2, MidpointRounding.AwayFromZero);
 
             headerTable.Rows.Add(headerRow);
 
             foreach (var item in dto.Items ?? Enumerable.Empty<dynamic>())
             {
                 var row = bodyTable.NewRow();
-                row["Amount"] = Math.Round(item.TotalAmount + item.Discount, 0, MidpointRounding.AwayFromZero);
+                row["Amount"] = item.TotalAmount; //Math.Round(item.TotalAmount + item.Discount, 0, MidpointRounding.AwayFromZero);
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 row["TaxRate"] = item.TaxRate;
                 row["Qty"] = item.Quantity;
