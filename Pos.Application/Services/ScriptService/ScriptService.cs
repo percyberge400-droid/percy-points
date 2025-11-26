@@ -81,8 +81,8 @@ namespace Pos.Application.Services.ScriptService
                 InvoiceData = dto.InvoiceData,
                 DateCreated = dto.DateCreated,
                 DateModified = dto.DateModified,
-                IsSynced = (int)InvoiceStatus.Synced,
-                AttemptCount = 0
+                IsSynced = dto.IsSynced,
+                AttemptCount = dto.AttemptCount
             }).ToList();
 
             await repo.AddRangeAsync(records);
