@@ -58,8 +58,8 @@ namespace Pos.Application.Utility
 
                 return decryptedText; // "{invoiceJson}|false|Latest|{signatureBase64}"
             }
-            catch(Exception ex){
-                throw ex;
+            catch(Exception){
+                return string.Empty;
             }
         }
 
