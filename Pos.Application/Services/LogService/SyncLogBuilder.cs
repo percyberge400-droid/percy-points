@@ -95,10 +95,10 @@ namespace Pos.Application.Services.LogService
             if (ex == null)
                 return log;
 
-            log.ExceptionType = ex.GetType().FullName;
-            log.ExceptionMessage = ex.Message;
-            log.StackTrace = ex.StackTrace;
-            log.InnerException = ex.InnerException?.ToString();
+            log.ExceptionType = ex.GetType()?.FullName?.Length>50 ? ex?.GetType()?.FullName?.Substring(0,50) : ex.GetType().FullName;
+            log.ExceptionMessage = ex?.Message;
+            log.StackTrace = ex?.StackTrace;
+            log.InnerException = ex?.InnerException?.ToString();
 
             return log;
         }

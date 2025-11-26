@@ -85,10 +85,10 @@ namespace Pos.Application.Services.LiveService
                         string decrypted = "";
                         try
                         {
-                            decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, _appSettings.EC);
+                            decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
                             if (string.IsNullOrWhiteSpace(decrypted))
                             {
-                                decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
+                                decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, _appSettings.EC!);
                                 if (string.IsNullOrEmpty(decrypted))
                                 {
                                     decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);

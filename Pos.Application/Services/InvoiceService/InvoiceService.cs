@@ -1,6 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Pos.Application.AutoMapperProfile;
@@ -15,9 +13,12 @@ using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
+using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
 using POSPRA.Application.Services.FiscalService;
+using System.Text;
+using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Pos.Application.Services.InvoiceService
@@ -96,7 +97,7 @@ namespace Pos.Application.Services.InvoiceService
                     }
                     catch
                     {
-                        var decrypted = await _aESEncryption.DecryptAsync(output.InvoiceData!, _settings.EC);
+                        var decrypted = OldAESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
                         var jsonPart = decrypted.Split('|')[0];
 
                         if (string.IsNullOrWhiteSpace(jsonPart))
