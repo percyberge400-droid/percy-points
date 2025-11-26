@@ -60,7 +60,7 @@ namespace POSPRA_WinFormsUI
             // 8️⃣ Ensure DB directory exists
             var dbDirectory = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrWhiteSpace(dbDirectory) && !Directory.Exists(dbDirectory))
-                Directory.CreateDirectory(dbDirectory);
+               // Directory.CreateDirectory(dbDirectory);
 
             // 9️⃣ Check DB file validity
             if (File.Exists(dbPath))
@@ -139,7 +139,7 @@ namespace POSPRA_WinFormsUI
             using (var scope = provider.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<SqliteDbContext>();
-                dbContext.Database.EnsureCreated();
+              //  dbContext.Database.EnsureCreated();
             }
 
             // 1️⃣3️⃣ Start WinForms App
