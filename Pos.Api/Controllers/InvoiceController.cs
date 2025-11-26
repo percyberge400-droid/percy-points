@@ -18,7 +18,8 @@ namespace Pos.API.Controllers
 
         [HttpPost("GetInvoiceNumberByModel")]
         public async Task<IActionResult> Create([FromBody] InvoiceDto dto) =>
-            Ok(await _invoiceService.CreateAsync(dto, null));
+            Ok(await _invoiceService.OldCreateAsync(dto, null));
+
 
         //[HttpPost("create")]
         //public async Task<IActionResult> Create([FromBody] CreateLogDto dto) =>

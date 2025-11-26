@@ -658,7 +658,7 @@ namespace POSPRA.SetupUI
                     return;
                 }
 
-                var (branchName, branchAddress, businessName, IsActive, AccessCode, PhoneNO, NTN) = ExtractBranchDetails(json);
+                var (branchName, branchAddress, businessName, IsActive, AccessCode, PhoneNO, NTN, e_Key) = ExtractBranchDetails(json);
 
                 if (!VerifyAuthentication(json))
                 {
@@ -667,7 +667,7 @@ namespace POSPRA.SetupUI
                 }
 
                 ShowMessage("Saving configurations...", true, false);
-                SaveAllConfigs(username, password, mac, txtPassword.Text, dbPath, branchName, branchAddress, businessName, AccessCode, selectedEnvironment, PhoneNO, NTN);
+                SaveAllConfigs(username, password, mac, txtPassword.Text, dbPath, branchName, branchAddress, businessName, AccessCode, selectedEnvironment, PhoneNO, NTN, e_Key);
                 UpdateSetupConfig(dbPath);
 
                 string DBconnection = GetDbConnectionStringForConfig(dbPath, dbPassword);
@@ -1650,7 +1650,7 @@ namespace POSPRA.SetupUI
 
         #region Configuration Save Methods
 
-        private (string branchName, string branchAddress, string businessName, string IsActive, string AccessCode, string PhoneNumber, string NTN) ExtractBranchDetails(JObject json)
+        private (string branchName, string branchAddress, string businessName, string IsActive, string AccessCode, string PhoneNumber, string NTN, string EC) ExtractBranchDetails(JObject json)
         {
             try
             {
@@ -1664,7 +1664,8 @@ namespace POSPRA.SetupUI
                         data["isActive"]?.ToString() ?? "N/A",
                         data["password"]?.ToString() ?? "N/A",
                         data["phoneNumber"]?.ToString() ?? "N/A",
-                        data["ntn"]?.ToString() ?? "N/A"
+                        data["ntn"]?.ToString() ?? "N/A",
+                        data["e_Key"]?.ToString() ?? "N/A"
                     );
                 }
             }
@@ -1672,22 +1673,22 @@ namespace POSPRA.SetupUI
             {
                 ShowMessage($"Error extracting branch details: {ex.Message}", false, true);
             }
-            return ("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A");
+            return ("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A");
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string Token, string dbPath,
-            string branchName, string branchAddress, string businessName, string AccessCode, string selectedEnvironment, string PhoneNO, string NTN)
+            string branchName, string branchAddress, string businessName, string AccessCode, string selectedEnvironment, string PhoneNO, string NTN, string e_Key)
         {
-            SaveJsonConfigs(dbPath, username, selectedEnvironment, Token);
-            SaveWinFormsConfigComplete(username, AccessCode, mac, Token, dbPath, branchName, branchAddress, businessName, selectedEnvironment, PhoneNO, NTN);
+            SaveJsonConfigs(dbPath, username, selectedEnvironment, Token, e_Key);
+            SaveWinFormsConfigComplete(username, AccessCode, mac, Token, dbPath, branchName, branchAddress, businessName, selectedEnvironment, PhoneNO, NTN, e_Key);
         }
 
-        private void SaveJsonConfigs(string dbPath, string username, string selectedEnvironment, string Token)
+        private void SaveJsonConfigs(string dbPath, string username, string selectedEnvironment, string Token, string e_Key)
         {
             try
             {
                 SaveDbPathToJson(_jsonWorkerPath, dbPath, username, Token, selectedEnvironment);
-                SaveDbPathToJson(_jsonMainPath, dbPath, username, Token, selectedEnvironment);
+                SaveDbPathToJson(_jsonMainPath, dbPath, username, Token, selectedEnvironment, e_Key);
             }
             catch (Exception ex)
             {
@@ -1697,7 +1698,7 @@ namespace POSPRA.SetupUI
 
         private void SaveWinFormsConfigComplete(
             string username, string AccessCode, string mac, string Token, string dbPath,
-            string branchName, string branchAddress, string businessName, string selectedEnvironment, string PhoneNO, string NTN)
+            string branchName, string branchAddress, string businessName, string selectedEnvironment, string PhoneNO, string NTN, string e_Key)
         {
             try
             {
@@ -1758,6 +1759,7 @@ namespace POSPRA.SetupUI
                 settings["phoneNumber"] = PhoneNO;
                 settings["Token"] = Token;
                 settings["NTN"] = NTN;
+                settings["EC"] = e_Key;
 
                 // Encrypt the updated blob
                 string updatedJson = settings.ToString(Newtonsoft.Json.Formatting.None);
@@ -1941,7 +1943,7 @@ namespace POSPRA.SetupUI
         }
 
 
-        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId, string Token, string selectedEnvironment)
+        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId, string Token, string selectedEnvironment, string e_Key = null)
         {
             try
             {
@@ -1952,6 +1954,8 @@ namespace POSPRA.SetupUI
                 appSettingsToEncrypt["POS"] = posId;
                 appSettingsToEncrypt["Environment"] = selectedEnvironment;
                 appSettingsToEncrypt["Token"] = Token;
+                if (e_Key != null)
+                    appSettingsToEncrypt["EC"] = e_Key;
 
                 // If file exists and has encrypted settings, decrypt and merge
                 if (File.Exists(jsonFilePath))
