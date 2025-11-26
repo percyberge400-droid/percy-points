@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Pos.Application.Utility.OldDecryption
 {
-    public static class AESEncryption
+    public static class OldAESEncryption
     {
         private static byte[] DKey
         {

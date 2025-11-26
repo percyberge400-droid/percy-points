@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Pos.Application.AutoMapperProfile;
@@ -13,13 +15,9 @@ using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
-using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
 using POSPRA.Application.Services.FiscalService;
-using System.Configuration;
-using System.Text;
-using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Pos.Application.Services.InvoiceService
@@ -37,7 +35,7 @@ namespace Pos.Application.Services.InvoiceService
         private readonly ILiveService _liveService;
         private readonly IFileRecordService _fileRecordService;
         private readonly ILogService _logService;
-
+        private readonly AESEncryption _aESEncryption;
         public InvoiceService(IMapper mapper,
             ISqliteRepositoryFactory sqliteRepositoryFactory,
             ISqlServerRepositoryFactory sqlServerRepositoryFactory,
@@ -46,7 +44,8 @@ namespace Pos.Application.Services.InvoiceService
             INetworkService networkService,
             ILiveService liveService,
             IFileRecordService fileRecordService,
-            ILogService logService)
+            ILogService logService,
+            AESEncryption aESEncryption)
         {
             _sqlFileRecordRepository = sqliteRepositoryFactory.CreateRepository<FileRecord>();
             _sqlinvoiceRepository = sqlServerRepositoryFactory.CreateRepository<Invoice>();
@@ -57,6 +56,7 @@ namespace Pos.Application.Services.InvoiceService
             _liveService = liveService;
             _fileRecordService = fileRecordService;
             _logService = logService;
+            _aESEncryption = aESEncryption;
         }
 
         public async Task<ApiResponse<InvoiceDto>> GetInvoiceWithItems(string invoiceNumber)
@@ -73,7 +73,7 @@ namespace Pos.Application.Services.InvoiceService
                 {
                     try
                     {
-                        var decrypted = ModernAESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
+                        var decrypted = await _aESEncryption.DecryptAsync(output.InvoiceData!, _settings.EC);
                         var jsonPart = decrypted.Split('|')[0];
                         if (string.IsNullOrWhiteSpace(jsonPart) ||
                             JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto)
@@ -96,7 +96,7 @@ namespace Pos.Application.Services.InvoiceService
                     }
                     catch
                     {
-                        var decrypted = AESEncryption.Decrypt(output.InvoiceData!, _settings.EC);
+                        var decrypted = await _aESEncryption.DecryptAsync(output.InvoiceData!, _settings.EC);
                         var jsonPart = decrypted.Split('|')[0];
 
                         if (string.IsNullOrWhiteSpace(jsonPart))
@@ -274,7 +274,7 @@ namespace Pos.Application.Services.InvoiceService
 
                 // 7️ Encrypt payload + signature using AES-GCM
                 string textToEncrypt = $"{payload}|{signature}";
-                var encryptedData = ModernAESEncryption.Encrypt(textToEncrypt, aesKey);
+                var encryptedData = _aESEncryption.Encrypt(textToEncrypt, aesKey);
 
                 // 8️ Combine into final encrypted package
                 string encryptedPackage = $"{encryptedData.cipherText}:{encryptedData.nonce}:{encryptedData.tag}";

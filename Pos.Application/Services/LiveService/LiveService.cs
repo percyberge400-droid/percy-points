@@ -5,8 +5,10 @@ using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.InvoiceDtos;
+using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
+using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
@@ -26,6 +28,8 @@ namespace Pos.Application.Services.LiveService
         private readonly IMapper _mapper;
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         private readonly AppSettings _appSettings;
+        private readonly AESEncryption _aESEncryption;
+        private readonly ICloudLogService _cloudLogService;
         public LiveService(
             IConfiguration configuration,
             IInvoiceRepository invoiceRepository,
@@ -35,7 +39,9 @@ namespace Pos.Application.Services.LiveService
             ,
 
             IPosClientRepository posClientRepository
-            )
+,
+            AESEncryption aESEncryption,
+            ICloudLogService cloudLogService)
         {
             // Read EC key from multiple sources
             //if (!string.IsNullOrWhiteSpace(configuration["AppSettings:EC"]))
@@ -53,6 +59,8 @@ namespace Pos.Application.Services.LiveService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _sqlServerUnitOfWork = sqlServerUnitOfWork ?? throw new ArgumentNullException(nameof(sqlServerUnitOfWork));
             _posClientRepository = posClientRepository;
+            _aESEncryption = aESEncryption;
+            _cloudLogService = cloudLogService;
         }
 
         public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment)
@@ -85,19 +93,19 @@ namespace Pos.Application.Services.LiveService
                     string decrypted = "";
                     try
                     {
-                        decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                        decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, _appSettings.EC);
                         if (string.IsNullOrWhiteSpace(decrypted))
                         {
-                            decrypted = ModernAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key);
+                            decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
                             if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
                         }
                     }
                     catch
                     {
-                        decrypted = AESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key);
+                        decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
                         if (string.IsNullOrWhiteSpace(decrypted))
                         {
-                            decrypted = AESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                            decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
                             if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
                         }
                     }
@@ -130,10 +138,19 @@ namespace Pos.Application.Services.LiveService
             }
             catch (Exception ex)
             {
+                // Build and log exception
+                var dto = SyncLogBuilder.Build(AlertType.Exception, ex.Message, posId: 0)
+                    .WithExceptionInfo(ex)
+                    .WithDomainInfo("FileService", "SomeAction", null); // adjust module/action as needed
+
+                await _cloudLogService.CreateCloudLog(new List<SyncLogDto> { dto }, environment);
+
+                // Return API response
                 return new ApiResponse<List<FileRecordDto>>(
                     ApiStatusCode.Error.ToString(),
                     ex.Message,
-                    null);
+                    null
+                );
             }
         }
 
@@ -155,11 +172,21 @@ namespace Pos.Application.Services.LiveService
             }
             catch (Exception ex)
             {
+                // Build and log exception
+                var logDto = SyncLogBuilder.Build(AlertType.Exception, ex.Message, posId: 0)
+                    .WithExceptionInfo(ex)
+                    .WithDomainInfo("InvoiceService", "YourActionName", null); // replace module/action as needed
+
+                await _cloudLogService.CreateCloudLog(new List<SyncLogDto> { logDto }, environment);
+
+                // Return API response with error
                 return new ApiResponse<Invoice>(
                     ApiStatusCode.Error.ToString(),
                     ex.Message,
-                    null);
+                    null
+                );
             }
+
         }
 
         public async Task<ApiResponse<string>> GetInvoicesCsvAsync(InvoiceFilterDto dto, string environment)
@@ -184,14 +211,7 @@ namespace Pos.Application.Services.LiveService
 
         private async Task<IEnumerable<Invoice>> GetInvoicesAsync(InvoiceFilterDto dto, string env)
         {
-            try
-            {
-                return await _invoiceRepository.GetInvoicesAsync(dto, env);
-            }
-            catch
-            {
-                throw;
-            }
+            return await _invoiceRepository.GetInvoicesAsync(dto, env);
         }
     }
 }

@@ -23,6 +23,7 @@ using Pos.Application.Services.PosService;
 using Pos.Application.Services.POSService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Services.ScriptService;
+using Pos.Application.Utility;
 using Pos.Domain.ValueObjects;
 using Pos.Infrastructure.Persistence;
 using Pos.Infrastructure.Persistence.Factory;
@@ -85,6 +86,7 @@ namespace Pos.Infrastructure
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ICloudLogService, CloudLogService>();
             services.AddScoped<IEnvironmentService, EnvironmentService>();
+            services.AddScoped<AESEncryption>();
 
             // -------------------------
             // SQLite Dynamic Factory

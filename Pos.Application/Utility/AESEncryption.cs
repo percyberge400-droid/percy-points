@@ -1,13 +1,20 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.LogService;
 
 namespace Pos.Application.Utility
 {
     /// <summary>
     /// Provides methods to encrypt and decrypt data using AES-GCM (Galois/Counter Mode).
     /// </summary>
-    public static class ModernAESEncryption
+    public class AESEncryption
     {
+        private readonly ICloudLogService _cloudLogService;
+        public AESEncryption(ICloudLogService cloudLogService)
+        {
+            _cloudLogService = cloudLogService;
+        }
         /// <summary>
         /// Encrypts the specified plaintext using AES-GCM with the given key.
         /// </summary>
@@ -21,7 +28,7 @@ namespace Pos.Application.Utility
         /// <item><c>tag</c> – Base64-encoded authentication tag</item>
         /// </list>
         /// </returns>
-        public static (string cipherText, string nonce, string tag) Encrypt(string plaintext, byte[] key)
+        public (string cipherText, string nonce, string tag) Encrypt(string plaintext, byte[] key)
         {
             using var aes = new AesGcm(key);
 
@@ -37,7 +44,7 @@ namespace Pos.Application.Utility
                     Convert.ToBase64String(tag));
         }
 
-        public static string Decrypt(string encryptedPackage, string EC)
+        public async Task<string> DecryptAsync(string encryptedPackage, string EC)
         {
             try
             {
@@ -58,8 +65,15 @@ namespace Pos.Application.Utility
 
                 return decryptedText; // "{invoiceJson}|false|Latest|{signatureBase64}"
             }
-            catch(Exception ex){
-                throw ex;
+            catch (Exception ex)
+            {
+                var dto = SyncLogBuilder.Build(AlertType.Exception, ex.Message, posId: 0)
+                    .WithExceptionInfo(ex)
+                    .WithDomainInfo("SecurityEncryption", "Decrypt", null);
+
+                await _cloudLogService.CreateCloudLog(new List<SyncLogDto> { dto }, "Production");
+
+                return string.Empty;
             }
         }
 
@@ -72,7 +86,7 @@ namespace Pos.Application.Utility
         /// <param name="key">The 256-bit key used for decryption (32 bytes).</param>
         /// <returns>The decrypted plaintext string.</returns>
         /// <exception cref="CryptographicException">Thrown if authentication fails or decryption fails.</exception>
-        private static string DecryptFiscalInvoice(string cipherTextBase64, string nonceBase64, string tagBase64, byte[] key)
+        private string DecryptFiscalInvoice(string cipherTextBase64, string nonceBase64, string tagBase64, byte[] key)
         {
             using var aes = new AesGcm(key);
 
