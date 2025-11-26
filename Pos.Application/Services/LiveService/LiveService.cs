@@ -77,50 +77,63 @@ namespace Pos.Application.Services.LiveService
 
                 foreach (var item in dtos)
                 {
-                    if (string.IsNullOrEmpty(item.InvoiceNumber)) continue;
-
-                    string decrypted = "";
                     try
                     {
-                        decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, _appSettings.EC);
-                        if (string.IsNullOrWhiteSpace(decrypted))
+
+                        if (string.IsNullOrEmpty(item.InvoiceNumber)) continue;
+
+                        string decrypted = "";
+                        try
                         {
-                            decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
-                            if (string.IsNullOrEmpty(decrypted))
+                            decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, _appSettings.EC);
+                            if (string.IsNullOrWhiteSpace(decrypted))
                             {
-                                decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
-                                if (string.IsNullOrWhiteSpace(decrypted))
+                                decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
+                                if (string.IsNullOrEmpty(decrypted))
                                 {
-                                    decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
-                                    if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                                    decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
+                                    if (string.IsNullOrWhiteSpace(decrypted))
+                                    {
+                                        decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                                        if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                                    }
                                 }
+                                if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
                             }
-                            if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
                         }
-                    }
-                    catch
-                    {
-                        decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
-                        if (string.IsNullOrWhiteSpace(decrypted))
+                        catch
                         {
-                            decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
-                            if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                            decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
+                            if (string.IsNullOrWhiteSpace(decrypted))
+                            {
+                                decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                                if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                            }
+                        }
+
+                        var jsonPart = decrypted.Split('|')[0];
+                        if (string.IsNullOrWhiteSpace(jsonPart)) continue;
+
+                        jsonPart = jsonPart.Replace("FBRInvoiceNumber", "InvoiceNumber");
+
+                        if (JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto) continue;
+
+                        var response = await CreateInvoiceWithItemsAsync(invoiceDto, environment);
+                        if (string.Equals(response.StatusCode, ApiStatusCode.Success.ToString(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            anySaved = true;
+                            item.IsSynced = (int)InvoiceStatus.Synced;
+                            syncedRecords.Add(item);
                         }
                     }
-
-                    var jsonPart = decrypted.Split('|')[0];
-                    if (string.IsNullOrWhiteSpace(jsonPart)) continue;
-
-                    jsonPart = jsonPart.Replace("FBRInvoiceNumber", "InvoiceNumber");
-
-                    if (JsonSerializer.Deserialize<InvoiceDto>(jsonPart, options) is not { } invoiceDto) continue;
-
-                    var response = await CreateInvoiceWithItemsAsync(invoiceDto, environment);
-                    if (string.Equals(response.StatusCode, ApiStatusCode.Success.ToString(), StringComparison.OrdinalIgnoreCase))
+                    catch (Exception ex)
                     {
-                        anySaved = true;
-                        item.IsSynced = (int)InvoiceStatus.Synced;
-                        syncedRecords.Add(item);
+                        // Build and log exception
+                        var dto = SyncLogBuilder.Build(AlertType.Exception, ex.Message, posId: 0)
+                            .WithExceptionInfo(ex)
+                            .WithDomainInfo("Live SErvice", "DecryptAndSaveInvoicesAsync In Foreach Loop", null); // adjust module/action as needed
+
+                        await _cloudLogService.CreateCloudLog(new List<SyncLogDto> { dto }, environment);
                     }
                 }
 
@@ -139,7 +152,7 @@ namespace Pos.Application.Services.LiveService
                 // Build and log exception
                 var dto = SyncLogBuilder.Build(AlertType.Exception, ex.Message, posId: 0)
                     .WithExceptionInfo(ex)
-                    .WithDomainInfo("FileService", "SomeAction", null); // adjust module/action as needed
+                    .WithDomainInfo("Live SErvice", "DecryptAndSaveInvoicesAsync out side the loop", null); // adjust module/action as needed
 
                 await _cloudLogService.CreateCloudLog(new List<SyncLogDto> { dto }, environment);
 
