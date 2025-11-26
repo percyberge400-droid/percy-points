@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
@@ -12,6 +11,7 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
+using System.Text.Json;
 
 namespace Pos.Application.Services.LiveService
 {
@@ -161,6 +161,9 @@ namespace Pos.Application.Services.LiveService
                 invoice.FBRInvoiceNumber = dto.InvoiceNumber;
                 invoice.BuyerNTN = dto.BuyerPNTN;
                 invoice.BuyerCNIC = dto.BuyerCNIC?.Replace("-", "");
+
+                if (invoice.BuyerCNIC.Length > 13)
+                    invoice.BuyerCNIC = invoice.BuyerCNIC.Substring(0, 13);
 
                 await _invoiceRepository.AddAsync(invoice, environment);
 
