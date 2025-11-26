@@ -23,13 +23,14 @@ namespace Pos.Application.Services.ConfigurationService
                 var isEnabled = await _configurationRepository.IsCloudSyncEnabledAsync(dto.PosId, dto.Environment!);
 
                 return isEnabled;
+
             }
             catch (Exception ex)
             {
                 // Build the exception log
                 var logDto = SyncLogBuilder.Build(AlertType.Exception, ex.Message, posId: 0)
                     .WithExceptionInfo(ex)
-                    .WithDomainInfo("SecurityEncryption", "Decrypt", null); // or your module/action
+                    .WithDomainInfo("SecurityEncryption", "Decrypt", null);
 
                 // Send to cloud log (async)
                 await _cloudLogService.CreateCloudLog(new List<SyncLogDto> { logDto }, dto.Environment!);

@@ -43,18 +43,7 @@ namespace Pos.Application.Services.LiveService
             AESEncryption aESEncryption,
             ICloudLogService cloudLogService)
         {
-            // Read EC key from multiple sources
-            //if (!string.IsNullOrWhiteSpace(configuration["AppSettings:EC"]))
-            //{
-            //    _ec = configuration["AppSettings:EC"];
-            //}
-            //else if (!string.IsNullOrWhiteSpace(configuration["EC"]))
-            //{
-            //    _ec = configuration["EC"];
-            //}
-            _appSettings = options.Value; // CHANGED
-
-
+            _appSettings = options.Value;
             _invoiceRepository = invoiceRepository ?? throw new ArgumentNullException(nameof(invoiceRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _sqlServerUnitOfWork = sqlServerUnitOfWork ?? throw new ArgumentNullException(nameof(sqlServerUnitOfWork));
@@ -97,6 +86,15 @@ namespace Pos.Application.Services.LiveService
                         if (string.IsNullOrWhiteSpace(decrypted))
                         {
                             decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
+                            if (string.IsNullOrEmpty(decrypted))
+                            {
+                                decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
+                                if (string.IsNullOrWhiteSpace(decrypted))
+                                {
+                                    decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                                    if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                                }
+                            }
                             if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
                         }
                     }
@@ -162,6 +160,7 @@ namespace Pos.Application.Services.LiveService
                 invoice.EntryDate = DateTime.Now;
                 invoice.FBRInvoiceNumber = dto.InvoiceNumber;
                 invoice.BuyerNTN = dto.BuyerPNTN;
+                invoice.BuyerCNIC = dto.BuyerCNIC?.Replace("-", "");
 
                 await _invoiceRepository.AddAsync(invoice, environment);
 
