@@ -69,6 +69,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
                 entity.IsConnected = true;
                 entity.IsLogSynced = true;
                 entity.IsServiceEnabled = true;
+                entity.MAC_Address = entity.MacAddressInput;
 
                 var exists = await context.POSConfigurations.FirstOrDefaultAsync(x => x.IsActive == true && x.POSID == dto.PosId);
                 // Added default POS configuration 
