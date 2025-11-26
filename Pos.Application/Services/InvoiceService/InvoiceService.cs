@@ -232,6 +232,106 @@ namespace Pos.Application.Services.InvoiceService
             ApiResponse<InvoiceDto> ErrorResponse(string msg, string err = "") =>
                 new(ApiStatusCode.Error, msg, null, err);
         }
+
+        public async Task<InvoiceResponseDto> OldCreateAsync(InvoiceDto dto, string environment)
+        {
+            try
+            {
+                if (dto == null)
+                {
+                    await LogError("Invalid model");
+                    return new InvoiceResponseDto
+                    {
+                        InvoiceNumber = "Not Available",
+                        Code = "402",
+                        Response = "Fiscal invoice creation failed.",
+                        Errors = "Invoice not created"
+                    };
+                }
+
+                // Map & validate entity
+                var invoiceEntity = _mapper.Map<Invoice>(dto);
+                var validation = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
+
+                if (!validation.IsValid)
+                {
+                    await LogError($"Invoice validation failed: {validation.ErrorMessages}");
+                    return new InvoiceResponseDto
+                    {
+                        InvoiceNumber = "Not Available",
+                        Code = "402",
+                        Response = "Fiscal invoice creation failed.",
+                        Errors = $"Invoice validation failed: {validation.ErrorMessages}"
+                    };
+                }
+
+                if (String.IsNullOrEmpty(environment))
+                    environment = _settings.Environment;
+
+                // ✅ 2. Create fiscal invoice (runs regardless of validation)
+                var fiscalResponse = await GenerateInvoicePackageAsync(invoiceEntity, environment);
+                if (fiscalResponse.StatusCode != ApiStatusCode.Success)
+                {
+                    await LogError($"Invoice not available for {dto.InvoiceType}");
+                    return new InvoiceResponseDto
+                    {
+                        InvoiceNumber = "Not Available",
+                        Code = "402",
+                        Response = "Fiscal invoice creation failed.",
+                        Errors = "Invoice not created"
+                    };
+                }
+
+                // ✅ 3. Try to sync with live if internet is available
+                //dto.InvoiceNumber = invoiceEntity.FBRInvoiceNumber;
+                //if (await _networkService.IsInternetAvailableAsync())
+                //{
+                //    if (dto.InvoiceNumber != null)
+                //    {
+                //        var isInvoiceExist = await isCloudInvoiceExists(invoiceEntity.FBRInvoiceNumber);
+                //        if (!isInvoiceExist)
+                //        {
+                //            var liveResponse = await _liveService.CreateInvoiceWithItemsAsync(dto);
+                //            if (liveResponse.StatusCode == ApiStatusCode.Success)
+                //            {
+                //                var record = await _fileRecordService.GetByInvoiceIdAsync(fiscalResponse.Data.InvoiceId);
+                //                if (record.StatusCode == ApiStatusCode.Success)
+                //                {
+                //                    record.Data.IsSynced = (int)InvoiceStatus.Synced;
+
+                //                    await _fileRecordService.UpdateFileRecordAsync(record.Data);
+                //                }
+                //            }
+                //        }
+                //    }
+                //}
+
+                // 4. Return success if fiscal creation worked, but include validation info
+                return new InvoiceResponseDto
+                {
+                    InvoiceNumber = invoiceEntity.FBRInvoiceNumber,
+                    Code = "100",
+                    Response = "Fiscal Invoice Number generated successfully.",
+                    Errors = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new InvoiceResponseDto
+                {
+                    InvoiceNumber = "Not Available",
+                    Code = "402",
+                    Response = "Fiscal invoice creation failed.",
+                    Errors = ResponseMessages.UnknownError 
+                };
+            }
+
+            // ----- Local helpers -----
+            async Task LogError(string message) =>
+                await _logService.CreateLogAsync(
+                    _logService.BuildLog(message, AlertType.Exception, "Invoice", nameof(CreateAsync)));
+        }
+
         private async Task<bool> isCloudInvoiceExists(string invoiceNumber)
         {
             return await _sqlinvoiceRepository.ExistsAsync(x => x.FBRInvoiceNumber == invoiceNumber);
