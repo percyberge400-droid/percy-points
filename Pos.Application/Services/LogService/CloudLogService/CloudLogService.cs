@@ -63,11 +63,7 @@ namespace Pos.Application.Services.LogService
 
             await _cloudLogsRepository.AddRangeAsync(logs, enironment);
 
-            //await _sqlLogRepository.AddRangeAsync(logs);
-            // await _sqlServerUnitOfWork.SaveChangesAsync();
-
-            dto.ForEach(x => x.IsSynced = true);
-            return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Success, ResponseMessages.RecordSaved, dto, string.Empty);
+            return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Success, ResponseMessages.RecordSaved, null, string.Empty);
         }
     }
 }

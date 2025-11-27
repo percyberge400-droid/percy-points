@@ -122,7 +122,7 @@ namespace Pos.Application.Services.LogService
             if (dtos == null || !dtos.Any())
                 return new ApiResponse<bool>(ApiStatusCode.Error, ResponseMessages.DataNotFound, false, string.Empty);
 
-            _sqlLiteLogRepository.UpdateRange(dtos);
+            await _sqlLiteLogRepository.UpdateLogSyncRange(dtos, true);
             await _sqliteUnitOfWork.SaveChangesAsync();
 
             return new ApiResponse<bool>(ApiStatusCode.Success, ResponseMessages.RecordUpdated, true, string.Empty);

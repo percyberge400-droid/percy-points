@@ -23,6 +23,8 @@
         public const string ExportCSV = "api/live/export-csv";
         public const string Authenticate = "api/Live/authenticate-by-mac";
         public const string IsServiceEnabled = "api/Live/get-isservice-enable";
+        public const string IsLogEnabled = "api/Live/get-islog-enable";
+        public const string DisableLogBit = "api/Live/disbale-log-bit";
         public const string GetProductCatalogue = "api/ProductCatalogue/GetAll";
 
         // Configuration API

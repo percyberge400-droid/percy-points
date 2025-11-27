@@ -186,7 +186,7 @@ namespace POSPRA.Worker.Services
 
                 var cmd = conn.CreateCommand();
                 cmd.CommandText = "PRAGMA integrity_check;";
-                var result = (string?)await cmd.ExecuteScalarAsync();
+                var result = (string)await cmd.ExecuteScalarAsync();
 
                 return result != null && result.Contains("ok", StringComparison.OrdinalIgnoreCase);
             }

@@ -43,8 +43,15 @@ namespace Pos.API.Controllers
             Ok(await _cloudLogService.CreateCloudLog(logDtos, environment));
 
         [HttpGet("get-isservice-enable")]
-        public async Task<ActionResult<ApiResponse<bool>>> CreateCloudLog(long posId, string env) =>
+        public async Task<ActionResult<ApiResponse<bool>>> GetIsServiceEnable(long posId, string env) =>
             Ok(await _clientService.IsServiceEnabled(posId, env));
 
+        [HttpGet("get-islog-enable")]
+        public async Task<ActionResult<ApiResponse<bool>>> GetIsLogEnable(long posId, string env) =>
+            Ok(await _clientService.IsLogEnabled(posId, env));
+
+        [HttpGet("disbale-log-bit")]
+        public async Task<ActionResult<ApiResponse<string>>> DisablePosCLientLogBit(long posId, string env) =>
+            Ok(await _clientService.DisablePosCLientLogBit(env, posId));
     }
 }
