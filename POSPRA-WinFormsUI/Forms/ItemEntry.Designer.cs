@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             pnlBasicInfo = new Panel();
             label4 = new Label();
             itemDiscountAmount = new TextBox();
@@ -161,7 +161,7 @@
             itemDiscountAmount.PlaceholderText = "Calculated Rs.";
             itemDiscountAmount.ReadOnly = true;
             itemDiscountAmount.Size = new Size(100, 24);
-            itemDiscountAmount.TabIndex = 59;
+            itemDiscountAmount.TabIndex = 17;
             // 
             // itemDiscountPercent
             // 
@@ -170,7 +170,7 @@
             itemDiscountPercent.Name = "itemDiscountPercent";
             itemDiscountPercent.PlaceholderText = "Discount %";
             itemDiscountPercent.Size = new Size(96, 24);
-            itemDiscountPercent.TabIndex = 58;
+            itemDiscountPercent.TabIndex = 16;
             // 
             // TaxChargedlbl
             // 
@@ -192,7 +192,7 @@
             TaxCharged.PlaceholderText = "Tax Charged";
             TaxCharged.ReadOnly = true;
             TaxCharged.Size = new Size(202, 24);
-            TaxCharged.TabIndex = 57;
+            TaxCharged.TabIndex = 18;
             // 
             // pctCode
             // 
@@ -204,7 +204,7 @@
             pctCode.Name = "pctCode";
             pctCode.PlaceholderText = "HS Code";
             pctCode.Size = new Size(197, 24);
-            pctCode.TabIndex = 10;
+            pctCode.TabIndex = 12;
             // 
             // TaxRatelbl
             // 
@@ -224,7 +224,7 @@
             salevalue.Name = "salevalue";
             salevalue.PlaceholderText = "Sale Value";
             salevalue.Size = new Size(197, 24);
-            salevalue.TabIndex = 16;
+            salevalue.TabIndex = 13;
             // 
             // salevaluelbl
             // 
@@ -243,7 +243,7 @@
             TaxRatebox.Name = "TaxRatebox";
             TaxRatebox.PlaceholderText = "Tax Rate";
             TaxRatebox.Size = new Size(200, 24);
-            TaxRatebox.TabIndex = 12;
+            TaxRatebox.TabIndex = 15;
             // 
             // itemDiscountlbl
             // 
@@ -265,7 +265,7 @@
             totalamount.PlaceholderText = "Total Amount";
             totalamount.ReadOnly = true;
             totalamount.Size = new Size(194, 24);
-            totalamount.TabIndex = 11;
+            totalamount.TabIndex = 19;
             // 
             // ItemCode
             // 
@@ -277,7 +277,7 @@
             ItemCode.Name = "ItemCode";
             ItemCode.PlaceholderText = "Item Code";
             ItemCode.Size = new Size(197, 24);
-            ItemCode.TabIndex = 9;
+            ItemCode.TabIndex = 10;
             // 
             // ItemNamelbl
             // 
@@ -308,7 +308,7 @@
             FurtureTax.Location = new Point(677, 113);
             FurtureTax.Name = "FurtureTax";
             FurtureTax.Size = new Size(205, 26);
-            FurtureTax.TabIndex = 17;
+            FurtureTax.TabIndex = 9;
             // 
             // ItemName
             // 
@@ -317,7 +317,7 @@
             ItemName.Name = "ItemName";
             ItemName.PlaceholderText = "Item Description";
             ItemName.Size = new Size(197, 24);
-            ItemName.TabIndex = 14;
+            ItemName.TabIndex = 11;
             // 
             // ItemCodelbl
             // 
@@ -344,9 +344,9 @@
             qty.Font = new Font("Microsoft Sans Serif", 9F);
             qty.Location = new Point(240, 113);
             qty.Name = "qty";
-            qty.PlaceholderText = "QUANTITY";
+            qty.PlaceholderText = "Quantity";
             qty.Size = new Size(197, 24);
-            qty.TabIndex = 15;
+            qty.TabIndex = 14;
             // 
             // lblCustomerRegType
             // 
@@ -391,7 +391,7 @@
             btnEdit.Location = new Point(1010, 379);
             btnEdit.Name = "btnEdit";
             btnEdit.Size = new Size(155, 33);
-            btnEdit.TabIndex = 22;
+            btnEdit.TabIndex = 24;
             btnEdit.Text = "🖊️ Edit";
             btnEdit.UseVisualStyleBackColor = false;
             // 
@@ -407,7 +407,7 @@
             btnSave.Location = new Point(498, 844);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(188, 44);
-            btnSave.TabIndex = 23;
+            btnSave.TabIndex = 31;
             btnSave.Text = "🖨️ Save and Print";
             btnSave.UseVisualStyleBackColor = false;
             // 
@@ -419,22 +419,22 @@
             dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.White;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(107, 114, 128);
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
-            dataGridViewCellStyle1.SelectionForeColor = Color.FromArgb(107, 114, 128);
-            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.White;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.FromArgb(107, 114, 128);
+            dataGridViewCellStyle3.SelectionBackColor = Color.White;
+            dataGridViewCellStyle3.SelectionForeColor = Color.FromArgb(107, 114, 128);
+            dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(248, 250, 252);
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(75, 85, 99);
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.White;
+            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(248, 250, 252);
+            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(75, 85, 99);
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle4;
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.GridColor = Color.FromArgb(229, 231, 235);
             dataGridView1.Location = new Point(30, 419);
@@ -470,7 +470,7 @@
             btn_remove.Location = new Point(849, 379);
             btn_remove.Name = "btn_remove";
             btn_remove.Size = new Size(155, 33);
-            btn_remove.TabIndex = 21;
+            btn_remove.TabIndex = 23;
             btn_remove.Text = "➖ Remove Item";
             btn_remove.UseVisualStyleBackColor = false;
             // 
@@ -485,7 +485,7 @@
             btnProceed.Location = new Point(685, 379);
             btnProceed.Name = "btnProceed";
             btnProceed.Size = new Size(155, 33);
-            btnProceed.TabIndex = 20;
+            btnProceed.TabIndex = 22;
             btnProceed.Text = "➕ Add Item";
             btnProceed.UseVisualStyleBackColor = false;
             // 
@@ -527,7 +527,7 @@
             btnsearch.Location = new Point(1053, 174);
             btnsearch.Name = "btnsearch";
             btnsearch.Size = new Size(112, 30);
-            btnsearch.TabIndex = 18;
+            btnsearch.TabIndex = 20;
             btnsearch.Text = "🔍 Search";
             btnsearch.UseVisualStyleBackColor = false;
             // 
@@ -542,7 +542,7 @@
             btnclear.Location = new Point(521, 379);
             btnclear.Name = "btnclear";
             btnclear.Size = new Size(155, 33);
-            btnclear.TabIndex = 19;
+            btnclear.TabIndex = 21;
             btnclear.Text = "\U0001f9f9 Clear Form";
             btnclear.UseVisualStyleBackColor = false;
             // 
@@ -812,7 +812,7 @@
             TotalBillAmount.PlaceholderText = "Total Bill Amount";
             TotalBillAmount.ReadOnly = true;
             TotalBillAmount.Size = new Size(139, 24);
-            TotalBillAmount.TabIndex = 70;
+            TotalBillAmount.TabIndex = 30;
             // 
             // TotalSaleValuelbl
             // 
@@ -832,7 +832,7 @@
             TotalSaleValue.PlaceholderText = "Total Sale Value";
             TotalSaleValue.ReadOnly = true;
             TotalSaleValue.Size = new Size(139, 24);
-            TotalSaleValue.TabIndex = 13;
+            TotalSaleValue.TabIndex = 27;
             // 
             // TotalQuantitylbl
             // 
@@ -852,7 +852,7 @@
             TotalQuantity.PlaceholderText = "Total Quantity";
             TotalQuantity.ReadOnly = true;
             TotalQuantity.Size = new Size(139, 24);
-            TotalQuantity.TabIndex = 12;
+            TotalQuantity.TabIndex = 26;
             // 
             // Discountlbl
             // 
@@ -872,7 +872,7 @@
             Discount.PlaceholderText = "Discount";
             Discount.ReadOnly = true;
             Discount.Size = new Size(139, 24);
-            Discount.TabIndex = 15;
+            Discount.TabIndex = 29;
             // 
             // posid
             // 
@@ -885,7 +885,7 @@
             posid.PlaceholderText = "POS ID";
             posid.ReadOnly = true;
             posid.Size = new Size(139, 24);
-            posid.TabIndex = 0;
+            posid.TabIndex = 25;
             // 
             // label15
             // 
@@ -915,7 +915,7 @@
             TotalTaxCharged.PlaceholderText = "Total Tax Charged";
             TotalTaxCharged.ReadOnly = true;
             TotalTaxCharged.Size = new Size(139, 24);
-            TotalTaxCharged.TabIndex = 14;
+            TotalTaxCharged.TabIndex = 28;
             // 
             // label31
             // 
