@@ -33,7 +33,7 @@ namespace Pos.Application.Services.ScriptService
                 // -----------------------------
                 // Get SQLite password from AppSettings
                 // -----------------------------
-                if (string.IsNullOrWhiteSpace(_settings.Password))
+               if (string.IsNullOrWhiteSpace(_settings.Password))
                     return new ApiResponse<ScriptDTO>(ApiStatusCode.Error, "SQLite password is not configured", null!, "");
 
                 // -----------------------------

@@ -58,7 +58,6 @@ namespace POSPRA.Worker.Services
                     }
 
                     bool enabledWorker = false;
-                    //bool isLogEnabled = false;
                     var query = new Dictionary<string, string?>
                     {
                         ["posId"] = _appSettings.POS.ToString(),
@@ -66,8 +65,6 @@ namespace POSPRA.Worker.Services
                     };
 
                     var fullUrl = QueryHelpers.AddQueryString($"{_appSettings.BaseUrl}{Endpoints.IsServiceEnabled}", query);
-                    //var fullUrlIsLogEnabled = QueryHelpers.AddQueryString($"{_appSettings.BaseUrl}{Endpoints.IsLogEnabled}", query);
-                    //var disabledLogBitUrl = QueryHelpers.AddQueryString($"{_appSettings.BaseUrl}{Endpoints.DisableLogBit}", query);
 
                     try
                     {
@@ -140,7 +137,6 @@ namespace POSPRA.Worker.Services
                             var invoiceCloudSyncService = cloudScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
                             var logCloudSyncService = cloudScope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
                             await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId, _appSettings.Environment);
-
                         }
                         catch (Exception ex)
                         {
