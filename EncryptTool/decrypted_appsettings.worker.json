@@ -1,13 +1,13 @@
 {
     "AppSettings": {
-        "BaseUrl": "https://ims.fbr.gov.pk/POS2/",
+        "BaseUrl": "http://10.100.224.191:8280/prapos/v1/",
         "POS": 128762,
         "WorkerDelayTime": 20000,
         "IsBackupTestMode": false,
         "BackupDirectoryPath": "C:\\POS_Backups",
         "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db",
         "DefaultDBPassword": "Pral@123",
-        "Token": "1395fea9-4750-308f-9010-71b12ad02b32",
+        "Token": "8d2fb2e2-c205-3eb2-ae1b-b4bdb8707b7e",
         "Environment": "Sandbox",
         "IsProduction": false
     },

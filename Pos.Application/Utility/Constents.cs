@@ -4,7 +4,6 @@
     {
         public const string POSStatus = "api/POS/Status";
         public const string Configuration = "api/POS/Configuration";
-        public const string HeartBeat = "api/POS/HeartBeat";
         public const string SyncInvoicesAsync = "api/CloudSync/sync-invoices-async";
         public const string IsLogSyncEnable = "api/CloudSync/is-log-sync-enable";
 
@@ -13,17 +12,19 @@
         public const string GetAll = "api/fileRecord/getall";
         public const string Create = "api/IMSFiscal/GetInvoiceNumberByModel";
         public const string GetInvoiceWithItems = "api/IMSFiscal/GetInvoiceWithItems";
-        public const string IsCloudSyncEnabledAsync = "api/configuration/iscloud-syncenabled";
         public const string UpdateFileReacord = "api/fileRecord/update-filereacord";
         public const string CreateLog = "api/log/create-logAsync";
 
         // Live API
-        public const string CreateCloudLog = "api/live/create-cloud-log";
-        public const string DecryptSave = "api/live/decrypt-save";
-        public const string ExportCSV = "api/live/export-csv";
-        public const string Authenticate = "api/Live/authenticate-by-mac";
-        public const string IsServiceEnabled = "api/Live/get-isservice-enable";
-        public const string GetProductCatalogue = "api/ProductCatalogue/GetAll";
+        public const string CreateCloudLog = "live/create-cloud-log";
+        public const string DecryptSave = "live/decrypt-save";
+        public const string ExportCSV = "live/export-csv";
+        public const string Authenticate = "Live/authenticate-by-mac";
+        public const string IsServiceEnabled = "Live/get-isservice-enable";
+        public const string GetProductCatalogue = "ProductCatalogue/GetAll";
+        public const string HeartBeat = "POS/HeartBeat";
+        public const string IsCloudSyncEnabledAsync = "configuration/iscloud-syncenabled";
+
 
         // Configuration API
         public const string SetEnvironment = "api/Configuration/set-environment";
