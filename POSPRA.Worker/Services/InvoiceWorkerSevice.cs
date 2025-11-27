@@ -8,16 +8,16 @@ using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
-using Pos.Worker.Logging;
+using POSPRA.Worker.Configurations;
 
-namespace Pos.Worker
+namespace POSPRA.Worker.Services
 {
-    public class Worker : BackgroundService
+    public class InvoiceWorkerSevice : BackgroundService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly AppSettings _appSettings;
 
-        public Worker(IServiceScopeFactory scopeFactory, IOptions<AppSettings> options)
+        public InvoiceWorkerSevice(IServiceScopeFactory scopeFactory, IOptions<AppSettings> options)
         {
             _serviceScopeFactory = scopeFactory;
             _appSettings = options.Value;
@@ -26,7 +26,7 @@ namespace Pos.Worker
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var workerInstanceId = Guid.NewGuid().ToString();
-            var workerName = nameof(Worker);
+            var workerName = nameof(InvoiceWorkerSevice);
 
             // Write file log
             FileLogger.Log($"Worker started - InstanceId: {workerInstanceId}");
@@ -148,7 +148,7 @@ namespace Pos.Worker
                         await LogErrorAsync($"Is Cloud Sync Disabled", workerName, workerInstanceId);
                     }
 
-                        await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
+                    await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                 }
             }
             catch (Exception ex)

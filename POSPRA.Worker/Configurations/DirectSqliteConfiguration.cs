@@ -1,4 +1,4 @@
-﻿namespace POSPRA.Worker
+﻿namespace POSPRA.Worker.Configurations
 {
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Primitives;

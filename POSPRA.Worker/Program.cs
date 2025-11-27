@@ -1,12 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
-using Pos.Worker;
-using Pos.Worker.Logging;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.SecurityEncryption;
-using POSPRA.Worker;
-using System.Reflection;
+using POSPRA.Worker.Configurations;
+using POSPRA.Worker.Services;
 
 
 var builder = Host.CreateDefaultBuilder(args)
@@ -31,7 +30,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.Configure<AppSettings>(configuration);
         services.AddInfrastructure(configuration, false, true);
         services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
-        services.AddHostedService<Worker>();
+        services.AddHostedService<InvoiceWorkerSevice>();
         services.AddHostedService<SqliteBackupService>();
     });
 

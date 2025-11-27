@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using System.IO.Compression;
 
-namespace POSPRA.Worker
+namespace POSPRA.Worker.Services
 {
     public class SqliteBackupService : BackgroundService
     {

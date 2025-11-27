@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Pos.Worker.Logging
+namespace POSPRA.Worker.Configurations
 {
     public static class FileLogger
     {
