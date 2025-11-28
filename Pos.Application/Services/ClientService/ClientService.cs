@@ -114,5 +114,20 @@ namespace Pos.Application.Services.ClientService
             var retVal = client?.IsServiceEnabled ?? false;
             return retVal;
         }
+
+        public async Task<bool> IsLogEnabled(long posId, string env)
+        {
+            PosClients client = await _posClientRepository.GetByPosId(posId, env);
+            var retVal = client?.IsLogSynced ?? false;
+            return retVal;
+        }
+
+        public async Task<bool> DisablePosCLientLogBit(string env, long posId)
+        {
+            var response = await _posClientRepository.DisablePosCLientLogBit(env, posId);
+            if (!response)
+                return false;
+            return true;
+        }
     }
 }

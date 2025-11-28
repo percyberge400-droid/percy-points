@@ -1,6 +1,7 @@
-﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Pos.Application.Interfaces.Repositories;
+using Pos.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace Pos.Infrastructure.Persistence.Repositories
 {
@@ -44,6 +45,25 @@ namespace Pos.Infrastructure.Persistence.Repositories
             DetachIfTracked(entity);
             _dbSet.Update(entity);
             return Task.CompletedTask;
+        }
+
+        // Update multiple entities
+        public async Task UpdateLogSyncRange(IEnumerable<Logs> entities, bool isSycned)
+        {
+            if (entities == null || !entities.Any()) return;
+
+            foreach (var entity in entities)
+            {
+                entity.IsSynced = isSycned;
+
+                var tracked = _context.ChangeTracker.Entries<Logs>().FirstOrDefault(e => e.Entity.Id == entity.Id);
+                if (tracked != null)
+                {
+                    _context.Entry(tracked.Entity).State = EntityState.Detached;
+                }
+                _context.Entry(entity).State = EntityState.Modified;
+            }
+            await _context.SaveChangesAsync();
         }
 
         // Remove single entity

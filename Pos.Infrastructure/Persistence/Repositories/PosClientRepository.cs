@@ -117,6 +117,22 @@ namespace Pos.Infrastructure.Persistence.Repositories
 
             return true;
         }
+        public async Task<bool> DisablePosCLientLogBit(string env, long posId)
+        {
+            var context = await SetEnvironmentAsync(env);
+
+            var entity = await context.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == posId);
+            if (entity is not null)
+            {
+                entity.IsLogSynced = false;
+                await context.SaveChangesAsync();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         public async Task<PosClients> UpdatePosClientHeartBeat(long posId, string env)
         {

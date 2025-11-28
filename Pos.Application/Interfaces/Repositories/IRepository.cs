@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using Pos.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace Pos.Application.Interfaces.Repositories
 {
@@ -45,6 +46,7 @@ namespace Pos.Application.Interfaces.Repositories
         /// Marks all entities as Modified so they are persisted on SaveChanges.
         /// </summary>
         void UpdateRange(IEnumerable<T> entities);
+        Task UpdateLogSyncRange(IEnumerable<Logs> entities, bool isSycned);
 
         /// <summary>
         /// Removes an entity from the context.

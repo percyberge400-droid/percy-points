@@ -1,7 +1,4 @@
-﻿using System.Net.Http.Headers; // CHANGED
-using System.Text;
-using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.LogDTOs;
@@ -10,6 +7,9 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
+using System.Net.Http.Headers; // CHANGED
+using System.Text;
+using System.Text.Json;
 
 namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
 {
@@ -49,17 +49,12 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
                 if (response.StatusCode == ApiStatusCode.Success)
                 {
                     var resp = await PostDataAsync(response.Data, env);
-                    if (resp is null || !resp.IsSuccessStatusCode)
+                    if (!resp.IsSuccessStatusCode)
                         return;
 
-                    var postJson = await resp.Content.ReadAsStringAsync();
-                    var apiResp = JsonSerializer.Deserialize<ApiResponse<List<SyncLogDto>>>(postJson, JsonOpts);
-                    var logDtos = apiResp?.Data ?? new();
-                    if (logDtos.Count > 0)
-                    {
-                        var logs = _mapper.Map<List<Logs>>(logDtos);
-                        await _logService.UpdateLog(logs);
-                    }
+                    var logs = _mapper.Map<List<Logs>>(response?.Data);
+                    await _logService.UpdateLog(logs);
+
                 }
                 else if (response.StatusCode != ApiStatusCode.NotFound)
                 {

@@ -1,14 +1,15 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
-using Microsoft.AspNetCore.WebUtilities;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
+using Pos.Application.Services.CloudSyncService.CloudSyncLogService;
 using Pos.Application.Services.CloudSyncService.WorkerLogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
 using POSPRA.Worker.Configurations;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace POSPRA.Worker.Services
 {
@@ -29,7 +30,7 @@ namespace POSPRA.Worker.Services
             var workerName = nameof(InvoiceWorkerSevice);
 
             // Write file log
-            FileLogger.Log($"Worker started - InstanceId: {workerInstanceId}");
+            FileLogger.Log($"Invoice Worker Service started - InstanceId: {workerInstanceId}");
 
             // Also DB or custom log
             using (var startupScope = _serviceScopeFactory.CreateScope())
@@ -87,7 +88,7 @@ namespace POSPRA.Worker.Services
 
                     if (!enabledWorker)
                     {
-                        FileLogger.Log("Worker disabled via API.Worker Not Enabled");
+                        FileLogger.Log("Invoice Worker Service disabled via API.Worker Not Enabled");
                         await LogErrorAsync($"Error calling API: Worker Not Enabled", workerName, workerInstanceId);
                         await Task.Delay(_appSettings.WorkerDelayTime, cancellationToken);
                         continue;
@@ -134,6 +135,7 @@ namespace POSPRA.Worker.Services
                         {
                             using var cloudScope = _serviceScopeFactory.CreateScope();
                             var invoiceCloudSyncService = cloudScope.ServiceProvider.GetRequiredService<ISendInvoiceToCloudService>();
+                            var logCloudSyncService = cloudScope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
                             await invoiceCloudSyncService.SyncInvoicesAsync(cancellationToken, workerInstanceId, _appSettings.Environment);
                         }
                         catch (Exception ex)
@@ -164,7 +166,7 @@ namespace POSPRA.Worker.Services
                 var logService = shutdownScope.ServiceProvider.GetRequiredService<IWorkerLogService>();
                 await logService.LogShutdown(workerName, workerInstanceId);
 
-                FileLogger.Log($"Worker stopped - InstanceId: {workerInstanceId}");
+                FileLogger.Log($"Invoice Worker Service stopped - InstanceId: {workerInstanceId}");
             }
         }
 
@@ -183,7 +185,7 @@ namespace POSPRA.Worker.Services
 
             using var scope = _serviceScopeFactory.CreateScope();
             var logService = scope.ServiceProvider.GetRequiredService<IWorkerLogService>();
-            await logService.LogAsync(AlertType.Error, message, workerName, workerInstanceId, "WorkerError");
+            await logService.LogAsync(AlertType.Error, message, workerName, workerInstanceId, "Invoice Worker Service Error");
         }
     }
 }
