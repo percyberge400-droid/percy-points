@@ -793,37 +793,8 @@ namespace POSPRA_WinFormsUI
                     return;
                 }
 
-                var existingRow = dataGridView1.Rows
-                .Cast<DataGridViewRow>()
-                .FirstOrDefault(r =>
-                    (r.Cells["colProductCode"].Value?.ToString() ?? "") == inputData.ItemCode &&
-                    (r.Cells["colProductDescription"].Value?.ToString() ?? "") == inputData.ItemName
-                );
-
-                if (existingRow != null)
-                {
-                    var result = MessageBox.Show($"Item Code '{inputData.ItemCode}' already exists. Do you want to update it?",
-                        "Item Exists", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                    if (result == DialogResult.Yes)
-                    {
-                        int rowIndex = existingRow.Index;
-                        UpdateExistingItem(existingRow, inputData);
-
-                        if (rowIndex < addedItems.Count)
-                            addedItems[rowIndex] = inputData;
-                    }
-                    else
-                    {
-                        ItemCode.Focus();
-                        return;
-                    }
-                }
-                else
-                {
-                    AddItemToDataGrid(inputData);
-                    addedItems.Add(inputData);
-                }
+                AddItemToDataGrid(inputData);
+                addedItems.Add(inputData);
 
                 ClearFormFields();
                 AlertManager.ShowSuccess($"Item '{inputData.ItemCode}' added/updated successfully.");

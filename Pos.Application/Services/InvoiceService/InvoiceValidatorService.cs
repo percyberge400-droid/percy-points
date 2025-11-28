@@ -148,28 +148,6 @@ namespace POSPRA.Application.Services.FiscalService
 
                 // Validate invoice-level totals match sum of items
                 ValidateInvoiceTotals(invoice, AddError);
-
-                // -------- Check for Duplicate Items (same code AND name) --------
-                var itemPairs = invoice.Items
-                    .Select((item, idx) => new
-                    {
-                        Index = idx + 1,
-                        Code = TrimSafe(item.ItemCode).ToUpperInvariant(),
-                        Name = TrimSafe(item.ItemName).ToUpperInvariant()
-                    })
-                    .Where(x => !IsEmpty(x.Code) && !IsEmpty(x.Name))
-                    .ToList();
-
-                var duplicateGroups = itemPairs
-                    .GroupBy(x => new { x.Code, x.Name })
-                    .Where(g => g.Count() > 1)
-                    .ToList();
-
-                foreach (var group in duplicateGroups)
-                {
-                    var indices = string.Join(", ", group.Select(x => x.Index));
-                    AddError($"Duplicate item found: Code '{group.Key.Code}' and Name '{group.Key.Name}' appear in items: {indices}");
-                }
             }
 
             string message = errors.Count > 0
