@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.Domain", "Pos.Domain\Po
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Launcher", "POSPRA.Launcher\POSPRA.Launcher.csproj", "{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA-Installer Pre-Requisite", "..\Installer Form\POSPRA-Installer Pre-Requisite\POSPRA-Installer Pre-Requisite.csproj", "{64CAA40A-660A-47BA-84AB-D7FE361B170D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64CAA40A-660A-47BA-84AB-D7FE361B170D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64CAA40A-660A-47BA-84AB-D7FE361B170D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64CAA40A-660A-47BA-84AB-D7FE361B170D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64CAA40A-660A-47BA-84AB-D7FE361B170D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
