@@ -24,7 +24,8 @@
         public const string GetProductCatalogue = "ProductCatalogue/GetAll";
         public const string HeartBeat = "POS/HeartBeat";
         public const string IsCloudSyncEnabledAsync = "configuration/iscloud-syncenabled";
-
+        public const string IsLogEnabled = "Live/get-islog-enable";
+        public const string DisableLogBit = "Live/disbale-log-bit";
 
         // Configuration API
         public const string SetEnvironment = "api/Configuration/set-environment";
