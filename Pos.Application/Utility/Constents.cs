@@ -24,6 +24,8 @@
         public const string GetProductCatalogue = "ProductCatalogue/GetAll";
         public const string HeartBeat = "POS/HeartBeat";
         public const string IsCloudSyncEnabledAsync = "configuration/iscloud-syncenabled";
+        public const string GetUpdaterVersions = "configuration/get-update-version";
+        public const string GetUpdaterZipFile = "configuration/get-updater-file";
         public const string IsLogEnabled = "Live/get-islog-enable";
         public const string DisableLogBit = "Live/disbale-log-bit";
 
@@ -130,5 +132,11 @@
         // Error messages
         public const string MissingHeadersMessage =
             "Missing token, POSID or MAC address.";
+    }
+    public static class FileName
+    {
+        public const string LauncherVersionFile = "launcher-version.txt";
+        public const string AppVersionFile = "app-version.txt";
+        public const string UpdaterZipFile = "updater.zip";
     }
 }
