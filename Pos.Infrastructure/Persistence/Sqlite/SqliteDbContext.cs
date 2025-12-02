@@ -1,5 +1,4 @@
-﻿using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Pos.Domain.Entities;
 
 public class SqliteDbContext : DbContext
@@ -14,7 +13,6 @@ public class SqliteDbContext : DbContext
 
     /// <summary>Logs table.</summary>
     public DbSet<Logs> Logs { get; set; } = null!;
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

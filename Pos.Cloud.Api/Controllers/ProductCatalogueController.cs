@@ -2,7 +2,7 @@
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.ProductCatalogService;
 
-namespace Pos.API.Controllers
+namespace Pos.Cloud.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

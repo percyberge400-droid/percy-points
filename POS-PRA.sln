@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11222.16 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA-WinFormsUI", "POSPRA-WinFormsUI\POSPRA-WinFormsUI.csproj", "{486CA72A-6FF7-49AB-BFBA-DF32C9BA6972}"
 EndProject
@@ -28,6 +28,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.Domain", "Pos.Domain\Pos.Domain.csproj", "{813387A4-85DD-BD51-855B-94C0F5ECFDB2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Launcher", "POSPRA.Launcher\POSPRA.Launcher.csproj", "{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.Cloud.Api", "Pos.Cloud.Api\Pos.Cloud.Api.csproj", "{01239DBF-CFCE-4CCC-AF98-102615BDFF85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +87,10 @@ Global
 		{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{654DE8A0-6EB8-CE9F-A8A1-B5F149A78DFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01239DBF-CFCE-4CCC-AF98-102615BDFF85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01239DBF-CFCE-4CCC-AF98-102615BDFF85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01239DBF-CFCE-4CCC-AF98-102615BDFF85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01239DBF-CFCE-4CCC-AF98-102615BDFF85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

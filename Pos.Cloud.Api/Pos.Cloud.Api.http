@@ -1,0 +1,6 @@
+@Pos.Cloud.Api_HostAddress = http://localhost:5273
+
+GET {{Pos.Cloud.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

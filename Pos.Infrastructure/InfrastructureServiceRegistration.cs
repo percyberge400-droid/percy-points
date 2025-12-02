@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using pos.Application.Services.ConfigurationService;
 using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
-using Pos.Application.Services;
 using Pos.Application.Services.ClientService;
 using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using Pos.Application.Services.CloudSyncService.CloudSyncLogService;
@@ -29,7 +28,6 @@ using Pos.Infrastructure.Persistence;
 using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
 using Pos.Infrastructure.Persistence.Repositories.ProductCatalogue;
-using Pos.Infrastructure.Services;
 using POSPRA.Application.Services.FiscalService;
 
 namespace Pos.Infrastructure
@@ -68,7 +66,7 @@ namespace Pos.Infrastructure
             // -------------------------
             // Core Services
             // -------------------------
-            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IEnvironmentService, Services.EnvironmentService>();
             services.AddScoped<ILogService, LogService>();
             services.AddScoped<InvoiceValidatorService>();
             services.AddScoped<IRequestHeaderService, RequestHeaderService>();
@@ -85,7 +83,6 @@ namespace Pos.Infrastructure
             services.AddScoped<IScriptService, ScriptService>();
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ICloudLogService, CloudLogService>();
-            services.AddScoped<IEnvironmentService, EnvironmentService>();
             services.AddScoped<AESEncryption>();
 
             // -------------------------

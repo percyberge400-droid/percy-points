@@ -8,7 +8,7 @@ using Pos.Application.Services.ClientService;
 using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;
 
-namespace Pos.API.Controllers
+namespace Pos.Cloud.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

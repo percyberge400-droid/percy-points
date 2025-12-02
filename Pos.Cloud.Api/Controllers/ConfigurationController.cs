@@ -2,7 +2,7 @@
 using pos.Application.Services.ConfigurationService;
 using Pos.Application.DTOs.CommanDtos;
 
-namespace Pos.API.Controllers
+namespace Pos.Cloud.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

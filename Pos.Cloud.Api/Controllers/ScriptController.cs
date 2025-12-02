@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Pos.Application.Services.ScriptService;
 using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.ScriptService;
 
-namespace Pos.API.Controllers
+namespace Pos.Cloud.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

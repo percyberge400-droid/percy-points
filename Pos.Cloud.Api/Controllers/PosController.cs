@@ -3,7 +3,7 @@ using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.Services.HelperService;
 using Pos.Application.Services.PosService;
 
-namespace Pos.API.Controllers
+namespace Pos.Cloud.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
