@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.ScriptService;
+using Pos.Application.Utility;
 using POSPRA.SecurityEncryption;
 using System.Configuration;
 using System.Diagnostics;
@@ -1463,7 +1464,11 @@ namespace POSPRA.SetupUI
                 };
 
 
-                string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
+               // string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
+
+                var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+                var apiUrl = $"{_baseUrl}{Endpoints.Authenticate}";
+
                 if (string.IsNullOrWhiteSpace(apiUrl))
                 {
                     ShowMessage("API URL is missing in configuration.", false, false);
