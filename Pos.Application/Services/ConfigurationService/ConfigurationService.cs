@@ -68,12 +68,12 @@ namespace Pos.Application.Services.ConfigurationService
                     return (await File.ReadAllTextAsync(filePath)).Trim();
                 }
 
-                string launcherVersion = await ReadVersionFileAsync(FileName.LauncherVersionFile);
+                //string launcherVersion = await ReadVersionFileAsync(FileName.LauncherVersionFile);
                 string appVersion = await ReadVersionFileAsync(FileName.AppVersionFile);
 
                 var configuration = new ConfigurationResponseDto
                 {
-                    LauncherVersion = launcherVersion,
+                    LauncherVersion = null!,
                     AppVersion = appVersion
                 };
 
