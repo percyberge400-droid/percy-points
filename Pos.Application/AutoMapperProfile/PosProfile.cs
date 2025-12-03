@@ -7,7 +7,7 @@ using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Domain.Entities;
 
-namespace POSPRA.Application.AutoMapperProfile
+namespace Pos.Application.AutoMapperProfile
 {
     public class PosProfile : Profile
     {

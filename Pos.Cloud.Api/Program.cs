@@ -1,8 +1,8 @@
-﻿using System.Reflection;
+﻿using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
-using POSPRA.Application.AutoMapperProfile;
-using POSPRA.SecurityEncryption;
+using Pos.SecurityEncryption;
+using System.Reflection;
 
 var apiBasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 

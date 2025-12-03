@@ -1,6 +1,6 @@
 ﻿using Pos.Application.DTOs.Pagination;
 
-namespace POSPRA.DTOs.LogDTOs
+namespace Pos.DTOs.LogDTOs
 {
     public class GetAllLogsDto : GenericPaginationDTOs
     {

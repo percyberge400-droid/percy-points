@@ -2,8 +2,8 @@
 using Microsoft.OpenApi.Models;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
-using POSPRA.Application.AutoMapperProfile;
-using POSPRA.SecurityEncryption;
+using Pos.Application.AutoMapperProfile;
+using Pos.SecurityEncryption;
 
 namespace Pos.Local.Api
 {

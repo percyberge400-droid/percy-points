@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.LogService;
-using POSPRA.DTOs.LogDTOs;
+using Pos.DTOs.LogDTOs;
 
 namespace Pos.Local.API.Controllers
 {

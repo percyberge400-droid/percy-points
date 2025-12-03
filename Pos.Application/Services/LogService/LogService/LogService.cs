@@ -9,7 +9,8 @@ using Pos.Application.Interfaces;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
-using POSPRA.DTOs.LogDTOs;
+using Pos.DTOs.LogDTOs;
+using Pos.DTOs.LogDTOs;
 using System.Reflection;
 
 namespace Pos.Application.Services.LogService
