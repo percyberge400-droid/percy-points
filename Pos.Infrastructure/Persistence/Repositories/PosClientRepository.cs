@@ -31,7 +31,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
                                     on b.POSMASTERID equals m.POSMASTERID
                                 join pc in context.POSContact
                                     on m.POSMASTERID equals pc.POSMASTERID
-                                where c.POSRegistrationNumber == dto.PosId
+                                where c.POSRegistrationNumber == dto.PosId && c.Province_Id == 2
                                 //&& c.Province_Id == m.Province_Id
                                 select new
                                 {
