@@ -3,7 +3,7 @@ using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService;
 using Pos.Application.Services.InvoiceService;
 
-namespace Pos.API.Controllers
+namespace Pos.Local.API.Controllers
 {
     [Route("api/IMSFiscal")]
     [ApiController]

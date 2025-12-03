@@ -19,7 +19,7 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "POS-PRA-Setup", "POS-PRA-Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSPRA.Updater", "POSPRA.Updater\POSPRA.Updater.csproj", "{A2C9AFFF-58ED-4BC5-ADAC-29CD8DFA40D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.Api", "Pos.Api\Pos.Api.csproj", "{EA5EEAD2-1443-B486-E0B3-86B3B68CB41C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.Local.Api", "Pos.Api\Pos.Local.Api.csproj", "{EA5EEAD2-1443-B486-E0B3-86B3B68CB41C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.Infrastructure", "Pos.Infrastructure\Pos.Infrastructure.csproj", "{6C7BF759-0005-4B57-6FCB-614A9ECE315E}"
 EndProject

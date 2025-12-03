@@ -2,7 +2,7 @@
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.Services.FileRecordService;
 
-namespace Pos.API.Controllers
+namespace Pos.Local.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

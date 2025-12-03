@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.SecurityEncryption;
 using POSPRA.Worker.Configurations;
 using POSPRA.Worker.Services;
-using System.Reflection;
 
 
 var builder = Host.CreateDefaultBuilder(args)
@@ -52,7 +52,7 @@ var host = builder.Build();
 // ----------------------------------------------------
 
 // Build API host
-var apiHost = Pos.Api.Program.BuildApiHost(args);
+var apiHost = Pos.Local.Api.Program.BuildApiHost(args);
 
 // Ensure API reads its own appsettings.json from DLL location
 var apiBasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;

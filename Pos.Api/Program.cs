@@ -5,7 +5,7 @@ using Pos.Infrastructure;
 using POSPRA.Application.AutoMapperProfile;
 using POSPRA.SecurityEncryption;
 
-namespace Pos.Api
+namespace Pos.Local.Api
 {
     public static class Program
     {

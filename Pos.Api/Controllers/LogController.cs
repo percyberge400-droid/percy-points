@@ -3,7 +3,7 @@ using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.LogService;
 using POSPRA.DTOs.LogDTOs;
 
-namespace Pos.API.Controllers
+namespace Pos.Local.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
