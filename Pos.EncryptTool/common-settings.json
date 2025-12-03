@@ -1,0 +1,7 @@
+{
+  "AppSettings": {
+    "DefaultDBPassword": "Pral@123",
+    "Environment": "Sandbox",
+    "BaseUrl": "http://10.100.224.191:8280/prapos/v1/"
+  }
+}
