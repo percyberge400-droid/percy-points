@@ -46,7 +46,7 @@ namespace Pos.Application.Services.ConfigurationService
             {
                 // Get absolute wwwroot path (project folder + wwwroot)
                 string projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
-                string wwwrootPath = Path.Combine(projectRoot, "Pos.Api", "wwwroot", "Configurations");
+                string wwwrootPath = Path.Combine(projectRoot, "Pos.Cloud.Api", "wwwroot", "Configurations");
 
                 if (!Directory.Exists(wwwrootPath))
                 {
