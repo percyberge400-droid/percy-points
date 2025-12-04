@@ -34,7 +34,7 @@ namespace Pos.SetupUI
 
             string jsonWorkerPath = Path.Combine(baseFolder, "appsettings.worker.json");
             string jsonMainPath = Path.Combine(baseFolder, "appsettings.json");
-            string setupConfig = Path.Combine(baseFolder, "POSPRA.SetupUI.dll.config");
+            string setupConfig = Path.Combine(baseFolder, "Pos.SetupUI.dll.config");
             string installationInfo = @"C:\ProgramData\PRAL";
 
 
@@ -161,14 +161,14 @@ namespace Pos.SetupUI
                 string candidate = args[0].Trim('"').TrimEnd('\\');
 
                 if (Directory.Exists(candidate))
-                    return Path.Combine(candidate, "POSPRA-WinFormsUI.dll.config");
+                    return Path.Combine(candidate, "Pos.WinFormsUI.dll.config");
 
                 if (File.Exists(candidate))
                     return candidate;
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            return Path.Combine(baseDir, "POSPRA-WinFormsUI.dll.config");
+            return Path.Combine(baseDir, "Pos.WinFormsUI.dll.config");
         }
 
 
