@@ -9,9 +9,13 @@ namespace Pos.Cloud.Api.Controllers
     public class ConfigurationController : ControllerBase
     {
         private readonly IConfigurationService _configurationService;
-        public ConfigurationController(IConfigurationService configurationService)
+        private readonly IWebHostEnvironment _env;
+        private readonly string _wwwrootPath;
+        public ConfigurationController(IConfigurationService configurationService, IWebHostEnvironment env)
         {
             _configurationService = configurationService;
+            _env = env;
+            _wwwrootPath = Path.Combine(_env.WebRootPath, "Configurations");
         }
 
         [HttpPost("iscloud-syncenabled")]
@@ -19,19 +23,15 @@ namespace Pos.Cloud.Api.Controllers
             Ok(await _configurationService.IsCloudSyncEnabledAsync(dto));
 
         [HttpGet("get-update-version")]
-        public async Task<IActionResult> getUpdateVersion() =>
-            Ok(await _configurationService.GetUpdateVersion());
+        public async Task<IActionResult> getUpdateVersion()
+        {
+            return Ok(await _configurationService.GetUpdateVersion(_wwwrootPath));
+        }
 
         [HttpGet("get-updater-file")]
         public async Task<IActionResult> getUpdaterFile()
         {
-            var result = await _configurationService.GetZipFileAsync();
-
-            return Ok(new
-            {
-                fileName = result.fileName,
-                base64 = result.base64
-            });
+            return Ok(await _configurationService.GetZipFileAsync(_wwwrootPath));
         }
     }
 }

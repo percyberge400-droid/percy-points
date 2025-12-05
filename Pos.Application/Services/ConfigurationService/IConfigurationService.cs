@@ -7,7 +7,7 @@ namespace pos.Application.Services.ConfigurationService
     public interface IConfigurationService
     {
         Task<bool> IsCloudSyncEnabledAsync(GetByPosIdDto dto);
-        Task<ApiResponse<ConfigurationResponseDto>> GetUpdateVersion();
-        Task<(string base64, string fileName)> GetZipFileAsync();
+        Task<ApiResponse<ConfigurationResponseDto>> GetUpdateVersion(string wwwrootPath);
+        Task<ApiResponse<ConfigurationZipFileResponseDto>> GetZipFileAsync(string wwwrootPath);
     }
 }
