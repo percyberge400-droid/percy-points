@@ -1,31 +1,36 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Threading;
 
 namespace Pos.Updater
 {
     public partial class UpdateForm : Form
     {
         private string LocalFolder = "";
-        private string ServerRoot = "";
-        private readonly string WorkerServiceName = "POSPRAWorker";
-        private readonly string AppProcessName = "POSPRA-WinFormsUI";
+        private readonly string WorkerServiceName = "POSWorker";
+        private readonly string AppProcessName = "Pos.WinFormsUI";
         private string LogFile => Path.Combine(LocalFolder, "update_log.txt");
 
         private readonly string[] ExcludedFiles = new[]
         {
-            "POSPRA-WinFormsUI.dll.config",
+            "Pos.WinFormsUI.dll.config",
             "POSPRA.SetupUI.dll.config",
             "appsettings.json",
             "appsettings.worker.json"
         };
+
+        // Use your actual API base URL here
+        private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
+        private const string ApiGetVersion = "get-update-version";
+        private const string ApiGetUpdaterFile = "get-updater-file";
 
         public UpdateForm()
         {
@@ -37,19 +42,10 @@ namespace Pos.Updater
             try
             {
                 progressBar.Style = ProgressBarStyle.Marquee;
-                lblStatus.Text = "Loading configuration...";
+                lblStatus.Text = "Detecting install path...";
                 await Task.Delay(200);
 
                 DetectInstallPath();
-
-                if (!LoadServerPathFromConfig())
-                {
-                    ShowErrorAndClose("Failed to load server path. Update aborted.");
-                    return;
-                }
-
-                lblStatus.Text = "Checking for update";
-                await Task.Delay(300);
 
                 if (!CheckInternetConnection())
                 {
@@ -103,48 +99,6 @@ namespace Pos.Updater
             }
         }
 
-        private bool LoadServerPathFromConfig()
-        {
-            try
-            {
-                string configPath = Path.Combine(LocalFolder, "Updater-Version.config");
-                if (!File.Exists(configPath))
-                {
-                    Log($"Config missing");
-                    return false;
-                }
-
-                var xml = System.Xml.Linq.XDocument.Load(configPath);
-                var serverPathElement = xml.Descendants("add")
-                                           .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
-
-                if (serverPathElement == null) return false;
-
-                ServerRoot = (string)serverPathElement.Attribute("value") ?? "";
-                if (string.IsNullOrWhiteSpace(ServerRoot)) return false;
-
-                // Ensure proper trailing slash for HTTP/HTTPS
-                if (ServerRoot.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!ServerRoot.EndsWith("/"))
-                        ServerRoot += "/";
-                }
-                else
-                {
-                    if (!ServerRoot.EndsWith("\\"))
-                        ServerRoot += "\\";
-                }
-
-                Log($"Loaded server path: {ServerRoot}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log($"Error reading Updater-Version.config: {ex.Message}");
-                return false;
-            }
-        }
-
         private bool CheckInternetConnection()
         {
             try
@@ -160,155 +114,248 @@ namespace Pos.Updater
         private async Task RunUpdateAsync()
         {
             string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
-            string serverVersionUrl = ServerRoot + "app-version.txt";
-
-            string serverVersion;
-            try
-            {
-                using var client = new HttpClient();
-                serverVersion = (await client.GetStringAsync(serverVersionUrl)).Trim();
-            }
-            catch
-            {
-                ShowErrorAndClose("Failed to fetch server version. Update aborted.");
-                return;
-            }
-
             string localVersion = File.Exists(localVersionPath) ? File.ReadAllText(localVersionPath).Trim() : "0.0.0";
 
-            string serverVersionFolderUrl = $"{ServerRoot}{serverVersion}/";
+            using var client = new HttpClient();
 
-            Log($"Local version: {localVersion}, Server version: {serverVersion}");
-
+            // 1️⃣ Get server version
+            Invoke(() => lblStatus.Text = "Checking latest version...");
+            ApiResponse<ConfigurationResponseDto>? versionResponse;
             try
             {
-                // Stop worker service & running UI processes
-                Invoke((Action)(() => lblStatus.Text = "Stopping worker service..."));
-                StopService(WorkerServiceName);
-
-                Invoke((Action)(() => lblStatus.Text = "Stopping running applications..."));
-                StopProcess(AppProcessName);
-
-                await Task.Delay(1000);
-
-                // Download update files
-                Invoke((Action)(() => lblStatus.Text = "Applying updates..."));
-                Invoke((Action)(() =>
-                {
-                    progressBar.Style = ProgressBarStyle.Continuous;
-                    progressBar.Value = 0;
-                }));
-
-                await DownloadFilesFromHttpAsync(serverVersionFolderUrl, LocalFolder);
-
-                // Update version file
-                File.WriteAllText(localVersionPath, serverVersion);
-                Log($"Version updated: {localVersion} → {serverVersion}");
-
-                // Restart service
-                Invoke((Action)(() => lblStatus.Text = "Restarting worker service..."));
-                StartService(WorkerServiceName);
-
-                // Relaunch UI
-                string uiExe = Path.Combine(LocalFolder, "POSPRA-WinFormsUI.exe");
-                if (File.Exists(uiExe)) Process.Start(uiExe);
-
-                Invoke((Action)(() => lblStatus.Text = "Update completed!"));
-                Invoke((Action)(() => progressBar.Value = 100));
-
-                MessageBox.Show(new Form { TopMost = true },
-                    $"Update completed successfully!\nPrevious version: {localVersion}\nNew version: {serverVersion}",
-                    "Update Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                Log("✅ Update completed successfully.");
-                Close();
+                versionResponse = await client.GetFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(ApiBaseUrl + ApiGetVersion);
             }
             catch (Exception ex)
             {
-                ShowErrorAndClose($"Unexpected error during update: {ex.Message}");
-            }
-        }
-
-        private async Task DownloadFilesFromHttpAsync(string serverFolderUrl, string localFolder)
-        {
-            using var client = new HttpClient();
-            string fileListUrl = serverFolderUrl + "filelist.txt";
-
-            string[] files;
-            try
-            {
-                string fileListContent = await client.GetStringAsync(fileListUrl);
-                files = fileListContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            }
-            catch
-            {
-                ShowErrorAndClose("Failed to fetch file list from server.");
+                ShowErrorAndClose($"Failed to fetch version from API: {ex.Message}");
                 return;
             }
 
-            int copiedCount = 0;
-            int totalFiles = files.Length;
-
-            foreach (var file in files)
+            if (versionResponse?.Data == null || string.IsNullOrWhiteSpace(versionResponse.Data.AppVersion))
             {
-                string fileName = Path.GetFileName(file);
-
-                if (ExcludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
-                {
-                    Log($"Skipped file: {fileName}");
-                    continue;
-                }
-
-                string localPath = Path.Combine(localFolder, file.Replace("/", "\\"));
-
-                try
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(localPath)!);
-                    byte[] data = await client.GetByteArrayAsync(serverFolderUrl + file);
-                    await File.WriteAllBytesAsync(localPath, data);
-                    Log($"Downloaded file: {file}");
-                }
-                catch (Exception ex)
-                {
-                    ShowErrorAndClose($"Failed to download file {file}: {ex.Message}");
-                }
-
-                copiedCount++;
-                int percent = (int)((copiedCount * 100.0) / totalFiles);
-                Invoke((Action)(() => progressBar.Value = Math.Min(percent, 100)));
+                ShowErrorAndClose("Invalid version response from API.");
+                return;
             }
 
-            Log($"Download complete: {copiedCount}/{totalFiles} files processed.");
+            string serverVersion = versionResponse.Data.AppVersion.Trim();
+            Log($"Local version: {localVersion}, Server version: {serverVersion}");
+
+            if (TryCompareVersions(localVersion, serverVersion, out var cmp) && cmp >= 0)
+            {
+                MessageBox.Show("Already up-to-date.");
+                Close();
+                return;
+            }
+
+            // 2️⃣ Stop service & UI
+            Invoke(() => lblStatus.Text = "Stopping worker service...");
+            StopService(WorkerServiceName);
+
+            Invoke(() => lblStatus.Text = "Stopping running applications...");
+            StopProcess(AppProcessName);
+
+            await Task.Delay(500);
+
+            // 3️⃣ Download updater zip from API
+            Invoke(() => lblStatus.Text = "Downloading update package...");
+            UpdaterFileResponse? zipResponse;
+            try
+            {
+                zipResponse = await client.GetFromJsonAsync<UpdaterFileResponse>(ApiBaseUrl + ApiGetUpdaterFile);
+            }
+            catch (Exception ex)
+            {
+                ShowErrorAndClose($"Failed to download updater package: {ex.Message}");
+                return;
+            }
+
+            if (zipResponse?.Data == null || string.IsNullOrWhiteSpace(zipResponse.Data.Base64File))
+            {
+                ShowErrorAndClose("Updater file missing or empty.");
+                return;
+            }
+
+
+            string tempZip = Path.Combine(Path.GetTempPath(),
+    zipResponse.Data.FileName ?? "updater.zip");
+            try
+            {
+                byte[] zipBytes = Convert.FromBase64String(zipResponse.Data.Base64File);
+                await File.WriteAllBytesAsync(tempZip, zipBytes);
+                Log($"Saved updater zip to {tempZip}");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorAndClose($"Failed to save updater zip: {ex.Message}");
+                return;
+            }
+
+            // 4️⃣ Extract & apply
+            Invoke(() => lblStatus.Text = "Applying updates...");
+            progressBar.Style = ProgressBarStyle.Continuous;
+            progressBar.Value = 0;
+
+            bool ok = await ExtractAndCopySafeAsync(tempZip, LocalFolder, ExcludedFiles);
+            if (!ok)
+            {
+                ShowErrorAndClose("Failed to apply update package.");
+                return;
+            }
+
+            progressBar.Value = 70;
+
+            // 5️⃣ Update local version file
+            try
+            {
+                File.WriteAllText(localVersionPath, serverVersion);
+                Log($"Version updated: {localVersion} → {serverVersion}");
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to update local version file: {ex.Message}");
+            }
+
+            // 6️⃣ Restart service & relaunch UI
+            Invoke(() => lblStatus.Text = "Restarting worker service...");
+            StartService(WorkerServiceName);
+
+            string uiExe = Path.Combine(LocalFolder, "Pos.WinFormsUI.exe");
+            if (File.Exists(uiExe))
+            {
+                try { Process.Start(uiExe); }
+                catch (Exception ex) { Log($"Failed to launch UI: {ex.Message}"); }
+            }
+
+            Invoke(() =>
+            {
+                lblStatus.Text = "Update completed!";
+                progressBar.Value = 100;
+            });
+
+            MessageBox.Show(new Form { TopMost = true },
+                $"Update completed successfully!\nPrevious version: {localVersion}\nNew version: {serverVersion}",
+                "Update Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            Log("✅ Update completed successfully.");
+            Close();
         }
+
+        private async Task<bool> ExtractAndCopySafeAsync(string zipPath, string targetFolder, string[] excludedFiles)
+        {
+            string tempExtract = Path.Combine(Path.GetTempPath(), "pos_updater_tmp_" + Guid.NewGuid());
+            string backupFolder = Path.Combine(Path.GetTempPath(), "pos_updater_bak_" + Guid.NewGuid());
+            Directory.CreateDirectory(tempExtract);
+            Directory.CreateDirectory(backupFolder);
+
+            try
+            {
+                ZipFile.ExtractToDirectory(zipPath, tempExtract);
+
+                var allFiles = Directory.GetFiles(tempExtract, "*", SearchOption.AllDirectories);
+                int processed = 0, total = allFiles.Length;
+
+                foreach (var src in allFiles)
+                {
+                    string relative = Path.GetRelativePath(tempExtract, src);
+                    string fileName = Path.GetFileName(relative);
+
+                    if (excludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        Log($"Skipping excluded file: {relative}");
+                        processed++;
+                        Invoke(() => progressBar.Value = Math.Min(100, (int)((processed * 100.0) / total)));
+                        continue;
+                    }
+
+                    string dest = Path.Combine(targetFolder, relative);
+                    string destDir = Path.GetDirectoryName(dest)!;
+                    Directory.CreateDirectory(destDir);
+
+                    if (File.Exists(dest))
+                    {
+                        string bakPath = Path.Combine(backupFolder, relative);
+                        Directory.CreateDirectory(Path.GetDirectoryName(bakPath)!);
+                        File.Copy(dest, bakPath, overwrite: true);
+                    }
+
+                    File.Copy(src, dest, overwrite: true);
+                    Log($"Replaced: {relative}");
+
+                    processed++;
+                    Invoke(() => progressBar.Value = Math.Min(100, (int)((processed * 100.0) / total)));
+                    await Task.Yield();
+                }
+
+                // cleanup backups
+                try { Directory.Delete(backupFolder, true); } catch { }
+                try { Directory.Delete(tempExtract, true); } catch { }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log($"ExtractOrCopy failed: {ex.Message}. Attempting rollback.");
+                try
+                {
+                    if (Directory.Exists(backupFolder))
+                    {
+                        var bakFiles = Directory.GetFiles(backupFolder, "*", SearchOption.AllDirectories);
+                        foreach (var bak in bakFiles)
+                        {
+                            string rel = Path.GetRelativePath(backupFolder, bak);
+                            string dest = Path.Combine(targetFolder, rel);
+                            Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                            File.Copy(bak, dest, overwrite: true);
+                        }
+                    }
+                }
+                catch (Exception rbEx)
+                {
+                    Log($"Rollback failed: {rbEx.Message}");
+                }
+
+                return false;
+            }
+            finally
+            {
+                try { if (Directory.Exists(tempExtract)) Directory.Delete(tempExtract, true); } catch { }
+                try { if (Directory.Exists(backupFolder)) Directory.Delete(backupFolder, true); } catch { }
+            }
+        }
+
+        #region Service & Process Helpers
 
         private void StopService(string serviceName)
         {
             try
             {
-                using (var mutex = Mutex.OpenExisting("POSPRAWorkerServiceMutex"))
+                using var sc = new ServiceController(serviceName);
+                if (sc.Status == ServiceControllerStatus.Running || sc.Status == ServiceControllerStatus.Paused)
                 {
-                    mutex.WaitOne(TimeSpan.FromSeconds(60));
+                    sc.Stop();
+                    sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
                 }
             }
-            catch (WaitHandleCannotBeOpenedException) { }
-            catch (AbandonedMutexException) { }
-
-            using var sc = new ServiceController(serviceName);
-            if (sc.Status == ServiceControllerStatus.Running ||
-                sc.Status == ServiceControllerStatus.Paused)
+            catch (Exception ex)
             {
-                sc.Stop();
-                sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
+                Log($"Service stop error: {ex.Message}");
             }
         }
 
         private void StartService(string serviceName)
         {
-            using var sc = new ServiceController(serviceName);
-            if (sc.Status != ServiceControllerStatus.Running)
+            try
             {
-                sc.Start();
-                sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(60));
+                using var sc = new ServiceController(serviceName);
+                if (sc.Status != ServiceControllerStatus.Running)
+                {
+                    sc.Start();
+                    sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(60));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Service start error: {ex.Message}");
             }
         }
 
@@ -325,7 +372,29 @@ namespace Pos.Updater
                 catch (Exception ex)
                 {
                     ShowErrorAndClose($"Failed to stop process {name}: {ex.Message}");
+                    return;
                 }
+            }
+        }
+
+        #endregion
+
+        #region Utilities
+
+        private bool TryCompareVersions(string vLocal, string vServer, out int cmp)
+        {
+            cmp = 0;
+            try
+            {
+                var lv = Version.Parse(vLocal);
+                var sv = Version.Parse(vServer);
+                cmp = lv.CompareTo(sv);
+                return true;
+            }
+            catch
+            {
+                cmp = string.Compare(vLocal, vServer, StringComparison.OrdinalIgnoreCase);
+                return false;
             }
         }
 
@@ -338,8 +407,50 @@ namespace Pos.Updater
 
         private void Log(string msg)
         {
-            try { File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n"); }
+            try
+            {
+                if (string.IsNullOrWhiteSpace(LocalFolder))
+                {
+                    File.AppendAllText(Path.Combine(Path.GetTempPath(), "updater_log.txt"), $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
+                    return;
+                }
+                File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
+            }
             catch { }
         }
+
+        #endregion
     }
+
+    #region DTOs
+
+    public class UpdaterFileResponse
+    {
+        public string StatusCode { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public UpdaterFileData Data { get; set; } = new();
+        public string Errors { get; set; } = string.Empty;
+    }
+
+    public class UpdaterFileData
+    {
+        public string FileName { get; set; } = string.Empty;
+        public string Base64File { get; set; } = string.Empty;
+    }
+
+    public class ApiResponse<T>
+    {
+        public string StatusCode { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public T Data { get; set; } = default!;
+        public string Errors { get; set; } = string.Empty;
+    }
+
+    public class ConfigurationResponseDto
+    {
+        public string AppVersion { get; set; } = string.Empty;
+    }
+
+
+    #endregion
 }

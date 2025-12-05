@@ -4,6 +4,7 @@ using Pos.WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using System.Net.Http.Json;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
 
@@ -78,21 +79,19 @@ namespace Pos.WinFormsUI.Forms
             if (!string.IsNullOrEmpty(website))
                 prawebsite.Text = website;
         }
-
         private async void LoginForm2_Load(object sender, EventArgs e)
         {
             try
             {
+                await Task.Delay(500); // small delay
 
-                await Task.Delay(500); // Wait for 500ms (0.5 seconds) before starting updates
-
-                // Now start checking for updates in the background
+                // Start update check in background
                 Task.Run(async () =>
                 {
-                    await CheckAndPromptUpdatesAsync();  // Start checking for updates asynchronously
+                    await CheckAndPromptAppUpdateAsync(); // No parameters now
                 });
 
-                // Restart service
+                // Restart your service
                 await RestartServiceAlwaysAsync(SERVICE_NAME);
             }
             catch (Exception ex)
@@ -101,6 +100,7 @@ namespace Pos.WinFormsUI.Forms
                     "Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
         /// <summary>
         /// Restarts the given service whether it is running or stopped.
         /// </summary>
@@ -467,24 +467,16 @@ namespace Pos.WinFormsUI.Forms
             path.CloseFigure();
             return path;
         }
-        private async Task CheckAndPromptUpdatesAsync()
+        #region Check App Update Only
+
+        private async Task CheckAppUpdateAsync()
         {
             try
             {
-                // STEP 1️⃣: Detect install path
                 string installPath = GetInstallPath();
                 if (!installPath.EndsWith("\\")) installPath += "\\";
 
-                // STEP 2️⃣: Load server path
-                string serverPath = GetServerPath(installPath);
-                if (!serverPath.EndsWith("\\")) serverPath += "\\";
-
-                // STEP 3️⃣: Launcher update
-                await CheckLauncherUpdateAsync(installPath, serverPath);
-
-                // STEP 4️⃣: App update
-                await CheckAppUpdateAsync(installPath, serverPath);
-
+                await CheckAndPromptUpdatesAsync(installPath);
             }
             catch (Exception ex)
             {
@@ -515,151 +507,27 @@ namespace Pos.WinFormsUI.Forms
 
             if (string.IsNullOrWhiteSpace(installPath) || !Directory.Exists(installPath))
             {
-                var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                var defaultPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                     "PRAL", "POSComponent");
-                installPath = Directory.Exists(defaultPath) ? defaultPath : AppDomain.CurrentDomain.BaseDirectory;
+
+                installPath = Directory.Exists(defaultPath)
+                    ? defaultPath
+                    : AppDomain.CurrentDomain.BaseDirectory;
             }
 
             return installPath;
         }
 
-        private string GetServerPath(string installPath)
+        private async Task CheckAndPromptAppUpdateAsync()
         {
-            string configPath = Path.Combine(installPath, "Updater-Version.config");
-            if (!File.Exists(configPath))
-            {
-                MessageBox.Show($"Missing Updater-Version.config at:\n{configPath}", "Config Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw new FileNotFoundException("Updater-Version.config not found.");
-            }
+            string installPath = GetInstallPath();
+            if (!installPath.EndsWith("\\")) installPath += "\\";
 
-            var xml = System.Xml.Linq.XDocument.Load(configPath);
-            var serverPathElement = xml.Descendants("add")
-                .FirstOrDefault(x => (string)x.Attribute("key") == "ServerPath");
-
-            if (serverPathElement == null)
-            {
-                MessageBox.Show("ServerPath not found in Updater-Version.config.",
-                    "Invalid Config", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw new Exception("ServerPath missing in Updater-Version.config.");
-            }
-
-            return (string)serverPathElement.Attribute("value") ?? "";
-        }
-        private async Task CheckLauncherUpdateAsync(string installPath, string serverRootUrl)
-        {
-            string logFile = Path.Combine(installPath, "launcher_update_log.txt");
-
-            void Log(string msg)
-            {
-                try
-                {
-                    File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
-                }
-                catch { /* ignore logging errors */ }
-            }
-
-            try
-            {
-                Log("---- Checking launcher update ----");
-
-                string localLauncherVersionFile = Path.Combine(installPath, "launcher-version.txt");
-                string localLauncherVersion = File.Exists(localLauncherVersionFile)
-                    ? File.ReadAllText(localLauncherVersionFile).Trim()
-                    : "0.0.0";
-
-                // Build server URL for Updater folder
-                if (!serverRootUrl.EndsWith("/")) serverRootUrl += "/";
-                string serverUpdaterUrl = $"{serverRootUrl}Updater/";
-                string serverLauncherVersionUrl = $"{serverUpdaterUrl}launcher-version.txt";
-
-                string serverLauncherVersion;
-                using (var client = new HttpClient())
-                {
-                    try
-                    {
-                        serverLauncherVersion = (await client.GetStringAsync(serverLauncherVersionUrl)).Trim();
-                    }
-                    catch
-                    {
-                        Log($"Server launcher-version.txt not found at {serverLauncherVersionUrl}. Skipping update.");
-                        return;
-                    }
-                }
-
-                Log($"Local version: {localLauncherVersion}, Server version: {serverLauncherVersion}");
-
-                if (localLauncherVersion != serverLauncherVersion)
-                {
-                    string launcherExe = Path.Combine(installPath, "Pos.Launcher.exe");
-
-                    if (!File.Exists(launcherExe))
-                    {
-                        Log("Launcher executable missing. Aborting update.");
-                        return;
-                    }
-
-                    Log("New launcher version detected. Launching silent update...");
-
-                    using (var launcherEvent = new EventWaitHandle(false, EventResetMode.AutoReset, "Pos_LauncherDone"))
-                    {
-                        try
-                        {
-                            Process.Start(new ProcessStartInfo
-                            {
-                                FileName = launcherExe,
-                                UseShellExecute = true,
-                                Verb = "runas",
-                                WindowStyle = ProcessWindowStyle.Hidden,
-                                CreateNoWindow = true
-                            });
-
-                            bool completed = await WaitForEventAsync(launcherEvent, TimeSpan.FromSeconds(10));
-
-                            Log(completed
-                                ? "Launcher update completed successfully."
-                                : "Launcher update timed out after 10 seconds.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Log($"Failed to launch or wait for launcher update: {ex.Message}");
-                        }
-                    }
-                }
-                else
-                {
-                    Log("Launcher already up-to-date.");
-                }
-
-                Log("---- Launcher update check completed ----");
-            }
-            catch (Exception ex)
-            {
-                Log($"Unhandled error during launcher update check: {ex.Message}");
-            }
+            await CheckAndPromptUpdatesAsync(installPath);
         }
 
-        /// <summary>
-        /// Asynchronously waits for a WaitHandle to be signaled.
-        /// </summary>
-        private Task<bool> WaitForEventAsync(WaitHandle handle, TimeSpan timeout)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-
-            var registration = ThreadPool.RegisterWaitForSingleObject(
-                handle,
-                (state, timedOut) => tcs.TrySetResult(!timedOut),
-                null,
-                timeout,
-                executeOnlyOnce: true);
-
-            return tcs.Task.ContinueWith(t =>
-            {
-                registration.Unregister(null);
-                return t.Result;
-            });
-        }
-        private async Task CheckAppUpdateAsync(string installPath, string serverUrl)
+        private async Task CheckAndPromptUpdatesAsync(string installPath)
         {
             string logFile = Path.Combine(installPath, "update-log.txt");
 
@@ -670,56 +538,75 @@ namespace Pos.WinFormsUI.Forms
                     File.AppendAllText(logFile,
                         $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
                 }
-                catch { /* ignore logging issues */ }
+                catch { }
             }
 
+            // ---------------- Load Local Version ----------------
             string localVersionPath = Path.Combine(installPath, "app-version.txt");
-
-            // Read local version
             string localVersion = File.Exists(localVersionPath)
                 ? File.ReadAllText(localVersionPath).Trim()
                 : "0.0.0";
 
             Log($"Local version: {localVersion}");
 
-            string serverVersion;
+            // ---------------- Call API ----------------
+            string apiBase = "http://10.105.200.161/api/Configuration/Configuration/";
+            string versionApi = $"{apiBase}get-update-version";
 
+            string serverVersion;
             try
             {
                 using var client = new HttpClient();
+                Log("Fetching server version from API...");
 
-                // Build version file URL but DO NOT log it
-                string versionUrl = serverUrl.TrimEnd('/') + "/app-version.txt";
+                var response = await client.GetFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(versionApi);
 
-                Log("Fetching server version.");
+                if (response?.Data == null || string.IsNullOrWhiteSpace(response.Data.AppVersion))
+                {
+                    Log("Invalid API response.");
+                    return;
+                }
 
-                serverVersion = (await client.GetStringAsync(versionUrl)).Trim();
-
-                Log($"Server version read successfully.");
+                serverVersion = response.Data.AppVersion.Trim();
+                Log($"Server version: {serverVersion}");
             }
             catch (Exception ex)
             {
-                Log($"Failed to fetch server version: {ex.Message}");
-                MessageBox.Show("Unable to fetch server version file.",
+                Log($"API error: {ex.Message}");
+                MessageBox.Show("Unable to fetch server version from API.",
                                 "Update", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Versions match
-            if (localVersion == serverVersion)
+            // ---------------- Version Compare ----------------
+            try
             {
-                Log("Versions match — no update required.");
-                return;
+                var vLocal = Version.Parse(localVersion);
+                var vServer = Version.Parse(serverVersion);
+
+                if (vLocal >= vServer)
+                {
+                    Log("No update required.");
+                    return;
+                }
+            }
+            catch
+            {
+                if (localVersion == serverVersion)
+                {
+                    Log("No update required (string compare).");
+                    return;
+                }
             }
 
             Log($"Update available: {localVersion} → {serverVersion}");
 
-            // Ask user
+            // ---------------- Prompt User ----------------
             var prompt = MessageBox.Show(
                 $"A new application update is available.\n\n" +
                 $"Your version: {localVersion}\n" +
                 $"Latest version: {serverVersion}\n\n" +
-                $"Update now?",
+                "Update now?",
                 "Application Update",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
@@ -732,31 +619,58 @@ namespace Pos.WinFormsUI.Forms
 
             Log("User accepted update.");
 
-            // Check updater file
+            // ---------------- Launch Updater ----------------
             string updaterExe = Path.Combine(installPath, "Pos.Updater.exe");
             if (!File.Exists(updaterExe))
             {
-                Log("Updater executable missing!");
+                Log("Updater missing!");
                 MessageBox.Show("Pos.Updater.exe not found.",
                     "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            Log("Launching updater.");
-
-            // Launch updater
-            var psi = new ProcessStartInfo
+            try
             {
-                FileName = updaterExe,
-                UseShellExecute = true,
-                Verb = "runas",
-                WindowStyle = ProcessWindowStyle.Normal
-            };
+                Log("Launching updater...");
 
-            Process.Start(psi);
+                var psi = new ProcessStartInfo
+                {
+                    FileName = updaterExe,
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    WindowStyle = ProcessWindowStyle.Normal
+                };
 
-            Log("Updater launched successfully.");
+                Process.Start(psi);
+                Log("Updater launched.");
+
+                System.Windows.Forms.Application.Exit();
+
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to launch updater: {ex.Message}");
+                MessageBox.Show($"Failed to start updater: {ex.Message}",
+                    "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
+        #endregion
+
+        // ------------------- DTOs -------------------
+        public class ConfigurationResponseDto
+        {
+            public string AppVersion { get; set; } = string.Empty;
+        }
+
+        public class ApiResponse<T>
+        {
+            public string StatusCode { get; set; } = string.Empty;
+            public string Message { get; set; } = string.Empty;
+            public T Data { get; set; } = default!;
+            public string Errors { get; set; } = string.Empty;
+        }
+
 
     }
 }
