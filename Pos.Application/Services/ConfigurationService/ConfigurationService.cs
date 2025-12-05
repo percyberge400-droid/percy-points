@@ -14,6 +14,7 @@ namespace Pos.Application.Services.ConfigurationService
         private readonly IConfigurationRepository _configurationRepository;
         private readonly ICloudLogService _cloudLogService;
 
+
         public ConfigurationService(
             IConfigurationRepository configurationRepository,
             ICloudLogService cloudLogService)
@@ -40,23 +41,17 @@ namespace Pos.Application.Services.ConfigurationService
             }
         }
 
-        public async Task<ApiResponse<ConfigurationResponseDto>> GetUpdateVersion()
+        public async Task<ApiResponse<ConfigurationResponseDto>> GetUpdateVersion(string wwwrootPath)
         {
             try
             {
-                // Get absolute wwwroot path (project folder + wwwroot)
-                string projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
-                string wwwrootPath = Path.Combine(projectRoot, "Pos.Cloud.Api", "wwwroot", "Configurations");
-
                 if (!Directory.Exists(wwwrootPath))
-                {
                     return new ApiResponse<ConfigurationResponseDto>(
                         ApiStatusCode.Error,
                         "wwwroot folder not found",
                         null,
                         $"Expected wwwroot path: {wwwrootPath}"
                     );
-                }
 
                 // Helper function to read files safely
                 async Task<string> ReadVersionFileAsync(string fileName)
@@ -73,7 +68,6 @@ namespace Pos.Application.Services.ConfigurationService
 
                 var configuration = new ConfigurationResponseDto
                 {
-                    LauncherVersion = null!,
                     AppVersion = appVersion
                 };
 
@@ -92,29 +86,28 @@ namespace Pos.Application.Services.ConfigurationService
                     "Failed while reading version files.");
             }
         }
-        public async Task<(string base64, string fileName)> GetZipFileAsync()
+
+        public async Task<ApiResponse<ConfigurationZipFileResponseDto>> GetZipFileAsync(string wwwrootPath)
         {
-            string fileName = FileName.UpdaterZipFile;
-
-            // Build project root path (your existing logic)
-            string projectRoot = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..")
-            );
-
-            // Final file path
-            string filePath = Path.Combine(projectRoot, "Pos.Api", "wwwroot", fileName);
-
+            string filePath = wwwrootPath + "/" + FileName.UpdaterZipFile;
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("Zip file not found", filePath);
-
+                return new ApiResponse<ConfigurationZipFileResponseDto>(
+                    ApiStatusCode.Error,
+                    string.Empty,
+                    null,
+                    "Zip file not found"
+                );
             // Read file bytes
             byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
 
             // Convert to Base64
             string base64String = Convert.ToBase64String(fileBytes);
-
-            return (base64String, fileName);
+            return new ApiResponse<ConfigurationZipFileResponseDto>(
+                ApiStatusCode.Success,
+                ResponseMessages.RecordFound,
+                new ConfigurationZipFileResponseDto() { FileName = FileName.UpdaterZipFile, Base64File = base64String },
+                string.Empty
+            );
         }
-
     }
 }

@@ -1,20 +1,16 @@
-﻿using Pos.Application.AutoMapperProfile;
+﻿using System.Reflection;
+using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using Pos.SecurityEncryption;
-using System.Reflection;
 
-var apiBasePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    ContentRootPath = apiBasePath
-});
+var builder = WebApplication.CreateBuilder(args); // <-- Use default content root
 
 // --------------------------
 // Load original JSON settings
 // --------------------------
+var apiBasePath = builder.Environment.ContentRootPath;
+
 var originalConfig = new ConfigurationBuilder()
     .SetBasePath(apiBasePath)
     .AddJsonFile("cloud.appsettings.json", optional: false, reloadOnChange: true)
@@ -56,14 +52,6 @@ builder.Services.AddEndpointsApiExplorer();
 //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "POS Cloud API", Version = "2.0" });
 //});
 
-// --------------------------
-// Configure Kestrel
-// --------------------------
-builder.WebHost.ConfigureKestrel((context, options) =>
-{
-    options.Configure(context.Configuration.GetSection("Kestrel"));
-});
-
 // Build App
 var app = builder.Build();
 
@@ -80,7 +68,6 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-
 // ----------------------------------------------------
 // 🔍 DEBUG BLOCK — Detect missing assemblies / bad types
 // ----------------------------------------------------
@@ -94,20 +81,15 @@ catch (ReflectionTypeLoadException ex)
     Console.WriteLine("Types that failed to load:");
 
     foreach (var t in ex.Types)
-    {
         Console.WriteLine(t != null ? $"Loaded: {t.FullName}" : "Loaded: null");
-    }
 
     Console.WriteLine("\nLoader Exceptions:");
     foreach (var loaderEx in ex.LoaderExceptions)
-    {
         Console.WriteLine(loaderEx.ToString());
-    }
 
     Console.WriteLine("==========================================================");
     throw;
 }
-
 
 // ----------------------------------------------------
 // Map Controllers (Now Wrapped to Catch Failing Types)
@@ -121,20 +103,15 @@ catch (ReflectionTypeLoadException ex)
     Console.WriteLine("========== Controller Load Error ==========");
 
     foreach (var t in ex.Types)
-    {
         Console.WriteLine(t != null ? $"Loaded: {t.FullName}" : "Loaded: null");
-    }
 
     Console.WriteLine("\nLoader Exceptions:");
     foreach (var loaderEx in ex.LoaderExceptions)
-    {
         Console.WriteLine(loaderEx.ToString());
-    }
 
     Console.WriteLine("=============================================");
     throw;
 }
-
 
 // Run application
 app.Run();
