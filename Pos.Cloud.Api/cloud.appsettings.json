@@ -22,6 +22,5 @@
   },
   "Validation": {
     "Enabled": false
-  },
-  "WorkerConfigPath": "D:\\Project\\POS_2.0\\POSPRA.Worker\\appsettings.worker.json"
+  }
 }

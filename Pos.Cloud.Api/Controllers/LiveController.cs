@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using pos.Application.Services.ConfigurationService;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.FiscalDtos;
@@ -13,15 +14,32 @@ namespace Pos.Cloud.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
 
-    public class LiveController(ILiveService liveService, IClientService clientService, ICloudLogService cloudLogService) : ControllerBase
+    public class LiveController : ControllerBase
     {
-        private readonly ILiveService _liveService = liveService;
-        private readonly IClientService _clientService = clientService;
-        private readonly ICloudLogService _cloudLogService = cloudLogService;
+        private readonly ILiveService _liveService;
+        private readonly IClientService _clientService;
+        private readonly ICloudLogService _cloudLogService;
+        private readonly string _wwwrootPath;
+        private readonly IWebHostEnvironment _env;
+        private readonly IConfigurationService _configurationService;
+
+        public LiveController(ILiveService liveService,
+            IClientService clientService,
+            ICloudLogService cloudLogService,
+            IWebHostEnvironment env,
+            IConfigurationService configurationService)
+        {
+            _liveService = liveService;
+            _clientService = clientService;
+            _cloudLogService = cloudLogService;
+            _env = env;
+            _wwwrootPath = Path.Combine(_env.WebRootPath, "Configurations");
+            _configurationService = configurationService;
+        }
 
         [HttpPost("decrypt-save")]
         public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment) =>
-            Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment));
+        Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment));
 
         [HttpPost("export-csv")]
         public async Task<ActionResult<ApiResponse<string>>> GetInvoicesCsv(InvoiceFilterDto dto, string environment)
@@ -53,5 +71,17 @@ namespace Pos.Cloud.Api.Controllers
         [HttpGet("disbale-log-bit")]
         public async Task<ActionResult<ApiResponse<string>>> DisablePosCLientLogBit(long posId, string env) =>
             Ok(await _clientService.DisablePosCLientLogBit(env, posId));
+
+        [HttpGet("get-update-version")]
+        public async Task<IActionResult> getUpdateVersion()
+        {
+            return Ok(await _configurationService.GetUpdateVersion(_wwwrootPath));
+        }
+
+        [HttpGet("get-updater-file")]
+        public async Task<IActionResult> getUpdaterFile()
+        {
+            return Ok(await _configurationService.GetZipFileAsync(_wwwrootPath));
+        }
     }
 }
