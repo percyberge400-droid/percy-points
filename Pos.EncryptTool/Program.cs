@@ -1,6 +1,6 @@
-﻿using System.Text.Json;
+﻿using Pos.SecurityEncryption; // Your AES helper
+using System.Text.Json;
 using System.Xml.Linq;
-using Pos.SecurityEncryption; // Your AES helper
 
 namespace EncryptTool
 {
@@ -270,19 +270,19 @@ namespace EncryptTool
 
                 // Output files (encrypted versions in their respective projects)
                 string output_appsettings = Path.Combine(baseProjectPath, @"Pos.Local.Api\appsettings.json");
-                string output_worker = Path.Combine(baseProjectPath, @"POSPRA.Worker\appsettings.worker.json");
+                string output_worker = Path.Combine(baseProjectPath, @"Pos.Worker\appsettings.worker.json");
                 string output_cloud = Path.Combine(baseProjectPath, @"Pos.Cloud.Api\cloud.appsettings.json");
-                string output_sapp = Path.Combine(baseProjectPath, @"POSPRA.SetupUI\App.config");
-                string output_wapp = Path.Combine(baseProjectPath, @"POSPRA-WinFormsUI\App.config");
+                string output_sapp = Path.Combine(baseProjectPath, @"Pos.SetupUI\App.config");
+                string output_wapp = Path.Combine(baseProjectPath, @"Pos.WinFormsUI\App.config");
 
                 // Map paths for cleaner loop
                 var pairs = new List<(string input, string output, string displayName)>
                 {
                     (input_appsettings, output_appsettings, "Pos.Local.Api/appsettings.json"),
-                    (input_worker, output_worker, "POSPRA.Worker/appsettings.worker.json"),
+                    (input_worker, output_worker, "Pos.Worker/appsettings.worker.json"),
                     (input_cloud, output_cloud, "Pos.Cloud.Api/cloud.appsettings.json"),
-                    (input_sapp, output_sapp, "POSPRA.SetupUI/App.config"),
-                    (input_wapp, output_wapp, "POSPRA-WinFormsUI/App.config")
+                    (input_sapp, output_sapp, "Pos.SetupUI/App.config"),
+                    (input_wapp, output_wapp, "Pos.WinFormsUI/App.config")
                 };
 
                 int successCount = 0;
