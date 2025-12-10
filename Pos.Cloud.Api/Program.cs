@@ -1,10 +1,10 @@
-﻿using System.Reflection;
+﻿using Microsoft.OpenApi.Models;
 using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using Pos.SecurityEncryption;
 
-var builder = WebApplication.CreateBuilder(args); // <-- Use default content root
+var builder = WebApplication.CreateBuilder(args);
 
 // --------------------------
 // Load original JSON settings
@@ -47,71 +47,40 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>());
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen(c =>
-//{
-//    c.SwaggerDoc("v1", new OpenApiInfo { Title = "POS Cloud API", Version = "2.0" });
-//});
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "POS Cloud API",
+        Version = "2.0",
+        Description = "POS Cloud API Swagger Documentation"
+    });
+});
 
+// --------------------------
 // Build App
+// --------------------------
 var app = builder.Build();
 
 // --------------------------
 // Middleware
 // --------------------------
-//app.UseSwagger();
-//app.UseSwaggerUI(c =>
-//{
-//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "POS API v1");
-//    c.RoutePrefix = string.Empty;
-//});
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "POS API v1");
+    c.RoutePrefix = string.Empty; // Swagger UI opens at root URL
+});
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-// ----------------------------------------------------
-// 🔍 DEBUG BLOCK — Detect missing assemblies / bad types
-// ----------------------------------------------------
-try
-{
-    var allTypes = Assembly.GetExecutingAssembly().GetTypes();
-}
-catch (ReflectionTypeLoadException ex)
-{
-    Console.WriteLine("========== ReflectionTypeLoadException Detected ==========");
-    Console.WriteLine("Types that failed to load:");
+// --------------------------
+// Map Controllers
+// --------------------------
+app.MapControllers();
 
-    foreach (var t in ex.Types)
-        Console.WriteLine(t != null ? $"Loaded: {t.FullName}" : "Loaded: null");
-
-    Console.WriteLine("\nLoader Exceptions:");
-    foreach (var loaderEx in ex.LoaderExceptions)
-        Console.WriteLine(loaderEx.ToString());
-
-    Console.WriteLine("==========================================================");
-    throw;
-}
-
-// ----------------------------------------------------
-// Map Controllers (Now Wrapped to Catch Failing Types)
-// ----------------------------------------------------
-try
-{
-    app.MapControllers();
-}
-catch (ReflectionTypeLoadException ex)
-{
-    Console.WriteLine("========== Controller Load Error ==========");
-
-    foreach (var t in ex.Types)
-        Console.WriteLine(t != null ? $"Loaded: {t.FullName}" : "Loaded: null");
-
-    Console.WriteLine("\nLoader Exceptions:");
-    foreach (var loaderEx in ex.LoaderExceptions)
-        Console.WriteLine(loaderEx.ToString());
-
-    Console.WriteLine("=============================================");
-    throw;
-}
-
-// Run application
+// --------------------------
+// Run Application
+// --------------------------
 app.Run();
