@@ -35,13 +35,6 @@
     "ProductionConnection": "Server=10.104.32.95,32395;Database=IMSDB;User Id=dev_user;Password=Dev123;Min Pool Size=20;Max Pool Size=5000;TrustServerCertificate=True;",
     "SandboxConnection": "Server=10.104.32.95,32395;Database=IMSDB_TEST;User Id=dev_user;Password=Dev123;Min Pool Size=20;Max Pool Size=5000;TrustServerCertificate=True;"
   },
-  "Kestrel": {
-    "Endpoints": {
-      "Http": {
-        "Url": "http://localhost:8524"
-      }
-    }
-  },
   "ValidationMiddleware": {
     "BypassUrls": [
       "/health",
@@ -51,6 +44,5 @@
   },
   "Validation": {
     "Enabled": false
-  },
-  "WorkerConfigPath": "D:\\Project\\POS_2.0\\POSPRA.Worker\\appsettings.worker.json"
+  }
 }
