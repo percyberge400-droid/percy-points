@@ -18,7 +18,6 @@ using System.Data;
 using System.Drawing.Drawing2D;
 using System.Net.Http.Json;
 using System.Text;
-using System.Windows.Forms;
 namespace Pos.WinFormsUI.Forms
 {
     public partial class DashboardForm : Form
@@ -834,7 +833,7 @@ namespace Pos.WinFormsUI.Forms
             if (_autoRefreshEnabled)
             {
                 _autoRefreshTimer.Start();
-                    WindowsLocalAppNotification.Show("Auto-Refresh", "Auto-refresh enabled (30 seconds)");
+                WindowsLocalAppNotification.Show("Auto-Refresh", "Auto-refresh enabled (30 seconds)");
             }
             else
             {
@@ -1057,19 +1056,10 @@ namespace Pos.WinFormsUI.Forms
 
         private void DtpStartDate_ValueChanged(object sender, EventArgs e)
         {
-            // Prevent selecting a start date after the end date
+            // If start date is after end date, automatically adjust end date to match
             if (dtpStartDate.Value > dtpEndDate.Value)
             {
-                MessageBox.Show(
-                    "Start date cannot be after the end date.",
-                    "Invalid Date Range",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-
-                // Reset to the previous valid value
-                dtpStartDate.Value = _startDate;
-                return;
+                dtpEndDate.Value = dtpStartDate.Value;
             }
 
             _startDate = dtpStartDate.Value.Date;
@@ -1078,19 +1068,10 @@ namespace Pos.WinFormsUI.Forms
 
         private void DtpEndDate_ValueChanged(object sender, EventArgs e)
         {
-            // Prevent selecting an end date before the start date
+            // If end date is before start date, automatically adjust start date to match
             if (dtpEndDate.Value < dtpStartDate.Value)
             {
-                MessageBox.Show(
-                    "End date cannot be before the start date.",
-                    "Invalid Date Range",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-
-                // Reset to the previous valid value
-                dtpEndDate.Value = _endDate;
-                return;
+                dtpStartDate.Value = dtpEndDate.Value;
             }
 
             // Optional: Prevent selecting future dates
@@ -1238,6 +1219,17 @@ namespace Pos.WinFormsUI.Forms
                     AlertManager.ShowWarning("No invoices found.");
                     lblLastSync.Text = "Last Sync: N/A";
                     UpdateInvoicePageInfo(1, 1);
+
+                    // ✅ ADD THIS: Update panel labels to show zeros
+                    labelAllInvoices.Text = "0";
+                    labelPendingInvoice.Text = "0";
+                    labelPaidInvoices.Text = "0";
+                    _pendingCount = 0;
+                    _syncedCount = 0;
+
+                    // ✅ ADD THIS: Redraw pie chart with zeros
+                    DrawInvoicePieChart(panelinvoicechart, 0, 0);
+
                     return;
                 }
 
@@ -1304,6 +1296,14 @@ namespace Pos.WinFormsUI.Forms
                 AlertManager.ShowError($"Error loading invoices: {ex.Message}");
                 lblLastSync.Text = "Last Sync: Error";
                 lblLastSync.ForeColor = Color.FromArgb(220, 38, 38);
+
+                // ✅ ADD THIS: Also update to zeros on error
+                labelAllInvoices.Text = "0";
+                labelPendingInvoice.Text = "0";
+                labelPaidInvoices.Text = "0";
+                _pendingCount = 0;
+                _syncedCount = 0;
+                DrawInvoicePieChart(panelinvoicechart, 0, 0);
             }
         }
         private async Task LoadAndShowLogsAsync(

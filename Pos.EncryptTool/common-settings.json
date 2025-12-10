@@ -2,6 +2,7 @@
   "AppSettings": {
     "DefaultDBPassword": "Pral@123",
     "Environment": "Sandbox",
-    "BaseUrl": "http://10.100.224.191:8280/prapos/v1/"
+    "BaseUrl": "http://10.100.224.191:8280/prapos/v1/",
+    "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db"
   }
 }
