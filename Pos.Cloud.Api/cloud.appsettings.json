@@ -1,0 +1,26 @@
+{
+  "AppSettings": {
+    "EncryptedSettings": "XI2ZfKC5gZzL77cQMCqGKsuezstbXQ+i4+iRLVBD7dzfUouclapEp9z4AXA5cHzpCK4I77YIl1tro41ZohCJnAa8Qu4qDndo8a4AlXkz8gkgTrO/iJoaYGYakHla3O3GUYmGgvkOpFjWv+VZ8cQlAXSQoY0O4PcThs/ea6gXPAg50o8xw7An1lJs3gqbsP6AUUjN0Sg4x+aQhaX4dbSXcm7DYErLcMqR+tKyG5ObTwtm+qSBg4QBEF4EQqDJMtjlKu49BNUN/8QgsFgbwnRj+0Z2bvT9Bz2MdgayMMMr2aA3dgO1bxmdIACRKZsYaFYK4PISqlA534Hdm2q9FSCSZUviVOIk7ZJGtqPh9fjXlwEof68QYFxbkS0GGosIDL9DmxYmk/HGzyczAvaXAR8Lmw75AprfU2c7XBL8r3HdCC4W/6q/WMBFSzep/r9NUl+309AZmz8vLp+Ni5Y5gKWiuqICRHk7NKCkfVtFQqns0lFCJj+71C89Cdq6bpXQXPEvrneVtUq53pXh4eZUhQ1AL0ldegZB7Y9R5d5+speS/ZLYK7QNWBPqSy3LgztqrZM1CpZVgPQs0cost2LA/9izwLQUU3ByBe/KMOrejY9RxKhwKRVSKhmNPJ4eBbdAqGoi"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "ProductionConnection": "Server=10.104.32.95,32395;Database=IMSDB;User Id=dev_user;Password=Dev123;Min Pool Size=20;Max Pool Size=5000;TrustServerCertificate=True;",
+    "SandboxConnection": "Server=10.104.32.95,32395;Database=IMSDB_TEST;User Id=dev_user;Password=Dev123;Min Pool Size=20;Max Pool Size=5000;TrustServerCertificate=True;"
+  },
+  "ValidationMiddleware": {
+    "BypassUrls": [
+      "/health",
+      "/swagger",
+      "/api/public/login"
+    ]
+  },
+  "Validation": {
+    "Enabled": false
+  }
+}

@@ -148,7 +148,7 @@ namespace Pos.Application.Services.FileRecordService
             if (fileRecordDtos.Any())
                 return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, fileRecordDtos, string.Empty);
 
-            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.NotFound, ResponseMessages.DataNotFound, null, string.Empty);
+            return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.NotFound, ResponseMessages.UnsyncedDataNotFound, null, string.Empty);
         }
 
         public async Task<ApiResponse<FileRecordDto>> GetByInvoiceIdAsync(int invoiceId)

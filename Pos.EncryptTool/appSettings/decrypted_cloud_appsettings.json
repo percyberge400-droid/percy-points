@@ -1,0 +1,42 @@
+{
+  "AppSettings": {
+    "LogInterval": 1,
+    "RecordInterval": 1,
+    "HeartbeatInterval": 20,
+    "RecordSyncLimit": 100,
+    "LogSyncLimit": 100,
+    "Version": "2.1.0.0",
+    "EC": "36b8dd382b014af3e053ecf1322f6db2",
+    "POS": 128762,
+    "FolderPath": "D:\\DI_POS\\",
+    "LICENSEKEY": "41F5-C57C-5431-A3FE-B91B-2858-D838-315E",
+    "GatewayURL": "https://ims.fbr.gov.pk:443/SandBox/",
+    "Token": "8d2fb2e2-c205-3eb2-ae1b-b4bdb8707b7e",
+    "IMSServicePath": "C:\\Program Files (x86)\\PRAL\\FiscalSoftware\\",
+    "IMSUpdateInterval": 60,
+    "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db",
+    "DefaultDBPassword": "Pral@123",
+    "Environment": "Sandbox"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "ProductionConnection": "Server=10.104.32.95,32395;Database=IMSDB;User Id=dev_user;Password=Dev123;Min Pool Size=20;Max Pool Size=5000;TrustServerCertificate=True;",
+    "SandboxConnection": "Server=10.104.32.95,32395;Database=IMSDB_TEST;User Id=dev_user;Password=Dev123;Min Pool Size=20;Max Pool Size=5000;TrustServerCertificate=True;"
+  },
+  "ValidationMiddleware": {
+    "BypassUrls": [
+      "/health",
+      "/swagger",
+      "/api/public/login"
+    ]
+  },
+  "Validation": {
+    "Enabled": false
+  }
+}

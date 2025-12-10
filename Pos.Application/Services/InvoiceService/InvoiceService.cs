@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Pos.Application.AutoMapperProfile;
@@ -17,8 +19,6 @@ using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
 using POSPRA.Application.Services.FiscalService;
-using System.Text;
-using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Pos.Application.Services.InvoiceService
@@ -27,7 +27,6 @@ namespace Pos.Application.Services.InvoiceService
     {
         public readonly IMapper _mapper;
         private readonly IRepository<FileRecord> _sqlFileRecordRepository;
-        private readonly IRepository<Invoice> _sqlinvoiceRepository;
 
 
         private readonly AppSettings _settings;
@@ -39,7 +38,6 @@ namespace Pos.Application.Services.InvoiceService
         private readonly AESEncryption _aESEncryption;
         public InvoiceService(IMapper mapper,
             ISqliteRepositoryFactory sqliteRepositoryFactory,
-            ISqlServerRepositoryFactory sqlServerRepositoryFactory,
             IOptions<AppSettings> options,
             InvoiceValidatorService invoiceValidatorService,
             INetworkService networkService,
@@ -49,7 +47,6 @@ namespace Pos.Application.Services.InvoiceService
             AESEncryption aESEncryption)
         {
             _sqlFileRecordRepository = sqliteRepositoryFactory.CreateRepository<FileRecord>();
-            _sqlinvoiceRepository = sqlServerRepositoryFactory.CreateRepository<Invoice>();
             _mapper = mapper;
             _settings = options.Value;
             _invoiceValidatorService = invoiceValidatorService;
@@ -323,7 +320,7 @@ namespace Pos.Application.Services.InvoiceService
                     InvoiceNumber = "Not Available",
                     Code = "402",
                     Response = "Fiscal invoice creation failed.",
-                    Errors = ResponseMessages.UnknownError 
+                    Errors = ResponseMessages.UnknownError
                 };
             }
 
@@ -333,10 +330,6 @@ namespace Pos.Application.Services.InvoiceService
                     _logService.BuildLog(message, AlertType.Exception, "Invoice", nameof(CreateAsync)));
         }
 
-        private async Task<bool> isCloudInvoiceExists(string invoiceNumber)
-        {
-            return await _sqlinvoiceRepository.ExistsAsync(x => x.FBRInvoiceNumber == invoiceNumber);
-        }
         /// <summary>
         /// Generates a fiscal invoice by serializing, signing, and encrypting
         /// the invoice data. It then inserts the encrypted invoice into the database.

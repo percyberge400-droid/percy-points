@@ -3,7 +3,7 @@ using Pos.Application.DTOs.LogDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Domain.Entities;
-using POSPRA.DTOs.LogDTOs;
+using Pos.DTOs.LogDTOs;
 
 namespace Pos.Application.Services.LogService
 {
