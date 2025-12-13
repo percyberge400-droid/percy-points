@@ -21,30 +21,42 @@ namespace Pos.Infrastructure.Persistence.Repositories
         public async Task<PosClients> GetByMacAsync(ClientValidationDto dto)
         {
             var context = await SetEnvironmentAsync(dto.Environment);
-            //var entity = await context!.PosClients.FirstOrDefaultAsync(x => x.POSRegistrationNumber == dto.PosId);
-            //return entity!;
 
-            var entity = await (from c in context!.PosClients
-                                join b in context.POSBranches
-                                    on c.POSBranchID equals b.POSBranchID
-                                join m in context.POSMASTER
-                                    on b.POSMASTERID equals m.POSMASTERID
-                                join pc in context.POSContact
-                                    on m.POSMASTERID equals pc.POSMASTERID
-                                where c.POSRegistrationNumber == dto.PosId && c.Province_Id == 2
-                                //&& c.Province_Id == m.Province_Id
-                                select new
-                                {
-                                    Client = c,
-                                    BrandName = m.BrandName,
-                                    PhoneNumber = pc.LandLine,
-                                    NTN = m.NTN
-                                }).FirstOrDefaultAsync();
+            var baseQuery = context.PosClients
+                            .Where(c => c.POSRegistrationNumber == dto.PosId && c.IsActive==true);
+
+            var entity = dto.Environment == "Sandbox"
+                                                      ? await baseQuery
+                                                          .Select(c => new
+                                                          {
+                                                              Client = c,
+                                                              BrandName = (string?)null,
+                                                              PhoneNumber = "0000000000",
+                                                              NTN = c.NTN
+                                                          })
+                                                          .FirstOrDefaultAsync()
+                                                      : await (
+                                                          from c in baseQuery
+                                                          join b in context.POSBranches
+                                                              on c.POSBranchID equals b.POSBranchID
+                                                          join m in context.POSMASTER
+                                                              on b.POSMASTERID equals m.POSMASTERID
+                                                          join pc in context.POSContact
+                                                              on m.POSMASTERID equals pc.POSMASTERID
+                                                          where c.IsActive==true && c.Province_Id == 2
+                                                          select new
+                                                          {
+                                                              Client = c,
+                                                              BrandName = m.BrandName,
+                                                              PhoneNumber = pc.LandLine,
+                                                              NTN = m.NTN
+                                                          })
+                                                          .FirstOrDefaultAsync();
 
             if (entity == null)
                 return null!;
 
-            entity.Client.BusinessName = entity.BrandName;
+            entity.Client.BusinessName = entity.BrandName ?? entity.Client.BusinessName;
             entity.Client.PhoneNumber = entity.PhoneNumber;
             entity.Client.NTN = entity.NTN;
 
