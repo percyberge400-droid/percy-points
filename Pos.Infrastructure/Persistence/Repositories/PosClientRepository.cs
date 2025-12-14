@@ -89,26 +89,29 @@ namespace Pos.Infrastructure.Persistence.Repositories
                 {
                     var defaultConfiguration = await context.POSConfigurations.FirstOrDefaultAsync(x => x.IsActive == true);
 
-                    POSConfigurations pOSConfiguration = new()
+                    if (defaultConfiguration != null)
                     {
-                        POSID = dto.PosId,
-                        DateCreated = DateTime.Now,
-                        FilePath = defaultConfiguration is not null ? defaultConfiguration.FilePath : "",
-                        FileSize = defaultConfiguration is not null ? defaultConfiguration.FileSize : 0,
-                        GatewayURL = defaultConfiguration is not null ? defaultConfiguration.GatewayURL : "",
-                        HeartbeatInterval = defaultConfiguration is not null ? defaultConfiguration.HeartbeatInterval : 0,
-                        IMSUpdateInterval = defaultConfiguration is not null ? defaultConfiguration.IMSUpdateInterval : 0,
-                        IsActive = true,
-                        IsCloudSyncEnabled = true,
-                        LogInterval = defaultConfiguration is not null ? defaultConfiguration.LogInterval : 0,
-                        LogSyncLimit = defaultConfiguration is not null ? defaultConfiguration.LogSyncLimit : 0,
-                        RecordInterval = defaultConfiguration is not null ? defaultConfiguration.RecordInterval : 0,
-                        RecordSyncLimit = defaultConfiguration is not null ? defaultConfiguration.RecordSyncLimit : 0,
-                        Token = defaultConfiguration is not null ? defaultConfiguration.Token : "",
-                        Version = defaultConfiguration is not null ? defaultConfiguration.Version : ""
-                    };
+                        POSConfigurations pOSConfiguration = new()
+                        {
+                            POSID = dto.PosId,
+                            DateCreated = DateTime.Now,
+                            FilePath = defaultConfiguration is not null ? defaultConfiguration.FilePath : "",
+                            FileSize = defaultConfiguration is not null ? defaultConfiguration.FileSize : 0,
+                            GatewayURL = defaultConfiguration is not null ? defaultConfiguration.GatewayURL : "",
+                            HeartbeatInterval = defaultConfiguration is not null ? defaultConfiguration.HeartbeatInterval : 0,
+                            IMSUpdateInterval = defaultConfiguration is not null ? defaultConfiguration.IMSUpdateInterval : 0,
+                            IsActive = true,
+                            IsCloudSyncEnabled = true,
+                            LogInterval = defaultConfiguration is not null ? defaultConfiguration.LogInterval : 0,
+                            LogSyncLimit = defaultConfiguration is not null ? defaultConfiguration.LogSyncLimit : 0,
+                            RecordInterval = defaultConfiguration is not null ? defaultConfiguration.RecordInterval : 0,
+                            RecordSyncLimit = defaultConfiguration is not null ? defaultConfiguration.RecordSyncLimit : 0,
+                            Token = defaultConfiguration is not null ? defaultConfiguration.Token : "",
+                            Version = defaultConfiguration is not null ? defaultConfiguration.Version : ""
+                        };
 
-                    await context.POSConfigurations.AddAsync(pOSConfiguration);
+                        await context.POSConfigurations.AddAsync(pOSConfiguration);
+                    }
                 }
                 await context.SaveChangesAsync();
 

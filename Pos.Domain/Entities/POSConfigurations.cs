@@ -15,8 +15,8 @@ namespace Pos.Domain.Entities
         public string? GatewayURL { get; set; }
         public string? FilePath { get; set; }
         public string? Version { get; set; }
-        public bool IsActive { get; set; }
-        public bool IsCloudSyncEnabled { get; set; }
+        public bool? IsActive { get; set; }
+        public bool? IsCloudSyncEnabled { get; set; }
         public DateTime? DateCreated { get; set; }
         public long? POSID { get; set; }
         public int? FileSize { get; set; }
