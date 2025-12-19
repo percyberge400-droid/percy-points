@@ -117,6 +117,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_EDD012AD4FA548BDAD404407E794E2B6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_F696AA6D50DA400689D378A8A2ABCB80"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -145,6 +151,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -161,6 +175,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -195,6 +225,20 @@
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
             }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_2461A60E37AD4D81B209BBCFA9FB8B5C"
+            {
+            "Name" = "8:Publish Items from Pos.SetupUI (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_578F41B398FD46BF8217042D71BDE3B5"
+            "FileType" = "3:2"
+            "InstallAction" = "3:1"
+            "Arguments" = "8:/Install"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:2"
+            "Identifier" = "8:_196104EF_ADAF_41C1_ABBF_B55CCFD873A2"
+            "InstallerClass" = "11:FALSE"
+            "CustomActionData" = "8:"
+            }
             "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_3EC86CE422BF4920BA89A19B8CF0BB4D"
             {
             "Name" = "8:Publish Items from Pos.BATTO_EXE (Active)"
@@ -209,19 +253,20 @@
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
             }
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_6E0079B2C31E4B34BFC1EEB16B99CA79"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_9AA51E7C2B964639B8B6BF02E4C41C3A"
             {
-            "Name" = "8:Publish Items from Pos.SetupUI (Active)"
+            "Name" = "8:Publish Items from Pos.Configuration (Active)"
             "Condition" = "8:"
-            "Object" = "8:_578F41B398FD46BF8217042D71BDE3B5"
+            "Object" = "8:_EDD012AD4FA548BDAD404407E794E2B6"
             "FileType" = "3:2"
             "InstallAction" = "3:1"
-            "Arguments" = "8:/Install"
+            "Arguments" = "8:[TARGETDIR]"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
-            "Identifier" = "8:_196104EF_ADAF_41C1_ABBF_B55CCFD873A2"
+            "Identifier" = "8:_AEEAC1BF_D5B3_4B5E_9F8F_5FE0A5B145B9"
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
+            "Run64Bit" = "11:TRUE"
             }
         }
         "DefaultFeature"
@@ -505,7 +550,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:POS Component"
         "ProductCode" = "8:{FAC3FB8B-9CC1-4BCD-83AA-89892903886F}"
-        "PackageCode" = "8:{F42CE0A8-9349-41BA-9E58-2FBA634476ED}"
+        "PackageCode" = "8:{2C01EDD1-3F09-49C8-BF30-A43268A07BDF}"
         "UpgradeCode" = "8:{E7603FBC-2271-462A-A954-FD70FDBE0AA0}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1040,7 +1085,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_079E3EA098734DD6A628A6F3009D0848"
             {
-            "SourcePath" = "8:..\\Pos.Cloud.Api\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Cloud.Api\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1096,7 +1141,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_18875D15E06A49F5A048199D7AA93C09"
             {
-            "SourcePath" = "8:..\\Pos.EncryptTool\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.EncryptTool\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1124,7 +1169,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_31D90580A0E14F4C889CF0BAC64F2E2B"
             {
-            "SourcePath" = "8:..\\Pos.Launcher\\obj\\Debug\\net9.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Launcher\\obj\\Release\\net9.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1208,7 +1253,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_578F41B398FD46BF8217042D71BDE3B5"
             {
-            "SourcePath" = "8:..\\Pos.SetupUI\\obj\\Debug\\net9.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.SetupUI\\obj\\Release\\net9.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1236,7 +1281,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_656F555897584DD79DA41E004A6CB049"
             {
-            "SourcePath" = "8:..\\Pos.Worker\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Worker\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1292,7 +1337,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AD427736CBC743878EA5CB8EFD6500EA"
             {
-            "SourcePath" = "8:..\\Pos.Updater\\obj\\Debug\\net9.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Updater\\obj\\Release\\net9.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1320,7 +1365,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_BA2EB813E81241ED97A091FE5CF46C8B"
             {
-            "SourcePath" = "8:..\\Pos.WinFormsUI\\obj\\Debug\\net9.0-windows10.0.17763.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.WinFormsUI\\obj\\Release\\net9.0-windows10.0.17763.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1348,7 +1393,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E3254E1EE8224DB8B29C972AAE49CFF7"
             {
-            "SourcePath" = "8:..\\Pos.BATTO_EXE\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.BATTO_EXE\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1374,9 +1419,37 @@
                 {
                 }
             }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_EDD012AD4FA548BDAD404407E794E2B6"
+            {
+            "SourcePath" = "8:..\\Pos.Configuration\\obj\\Release\\net9.0\\apphost.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{3D88E018-67E0-47FA-9879-A786B1515EE0}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F696AA6D50DA400689D378A8A2ABCB80"
             {
-            "SourcePath" = "8:..\\Pos.Local.Api\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Local.Api\\obj\\Release\\net9.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"

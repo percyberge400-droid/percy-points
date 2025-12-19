@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.WinFormsUI", "Pos.WinFo
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Pos.Installer", "Pos.Installer\Pos.Installer.vdproj", "{D13F835F-2062-DDC4-47AA-0B96A7270EF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pos.Configuration", "Pos.Configuration\Pos.Configuration.csproj", "{3D88E018-67E0-47FA-9879-A786B1515EE0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{E738F63B-4D53-59DB-D0FF-85F62A380754}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D13F835F-2062-DDC4-47AA-0B96A7270EF0}.Debug|Any CPU.ActiveCfg = Debug
 		{D13F835F-2062-DDC4-47AA-0B96A7270EF0}.Release|Any CPU.ActiveCfg = Release
+		{3D88E018-67E0-47FA-9879-A786B1515EE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D88E018-67E0-47FA-9879-A786B1515EE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D88E018-67E0-47FA-9879-A786B1515EE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D88E018-67E0-47FA-9879-A786B1515EE0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
