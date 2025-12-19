@@ -550,7 +550,7 @@ namespace Pos.WinFormsUI.Forms
             Log($"Local version: {localVersion}");
 
             // ---------------- Call API ----------------
-            string apiBase = "http://10.105.200.161/api/Configuration/";
+            string apiBase = "http://10.105.200.161/live/Configuration/";
             string versionApi = $"{apiBase}get-update-version";
 
             string serverVersion;

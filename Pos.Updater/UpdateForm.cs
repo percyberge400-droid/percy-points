@@ -28,7 +28,7 @@ namespace Pos.Updater
         };
 
         // Use your actual API base URL here
-        private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
+        private const string ApiBaseUrl = "http://10.105.200.161/live/Configuration/";
         private const string ApiGetVersion = "get-update-version";
         private const string ApiGetUpdaterFile = "get-updater-file";
 
