@@ -46,9 +46,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pos.Application\Pos.Application.csproj" />
+    <ProjectReference Include="..\Pos.BATTO_EXE\Pos.BATTO_EXE.csproj" />
+    <ProjectReference Include="..\Pos.Cloud.Api\Pos.Cloud.Api.csproj" />
+    <ProjectReference Include="..\Pos.Domain\Pos.Domain.csproj" />
+    <ProjectReference Include="..\Pos.Infrastructure\Pos.Infrastructure.csproj" />
     <ProjectReference Include="..\Pos.Local.Api\Pos.Local.Api.csproj" />
     <ProjectReference Include="..\Pos.SecurityEncryption\Pos.SecurityEncryption.csproj" />
     <ProjectReference Include="..\Pos.SetupUI\Pos.SetupUI.csproj" />
+    <ProjectReference Include="..\Pos.Updater\Pos.Updater.csproj" />
+    <ProjectReference Include="..\Pos.Worker\Pos.Worker.csproj" />
 	<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.10" />
   </ItemGroup>
 
