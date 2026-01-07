@@ -23,7 +23,7 @@ namespace Pos.Application.Services.LiveService
         /// An <see cref="ApiResponse{FileRecordDto}"/> indicating whether
         /// the operation succeeded or failed, along with optional details.
         /// </returns>
-        Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dto, string environment);
+        Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dto, string environment, bool isWindows7 = false);
 
         /// <summary>
         /// Retrieves invoices filtered by the specified criteria

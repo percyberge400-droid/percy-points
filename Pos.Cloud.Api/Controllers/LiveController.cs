@@ -38,8 +38,8 @@ namespace Pos.Cloud.Api.Controllers
         }
 
         [HttpPost("decrypt-save")]
-        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment) =>
-        Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment));
+        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment, bool isWindows7 = false) =>
+        Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment, isWindows7));
 
         [HttpPost("export-csv")]
         public async Task<ActionResult<ApiResponse<string>>> GetInvoicesCsv(InvoiceFilterDto dto, string environment)

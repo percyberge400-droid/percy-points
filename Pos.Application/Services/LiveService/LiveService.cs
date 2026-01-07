@@ -52,7 +52,7 @@ namespace Pos.Application.Services.LiveService
             _cloudLogService = cloudLogService;
         }
 
-        public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment)
+        public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment, bool isWindows7 = false)
         {
             if (dtos == null || dtos.Count == 0)
             {
@@ -79,26 +79,31 @@ namespace Pos.Application.Services.LiveService
                 {
                     try
                     {
-
                         if (string.IsNullOrEmpty(item.InvoiceNumber)) continue;
-
                         string decrypted = "";
                         try
                         {
-                            decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
-                            if (string.IsNullOrWhiteSpace(decrypted))
+                            if (isWindows7)
                             {
-                                decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, _appSettings.EC!);
-                                if (string.IsNullOrEmpty(decrypted))
+                                decrypted = await _aESEncryption.DecryptWindows7Async(item.InvoiceData!, _appSettings.EC!);
+                            }
+                            else
+                            {
+                                decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, posClient.E_Key!);
+                                if (string.IsNullOrWhiteSpace(decrypted))
                                 {
-                                    decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
-                                    if (string.IsNullOrWhiteSpace(decrypted))
+                                    decrypted = await _aESEncryption.DecryptAsync(item.InvoiceData!, _appSettings.EC!);
+                                    if (string.IsNullOrEmpty(decrypted))
                                     {
-                                        decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
-                                        if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                                        decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, posClient.E_Key!);
+                                        if (string.IsNullOrWhiteSpace(decrypted))
+                                        {
+                                            decrypted = OldAESEncryption.Decrypt(item.InvoiceData!, _appSettings.EC);
+                                            if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
+                                        }
                                     }
+                                    if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
                                 }
-                                if (string.IsNullOrWhiteSpace(decrypted)) { continue; }
                             }
                         }
                         catch

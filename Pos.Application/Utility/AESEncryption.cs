@@ -99,5 +99,71 @@ namespace Pos.Application.Utility
 
             return Encoding.UTF8.GetString(plaintextBytes);
         }
+
+        /// <summary>
+        /// Decrypts a Base64-encoded string using AES-256-CBC encryption.
+        /// This method is specifically designed for Windows 7 AES encryption format,
+        /// where the IV (Initialization Vector) is prefixed to the cipher bytes.
+        /// </summary>
+        /// <param name="encryptedBase64">The encrypted invoice string in Base64 format.</param>
+        /// <param name="EC">Encryption key string used for decryption.</param>
+        /// <returns>
+        /// Decrypted plaintext string if successful; otherwise, an empty string.
+        /// Any exceptions are logged to the cloud logging service.
+        /// </returns>
+        public async Task<string> DecryptWindows7Async(string encryptedBase64, string EC)
+        {
+            try
+            {
+                // Convert Base64 string to raw byte array
+                byte[] combinedBytes = Convert.FromBase64String(encryptedBase64);
+
+                // Ensure the byte array contains at least the IV (16 bytes)
+                if (combinedBytes.Length < 16)
+                    return string.Empty;
+
+                // Prepare AES key (32 bytes) from EC string
+                byte[] aesKey = Encoding.UTF8.GetBytes(EC.PadRight(32).Substring(0, 32));
+
+                using (var aes = new AesCryptoServiceProvider())
+                {
+                    // AES configuration
+                    aes.KeySize = 256;           // 256-bit key
+                    aes.BlockSize = 128;         // 128-bit block
+                    aes.Mode = CipherMode.CBC;   // CBC mode
+                    aes.Padding = PaddingMode.PKCS7; // PKCS7 padding
+                    aes.Key = aesKey;
+
+                    int ivSize = aes.BlockSize / 8; // IV length = 16 bytes
+
+                    // Split combinedBytes into IV and ciphertext
+                    byte[] iv = new byte[ivSize];
+                    byte[] cipherBytes = new byte[combinedBytes.Length - ivSize];
+
+                    Buffer.BlockCopy(combinedBytes, 0, iv, 0, ivSize);               // First 16 bytes = IV
+                    Buffer.BlockCopy(combinedBytes, ivSize, cipherBytes, 0, cipherBytes.Length); // Remaining bytes = ciphertext
+
+                    aes.IV = iv;
+
+                    // Create decryptor and perform AES decryption
+                    using (var decryptor = aes.CreateDecryptor())
+                    {
+                        byte[] plainBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+                        return Encoding.UTF8.GetString(plainBytes); // Convert decrypted bytes to string
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log any exception to cloud logging service
+                var dto = SyncLogBuilder.Build(AlertType.Exception, ex.Message, posId: 0)
+                    .WithExceptionInfo(ex)
+                    .WithDomainInfo("SecurityEncryption", "Decrypt", null);
+
+                await _cloudLogService.CreateCloudLog(new List<SyncLogDto> { dto }, "Production");
+
+                return string.Empty; // Return empty string on failure
+            }
+        }
     }
 }
