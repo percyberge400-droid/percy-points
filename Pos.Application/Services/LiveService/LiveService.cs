@@ -35,11 +35,8 @@ namespace Pos.Application.Services.LiveService
             IInvoiceRepository invoiceRepository,
             IMapper mapper,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
-            IOptions<AppSettings> options
-            ,
-
-            IPosClientRepository posClientRepository
-,
+            IOptions<AppSettings> options,
+            IPosClientRepository posClientRepository,
             AESEncryption aESEncryption,
             ICloudLogService cloudLogService)
         {
@@ -58,8 +55,7 @@ namespace Pos.Application.Services.LiveService
             {
                 return new ApiResponse<List<FileRecordDto>>(
                     ApiStatusCode.Error.ToString(),
-                    ResponseMessages.DataNotFound,
-                    null);
+                    ResponseMessages.DataNotFound, null);
             }
 
             var options = new JsonSerializerOptions
@@ -85,7 +81,7 @@ namespace Pos.Application.Services.LiveService
                         {
                             if (isWindows7)
                             {
-                                decrypted = await _aESEncryption.DecryptWindows7Async(item.InvoiceData!, _appSettings.EC!);
+                                decrypted = await _aESEncryption.DecryptWindows7Async(item.InvoiceData!, posClient.E_Key!);
                             }
                             else
                             {
