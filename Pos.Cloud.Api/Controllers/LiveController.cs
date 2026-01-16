@@ -71,17 +71,5 @@ namespace Pos.Cloud.Api.Controllers
         [HttpGet("disbale-log-bit")]
         public async Task<ActionResult<ApiResponse<string>>> DisablePosCLientLogBit(long posId, string env) =>
             Ok(await _clientService.DisablePosCLientLogBit(env, posId));
-
-        [HttpGet("get-update-version")]
-        public async Task<IActionResult> getUpdateVersion()
-        {
-            return Ok(await _configurationService.GetUpdateVersion(_wwwrootPath));
-        }
-
-        [HttpGet("get-updater-file")]
-        public async Task<IActionResult> getUpdaterFile()
-        {
-            return Ok(await _configurationService.GetZipFileAsync(_wwwrootPath));
-        }
     }
 }
