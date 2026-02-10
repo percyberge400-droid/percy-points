@@ -1,6 +1,6 @@
 {
   "AppSettings": {
-    "BaseUrl": "http://10.100.224.191:8280/prapos/v1/",
+    "BaseUrl": "http://10.16.67.30:8050/api/",
     "POS": 128762,
     "WorkerDelayTime": 20000,
     "IsBackupTestMode": false,
