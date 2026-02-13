@@ -145,6 +145,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
         "Release"
         {
@@ -161,6 +177,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
     }
     "Deployable"
@@ -505,7 +529,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:POS Component"
         "ProductCode" = "8:{FAC3FB8B-9CC1-4BCD-83AA-89892903886F}"
-        "PackageCode" = "8:{F42CE0A8-9349-41BA-9E58-2FBA634476ED}"
+        "PackageCode" = "8:{3802B5F4-B199-45F0-B7F1-14F548BC73E7}"
         "UpgradeCode" = "8:{E7603FBC-2271-462A-A954-FD70FDBE0AA0}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1040,7 +1064,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_079E3EA098734DD6A628A6F3009D0848"
             {
-            "SourcePath" = "8:..\\Pos.Cloud.Api\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Cloud.Api\\obj\\Debug\\net10.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1208,7 +1232,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_578F41B398FD46BF8217042D71BDE3B5"
             {
-            "SourcePath" = "8:..\\Pos.SetupUI\\obj\\Debug\\net9.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.SetupUI\\obj\\Debug\\net10.0-windows7.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1236,7 +1260,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_656F555897584DD79DA41E004A6CB049"
             {
-            "SourcePath" = "8:..\\Pos.Worker\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Worker\\obj\\Debug\\net10.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1320,7 +1344,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_BA2EB813E81241ED97A091FE5CF46C8B"
             {
-            "SourcePath" = "8:..\\Pos.WinFormsUI\\obj\\Debug\\net9.0-windows10.0.17763.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.WinFormsUI\\obj\\Debug\\net10.0-windows10.0.17763.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"
@@ -1376,7 +1400,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F696AA6D50DA400689D378A8A2ABCB80"
             {
-            "SourcePath" = "8:..\\Pos.Local.Api\\obj\\Debug\\net9.0\\apphost.exe"
+            "SourcePath" = "8:..\\Pos.Local.Api\\obj\\Debug\\net10.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1D1DE1FD66ED4D328C1BE0F2D74A65BA"

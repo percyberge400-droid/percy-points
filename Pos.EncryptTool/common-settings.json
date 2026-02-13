@@ -2,7 +2,7 @@
   "AppSettings": {
     "DefaultDBPassword": "Pral@123",
     "Environment": "Sandbox",
-    "BaseUrl": "http://10.16.67.30:8050/api/",
+    "BaseUrl": "http://10.105.200.161/api/",
     "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db"
   }
 }
