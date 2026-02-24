@@ -6,7 +6,7 @@
     "RecordSyncLimit": 100,
     "LogSyncLimit": 100,
     "Version": "2.1.0.0",
-    "BaseUrl": "http://10.100.224.191:8280/prapos/v1/",
+    "BaseUrl": "http://10.105.200.161/api/",
     "EC": "36b8dd382b014af3e053ecf1322f6db2",
     "POS": 128762,
     "FolderPath": "D:\\DI_POS\\",

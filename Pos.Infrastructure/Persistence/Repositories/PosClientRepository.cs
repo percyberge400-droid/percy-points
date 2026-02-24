@@ -23,7 +23,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
             var context = await SetEnvironmentAsync(dto.Environment);
 
             var baseQuery = context.PosClients
-                            .Where(c => c.POSRegistrationNumber == dto.PosId && c.IsActive == true);
+                            .Where(c => c.POSRegistrationNumber == dto.PosId && c.IsActive==true);
 
             var entity = dto.Environment == "Sandbox"
                                                       ? await baseQuery
@@ -43,7 +43,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
                                                               on b.POSMASTERID equals m.POSMASTERID
                                                           join pc in context.POSContact
                                                               on m.POSMASTERID equals pc.POSMASTERID
-                                                          where c.IsActive == true && c.Province_Id == 2
+                                                          where c.IsActive==true && c.Province_Id == 2
                                                           select new
                                                           {
                                                               Client = c,
@@ -88,6 +88,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
                 if (exists == null)
                 {
                     var defaultConfiguration = await context.POSConfigurations.FirstOrDefaultAsync(x => x.IsActive == true);
+
                     if (defaultConfiguration != null)
                     {
                         POSConfigurations pOSConfiguration = new()
@@ -108,6 +109,7 @@ namespace Pos.Infrastructure.Persistence.Repositories
                             Token = defaultConfiguration is not null ? defaultConfiguration.Token : "",
                             Version = defaultConfiguration is not null ? defaultConfiguration.Version : ""
                         };
+
                         await context.POSConfigurations.AddAsync(pOSConfiguration);
                     }
                 }

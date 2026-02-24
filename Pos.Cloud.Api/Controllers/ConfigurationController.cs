@@ -22,6 +22,16 @@ namespace Pos.Cloud.Api.Controllers
         public async Task<IActionResult> IsCloudSyncEnabledAsync(GetByPosIdDto dto) =>
             Ok(await _configurationService.IsCloudSyncEnabledAsync(dto));
 
+        [HttpGet("get-update-version")]
+        public async Task<IActionResult> getUpdateVersion()
+        {
+            return Ok(await _configurationService.GetUpdateVersion(_wwwrootPath));
+        }
 
+        [HttpGet("get-updater-file")]
+        public async Task<IActionResult> getUpdaterFile()
+        {
+            return Ok(await _configurationService.GetZipFileAsync(_wwwrootPath));
+        }
     }
 }

@@ -48,10 +48,9 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
                 var response = await _fileRecordService.GetAllUnsyncedAsync();
                 if (response.StatusCode != ApiStatusCode.Success)
                 {
-                    await _workerLogService.LogAsync(AlertType.Info, response.StatusCode + ":" + response.Message, "", "", env);
+                    //await _workerLogService.LogAsync(AlertType.Info, response.StatusCode + ":" + response.Message, "", "", env);
                     return;
                 }
-
                 // ✅ Send to cloud (now passing List<FileRecordDto>)
                 var resp = await PostEncryptedDataAsync(id, response.Data, token, env);
                 if (resp is null || !resp.IsSuccessStatusCode)

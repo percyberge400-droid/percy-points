@@ -1107,7 +1107,12 @@ namespace Pos.SetupUI
         /// <summary>
         /// Prepares data for API transmission (ready for API implementation)
         /// </summary>
-        private async Task PrepareDataForApiAsync(List<FileRecordDto> fileRecords, List<SyncLogDto> logs, string username, string password, string dbPath)
+        private async Task PrepareDataForApiAsync(
+            List<FileRecordDto> fileRecords,
+            List<SyncLogDto> logs,
+            string username,
+            string password,
+            string dbPath)
         {
             try
             {
@@ -1118,6 +1123,17 @@ namespace Pos.SetupUI
                     return;
                 }
 
+                if (fileRecords != null &&
+     int.TryParse(username, out int userPosId) &&
+     fileRecords.Any(x => x.POSID != userPosId))
+                {
+                    MessageBox.Show(
+                        "POSID does not match. Old data migration failed.",
+                        "Validation Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    ); return;
+                }
                 var payload = new ScriptDTO
                 {
                     FileRecord = fileRecords,
@@ -1125,9 +1141,10 @@ namespace Pos.SetupUI
                     NewDbPath = dbPath
                 };
 
-                ShowMessage($"Preparing {fileRecords.Count} file records and {logs.Count} logs for API...", true, false);
+                ShowMessage($"Preparing {fileRecords?.Count ?? 0} file records and {logs?.Count ?? 0} logs for API...", true, false);
 
                 bool success = await SendDataToApiAsync(payload);
+
                 if (success)
                 {
                     ShowMessage("Data successfully sent to API!", true, false);
@@ -1464,7 +1481,7 @@ namespace Pos.SetupUI
                 };
 
 
-               // string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
+                // string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
 
                 var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
                 var apiUrl = $"{_baseUrl}{Endpoints.Authenticate}";
