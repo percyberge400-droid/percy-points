@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows10.0.17763.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
     <RootNamespace>Pos.WinFormsUI</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
@@ -46,7 +46,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pos.Application\Pos.Application.csproj" />
-    <ProjectReference Include="..\Pos.BATTO_EXE\Pos.BATTO_EXE.csproj" />
     <ProjectReference Include="..\Pos.Cloud.Api\Pos.Cloud.Api.csproj" />
     <ProjectReference Include="..\Pos.Domain\Pos.Domain.csproj" />
     <ProjectReference Include="..\Pos.Infrastructure\Pos.Infrastructure.csproj" />

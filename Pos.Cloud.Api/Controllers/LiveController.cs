@@ -38,8 +38,8 @@ namespace Pos.Cloud.Api.Controllers
         }
 
         [HttpPost("decrypt-save")]
-        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment, bool isWindows7 = false) =>
-            Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment, isWindows7));
+        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment) =>
+        Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment));
 
         [HttpPost("export-csv")]
         public async Task<ActionResult<ApiResponse<string>>> GetInvoicesCsv(InvoiceFilterDto dto, string environment)
@@ -71,17 +71,5 @@ namespace Pos.Cloud.Api.Controllers
         [HttpGet("disbale-log-bit")]
         public async Task<ActionResult<ApiResponse<string>>> DisablePosCLientLogBit(long posId, string env) =>
             Ok(await _clientService.DisablePosCLientLogBit(env, posId));
-
-        [HttpGet("get-update-version")]
-        public async Task<IActionResult> getUpdateVersion()
-        {
-            return Ok(await _configurationService.GetUpdateVersion(_wwwrootPath));
-        }
-
-        [HttpGet("get-updater-file")]
-        public async Task<IActionResult> getUpdaterFile()
-        {
-            return Ok(await _configurationService.GetZipFileAsync(_wwwrootPath));
-        }
     }
 }
