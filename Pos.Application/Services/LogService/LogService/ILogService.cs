@@ -12,7 +12,7 @@ namespace Pos.Application.Services.LogService
         CreateLogDto BuildLog(string message, string type, string? module = null, string? action = null, string? userId = null, string? userName = null, string? clientIp = null, string? userAgent = null);
         Task<ApiResponse<CreateLogDto>> CreateLogAsync(CreateLogDto dto);
         Task<ApiResponse<PageResponseDto<LogDto>>> GetAllAsync(GetAllLogsDto dto);
-        Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs();
+        Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs(LogResponseDto logResponse);
         Task<ApiResponse<bool>> UpdateLog(List<Logs> dtos);
     }
 }

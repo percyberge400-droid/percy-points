@@ -9,7 +9,7 @@ namespace Pos.Application.Services.ClientService
         Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto);
         Task<string> UpdateConfigurationFlag(bool isConfiguration, long? posId, string environment);
         Task<bool> IsServiceEnabled(long posId, string env);
-        Task<bool> IsLogEnabled(long posId, string env);
+        Task<LogResponseDto> IsLogEnabled(long posId, string env);
         Task<bool> DisablePosCLientLogBit(string env, long posId);
     }
 }

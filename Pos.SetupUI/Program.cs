@@ -132,7 +132,7 @@ namespace Pos.SetupUI
             {
                 using (var context = serviceProvider.GetRequiredService<SqliteDbContext>())
                 {
-                    context.Database.EnsureCreated();
+                    //context.Database.EnsureCreated();
                 }
 
                 ApplicationConfiguration.Initialize();

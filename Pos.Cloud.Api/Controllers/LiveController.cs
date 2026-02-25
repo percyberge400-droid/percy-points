@@ -65,7 +65,7 @@ namespace Pos.Cloud.Api.Controllers
             Ok(await _clientService.IsServiceEnabled(posId, env));
 
         [HttpGet("get-islog-enable")]
-        public async Task<ActionResult<ApiResponse<bool>>> GetIsLogEnable(long posId, string env) =>
+        public async Task<ActionResult<ApiResponse<LogResponseDto>>> GetIsLogEnable(long posId, string env) =>
             Ok(await _clientService.IsLogEnabled(posId, env));
 
         [HttpGet("disbale-log-bit")]

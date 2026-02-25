@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -638,8 +639,6 @@ namespace Pos.SetupUI
                 if (!ValidateInputs(out string username, out string password, out string dbPath, out string oldDbPath))
                     return;
 
-                string dbPassword = ConfigurationManager.AppSettings["DefaultDBPassword"] ?? "Pral@123";
-
                 ShowProgressBar(true);
 
                 ShowMessage("Starting setup process...", true, false);
@@ -659,7 +658,7 @@ namespace Pos.SetupUI
                     return;
                 }
 
-                var (branchName, branchAddress, businessName, IsActive, AccessCode, PhoneNO, NTN, e_Key) = ExtractBranchDetails(json);
+                var (branchName, branchAddress, businessName, IsActive, AccessCode, PhoneNO, NTN, e_Key, LocalDBPassword) = ExtractBranchDetails(json);
 
                 if (!VerifyAuthentication(json))
                 {
@@ -668,10 +667,20 @@ namespace Pos.SetupUI
                 }
 
                 ShowMessage("Saving configurations...", true, false);
-                SaveAllConfigs(username, password, mac, txtPassword.Text, dbPath, branchName, branchAddress, businessName, AccessCode, selectedEnvironment, PhoneNO, NTN, e_Key);
+                SaveAllConfigs(username, password, mac, txtPassword.Text, dbPath, branchName, branchAddress, businessName, AccessCode, selectedEnvironment, PhoneNO, NTN, e_Key, LocalDBPassword);
                 UpdateSetupConfig(dbPath);
 
-                string DBconnection = GetDbConnectionStringForConfig(dbPath, dbPassword);
+                ShowMessage("Creating database file...", true, false);
+
+                if (!CreateEncryptedDatabaseFile(dbPath, LocalDBPassword))
+                {
+                    ShowProgressBar(false);
+                    return;
+                }
+
+                await Task.Delay(300);
+
+                string DBconnection = GetDbConnectionStringForConfig(dbPath, LocalDBPassword);
 
                 await Task.Delay(300);
 
@@ -714,6 +723,33 @@ namespace Pos.SetupUI
             {
                 ShowProgressBar(false);
                 ShowMessage($"Fatal error: {ex.Message}", false, false);
+            }
+        }
+
+        private bool CreateEncryptedDatabaseFile(string dbPath, string password)
+        {
+            try
+            {
+                var connectionStringBuilder = new SqliteConnectionStringBuilder
+                {
+                    DataSource = dbPath,
+                    Mode = SqliteOpenMode.ReadWriteCreate,
+                    Password = password
+                };
+
+                using var connection = new SqliteConnection(connectionStringBuilder.ToString());
+                connection.Open();   // THIS CREATES THE FILE
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "PRAGMA journal_mode=WAL;";
+                cmd.ExecuteNonQuery();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Database creation failed: {ex.Message}", false, false);
+                return false;
             }
         }
 
@@ -1672,7 +1708,7 @@ namespace Pos.SetupUI
 
         #region Configuration Save Methods
 
-        private (string branchName, string branchAddress, string businessName, string IsActive, string AccessCode, string PhoneNumber, string NTN, string EC) ExtractBranchDetails(JObject json)
+        private (string branchName, string branchAddress, string businessName, string IsActive, string AccessCode, string PhoneNumber, string NTN, string EC, string LocalDBPassword) ExtractBranchDetails(JObject json)
         {
             try
             {
@@ -1687,30 +1723,31 @@ namespace Pos.SetupUI
                         data["password"]?.ToString() ?? "N/A",
                         data["phoneNumber"]?.ToString() ?? "N/A",
                         data["ntn"]?.ToString() ?? "N/A",
-                        data["e_Key"]?.ToString() ?? "N/A"
+                        data["e_Key"]?.ToString() ?? "N/A",
+                        data["localDBPassword"]?.ToString() ?? "N/A"
                     );
                 }
-            }
+                  }
             catch (Exception ex)
             {
                 ShowMessage($"Error extracting branch details: {ex.Message}", false, true);
             }
-            return ("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A");
+            return ("N/A","N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A");
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string Token, string dbPath,
-            string branchName, string branchAddress, string businessName, string AccessCode, string selectedEnvironment, string PhoneNO, string NTN, string e_Key)
+            string branchName, string branchAddress, string businessName, string AccessCode, string selectedEnvironment, string PhoneNO, string NTN, string e_Key, string LocalDBPassword)
         {
-            SaveJsonConfigs(dbPath, username, selectedEnvironment, Token, e_Key);
-            SaveWinFormsConfigComplete(username, AccessCode, mac, Token, dbPath, branchName, branchAddress, businessName, selectedEnvironment, PhoneNO, NTN, e_Key);
+            SaveJsonConfigs(dbPath, username, selectedEnvironment, Token, e_Key, LocalDBPassword);
+            SaveWinFormsConfigComplete(username, AccessCode, mac, Token, dbPath, branchName, branchAddress, businessName, selectedEnvironment, PhoneNO, NTN, e_Key, LocalDBPassword);
         }
 
-        private void SaveJsonConfigs(string dbPath, string username, string selectedEnvironment, string Token, string e_Key)
+        private void SaveJsonConfigs(string dbPath, string username, string selectedEnvironment, string Token, string e_Key, string LocalDBPassword)
         {
             try
             {
-                SaveDbPathToJson(_jsonWorkerPath, dbPath, username, Token, selectedEnvironment);
-                SaveDbPathToJson(_jsonMainPath, dbPath, username, Token, selectedEnvironment, e_Key);
+                SaveDbPathToJson(_jsonWorkerPath, dbPath, username, Token, selectedEnvironment, LocalDBPassword);
+                SaveDbPathToJson(_jsonMainPath, dbPath, username, Token, selectedEnvironment, LocalDBPassword, e_Key);
             }
             catch (Exception ex)
             {
@@ -1720,7 +1757,7 @@ namespace Pos.SetupUI
 
         private void SaveWinFormsConfigComplete(
             string username, string AccessCode, string mac, string Token, string dbPath,
-            string branchName, string branchAddress, string businessName, string selectedEnvironment, string PhoneNO, string NTN, string e_Key)
+            string branchName, string branchAddress, string businessName, string selectedEnvironment, string PhoneNO, string NTN, string e_Key, string LocalDBPassword)
         {
             try
             {
@@ -1782,6 +1819,7 @@ namespace Pos.SetupUI
                 settings["Token"] = Token;
                 settings["NTN"] = NTN;
                 settings["EC"] = e_Key;
+                settings["DefaultDBPassword"] = LocalDBPassword;
 
                 // Encrypt the updated blob
                 string updatedJson = settings.ToString(Newtonsoft.Json.Formatting.None);
@@ -1965,7 +2003,7 @@ namespace Pos.SetupUI
         }
 
 
-        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId, string Token, string selectedEnvironment, string e_Key = null)
+        private void SaveDbPathToJson(string jsonFilePath, string dbPath, string posId, string Token, string selectedEnvironment, string LocalDBPassword, string e_Key = null)
         {
             try
             {
@@ -1976,6 +2014,8 @@ namespace Pos.SetupUI
                 appSettingsToEncrypt["POS"] = posId;
                 appSettingsToEncrypt["Environment"] = selectedEnvironment;
                 appSettingsToEncrypt["Token"] = Token;
+                appSettingsToEncrypt["DefaultDBPassword"] = LocalDBPassword;
+
                 if (e_Key != null)
                     appSettingsToEncrypt["EC"] = e_Key;
 

@@ -1,7 +1,9 @@
-﻿namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
+﻿using Pos.Application.DTOs;
+
+namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
 {
     public interface ISendLogToCloudService
     {
-        Task SyncLogAsync(string env);
+        Task SyncLogAsync(string env, LogResponseDto logResponse);
     }
 }

@@ -7,6 +7,7 @@ using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
 using Pos.Worker.Configurations;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace Pos.Worker.Services
 {
@@ -68,12 +69,13 @@ namespace Pos.Worker.Services
                     var fullUrlIsLogEnabled = QueryHelpers.AddQueryString($"{_appSettings.BaseUrl}{Endpoints.IsLogEnabled}", query);
                     var disableLogBitUrl = QueryHelpers.AddQueryString($"{_appSettings.BaseUrl}{Endpoints.DisableLogBit}", query);
 
-                    bool isLogEnabled = await CheckLogStatusAsync(fullUrlIsLogEnabled, stoppingToken);
+                    var logResponse = await CheckLogStatusAsync(fullUrlIsLogEnabled, stoppingToken);
 
-                    if (isLogEnabled)
+                    if (logResponse?.IsLogSynced == true)
                     {
-                        await ProcessLogSyncAsync(disableLogBitUrl, stoppingToken);
+                        await ProcessLogSyncAsync(disableLogBitUrl, stoppingToken, logResponse);
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -85,35 +87,36 @@ namespace Pos.Worker.Services
             }
         }
 
-        private async Task<bool> CheckLogStatusAsync(string url, CancellationToken token)
+        private async Task<LogResponseDto?> CheckLogStatusAsync(string url, CancellationToken token)
         {
             try
             {
                 using var httpClient = _httpClientFactory.CreateClient();
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _appSettings.Token);
+                httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", _appSettings.Token);
 
                 var response = await httpClient.GetAsync(url, token);
                 response.EnsureSuccessStatusCode();
 
-                var result = await response.Content.ReadAsStringAsync(token);
-                return bool.TryParse(result, out bool parsed) && parsed;
+                return await response.Content.ReadFromJsonAsync<LogResponseDto>(cancellationToken: token);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to check IsLogEnabled API");
                 await LogWarningAsync(ex.Message, nameof(LogWorkerService), Guid.NewGuid().ToString());
-                return false;
+                return null;
             }
         }
 
-        private async Task ProcessLogSyncAsync(string disableLogUrl, CancellationToken token)
+
+        private async Task ProcessLogSyncAsync(string disableLogUrl, CancellationToken token, LogResponseDto logResponse)
         {
             try
             {
                 using var scope = _scopeFactory.CreateScope();
                 var logCloudSyncService = scope.ServiceProvider.GetRequiredService<ISendLogToCloudService>();
 
-                await logCloudSyncService.SyncLogAsync(_appSettings.Environment);
+                await logCloudSyncService.SyncLogAsync(_appSettings.Environment, logResponse);
 
                 using var httpClient = _httpClientFactory.CreateClient();
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _appSettings.Token);

@@ -115,11 +115,16 @@ namespace Pos.Application.Services.ClientService
             return retVal;
         }
 
-        public async Task<bool> IsLogEnabled(long posId, string env)
+        public async Task<LogResponseDto> IsLogEnabled(long posId, string env)
         {
             PosClients client = await _posClientRepository.GetByPosId(posId, env);
-            var retVal = client?.IsLogSynced ?? false;
-            return retVal;
+
+            return new LogResponseDto
+            {
+                IsLogSynced = client?.IsLogSynced ?? false,
+                LogSyncedDateFrom = client?.LogSyncedDateFrom,
+                LogSyncedDateTo = client?.LogSyncedDateTo
+            };
         }
 
         public async Task<bool> DisablePosCLientLogBit(string env, long posId)
