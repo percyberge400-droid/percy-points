@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Pos.SecurityEncryption;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -207,7 +208,7 @@ namespace Pos.Updater
             // 5️⃣ Update local version file
             try
             {
-                File.WriteAllText(localVersionPath, serverVersion);
+                File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(serverVersion));
                 Log($"Version updated: {localVersion} → {serverVersion}");
             }
             catch (Exception ex)
