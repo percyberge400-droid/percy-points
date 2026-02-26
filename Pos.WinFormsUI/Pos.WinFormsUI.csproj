@@ -11,6 +11,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Forms\Dashboard-Form.cs" />
+    <Compile Remove="Forms\Dashboard-Form.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Forms\Dashboard-Form.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="app-version.txt" />
     <None Remove="Reports\InvoiceReport.rdlc" />
     <None Remove="Reports\ReportDataSet.xsd" />

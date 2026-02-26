@@ -1,15 +1,16 @@
-﻿using System.Drawing.Text;
-using System.Reflection;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
 using Pos.Infrastructure;
 using Pos.SecurityEncryption;
-using Pos.Application.AutoMapperProfile;
+using Pos.WinFormsUI.Dashboard;
 using Pos.WinFormsUI.Forms;
+using System.Drawing.Text;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace Pos.WinFormsUI
@@ -129,7 +130,7 @@ namespace Pos.WinFormsUI
             // WinForms DI registration
             services.AddTransient<Profile>();
             services.AddTransient<LoginForm2>();
-            services.AddTransient<DashboardForm>();
+            services.AddTransient<DashboardFormNew>();
             services.AddTransient<Main>();
             services.AddTransient<ItemEntry>();
             services.AddTransient<ExportInvoiceForm>();

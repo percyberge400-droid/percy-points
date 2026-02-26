@@ -5,6 +5,7 @@ using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
 using Pos.WinFormsUI.AlertClasses;
+using Pos.WinFormsUI.Dashboard;
 using System.Configuration;
 using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
@@ -55,7 +56,7 @@ namespace Pos.WinFormsUI.Forms
             panCatalogView.Visible = false;
             pnlProfile.Visible = false;
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#48A787");
-            Form childForm = _provider.GetRequiredService<DashboardForm>();
+            Form childForm = _provider.GetRequiredService<DashboardFormNew>();
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
@@ -1064,7 +1065,7 @@ namespace Pos.WinFormsUI.Forms
             Form childForm = viewName switch
             {
                 "Profile" => _provider.GetRequiredService<Profile>(),
-                "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
+                "Dashboard" => _provider.GetRequiredService<DashboardFormNew>(),
                 "Invoice Entry" => _provider.GetRequiredService<ItemEntry>(),
                 "Export Invoice" => _provider.GetRequiredService<ExportInvoiceForm>(),
                 "Catalog View" => _provider.GetRequiredService<CatalogView>(),
