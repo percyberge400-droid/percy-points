@@ -35,12 +35,12 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncLogService
             _appSettings = options.Value; // CHANGED
         }
 
-        public async Task SyncLogAsync(string env, LogResponseDto logResponse)
+        public async Task SyncLogAsync(string env, LogResponseDto? logResponse)
         {
             await ProcessHealthCheck(env, logResponse);
         }
 
-        private async Task ProcessHealthCheck(string env, LogResponseDto logResponse)
+        private async Task ProcessHealthCheck(string env, LogResponseDto? logResponse)
         {
             try
             {

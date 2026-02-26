@@ -36,16 +36,23 @@ namespace Pos.Application.Services.LogService
             _settings = options.Value;
         }
 
-        public async Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs(LogResponseDto logResponse)
+        public async Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs(LogResponseDto? logResponse)
         {
             var allRecords = await _sqlLiteLogRepository.GetAllAsync();
-            var unsynced = allRecords
-                .Where(x =>
-                    !x.IsSynced &&
-                    x.CreatedAtPk.Date >= logResponse.LogSyncedDateFrom!.Value.Date &&
-                    x.CreatedAtPk.Date <= logResponse.LogSyncedDateTo!.Value.Date)
-                .Take(1000)
-                .ToList();
+            var unsynced = new List<Logs>();    
+            if (logResponse is not null) { 
+                unsynced = allRecords
+                    .Where(x =>
+                        !x.IsSynced &&
+                        x.CreatedAtPk.Date >= logResponse.LogSyncedDateFrom!.Value.Date &&
+                        x.CreatedAtPk.Date <= logResponse.LogSyncedDateTo!.Value.Date)
+                    .Take(1000)
+                    .ToList();
+            }
+            else
+            {
+                unsynced = allRecords.Where(x => !x.IsSynced).Take(1000).ToList();
+            }
 
             var logDtos = _mapper.Map<List<SyncLogDto>>(unsynced);
             if (logDtos.Any())

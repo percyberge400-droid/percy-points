@@ -1509,7 +1509,7 @@ namespace Pos.WinFormsUI.Forms
             {
                 string selectedEnvironment = ConfigurationManager.AppSettings["Environment"];
 
-                await _sendLogToCloudService.SyncLogAsync(selectedEnvironment);
+                await _sendLogToCloudService.SyncLogAsync(selectedEnvironment, null);
             }
             catch (Exception ex)
             {

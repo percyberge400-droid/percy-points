@@ -29,6 +29,8 @@
         {
             components = new System.ComponentModel.Container();
             panel1 = new Panel();
+            btnProfile = new Button();
+            pnlProfile = new Panel();
             panel2 = new Panel();
             lblNetworkStatus = new Label();
             lblEnvironment = new Label();
@@ -59,6 +61,8 @@
             // panel1
             // 
             panel1.BackColor = Color.White;
+            panel1.Controls.Add(btnProfile);
+            panel1.Controls.Add(pnlProfile);
             panel1.Controls.Add(panel2);
             panel1.Controls.Add(pictureBox2);
             panel1.Controls.Add(panCatalogView);
@@ -75,6 +79,33 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(1285, 60);
             panel1.TabIndex = 4;
+            // 
+            // btnProfile
+            // 
+            btnProfile.AutoSize = true;
+            btnProfile.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnProfile.FlatAppearance.BorderSize = 0;
+            btnProfile.FlatStyle = FlatStyle.Flat;
+            btnProfile.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+            btnProfile.ForeColor = Color.Black;
+            btnProfile.Location = new Point(190, 15);
+            btnProfile.Margin = new Padding(3, 4, 3, 4);
+            btnProfile.Name = "btnProfile";
+            btnProfile.Size = new Size(86, 33);
+            btnProfile.TabIndex = 7;
+            btnProfile.Text = "PROFILE";
+            btnProfile.TextAlign = ContentAlignment.BottomCenter;
+            btnProfile.UseVisualStyleBackColor = true;
+            // 
+            // pnlProfile
+            // 
+            pnlProfile.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            pnlProfile.BackColor = Color.FromArgb(72, 167, 135);
+            pnlProfile.Location = new Point(219, 47);
+            pnlProfile.Margin = new Padding(3, 4, 3, 4);
+            pnlProfile.Name = "pnlProfile";
+            pnlProfile.Size = new Size(33, 5);
+            pnlProfile.TabIndex = 8;
             // 
             // panel2
             // 
@@ -168,7 +199,7 @@
             // 
             panCatalogView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panCatalogView.BackColor = Color.FromArgb(72, 167, 135);
-            panCatalogView.Location = new Point(731, 45);
+            panCatalogView.Location = new Point(820, 47);
             panCatalogView.Margin = new Padding(3, 4, 3, 4);
             panCatalogView.Name = "panCatalogView";
             panCatalogView.Size = new Size(33, 5);
@@ -182,7 +213,7 @@
             btnCatalogView.FlatStyle = FlatStyle.Flat;
             btnCatalogView.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnCatalogView.ForeColor = Color.Black;
-            btnCatalogView.Location = new Point(638, 13);
+            btnCatalogView.Location = new Point(727, 15);
             btnCatalogView.Margin = new Padding(3, 4, 3, 4);
             btnCatalogView.Name = "btnCatalogView";
             btnCatalogView.Size = new Size(228, 33);
@@ -196,7 +227,7 @@
             // 
             panExportInvoice.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panExportInvoice.BackColor = Color.FromArgb(72, 167, 135);
-            panExportInvoice.Location = new Point(538, 45);
+            panExportInvoice.Location = new Point(627, 47);
             panExportInvoice.Margin = new Padding(3, 4, 3, 4);
             panExportInvoice.Name = "panExportInvoice";
             panExportInvoice.Size = new Size(33, 5);
@@ -210,7 +241,7 @@
             btnDashboard.FlatStyle = FlatStyle.Flat;
             btnDashboard.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnDashboard.ForeColor = Color.Black;
-            btnDashboard.Location = new Point(194, 12);
+            btnDashboard.Location = new Point(283, 14);
             btnDashboard.Margin = new Padding(3, 4, 3, 4);
             btnDashboard.Name = "btnDashboard";
             btnDashboard.Size = new Size(128, 33);
@@ -228,7 +259,7 @@
             btnInvoiceSelection.FlatStyle = FlatStyle.Flat;
             btnInvoiceSelection.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnInvoiceSelection.ForeColor = Color.Black;
-            btnInvoiceSelection.Location = new Point(325, 13);
+            btnInvoiceSelection.Location = new Point(414, 15);
             btnInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             btnInvoiceSelection.Name = "btnInvoiceSelection";
             btnInvoiceSelection.Size = new Size(145, 33);
@@ -246,7 +277,7 @@
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             btnExportInvoice.ForeColor = Color.Black;
-            btnExportInvoice.Location = new Point(475, 13);
+            btnExportInvoice.Location = new Point(564, 15);
             btnExportInvoice.Margin = new Padding(3, 4, 3, 4);
             btnExportInvoice.Name = "btnExportInvoice";
             btnExportInvoice.Size = new Size(156, 33);
@@ -260,7 +291,7 @@
             // 
             panDashboard.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panDashboard.BackColor = Color.FromArgb(72, 167, 135);
-            panDashboard.Location = new Point(239, 45);
+            panDashboard.Location = new Point(328, 47);
             panDashboard.Margin = new Padding(3, 4, 3, 4);
             panDashboard.Name = "panDashboard";
             panDashboard.Size = new Size(33, 5);
@@ -270,7 +301,7 @@
             // 
             panInvoiceSelection.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             panInvoiceSelection.BackColor = Color.FromArgb(72, 167, 135);
-            panInvoiceSelection.Location = new Point(379, 45);
+            panInvoiceSelection.Location = new Point(468, 47);
             panInvoiceSelection.Margin = new Padding(3, 4, 3, 4);
             panInvoiceSelection.Name = "panInvoiceSelection";
             panInvoiceSelection.Size = new Size(33, 5);
@@ -356,5 +387,7 @@
         private ToolStripMenuItem productCatalogToolStripMenuItem;
         private ToolStripMenuItem uploadLogoToolStripMenuItem;
         private Label lblEnvironment;
+        private Button btnProfile;
+        private Panel pnlProfile;
     }
 }

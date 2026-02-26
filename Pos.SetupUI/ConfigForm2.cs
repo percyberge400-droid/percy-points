@@ -485,37 +485,6 @@ namespace Pos.SetupUI
                     return;
                 }
 
-
-                //string EnvapiUrl = ConfigurationManager.AppSettings["environmentapiurl"];
-                //if (string.IsNullOrWhiteSpace(EnvapiUrl))
-                //{
-                //    ShowMessage("API URL is missing in configuration.", false, false);
-                //    return;
-                //}
-
-                //using var client = new HttpClient();
-                //client.DefaultRequestHeaders.Add("Accept", "application/json");
-                //var stringContent = new StringContent(
-                //    JsonConvert.SerializeObject(selectedEnvironment),
-                //    Encoding.UTF8,
-                //    "application/json"
-                //);
-
-
-                //var response = await client.PostAsync(EnvapiUrl, stringContent);
-                //var responseBody = await response.Content.ReadAsStringAsync();
-                //if (!response.IsSuccessStatusCode)
-                //{
-                //    ShowMessage(
-                //        $"Request failed: {(int)response.StatusCode} - {response.ReasonPhrase}",
-                //        false,
-                //        false
-                //    );
-                //    return;
-                //}
-
-                //ShowMessage($"Enviroment set to {selectedEnvironment}", true, false);
-
                 UpdateWorkerPathInJson(_jsonMainPath);
 
                 // Pass the selected environment to your setup method

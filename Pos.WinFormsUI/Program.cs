@@ -127,6 +127,7 @@ namespace Pos.WinFormsUI
             services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>(), Assembly.GetExecutingAssembly());
 
             // WinForms DI registration
+            services.AddTransient<Profile>();
             services.AddTransient<LoginForm2>();
             services.AddTransient<DashboardForm>();
             services.AddTransient<Main>();

@@ -43,6 +43,7 @@ namespace Pos.WinFormsUI.Forms
 
             productCatalogToolStripMenuItem.Click += productCatalogToolStripMenuItem_Click;
             uploadLogoToolStripMenuItem.Click += uploadLogoToolStripMenuItem_Click;
+            btnProfile.Click += btnProfile_Click;
             panel2.Paint += Panel2_Paint;
             internetStatus.Paint += InternetStatus_Paint;
             posStatus.Paint += PosStatus_Paint;
@@ -52,6 +53,7 @@ namespace Pos.WinFormsUI.Forms
             panInvoiceSelection.Visible = false;
             panExportInvoice.Visible = false;
             panCatalogView.Visible = false;
+            pnlProfile.Visible = false;
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#48A787");
             Form childForm = _provider.GetRequiredService<DashboardForm>();
             childForm.MdiParent = this;
@@ -354,6 +356,48 @@ namespace Pos.WinFormsUI.Forms
             }
         }
 
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+
+            try
+            {
+                _animationTimer?.Stop();
+                _animationTimer?.Dispose();
+
+                StopInternetStatusChecker();
+                StopWorkerServiceStatusChecker();
+
+                foreach (var form in _independentForms.ToArray())
+                {
+                    try
+                    {
+                        if (form != null && !form.IsDisposed)
+                        {
+                            form.Close();
+                            form.Dispose();
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(400);
+                try
+                {
+                    System.Windows.Forms.Application.Exit();
+                }
+                finally
+                {
+                    Environment.Exit(0);
+                }
+            });
+        }
+
+
         private void StyleStatusPanel()
         {
             // Setup label properties
@@ -373,6 +417,7 @@ namespace Pos.WinFormsUI.Forms
 
 
             // All panels hidden by default
+            pnlProfile.Visible = false;
             panDashboard.Visible = false;
             panInvoiceSelection.Visible = false;
             panExportInvoice.Visible = false;
@@ -381,6 +426,10 @@ namespace Pos.WinFormsUI.Forms
             // Show the active panel
             switch (activeView)
             {
+                case "Profile":
+                    pnlProfile.Visible = true;
+                    pnlProfile.BringToFront();
+                    break;
                 case "Dashboard":
                     panDashboard.Visible = true;
                     panDashboard.BringToFront();
@@ -938,14 +987,24 @@ namespace Pos.WinFormsUI.Forms
 
         private void ResetNavStyles()
         {
+            btnProfile.ForeColor = Color.Black;
             btnDashboard.ForeColor = Color.Black;
             btnInvoiceSelection.ForeColor = Color.Black;
             btnExportInvoice.ForeColor = Color.Black;
             btnCatalogView.ForeColor = Color.Black;
+            pnlProfile.Visible = false;
             panDashboard.Visible = false;
             panInvoiceSelection.Visible = false;
             panExportInvoice.Visible = false;
             panCatalogView.Visible = false;
+        }
+
+        private void btnProfile_Click(object sender, EventArgs e)
+        {
+            ResetNavStyles();
+            btnProfile.ForeColor = ColorTranslator.FromHtml("#48A787");
+            RepositionStatusControls("Profile");
+            LoadView("Profile");
         }
 
         private void btnDashboard_Click(object sender, EventArgs e)
@@ -995,8 +1054,6 @@ namespace Pos.WinFormsUI.Forms
             }
         }
 
-
-
         public void LoadView(string viewName)
         {
             if (this.ActiveMdiChild != null)
@@ -1006,6 +1063,7 @@ namespace Pos.WinFormsUI.Forms
             }
             Form childForm = viewName switch
             {
+                "Profile" => _provider.GetRequiredService<Profile>(),
                 "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
                 "Invoice Entry" => _provider.GetRequiredService<ItemEntry>(),
                 "Export Invoice" => _provider.GetRequiredService<ExportInvoiceForm>(),
