@@ -2588,7 +2588,10 @@ namespace Pos.WinFormsUI.Dashboard
             }
         }
 
-        
+        private void panelWarningLogs_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 
     #region Pagination Control
