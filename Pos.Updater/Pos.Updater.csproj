@@ -17,5 +17,8 @@
 	<ItemGroup>
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Pos.SecurityEncryption\Pos.SecurityEncryption.csproj" />
+	</ItemGroup>
 
 </Project>

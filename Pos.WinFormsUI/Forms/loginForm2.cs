@@ -544,7 +544,7 @@ namespace Pos.WinFormsUI.Forms
             // ---------------- Load Local Version ----------------
             string localVersionPath = Path.Combine(installPath, "app-version.txt");
             string localVersion = File.Exists(localVersionPath)
-                ? File.ReadAllText(localVersionPath).Trim()
+                ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
                 : "0.0.0";
 
             Log($"Local version: {localVersion}");
