@@ -667,21 +667,21 @@ namespace Pos.WinFormsUI.Dashboard
 
         private void UpdateHeartbeatLabel(DateTime? heartbeatTime = null, bool isError = false)
         {
-            if (lblHeartbeat.InvokeRequired)
+            if (lblHeartbeat1.InvokeRequired)
             {
-                lblHeartbeat.Invoke(new Action(() => UpdateHeartbeatLabel(heartbeatTime, isError)));
+                lblHeartbeat1.Invoke(new Action(() => UpdateHeartbeatLabel(heartbeatTime, isError)));
                 return;
             }
 
             if (isError)
             {
-                lblHeartbeat.Text = "Last Heartbeat: Not Received";
+                lblHeartbeat1.Text = "Last Heartbeat: Not Received";
                 lblHeartbeat.ForeColor = Color.FromArgb(220, 38, 38);
             }
             else
             {
-                lblHeartbeat.Text = $"Last Heartbeat: {heartbeatTime:dd-MM-yyyy HH:mm:ss}";
-                lblHeartbeat.ForeColor = Color.FromArgb(34, 197, 94);
+                lblHeartbeat1.Text = $"Last Heartbeat: {heartbeatTime:dd-MM-yyyy HH:mm:ss}";
+                lblHeartbeat1.ForeColor = Color.FromArgb(34, 197, 94);
             }
         }
 
@@ -1218,7 +1218,7 @@ namespace Pos.WinFormsUI.Dashboard
                     _invoiceCache = new List<InvoiceDisplayModel>();
                     InvoicesDataGridView.RowCount = 0;
                     AlertManager.ShowWarning("No invoices found.");
-                    lblLastSync.Text = "Last Sync: N/A";
+                    lblLastSync1.Text = "Last Sync: N/A";
                     UpdateInvoicePageInfo(1, 1);
 
                     // ✅ ADD THIS: Update panel labels to show zeros
@@ -1281,13 +1281,13 @@ namespace Pos.WinFormsUI.Dashboard
 
                 if (lastSyncedInvoice != null)
                 {
-                    lblLastSync.Text = "🔄Last Synced Invoice: " + lastSyncedInvoice.DateCreated;
-                    lblLastSync.ForeColor = Color.FromArgb(34, 197, 94);
+                    lblLastSync1.Text = "🔄Last Synced Invoice: " + lastSyncedInvoice.DateCreated;
+                    lblLastSync1.ForeColor = Color.FromArgb(34, 197, 94);
                 }
                 else
                 {
-                    lblLastSync.Text = "🔄Last Synced Invoice: N/A";
-                    lblLastSync.ForeColor = Color.FromArgb(220, 38, 38);
+                    lblLastSync1.Text = "🔄Last Synced Invoice: N/A";
+                    lblLastSync1.ForeColor = Color.FromArgb(220, 38, 38);
                 }
             }
             catch (Exception ex)
@@ -1295,8 +1295,8 @@ namespace Pos.WinFormsUI.Dashboard
                 System.Diagnostics.Debug.WriteLine($"Error loading invoices: {ex}");
                 WindowsLocalAppNotification.Show("Invoices Error", $"Error loading invoices: {ex.Message}");
                 AlertManager.ShowError($"Error loading invoices: {ex.Message}");
-                lblLastSync.Text = "Last Sync: Error";
-                lblLastSync.ForeColor = Color.FromArgb(220, 38, 38);
+                lblLastSync1.Text = "Last Sync: Error";
+                lblLastSync1.ForeColor = Color.FromArgb(220, 38, 38);
 
                 // ✅ ADD THIS: Also update to zeros on error
                 labelAllInvoices.Text = "0";
