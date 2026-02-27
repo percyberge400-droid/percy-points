@@ -445,7 +445,7 @@ namespace Pos.WinFormsUI.Dashboard
             else
             {
                 btnExportInvoice.Font = new Font("Arial", 12F);
-                btnExportInvoice.Text = "📄 Export Invoices";
+                btnExportInvoice.Text = "📄 Export";
 
 
                 // 
@@ -1612,12 +1612,12 @@ namespace Pos.WinFormsUI.Dashboard
             if (_isSyncedSortDescending)
             {
                 _invoiceCache = _invoiceCache.OrderByDescending(i => i.IsSynced).ToList();
-                btnFilterSynced.Text = "Show Unsynced First";
+                btnFilterSynced.Text = "Unsynced";
             }
             else
             {
                 _invoiceCache = _invoiceCache.OrderBy(i => i.IsSynced).ToList();
-                btnFilterSynced.Text = "Show Synced First";
+                btnFilterSynced.Text = "Synced";
             }
 
             _isSyncedSortDescending = !_isSyncedSortDescending;
@@ -1915,7 +1915,7 @@ namespace Pos.WinFormsUI.Dashboard
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(0, 10, 0, 10);
             //dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dgv.ColumnHeadersHeight = 52;
+            dgv.ColumnHeadersHeight = 47;
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dgv.EnableHeadersVisualStyles = false;
             dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = dgv.ColumnHeadersDefaultCellStyle.BackColor;
@@ -2588,10 +2588,6 @@ namespace Pos.WinFormsUI.Dashboard
             }
         }
 
-        private void panelWarningLogs_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
     }
 
     #region Pagination Control
