@@ -64,6 +64,7 @@ namespace Pos.WinFormsUI.Dashboard
             labelLogs = new Label();
             lblPaidTitle = new Label();
             labelPaidInvoices = new Label();
+            btnExportLogs = new Button();
             tableLayoutPanelMain = new TableLayoutPanel();
             panelInvoices = new Panel();
             btnExportInvoice = new Button();
@@ -83,7 +84,6 @@ namespace Pos.WinFormsUI.Dashboard
             panelLogBtn = new Panel();
             btnRow = new TableLayoutPanel();
             panelExportLog = new Panel();
-            btnExportLogs = new Button();
             panelSyncLog = new Panel();
             btnSyncLogs = new Button();
             panel1 = new Panel();
@@ -179,7 +179,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelAll.Controls.Add(labelAllInvoices);
             panelAll.Dock = DockStyle.Fill;
             panelAll.Location = new Point(18, 13);
-            panelAll.Margin = new Padding(8, 8, 8, 8);
+            panelAll.Margin = new Padding(8);
             panelAll.Name = "panelAll";
             panelAll.Padding = new Padding(11, 12, 11, 12);
             panelAll.Size = new Size(413, 117);
@@ -217,7 +217,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelPending.Controls.Add(labelPendingInvoice);
             panelPending.Dock = DockStyle.Fill;
             panelPending.Location = new Point(447, 13);
-            panelPending.Margin = new Padding(8, 8, 8, 8);
+            panelPending.Margin = new Padding(8);
             panelPending.Name = "panelPending";
             panelPending.Padding = new Padding(11, 12, 11, 12);
             panelPending.Size = new Size(413, 117);
@@ -256,7 +256,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelPaid.Controls.Add(labelPaidInvoices);
             panelPaid.Dock = DockStyle.Fill;
             panelPaid.Location = new Point(876, 13);
-            panelPaid.Margin = new Padding(8, 8, 8, 8);
+            panelPaid.Margin = new Padding(8);
             panelPaid.Name = "panelPaid";
             panelPaid.Padding = new Padding(11, 12, 11, 12);
             panelPaid.Size = new Size(415, 117);
@@ -301,6 +301,23 @@ namespace Pos.WinFormsUI.Dashboard
             labelPaidInvoices.Text = "0";
             labelPaidInvoices.TextAlign = ContentAlignment.MiddleCenter;
             // 
+            // btnExportLogs
+            // 
+            btnExportLogs.AutoSize = true;
+            btnExportLogs.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnExportLogs.BackColor = Color.SeaGreen;
+            btnExportLogs.Dock = DockStyle.Fill;
+            btnExportLogs.FlatAppearance.BorderSize = 0;
+            btnExportLogs.FlatStyle = FlatStyle.Flat;
+            btnExportLogs.Font = new Font("Arial", 12F);
+            btnExportLogs.ForeColor = Color.White;
+            btnExportLogs.Location = new Point(0, 0);
+            btnExportLogs.Name = "btnExportLogs";
+            btnExportLogs.Size = new Size(96, 37);
+            btnExportLogs.TabIndex = 40;
+            btnExportLogs.Text = "📄 Export";
+            btnExportLogs.UseVisualStyleBackColor = false;
+            // 
             // tableLayoutPanelMain
             // 
             tableLayoutPanelMain.AutoSize = true;
@@ -339,7 +356,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelInvoices.Location = new Point(16, 7);
             panelInvoices.Margin = new Padding(6, 5, 6, 5);
             panelInvoices.Name = "panelInvoices";
-            panelInvoices.Padding = new Padding(8, 8, 8, 8);
+            panelInvoices.Padding = new Padding(8);
             panelInvoices.Size = new Size(846, 559);
             panelInvoices.TabIndex = 0;
             // 
@@ -352,9 +369,9 @@ namespace Pos.WinFormsUI.Dashboard
             btnExportInvoice.FlatStyle = FlatStyle.Flat;
             btnExportInvoice.Font = new Font("Arial", 12F);
             btnExportInvoice.ForeColor = Color.White;
-            btnExportInvoice.Location = new Point(111, 7);
+            btnExportInvoice.Location = new Point(107, 7);
             btnExportInvoice.Name = "btnExportInvoice";
-            btnExportInvoice.Size = new Size(104, 37);
+            btnExportInvoice.Size = new Size(103, 37);
             btnExportInvoice.TabIndex = 10;
             btnExportInvoice.Text = "📄 Export";
             btnExportInvoice.UseVisualStyleBackColor = false;
@@ -410,9 +427,9 @@ namespace Pos.WinFormsUI.Dashboard
             btnFilterSynced.FlatStyle = FlatStyle.Flat;
             btnFilterSynced.Font = new Font("Arial", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             btnFilterSynced.ForeColor = Color.White;
-            btnFilterSynced.Location = new Point(220, 7);
+            btnFilterSynced.Location = new Point(213, 7);
             btnFilterSynced.Name = "btnFilterSynced";
-            btnFilterSynced.Size = new Size(90, 37);
+            btnFilterSynced.Size = new Size(86, 37);
             btnFilterSynced.TabIndex = 5;
             btnFilterSynced.Text = "Synced";
             btnFilterSynced.UseVisualStyleBackColor = false;
@@ -455,10 +472,10 @@ namespace Pos.WinFormsUI.Dashboard
             lblDateRange.Cursor = Cursors.Hand;
             lblDateRange.Font = new Font("Segoe UI", 9F);
             lblDateRange.ForeColor = Color.FromArgb(55, 65, 81);
-            lblDateRange.Location = new Point(297, 7);
+            lblDateRange.Location = new Point(300, 7);
             lblDateRange.Name = "lblDateRange";
             lblDateRange.Padding = new Padding(11, 7, 30, 7);
-            lblDateRange.Size = new Size(240, 37);
+            lblDateRange.Size = new Size(237, 37);
             lblDateRange.TabIndex = 9;
             lblDateRange.Text = "📅  Wed, Sep 25, 2025 - Thu, Oct 2, 2025";
             lblDateRange.TextAlign = ContentAlignment.MiddleCenter;
@@ -563,9 +580,9 @@ namespace Pos.WinFormsUI.Dashboard
             // 
             btnRow.AutoSize = true;
             btnRow.ColumnCount = 3;
-            btnRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46F));
-            btnRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27F));
-            btnRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27F));
+            btnRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            btnRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            btnRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             btnRow.Controls.Add(panelExportLog, 2, 0);
             btnRow.Controls.Add(panelSyncLog, 1, 0);
             btnRow.Controls.Add(panel1, 0, 0);
@@ -575,42 +592,25 @@ namespace Pos.WinFormsUI.Dashboard
             btnRow.Name = "btnRow";
             btnRow.RowCount = 1;
             btnRow.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            btnRow.Size = new Size(405, 38);
+            btnRow.Size = new Size(405, 43);
             btnRow.TabIndex = 0;
             // 
             // panelExportLog
             // 
             panelExportLog.Controls.Add(btnExportLogs);
             panelExportLog.Dock = DockStyle.Fill;
-            panelExportLog.Location = new Point(298, 3);
+            panelExportLog.Location = new Point(306, 3);
             panelExportLog.Name = "panelExportLog";
-            panelExportLog.Size = new Size(104, 32);
+            panelExportLog.Size = new Size(96, 37);
             panelExportLog.TabIndex = 41;
-            // 
-            // btnExportLogs
-            // 
-            btnExportLogs.AutoSize = true;
-            btnExportLogs.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnExportLogs.BackColor = Color.SeaGreen;
-            btnExportLogs.Dock = DockStyle.Fill;
-            btnExportLogs.FlatAppearance.BorderSize = 0;
-            btnExportLogs.FlatStyle = FlatStyle.Flat;
-            btnExportLogs.Font = new Font("Arial", 12F);
-            btnExportLogs.ForeColor = Color.White;
-            btnExportLogs.Location = new Point(0, 0);
-            btnExportLogs.Name = "btnExportLogs";
-            btnExportLogs.Size = new Size(104, 32);
-            btnExportLogs.TabIndex = 40;
-            btnExportLogs.Text = "📄 Export";
-            btnExportLogs.UseVisualStyleBackColor = false;
             // 
             // panelSyncLog
             // 
             panelSyncLog.Controls.Add(btnSyncLogs);
             panelSyncLog.Dock = DockStyle.Fill;
-            panelSyncLog.Location = new Point(189, 3);
+            panelSyncLog.Location = new Point(205, 3);
             panelSyncLog.Name = "panelSyncLog";
-            panelSyncLog.Size = new Size(103, 32);
+            panelSyncLog.Size = new Size(95, 37);
             panelSyncLog.TabIndex = 42;
             // 
             // btnSyncLogs
@@ -625,7 +625,7 @@ namespace Pos.WinFormsUI.Dashboard
             btnSyncLogs.ForeColor = Color.White;
             btnSyncLogs.Location = new Point(0, 0);
             btnSyncLogs.Name = "btnSyncLogs";
-            btnSyncLogs.Size = new Size(103, 32);
+            btnSyncLogs.Size = new Size(95, 37);
             btnSyncLogs.TabIndex = 39;
             btnSyncLogs.Text = "🔄 Sync";
             btnSyncLogs.UseVisualStyleBackColor = false;
@@ -637,7 +637,7 @@ namespace Pos.WinFormsUI.Dashboard
             panel1.Location = new Point(0, 0);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(186, 38);
+            panel1.Size = new Size(202, 43);
             panel1.TabIndex = 43;
             // 
             // PaginationPanel
@@ -647,7 +647,7 @@ namespace Pos.WinFormsUI.Dashboard
             PaginationPanel.Location = new Point(0, 0);
             PaginationPanel.Margin = new Padding(0);
             PaginationPanel.Name = "PaginationPanel";
-            PaginationPanel.Size = new Size(186, 38);
+            PaginationPanel.Size = new Size(202, 43);
             PaginationPanel.TabIndex = 39;
             // 
             // panelLogGridBox
@@ -748,7 +748,7 @@ namespace Pos.WinFormsUI.Dashboard
             panellogchart.Controls.Add(panelTotalLogs);
             panellogchart.Dock = DockStyle.Fill;
             panellogchart.Location = new Point(4, 4);
-            panellogchart.Margin = new Padding(4, 4, 4, 4);
+            panellogchart.Margin = new Padding(4);
             panellogchart.Name = "panellogchart";
             panellogchart.Size = new Size(196, 54);
             panellogchart.TabIndex = 4;
@@ -762,7 +762,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelTotalLogs.Dock = DockStyle.Fill;
             panelTotalLogs.Location = new Point(0, 0);
             panelTotalLogs.Name = "panelTotalLogs";
-            panelTotalLogs.Padding = new Padding(4, 4, 4, 4);
+            panelTotalLogs.Padding = new Padding(4);
             panelTotalLogs.Size = new Size(196, 54);
             panelTotalLogs.TabIndex = 1;
             // 
@@ -800,7 +800,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelWarningLogs.Dock = DockStyle.Fill;
             panelWarningLogs.Location = new Point(3, 65);
             panelWarningLogs.Name = "panelWarningLogs";
-            panelWarningLogs.Padding = new Padding(4, 4, 4, 4);
+            panelWarningLogs.Padding = new Padding(4);
             panelWarningLogs.Size = new Size(198, 56);
             panelWarningLogs.TabIndex = 2;
             // 
@@ -838,7 +838,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelErrorLogs.Dock = DockStyle.Fill;
             panelErrorLogs.Location = new Point(207, 3);
             panelErrorLogs.Name = "panelErrorLogs";
-            panelErrorLogs.Padding = new Padding(4, 4, 4, 4);
+            panelErrorLogs.Padding = new Padding(4);
             panelErrorLogs.Size = new Size(199, 56);
             panelErrorLogs.TabIndex = 1;
             // 
@@ -875,7 +875,7 @@ namespace Pos.WinFormsUI.Dashboard
             panelInfoLogs.Controls.Add(lblInfoLogsCount);
             panelInfoLogs.Dock = DockStyle.Fill;
             panelInfoLogs.Location = new Point(209, 67);
-            panelInfoLogs.Margin = new Padding(5, 5, 5, 5);
+            panelInfoLogs.Margin = new Padding(5);
             panelInfoLogs.Name = "panelInfoLogs";
             panelInfoLogs.Padding = new Padding(3, 4, 4, 4);
             panelInfoLogs.Size = new Size(195, 52);

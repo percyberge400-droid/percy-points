@@ -364,7 +364,7 @@ namespace Pos.WinFormsUI.Dashboard
             int availableWidth = panelInvoices.Width;
 
             // Handle button visibility and repositioning based on screen width
-            HandleInvoiceButtonLayout(screenWidth);
+            //HandleInvoiceButtonLayout(screenWidth);
 
             // Calculate available space after the label
             int spaceAfterLabel = availableWidth - lblInvoices.Right;
@@ -1281,12 +1281,12 @@ namespace Pos.WinFormsUI.Dashboard
 
                 if (lastSyncedInvoice != null)
                 {
-                    lblLastSync.Text = "Last Synced Invoice: " + lastSyncedInvoice.DateCreated;
+                    lblLastSync.Text = "🔄Last Synced Invoice: " + lastSyncedInvoice.DateCreated;
                     lblLastSync.ForeColor = Color.FromArgb(34, 197, 94);
                 }
                 else
                 {
-                    lblLastSync.Text = "Last Synced Invoice: N/A";
+                    lblLastSync.Text = "🔄Last Synced Invoice: N/A";
                     lblLastSync.ForeColor = Color.FromArgb(220, 38, 38);
                 }
             }
@@ -1591,7 +1591,7 @@ namespace Pos.WinFormsUI.Dashboard
                 col.HeaderCell.SortGlyphDirection = SortOrder.None;
 
             _isSyncedSortDescending = true;
-            btnFilterSynced.Text = "Show Synced First";
+            btnFilterSynced.Text = "🔄Synced";
         }
 
         private async void btnFilterInvoices_Click(object sender, EventArgs e)
@@ -1612,12 +1612,12 @@ namespace Pos.WinFormsUI.Dashboard
             if (_isSyncedSortDescending)
             {
                 _invoiceCache = _invoiceCache.OrderByDescending(i => i.IsSynced).ToList();
-                btnFilterSynced.Text = "Unsynced";
+                btnFilterSynced.Text = "🔄Unsynced";
             }
             else
             {
                 _invoiceCache = _invoiceCache.OrderBy(i => i.IsSynced).ToList();
-                btnFilterSynced.Text = "Synced";
+                btnFilterSynced.Text = "🔄Synced";
             }
 
             _isSyncedSortDescending = !_isSyncedSortDescending;
