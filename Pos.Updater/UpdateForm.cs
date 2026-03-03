@@ -1,15 +1,9 @@
 ﻿using Pos.SecurityEncryption;
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Pos.Updater
 {
@@ -115,7 +109,17 @@ namespace Pos.Updater
         private async Task RunUpdateAsync()
         {
             string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
-            string localVersion = File.Exists(localVersionPath) ? File.ReadAllText(localVersionPath).Trim() : "0.0.0";
+
+            string fullLocalVersion = File.Exists(localVersionPath)
+                ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
+                : "0.0.0,0,Date";
+
+            var parts = fullLocalVersion.Split(',');
+
+            string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
+            //string isUpdate = parts.Length > 1 ? parts[1] : "0";
+            string isUpdate = "0";
+            string updateDate = DateTime.Now.ToString();
 
             using var client = new HttpClient();
 
@@ -208,7 +212,11 @@ namespace Pos.Updater
             // 5️⃣ Update local version file
             try
             {
-                File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(serverVersion));
+                string updatedFullVersion = $"{serverVersion},{isUpdate},{updateDate}";
+
+                Log($"Full updated Version: {updatedFullVersion}");
+
+                File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
                 Log($"Version updated: {localVersion} → {serverVersion}");
             }
             catch (Exception ex)

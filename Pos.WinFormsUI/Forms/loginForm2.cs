@@ -484,7 +484,7 @@ namespace Pos.WinFormsUI.Forms
                     "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
+        
         private string GetInstallPath()
         {
             string commonInfo = Path.Combine(
@@ -546,6 +546,10 @@ namespace Pos.WinFormsUI.Forms
             string localVersion = File.Exists(localVersionPath)
                 ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
                 : "0.0.0";
+
+            localVersion = localVersion.Split(',')[0];
+
+            //var avbc = AesEncryptionHelper.Encrypt("1.0.9,1,Date");
 
             Log($"Local version: {localVersion}");
 

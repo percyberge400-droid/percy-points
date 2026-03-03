@@ -33,6 +33,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddHostedService<InvoiceWorkerSevice>();
         services.AddHostedService<LogWorkerService>();
         services.AddHostedService<SqliteBackupService>();
+        services.AddHostedService<UpdaterWorkerSevice>();
     });
 
 // Global exception handlers
