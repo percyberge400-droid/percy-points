@@ -219,7 +219,7 @@ namespace Pos.WinFormsUI.Forms
                             {
                                 FileName = updaterExe,
                                 UseShellExecute = true,
-                                Verb = "runas",
+                                // Remove: Verb = "runas",
                                 WindowStyle = ProcessWindowStyle.Normal
                             };
                             Process.Start(psi);

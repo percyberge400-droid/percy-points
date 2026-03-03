@@ -127,7 +127,7 @@ namespace Pos.Worker.Services
                                     {
                                         FileName = updaterExe,
                                         UseShellExecute = true,
-                                        Verb = "runas",
+                                        // No "runas" verb — service already has elevation
                                         WindowStyle = ProcessWindowStyle.Normal
                                     };
 

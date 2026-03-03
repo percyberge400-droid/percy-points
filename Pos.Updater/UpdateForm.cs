@@ -17,8 +17,9 @@ namespace Pos.Updater
         private readonly string[] ExcludedFiles = new[]
         {
             "Pos.WinFormsUI.dll.config",
-            "POSPRA.SetupUI.dll.config",
+            "Pos.SetupUI.dll.config",
             "appsettings.json",
+            "Pos.SecurityEncryption.dll",
             "appsettings.worker.json"
         };
 
