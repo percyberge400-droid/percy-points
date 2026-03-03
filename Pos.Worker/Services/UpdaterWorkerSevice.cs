@@ -123,18 +123,11 @@ namespace Pos.Worker.Services
 
                                 try
                                 {
-                                    //var psi = new ProcessStartInfo
-                                    //{
-                                    //    FileName = updaterExe,
-                                    //    UseShellExecute = true,
-                                    //    Verb = "runas",
-                                    //    WindowStyle = ProcessWindowStyle.Normal
-                                    //};
-
                                     var psi = new ProcessStartInfo
                                     {
                                         FileName = updaterExe,
                                         UseShellExecute = true,
+                                        Verb = "runas",
                                         WindowStyle = ProcessWindowStyle.Normal
                                     };
 

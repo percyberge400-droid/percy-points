@@ -4,10 +4,11 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
-using Pos.WinFormsUI.AlertClasses;
 using Pos.WinFormsUI.Dashboard;
 using System.Configuration;
+using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 
@@ -27,13 +28,20 @@ namespace Pos.WinFormsUI.Forms
         private readonly string _baseUrl;
         private readonly string _jsonworkerpath;
 
+        private string LocalFolder = "";
+
+        // Use your actual API base URL here
+        private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
+        private const string ApiGetVersion = "get-update-version";
+
         // 🎨 Animation tracking for status badges
         private int _internetPulseFrame = 0;
         private int _posPulseFrame = 0;
         private int _environmentPulseFrame = 0; // New pulse frame for environment
         private System.Windows.Forms.Timer _animationTimer;
         private long decryptedPosId;
-
+        private static System.Timers.Timer updateTimer;
+        private bool updateCheckInProgress = false;
 
         public Main(IServiceProvider provider, ILogService logService)
         {
@@ -41,6 +49,8 @@ namespace Pos.WinFormsUI.Forms
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             InitializeComponent();
             StyleContextMenu();
+            var cts = new CancellationTokenSource();
+            StartUpdateWatcher(cts.Token);  // 👈 Start hidden checker
 
             productCatalogToolStripMenuItem.Click += productCatalogToolStripMenuItem_Click;
             uploadLogoToolStripMenuItem.Click += uploadLogoToolStripMenuItem_Click;
@@ -79,6 +89,205 @@ namespace Pos.WinFormsUI.Forms
             }
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
             decryptedPosId = Convert.ToInt64(AesEncryptionHelper.Decrypt(encryptedPosId));
+        }
+
+        public void StartUpdateWatcher(CancellationToken cancellationToken)
+        {
+            // Run immediately
+            _ = RunCheckForUpdateOnce(cancellationToken);
+
+            // Setup timer for periodic checks
+            updateTimer = new System.Timers.Timer(15000); // check every 5 sec
+            updateTimer.AutoReset = true;
+
+            updateTimer.Elapsed += async (s, e) =>
+            {
+                await RunCheckForUpdateOnce(cancellationToken);
+            };
+
+            updateTimer.Start();
+        }
+
+        // Wrapper to prevent overlapping calls
+        private async Task RunCheckForUpdateOnce(CancellationToken cancellationToken)
+        {
+            if (updateCheckInProgress) return;
+
+            updateCheckInProgress = true;
+            try
+            {
+                await CheckForUpdate(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Update check error: " + ex.Message);
+            }
+            finally
+            {
+                updateCheckInProgress = false;
+            }
+        }
+
+        // Your existing CheckForUpdate method stays the same
+        private async Task CheckForUpdate(CancellationToken cancellationToken)
+        {
+            string installPath = GetInstallPath();
+            if (!installPath.EndsWith("\\")) installPath += "\\";
+
+            string logFile = Path.Combine(installPath, "update-log.txt");
+            void Log(string msg)
+            {
+                try { File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n"); }
+                catch { }
+            }
+
+            try
+            {
+                string localVersionPath = Path.Combine(installPath, "app-version.txt");
+                string fullLocalVersion = File.Exists(localVersionPath)
+                    ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
+                    : "0.0.0,0,Date";
+
+                Log($"Loaded local version: {fullLocalVersion}");
+
+                var parts = fullLocalVersion.Split(',');
+                string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
+                string isUpdate = parts.Length > 1 ? parts[1] : "0";
+                string updateDate = parts.Length > 2 ? parts[2] : DateTime.Now.ToString();
+
+                // Fetch server version
+                string apiBase = "http://10.105.200.161/api/Configuration/";
+                string versionApi = $"{apiBase}get-update-version";
+
+                string serverVersion;
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(versionApi, cancellationToken);
+
+                    if (response?.Data == null || string.IsNullOrWhiteSpace(response.Data.AppVersion))
+                    {
+                        Log("Server returned invalid version data.");
+                        return;
+                    }
+
+                    serverVersion = response.Data.AppVersion.Trim();
+                    Log($"Server version: {serverVersion}");
+                }
+
+                // Compare versions
+                bool updateRequired = false;
+                try
+                {
+                    var vLocal = Version.Parse(localVersion);
+                    var vServer = Version.Parse(serverVersion);
+                    if (vLocal < vServer) updateRequired = true;
+                }
+                catch
+                {
+                    if (localVersion != serverVersion) updateRequired = true;
+                }
+
+                if (!updateRequired)
+                {
+                    Log("No update required.");
+                    return;
+                }
+
+                Log($"Update available: {localVersion} → {serverVersion}");
+
+                // Mark pending update
+                if (isUpdate != "1")
+                {
+                    string updatedFullVersion = $"{localVersion},1,{DateTime.Now}";
+                    File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
+                    Log("Marked update as pending in app-version.txt.");
+                }
+                else if (DateTime.TryParse(updateDate, out DateTime lastUpdate))
+                {
+                    if ((DateTime.Now - lastUpdate) > TimeSpan.FromSeconds(10))
+                    {
+                        string updaterExe = Path.Combine(installPath, "Pos.Updater.exe");
+                        if (!File.Exists(updaterExe))
+                        {
+                            Log("Updater executable not found.");
+                            return;
+                        }
+
+                        try
+                        {
+                            var psi = new ProcessStartInfo
+                            {
+                                FileName = updaterExe,
+                                UseShellExecute = true,
+                                Verb = "runas",
+                                WindowStyle = ProcessWindowStyle.Normal
+                            };
+                            Process.Start(psi);
+                            Log("Updater launched successfully.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log($"Failed to launch updater: {ex.Message}");
+                        }
+
+                        string updatedFullVersion = $"{serverVersion},0,{DateTime.Now}";
+                        File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
+                        Log("Updated local version after launching updater.");
+                        System.Windows.Forms.Application.Exit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Unexpected error: {ex.Message}");
+            }
+        }
+
+        private string GetInstallPath()
+        {
+            string commonInfo = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "PRAL", "install_info.txt");
+
+            string installPath = "";
+
+            if (File.Exists(commonInfo))
+            {
+                foreach (var line in File.ReadAllLines(commonInfo))
+                {
+                    if (line.StartsWith("InstallPath=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        installPath = line.Substring("InstallPath=".Length).Trim();
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(installPath) || !Directory.Exists(installPath))
+            {
+                var defaultPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "PRAL", "POSComponent");
+
+                installPath = Directory.Exists(defaultPath)
+                    ? defaultPath
+                    : AppDomain.CurrentDomain.BaseDirectory;
+            }
+
+            return installPath;
+        }
+
+        public class ConfigurationResponseDto
+        {
+            public string AppVersion { get; set; } = string.Empty;
+        }
+
+        public class ApiResponse<T>
+        {
+            public string StatusCode { get; set; } = string.Empty;
+            public string Message { get; set; } = string.Empty;
+            public T Data { get; set; } = default!;
+            public string Errors { get; set; } = string.Empty;
         }
 
         private void InitializeStatusSystem()
