@@ -219,7 +219,7 @@ namespace Pos.WinFormsUI.Forms
                             {
                                 FileName = updaterExe,
                                 UseShellExecute = true,
-                                // Remove: Verb = "runas",
+                                Verb = "runas",
                                 WindowStyle = ProcessWindowStyle.Normal
                             };
                             Process.Start(psi);
@@ -230,10 +230,10 @@ namespace Pos.WinFormsUI.Forms
                             Log($"Failed to launch updater: {ex.Message}");
                         }
 
-                        string updatedFullVersion = $"{serverVersion},0,{DateTime.Now}";
-                        File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
-                        Log("Updated local version after launching updater.");
-                        System.Windows.Forms.Application.Exit();
+                        //string updatedFullVersion = $"{serverVersion},0,{DateTime.Now}";
+                        //File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
+                        //Log("Updated local version after launching updater.");
+                        //System.Windows.Forms.Application.Exit();
                     }
                 }
             }
