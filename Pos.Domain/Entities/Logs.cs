@@ -104,9 +104,7 @@ namespace Pos.Domain.Entities
             Type = type;
             IsSynced = isSynced;
             CreatedAtUtc = DateTime.UtcNow;
-            CreatedAtPk = TimeZoneInfo.ConvertTimeFromUtc(
-                               DateTime.UtcNow,
-                               TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi"));
+            CreatedAtPk = DateTime.UtcNow;
         }
     }
 }
