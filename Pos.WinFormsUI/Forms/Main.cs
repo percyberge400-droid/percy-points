@@ -93,16 +93,31 @@ namespace Pos.WinFormsUI.Forms
 
         public void StartUpdateWatcher(CancellationToken cancellationToken)
         {
-            // Run immediately
-            _ = RunCheckForUpdateOnce(cancellationToken);
+            ScheduleNextRun(cancellationToken);
+        }
 
-            // Setup timer for periodic checks
-            updateTimer = new System.Timers.Timer(15000); // check every 5 sec
-            updateTimer.AutoReset = true;
+        private void ScheduleNextRun(CancellationToken cancellationToken)
+        {
+            DateTime now = DateTime.Now;
+
+            // Today 12:00 PM
+            DateTime nextRun = new DateTime(now.Year, now.Month, now.Day, 12, 0, 0);
+
+            // If it's already past 12 PM today → schedule for tomorrow
+            if (now >= nextRun)
+                nextRun = nextRun.AddDays(1);
+
+            double millisecondsUntilNextRun = (nextRun - now).TotalMilliseconds;
+
+            updateTimer = new System.Timers.Timer(millisecondsUntilNextRun);
+            updateTimer.AutoReset = false; // important: run once
 
             updateTimer.Elapsed += async (s, e) =>
             {
                 await RunCheckForUpdateOnce(cancellationToken);
+
+                // After running, schedule again for next day 12 PM
+                ScheduleNextRun(cancellationToken);
             };
 
             updateTimer.Start();
@@ -204,36 +219,41 @@ namespace Pos.WinFormsUI.Forms
                 }
                 else if (DateTime.TryParse(updateDate, out DateTime lastUpdate))
                 {
-                    if ((DateTime.Now - lastUpdate) > TimeSpan.FromSeconds(10))
+                    var autoUpdateTriggerDaysSetting = ConfigurationManager.AppSettings["AutoUpdateTriggerDays"];
+
+                    if (int.TryParse(autoUpdateTriggerDaysSetting, out int autoUpdateTriggerDays))
                     {
-                        string updaterExe = Path.Combine(installPath, "Pos.Updater.exe");
-                        if (!File.Exists(updaterExe))
+                        if (DateTime.Now > lastUpdate.AddDays(autoUpdateTriggerDays))
                         {
-                            Log("Updater executable not found.");
-                            return;
-                        }
-
-                        try
-                        {
-                            var psi = new ProcessStartInfo
+                            string updaterExe = Path.Combine(installPath, "Pos.Updater.exe");
+                            if (!File.Exists(updaterExe))
                             {
-                                FileName = updaterExe,
-                                UseShellExecute = true,
-                                Verb = "runas",
-                                WindowStyle = ProcessWindowStyle.Normal
-                            };
-                            Process.Start(psi);
-                            Log("Updater launched successfully.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Log($"Failed to launch updater: {ex.Message}");
-                        }
+                                Log("Updater executable not found.");
+                                return;
+                            }
 
-                        //string updatedFullVersion = $"{serverVersion},0,{DateTime.Now}";
-                        //File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
-                        //Log("Updated local version after launching updater.");
-                        //System.Windows.Forms.Application.Exit();
+                            try
+                            {
+                                var psi = new ProcessStartInfo
+                                {
+                                    FileName = updaterExe,
+                                    UseShellExecute = true,
+                                    Verb = "runas",
+                                    WindowStyle = ProcessWindowStyle.Normal
+                                };
+                                Process.Start(psi);
+                                Log("Updater launched successfully.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log($"Failed to launch updater: {ex.Message}");
+                            }
+
+                            //string updatedFullVersion = $"{serverVersion},0,{DateTime.Now}";
+                            //File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
+                            //Log("Updated local version after launching updater.");
+                            //System.Windows.Forms.Application.Exit();
+                        }
                     }
                 }
             }
