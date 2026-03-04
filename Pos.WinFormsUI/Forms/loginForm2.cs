@@ -85,10 +85,10 @@ namespace Pos.WinFormsUI.Forms
             {
                 await Task.Delay(500); // small delay
 
-                // Start update check in background
-                Task.Run(async () =>
+                // Start update check in background             
+                _ = Task.Run(async () =>
                 {
-                    await CheckAndPromptAppUpdateAsync(); // No parameters now
+                    await CheckAndPromptAppUpdateAsync();
                 });
 
                 // Restart your service
@@ -469,21 +469,21 @@ namespace Pos.WinFormsUI.Forms
         }
         #region Check App Update Only
 
-        private async Task CheckAppUpdateAsync()
-        {
-            try
-            {
-                string installPath = GetInstallPath();
-                if (!installPath.EndsWith("\\")) installPath += "\\";
+        //private async Task CheckAppUpdateAsync()
+        //{
+        //    try
+        //    {
+        //        string installPath = GetInstallPath();
+        //        if (!installPath.EndsWith("\\")) installPath += "\\";
 
-                await CheckAndPromptUpdatesAsync(installPath);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Update check failed:\n\n{ex.Message}",
-                    "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+        //        await CheckAndPromptUpdatesAsync(installPath);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Update check failed:\n\n{ex.Message}",
+        //            "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
         
         private string GetInstallPath()
         {
@@ -533,25 +533,23 @@ namespace Pos.WinFormsUI.Forms
 
             void Log(string msg)
             {
-                try
-                {
-                    File.AppendAllText(logFile,
-                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
-                }
+                try { File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n"); }
                 catch { }
             }
 
             // ---------------- Load Local Version ----------------
             string localVersionPath = Path.Combine(installPath, "app-version.txt");
-            string localVersion = File.Exists(localVersionPath)
+
+            string fullLocalVersion = File.Exists(localVersionPath)
                 ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
-                : "0.0.0";
+                : "0.0.0,0,Date";
 
-            localVersion = localVersion.Split(',')[0];
+            var parts = fullLocalVersion.Split(',');
+            string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
+            string isUpdate = parts.Length > 1 ? parts[1] : "0";
+            string updateDate = parts.Length > 2 ? parts[2] : DateTime.Now.ToString();
 
-            //var avbc = AesEncryptionHelper.Encrypt("1.0.9,1,Date");
-
-            Log($"Local version: {localVersion}");
+            Log($"Local version: {localVersion} | isUpdate: {isUpdate} | updateDate: {updateDate}");
 
             // ---------------- Call API ----------------
             string apiBase = "http://10.105.200.161/api/Configuration/";
@@ -577,66 +575,116 @@ namespace Pos.WinFormsUI.Forms
             catch (Exception ex)
             {
                 Log($"API error: {ex.Message}");
-                MessageBox.Show("Unable to fetch server version from API.",
-                                "Update", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return; // Silent fail on login — don't block the user
             }
 
             // ---------------- Version Compare ----------------
+            bool updateRequired = false;
             try
             {
                 var vLocal = Version.Parse(localVersion);
                 var vServer = Version.Parse(serverVersion);
-
-                if (vLocal >= vServer)
-                {
-                    Log("No update required.");
-                    return;
-                }
+                if (vLocal < vServer) updateRequired = true;
             }
             catch
             {
-                if (localVersion == serverVersion)
-                {
-                    Log("No update required (string compare).");
-                    return;
-                }
+                if (localVersion != serverVersion) updateRequired = true;
+            }
+
+            if (!updateRequired)
+            {
+                Log("No update required.");
+                return;
             }
 
             Log($"Update available: {localVersion} → {serverVersion}");
 
-            // ---------------- Prompt User ----------------
-            var prompt = MessageBox.Show(
-                $"A new application update is available.\n\n" +
-                $"Your version: {localVersion}\n" +
-                $"Latest version: {serverVersion}\n\n" +
-                "Update now?",
-                "Application Update",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+            // ---------------- AutoUpdateTriggerDays Logic ----------------
+            var autoUpdateTriggerDaysSetting = ConfigurationManager.AppSettings["AutoUpdateTriggerDays"];
+            bool autoLaunch = false;
 
-            if (prompt != DialogResult.Yes)
+            if (isUpdate == "1" &&
+                int.TryParse(autoUpdateTriggerDaysSetting, out int autoUpdateTriggerDays) &&
+                DateTime.TryParse(updateDate, out DateTime lastUpdateMarked))
             {
-                Log("User declined update.");
-                return;
+                if (DateTime.Now > lastUpdateMarked.AddDays(autoUpdateTriggerDays))
+                {
+                    Log($"AutoUpdateTriggerDays ({autoUpdateTriggerDays}) exceeded. Auto-launching updater.");
+                    autoLaunch = true;
+                }
             }
 
-            Log("User accepted update.");
+            // ---------------- Branch: Auto-launch or Prompt ----------------
+            if (autoLaunch)
+            {
+                // Show info message then auto-launch — no Yes/No needed
+                this.Invoke(new Action(() =>
+                {
+                    MessageBox.Show(
+                        $"A mandatory update is being applied.\n\n" +
+                        $"Your version : {localVersion}\n" +
+                        $"Latest version: {serverVersion}\n\n" +
+                        "Preparing to launch updater... The application will close.",
+                        "Automatic Update",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }));
 
-            // ---------------- Launch Updater ----------------
+                LaunchUpdater(installPath, Log);
+            }
+            else
+            {
+                // First detection OR within trigger days — prompt the user
+                if (isUpdate != "1")
+                {
+                    // Mark as pending so the day counter starts now
+                    string updatedFullVersion = $"{localVersion},1,{DateTime.Now}";
+                    File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
+                    Log("Marked update as pending in app-version.txt.");
+                }
+
+                DialogResult prompt = DialogResult.No;
+
+                this.Invoke(new Action(() =>
+                {
+                    prompt = MessageBox.Show(
+                        $"A new application update is available.\n\n" +
+                        $"Your version : {localVersion}\n" +
+                        $"Latest version: {serverVersion}\n\n" +
+                        "Update now?",
+                        "Application Update",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+                }));
+
+                if (prompt != DialogResult.Yes)
+                {
+                    Log("User declined update.");
+                    return;
+                }
+
+                Log("User accepted update.");
+                LaunchUpdater(installPath, Log);
+            }
+        }
+        // ---------------- Helper: Launch Updater ----------------
+        private void LaunchUpdater(string installPath, Action<string> Log)
+        {
             string updaterExe = Path.Combine(installPath, "Pos.Updater.exe");
+
             if (!File.Exists(updaterExe))
             {
-                Log("Updater missing!");
-                MessageBox.Show("Pos.Updater.exe not found.",
-                    "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Log("Updater executable not found.");
+                this.Invoke(new Action(() =>
+                {
+                    MessageBox.Show("Pos.Updater.exe not found.",
+                        "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }));
                 return;
             }
 
             try
             {
-                Log("Launching updater...");
-
                 var psi = new ProcessStartInfo
                 {
                     FileName = updaterExe,
@@ -646,18 +694,21 @@ namespace Pos.WinFormsUI.Forms
                 };
 
                 Process.Start(psi);
-                Log("Updater launched.");
+                Log("Updater launched successfully.");
 
-                System.Windows.Forms.Application.Exit();
-
+                this.Invoke(new Action(() => System.Windows.Forms.Application.Exit()));
             }
             catch (Exception ex)
             {
                 Log($"Failed to launch updater: {ex.Message}");
-                MessageBox.Show($"Failed to start updater: {ex.Message}",
-                    "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.Invoke(new Action(() =>
+                {
+                    MessageBox.Show($"Failed to start updater:\n{ex.Message}",
+                        "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }));
             }
         }
+
 
         #endregion
 
