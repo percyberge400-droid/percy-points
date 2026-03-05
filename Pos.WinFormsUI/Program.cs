@@ -130,7 +130,9 @@ namespace Pos.WinFormsUI
             // WinForms DI registration
             services.AddTransient<Profile>();
             services.AddTransient<LoginForm2>();
-            services.AddTransient<DashboardFormNew>();
+            //services.AddTransient<DashboardFormNew>();
+            services.AddTransient<DashboardForm>();
+
             services.AddTransient<Main>();
             services.AddTransient<ItemEntry>();
             services.AddTransient<ExportInvoiceForm>();

@@ -66,7 +66,9 @@ namespace Pos.WinFormsUI.Forms
             panCatalogView.Visible = false;
             pnlProfile.Visible = false;
             btnDashboard.ForeColor = ColorTranslator.FromHtml("#48A787");
-            Form childForm = _provider.GetRequiredService<DashboardFormNew>();
+            //Form childForm = _provider.GetRequiredService<DashboardFormNew>();
+            Form childForm = _provider.GetRequiredService<DashboardForm>();
+
             childForm.MdiParent = this;
             childForm.Dock = DockStyle.Fill;
             childForm.Show();
@@ -1300,7 +1302,9 @@ namespace Pos.WinFormsUI.Forms
             Form childForm = viewName switch
             {
                 "Profile" => _provider.GetRequiredService<Profile>(),
-                "Dashboard" => _provider.GetRequiredService<DashboardFormNew>(),
+                //"Dashboard" => _provider.GetRequiredService<DashboardFormNew>(),
+                "Dashboard" => _provider.GetRequiredService<DashboardForm>(),
+
                 "Invoice Entry" => _provider.GetRequiredService<ItemEntry>(),
                 "Export Invoice" => _provider.GetRequiredService<ExportInvoiceForm>(),
                 "Catalog View" => _provider.GetRequiredService<CatalogView>(),
