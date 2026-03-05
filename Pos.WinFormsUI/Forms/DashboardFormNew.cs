@@ -2300,8 +2300,8 @@ namespace Pos.WinFormsUI.Dashboard
             var colLogID = new DataGridViewTextBoxColumn
             {
                 Name = "colLogID",
-                HeaderText = "   Sr No",
-                Width = 120,
+                HeaderText = "Sr No",
+                Width = 90,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
                 DefaultCellStyle = new DataGridViewCellStyle
