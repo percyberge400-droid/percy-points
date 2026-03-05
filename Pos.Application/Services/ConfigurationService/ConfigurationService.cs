@@ -41,7 +41,7 @@ namespace Pos.Application.Services.ConfigurationService
             }
         }
 
-        public async Task<ApiResponse<ConfigurationResponseDto>> GetUpdateVersion(string wwwrootPath)
+        public async Task<ApiResponse<ConfigurationResponseDto>> GetUpdateVersion(string wwwrootPath, GetByModuleDto dto)
         {
             try
             {
@@ -49,65 +49,106 @@ namespace Pos.Application.Services.ConfigurationService
                     return new ApiResponse<ConfigurationResponseDto>(
                         ApiStatusCode.Error,
                         "wwwroot folder not found",
-                        null,
+                        null!,
                         $"Expected wwwroot path: {wwwrootPath}"
                     );
 
-                // Helper function to read files safely
-                async Task<string> ReadVersionFileAsync(string fileName)
+                // Map the request to a valid folder name
+                string? folderPath = dto.ModuleName switch
                 {
-                    string filePath = Path.Combine(wwwrootPath, fileName);
-                    if (!File.Exists(filePath))
-                        return "File Not Found";
-
-                    return (await File.ReadAllTextAsync(filePath)).Trim();
-                }
-
-                //string launcherVersion = await ReadVersionFileAsync(FileName.LauncherVersionFile);
-                string appVersion = await ReadVersionFileAsync(FileName.AppVersionFile);
-
-                var configuration = new ConfigurationResponseDto
-                {
-                    AppVersion = appVersion
+                    ModuelNames.PRAPOS => ModuelNames.PRAPOS,
+                    ModuelNames.DI => ModuelNames.DI,
+                    ModuelNames.PRAPOS_WINDOW7 => ModuelNames.PRAPOS_WINDOW7,
+                    _ => null
                 };
+
+                if (folderPath == null)
+                    return new ApiResponse<ConfigurationResponseDto>(
+                        ApiStatusCode.Error,
+                        string.Empty,
+                        null!,
+                        "Unknown module requested."
+                    );
+
+                // Read version file safely
+                string fullPath = Path.Combine(wwwrootPath, folderPath, FileNames.AppVersionFileName);
+                string appVersion = await File.ReadAllTextAsync(fullPath).ContinueWith(t => t.Result.Trim(), TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                var configuration = new ConfigurationResponseDto { AppVersion = appVersion };
 
                 return new ApiResponse<ConfigurationResponseDto>(
                     ApiStatusCode.Success,
                     ResponseMessages.RecordFound,
                     configuration,
-                    string.Empty);
+                    string.Empty
+                );
             }
             catch (Exception ex)
             {
                 return new ApiResponse<ConfigurationResponseDto>(
                     ApiStatusCode.Error,
                     ex.Message,
-                    null,
-                    "Failed while reading version files.");
+                    null!,
+                    "Failed while reading version files."
+                );
             }
         }
 
-        public async Task<ApiResponse<ConfigurationZipFileResponseDto>> GetZipFileAsync(string wwwrootPath)
+        public async Task<ApiResponse<ConfigurationZipFileResponseDto>> GetZipFileAsync(string wwwrootPath, GetByModuleDto dto)
         {
-            string filePath = wwwrootPath + "/" + FileName.UpdaterZipFile;
-            if (!File.Exists(filePath))
+            try
+            {
+                // Map the request to a valid folder name
+                string? folderPath = dto.ModuleName switch
+                {
+                    ModuelNames.PRAPOS => ModuelNames.PRAPOS,
+                    ModuelNames.DI => ModuelNames.DI,
+                    ModuelNames.PRAPOS_WINDOW7 => ModuelNames.PRAPOS_WINDOW7,
+                    _ => null
+                };
+
+                if (folderPath == null)
+                    return new ApiResponse<ConfigurationZipFileResponseDto>(
+                        ApiStatusCode.Error,
+                        string.Empty,
+                        null,
+                        "Unknown module requested."
+                    );
+
+                string fullPath = Path.Combine(wwwrootPath, folderPath, FileNames.UpdaterZipFileName);
+
+                if (!File.Exists(fullPath))
+                    return new ApiResponse<ConfigurationZipFileResponseDto>(
+                        ApiStatusCode.Error,
+                        string.Empty,
+                        null,
+                        "Zip file not found"
+                    );
+
+                // Read and convert the file to Base64
+                byte[] fileBytes = await File.ReadAllBytesAsync(fullPath);
+                string base64String = Convert.ToBase64String(fileBytes);
+
+                return new ApiResponse<ConfigurationZipFileResponseDto>(
+                    ApiStatusCode.Success,
+                    ResponseMessages.RecordFound,
+                    new ConfigurationZipFileResponseDto
+                    {
+                        FileName = FileNames.UpdaterZipFileName,
+                        Base64File = base64String
+                    },
+                    string.Empty
+                );
+            }
+            catch (Exception ex)
+            {
                 return new ApiResponse<ConfigurationZipFileResponseDto>(
                     ApiStatusCode.Error,
-                    string.Empty,
+                    ex.Message,
                     null,
-                    "Zip file not found"
+                    "Failed while reading zip file."
                 );
-            // Read file bytes
-            byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
-
-            // Convert to Base64
-            string base64String = Convert.ToBase64String(fileBytes);
-            return new ApiResponse<ConfigurationZipFileResponseDto>(
-                ApiStatusCode.Success,
-                ResponseMessages.RecordFound,
-                new ConfigurationZipFileResponseDto() { FileName = FileName.UpdaterZipFile, Base64File = base64String },
-                string.Empty
-            );
+            }
         }
     }
 }

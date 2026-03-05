@@ -1,15 +1,9 @@
 ﻿using Pos.SecurityEncryption;
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Pos.Updater
 {
@@ -23,12 +17,18 @@ namespace Pos.Updater
         private readonly string[] ExcludedFiles = new[]
         {
             "Pos.WinFormsUI.dll.config",
-            "POSPRA.SetupUI.dll.config",
+            "Pos.SetupUI.dll.config",
             "appsettings.json",
+            "Pos.SecurityEncryption.dll",
             "appsettings.worker.json"
         };
 
-        // Use your actual API base URL here
+        private readonly string[] ExcludedFolders = new[]
+        {
+            "runtimes"
+        };
+
+        // API endpoints
         private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
         private const string ApiGetVersion = "get-update-version";
         private const string ApiGetUpdaterFile = "get-updater-file";
@@ -40,6 +40,17 @@ namespace Pos.Updater
 
         private async void UpdateForm_Load(object sender, EventArgs e)
         {
+            // ✅ Admin check (from POSPra-DI — kept)
+            if (!new System.Security.Principal.WindowsPrincipal(
+                    System.Security.Principal.WindowsIdentity.GetCurrent())
+                .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator))
+            {
+                MessageBox.Show("Updater must be run as Administrator.",
+                    "Permission Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Environment.Exit(1);
+                return;
+            }
+
             try
             {
                 progressBar.Style = ProgressBarStyle.Marquee;
@@ -66,8 +77,10 @@ namespace Pos.Updater
         {
             try
             {
-                string commonInfo = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                    "PRAL", "install_info.txt");
+                // ✅ DI-specific path (unchanged)
+                string commonInfo = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                    "PRAL", "DI_Component", "install_info.txt");
 
                 if (File.Exists(commonInfo))
                 {
@@ -83,8 +96,9 @@ namespace Pos.Updater
 
                 if (string.IsNullOrWhiteSpace(LocalFolder) || !Directory.Exists(LocalFolder))
                 {
-                    var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                        "PRAL", "POSComponent");
+                    var defaultPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                        "PRAL", "DI_Component");
                     LocalFolder = Directory.Exists(defaultPath) ? defaultPath : AppDomain.CurrentDomain.BaseDirectory;
                 }
 
@@ -115,7 +129,17 @@ namespace Pos.Updater
         private async Task RunUpdateAsync()
         {
             string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
-            string localVersion = File.Exists(localVersionPath) ? File.ReadAllText(localVersionPath).Trim() : "0.0.0";
+
+            // ✅ AES-encrypted version file with version,isUpdate,date format (from POSPra)
+            string fullLocalVersion = File.Exists(localVersionPath)
+                ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
+                : "0.0.0,0,Date";
+
+            var parts = fullLocalVersion.Split(',');
+
+            string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
+            string isUpdate = "0";
+            string updateDate = DateTime.Now.ToString();
 
             using var client = new HttpClient();
 
@@ -176,9 +200,8 @@ namespace Pos.Updater
                 return;
             }
 
-
             string tempZip = Path.Combine(Path.GetTempPath(),
-    zipResponse.Data.FileName ?? "updater.zip");
+                zipResponse.Data.FileName ?? "updater.zip");
             try
             {
                 byte[] zipBytes = Convert.FromBase64String(zipResponse.Data.Base64File);
@@ -203,12 +226,17 @@ namespace Pos.Updater
                 return;
             }
 
+            // ✅ Cleanup temp zip
+            try { File.Delete(tempZip); } catch { }
+
             progressBar.Value = 70;
 
-            // 5️⃣ Update local version file
+            // 5️⃣ Update local version file 
             try
             {
-                File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(serverVersion));
+                string updatedFullVersion = $"{serverVersion},0,{updateDate}";
+                Log($"Version updated (Log in updater): {updatedFullVersion}");
+                File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
                 Log($"Version updated: {localVersion} → {serverVersion}");
             }
             catch (Exception ex)
@@ -252,6 +280,16 @@ namespace Pos.Updater
             {
                 ZipFile.ExtractToDirectory(zipPath, tempExtract);
 
+                // ✅ Step into root folder if zip contains a single subfolder (from POSPra-DI — kept)
+                var dirs = Directory.GetDirectories(tempExtract);
+                var files = Directory.GetFiles(tempExtract);
+
+                if (dirs.Length == 1 && files.Length == 0)
+                {
+                    Log($"Zip contains root folder '{Path.GetFileName(dirs[0])}', stepping into it...");
+                    tempExtract = dirs[0];
+                }
+
                 var allFiles = Directory.GetFiles(tempExtract, "*", SearchOption.AllDirectories);
                 int processed = 0, total = allFiles.Length;
 
@@ -260,9 +298,20 @@ namespace Pos.Updater
                     string relative = Path.GetRelativePath(tempExtract, src);
                     string fileName = Path.GetFileName(relative);
 
+                    // Skip excluded files
                     if (excludedFiles.Any(x => x.Equals(fileName, StringComparison.OrdinalIgnoreCase)))
                     {
                         Log($"Skipping excluded file: {relative}");
+                        processed++;
+                        Invoke(() => progressBar.Value = Math.Min(100, (int)((processed * 100.0) / total)));
+                        continue;
+                    }
+
+                    // ✅ Skip excluded folders (from POSPra-DI — kept)
+                    if (relative.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                        .Any(part => ExcludedFolders.Any(folder => folder.Equals(part, StringComparison.OrdinalIgnoreCase))))
+                    {
+                        Log($"Skipping file in excluded folder: {relative}");
                         processed++;
                         Invoke(() => progressBar.Value = Math.Min(100, (int)((processed * 100.0) / total)));
                         continue;
@@ -272,6 +321,7 @@ namespace Pos.Updater
                     string destDir = Path.GetDirectoryName(dest)!;
                     Directory.CreateDirectory(destDir);
 
+                    // Backup existing file before replacing
                     if (File.Exists(dest))
                     {
                         string bakPath = Path.Combine(backupFolder, relative);
@@ -287,7 +337,7 @@ namespace Pos.Updater
                     await Task.Yield();
                 }
 
-                // cleanup backups
+                // Cleanup
                 try { Directory.Delete(backupFolder, true); } catch { }
                 try { Directory.Delete(tempExtract, true); } catch { }
 
@@ -412,7 +462,8 @@ namespace Pos.Updater
             {
                 if (string.IsNullOrWhiteSpace(LocalFolder))
                 {
-                    File.AppendAllText(Path.Combine(Path.GetTempPath(), "updater_log.txt"), $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
+                    File.AppendAllText(Path.Combine(Path.GetTempPath(), "updater_log.txt"),
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
                     return;
                 }
                 File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\r\n");
@@ -451,7 +502,6 @@ namespace Pos.Updater
     {
         public string AppVersion { get; set; } = string.Empty;
     }
-
 
     #endregion
 }
