@@ -134,10 +134,17 @@
         public const string MissingHeadersMessage =
             "Missing token, POSID or MAC address.";
     }
-    public static class FileName
+
+    public static class ModuelNames
     {
-        public const string LauncherVersionFile = "launcher-version.txt";
-        public const string AppVersionFile = "app-version.txt";
-        public const string UpdaterZipFile = "updater.zip";
+        public const string PRAPOS = "PRAPOS_2.0";
+        public const string DI = "DI";
+        public const string PRAPOS_WINDOW7 = "PRAPOS_WINDOW7";
+    }
+
+    public static class FileNames
+    {
+        public const string AppVersionFileName = "app-version.txt";
+        public const string UpdaterZipFileName = "updater.zip";
     }
 }

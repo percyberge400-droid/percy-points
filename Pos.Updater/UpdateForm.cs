@@ -234,7 +234,8 @@ namespace Pos.Updater
             // 5️⃣ Update local version file 
             try
             {
-                string updatedFullVersion = $"{serverVersion},{isUpdate},{updateDate}";
+                string updatedFullVersion = $"{serverVersion},0,{updateDate}";
+                Log($"Version updated (Log in updater): {updatedFullVersion}");
                 File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
                 Log($"Version updated: {localVersion} → {serverVersion}");
             }
