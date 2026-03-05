@@ -1127,7 +1127,13 @@ namespace Pos.SetupUI
                     ShowMessage("No data to send.", false, true);
                     return;
                 }
-
+             
+                //if (fileRecords != null && int.TryParse(username, out int userPosId))
+                //{
+                //    fileRecords = fileRecords
+                //        .Where(x => x.POSID == userPosId)
+                //        .ToList();
+                //}
                 if (fileRecords != null &&
      int.TryParse(username, out int userPosId) &&
      fileRecords.Any(x => x.POSID != userPosId))
