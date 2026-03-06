@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
 using System.Configuration;
@@ -14,6 +15,7 @@ namespace Pos.WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private const string SERVICE_NAME = "POSWorker";
+        private const string ModuleName = "PRAPOS_2.0";
         public LoginForm2(IServiceProvider provider)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
@@ -561,7 +563,18 @@ namespace Pos.WinFormsUI.Forms
                 using var client = new HttpClient();
                 Log("Fetching server version from API...");
 
-                var response = await client.GetFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(versionApi);
+                var versionRequest = new HttpRequestMessage(HttpMethod.Post, versionApi);
+                versionRequest.Headers.Add("accept", "*/*");
+                versionRequest.Content = new StringContent(
+      $"{{\"moduleName\": \"{ModuleName}\"}}",
+      System.Text.Encoding.UTF8,
+      "application/json"
+  );
+
+                var versionHttpResponse = await client.SendAsync(versionRequest);
+                versionHttpResponse.EnsureSuccessStatusCode();
+                var response = await versionHttpResponse.Content
+                    .ReadFromJsonAsync<ApiResponse<ConfigurationResponseDto>>();
 
                 if (response?.Data == null || string.IsNullOrWhiteSpace(response.Data.AppVersion))
                 {

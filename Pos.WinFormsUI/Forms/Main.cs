@@ -30,10 +30,10 @@ namespace Pos.WinFormsUI.Forms
 
         private string LocalFolder = "";
 
-        // Use your actual API base URL here
+        // API base URL here
         private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
         private const string ApiGetVersion = "get-update-version";
-
+        private const string ModuleName = "PRAPOS_2.0";
         // 🎨 Animation tracking for status badges
         private int _internetPulseFrame = 0;
         private int _posPulseFrame = 0;
@@ -184,7 +184,18 @@ namespace Pos.WinFormsUI.Forms
                 string serverVersion;
                 using (var client = new HttpClient())
                 {
-                    var response = await client.GetFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(versionApi, cancellationToken);
+                    var versionRequest = new HttpRequestMessage(HttpMethod.Post, versionApi);
+                    versionRequest.Headers.Add("accept", "*/*");
+                    versionRequest.Content = new StringContent(
+                        $"{{\"moduleName\": \"{ModuleName}\"}}",
+                        System.Text.Encoding.UTF8,
+                        "application/json"
+                    );
+
+                    var versionHttpResponse = await client.SendAsync(versionRequest, cancellationToken);
+                    versionHttpResponse.EnsureSuccessStatusCode();
+                    var response = await versionHttpResponse.Content
+                        .ReadFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(cancellationToken: cancellationToken);
 
                     if (response?.Data == null || string.IsNullOrWhiteSpace(response.Data.AppVersion))
                     {

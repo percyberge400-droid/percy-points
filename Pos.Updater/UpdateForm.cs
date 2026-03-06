@@ -32,6 +32,7 @@ namespace Pos.Updater
         private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
         private const string ApiGetVersion = "get-update-version";
         private const string ApiGetUpdaterFile = "get-updater-file";
+        private const string ModuleName = "PRAPOS_2.0";
 
         public UpdateForm()
         {
@@ -40,7 +41,7 @@ namespace Pos.Updater
 
         private async void UpdateForm_Load(object sender, EventArgs e)
         {
-            // ✅ Admin check (from POSPra-DI — kept)
+            // ✅ Admin check
             if (!new System.Security.Principal.WindowsPrincipal(
                     System.Security.Principal.WindowsIdentity.GetCurrent())
                 .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator))
@@ -77,7 +78,6 @@ namespace Pos.Updater
         {
             try
             {
-                // ✅ DI-specific path (unchanged)
                 string commonInfo = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                     "PRAL", "DI_Component", "install_info.txt");
@@ -130,7 +130,7 @@ namespace Pos.Updater
         {
             string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
 
-            // ✅ AES-encrypted version file with version,isUpdate,date format (from POSPra)
+            // ✅ AES-encrypted version file with version,isUpdate,date format
             string fullLocalVersion = File.Exists(localVersionPath)
                 ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
                 : "0.0.0,0,Date";
@@ -138,17 +138,24 @@ namespace Pos.Updater
             var parts = fullLocalVersion.Split(',');
 
             string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
-            string isUpdate = "0";
             string updateDate = DateTime.Now.ToString();
 
             using var client = new HttpClient();
+            string moduleBody = $"{{\"moduleName\": \"{ModuleName}\"}}";
 
             // 1️⃣ Get server version
             Invoke(() => lblStatus.Text = "Checking latest version...");
             ApiResponse<ConfigurationResponseDto>? versionResponse;
             try
             {
-                versionResponse = await client.GetFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(ApiBaseUrl + ApiGetVersion);
+                var versionRequest = new HttpRequestMessage(HttpMethod.Post, ApiBaseUrl + ApiGetVersion);
+                versionRequest.Headers.Add("accept", "*/*");
+                versionRequest.Content = new StringContent(moduleBody, System.Text.Encoding.UTF8, "application/json");
+
+                var versionHttpResponse = await client.SendAsync(versionRequest);
+                versionHttpResponse.EnsureSuccessStatusCode();
+                versionResponse = await versionHttpResponse.Content
+                    .ReadFromJsonAsync<ApiResponse<ConfigurationResponseDto>>();
             }
             catch (Exception ex)
             {
@@ -186,7 +193,14 @@ namespace Pos.Updater
             UpdaterFileResponse? zipResponse;
             try
             {
-                zipResponse = await client.GetFromJsonAsync<UpdaterFileResponse>(ApiBaseUrl + ApiGetUpdaterFile);
+                var fileRequest = new HttpRequestMessage(HttpMethod.Post, ApiBaseUrl + ApiGetUpdaterFile);
+                fileRequest.Headers.Add("accept", "*/*");
+                fileRequest.Content = new StringContent(moduleBody, System.Text.Encoding.UTF8, "application/json");
+
+                var fileHttpResponse = await client.SendAsync(fileRequest);
+                fileHttpResponse.EnsureSuccessStatusCode();
+                zipResponse = await fileHttpResponse.Content
+                    .ReadFromJsonAsync<UpdaterFileResponse>();
             }
             catch (Exception ex)
             {
@@ -231,7 +245,7 @@ namespace Pos.Updater
 
             progressBar.Value = 70;
 
-            // 5️⃣ Update local version file 
+            // 5️⃣ Update local version file
             try
             {
                 string updatedFullVersion = $"{serverVersion},0,{updateDate}";
@@ -280,7 +294,7 @@ namespace Pos.Updater
             {
                 ZipFile.ExtractToDirectory(zipPath, tempExtract);
 
-                // ✅ Step into root folder if zip contains a single subfolder (from POSPra-DI — kept)
+                // ✅ Step into root folder if zip contains a single subfolder
                 var dirs = Directory.GetDirectories(tempExtract);
                 var files = Directory.GetFiles(tempExtract);
 
@@ -307,7 +321,7 @@ namespace Pos.Updater
                         continue;
                     }
 
-                    // ✅ Skip excluded folders (from POSPra-DI — kept)
+                    // Skip excluded folders
                     if (relative.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                         .Any(part => ExcludedFolders.Any(folder => folder.Equals(part, StringComparison.OrdinalIgnoreCase))))
                     {
