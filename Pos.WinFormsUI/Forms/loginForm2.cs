@@ -490,8 +490,8 @@ namespace Pos.WinFormsUI.Forms
         private string GetInstallPath()
         {
             string commonInfo = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                "PRAL", "install_info.txt");
+    @"C:\ProgramData\PRAL\PRAPOS_Component",
+    "install_info.txt");
 
             string installPath = "";
 

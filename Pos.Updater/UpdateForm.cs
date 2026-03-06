@@ -79,9 +79,8 @@ namespace Pos.Updater
             try
             {
                 string commonInfo = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                    "PRAL", "DI_Component", "install_info.txt");
-
+    @"C:\ProgramData\PRAL\PRAPOS_Component",
+    "install_info.txt");
                 if (File.Exists(commonInfo))
                 {
                     foreach (var line in File.ReadAllLines(commonInfo))
@@ -98,7 +97,7 @@ namespace Pos.Updater
                 {
                     var defaultPath = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                        "PRAL", "DI_Component");
+                        "PRAL", "POSComponent");
                     LocalFolder = Directory.Exists(defaultPath) ? defaultPath : AppDomain.CurrentDomain.BaseDirectory;
                 }
 
