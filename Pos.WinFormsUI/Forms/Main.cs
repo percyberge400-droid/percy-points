@@ -110,10 +110,10 @@ namespace Pos.WinFormsUI.Forms
                 nextRun = nextRun.AddDays(1);
 
             // 🔁 TEST MODE (every 1 minute)
-            double millisecondsUntilNextRun = TimeSpan.FromMinutes(1).TotalMilliseconds;
+            //double millisecondsUntilNextRun = TimeSpan.FromMinutes(1).TotalMilliseconds;
 
             // 🚀 PRODUCTION MODE (exactly 12 PM daily)
-            //double millisecondsUntilNextRun = (nextRun - now).TotalMilliseconds;
+            double millisecondsUntilNextRun = (nextRun - now).TotalMilliseconds;
 
             updateTimer = new System.Timers.Timer(millisecondsUntilNextRun);
             updateTimer.AutoReset = false; // important: run once
@@ -241,8 +241,8 @@ namespace Pos.WinFormsUI.Forms
 
                     if (int.TryParse(autoUpdateTriggerDaysSetting, out int autoUpdateTriggerDays))
                     {
-                        //if (DateTime.Now > lastUpdate.AddDays(autoUpdateTriggerDays))
-                        if (DateTime.Now > lastUpdate.AddMinutes(1)) // for testing
+                        if (DateTime.Now > lastUpdate.AddDays(autoUpdateTriggerDays))
+                        //if (DateTime.Now > lastUpdate.AddMinutes(1)) // for testing
                         {
                             string updaterExe = Path.Combine(installPath, "Pos.Updater.exe");
                             if (!File.Exists(updaterExe))
