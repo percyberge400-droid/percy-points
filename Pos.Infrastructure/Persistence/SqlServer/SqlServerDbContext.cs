@@ -15,6 +15,9 @@ public class SqlServerDbContext : DbContext
     public DbSet<POSBranches> POSBranches { get; set; } = null!;
     public DbSet<POSMASTER> POSMASTER { get; set; } = null!;
     public DbSet<POSContact> POSContact { get; set; } = null!;
+    public DbSet<InvoiceType> InvoiceType { get; set; } = null!;
+    public DbSet<Payment> Payment { get; set; } = null!;
+    public DbSet<ServiceRendered> ServiceRendered { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
