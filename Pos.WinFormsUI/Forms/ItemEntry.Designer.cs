@@ -1018,16 +1018,13 @@
             // Payment mode ComboBox
             paymentmode.DataSource = new List<KeyValuePair<byte, string>>()
             {
-                new KeyValuePair<byte, string>(1, "Cash"),
-                new KeyValuePair<byte, string>(2, "Card"),
-                new KeyValuePair<byte, string>(3, "Gift Voucher"),
-                new KeyValuePair<byte, string>(4, "Loyality Card"),
-                new KeyValuePair<byte, string>(5, "Mixed"),
-                new KeyValuePair<byte, string>(6, "Cheque")
+                new KeyValuePair<byte, string>(1, "Card"),
+                new KeyValuePair<byte, string>(2, "Cash"),
+                new KeyValuePair<byte, string>(3, "Online")
             };
             paymentmode.DisplayMember = "Value";
             paymentmode.ValueMember = "Key";
-            paymentmode.SelectedValue = (byte)1; // default: Cash
+            paymentmode.SelectedValue = (byte)2; // default: Cash
 
             // Invoice type ComboBox
             invoicetype.DataSource = new List<KeyValuePair<byte, string>>()

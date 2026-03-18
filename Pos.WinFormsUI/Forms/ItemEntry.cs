@@ -2163,7 +2163,7 @@ namespace Pos.WinFormsUI
 
             // Payment Mode validation (1-3)
             byte paymentMode = GetSelectedPaymentMode();
-            if (paymentMode < 1 || paymentMode > 6)
+            if (paymentMode < 1 || paymentMode > 3)
             {
                 AlertManager.ShowError("Please select a valid Payment Mode.");
                 return false;

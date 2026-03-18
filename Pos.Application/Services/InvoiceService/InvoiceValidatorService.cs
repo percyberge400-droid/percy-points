@@ -89,8 +89,8 @@ namespace POSPRA.Application.Services.FiscalService
             if (!IsEmpty(invoice.RefUSIN) && TrimSafe(invoice.RefUSIN).Length > 50)
                 AddError("Ref USIN cannot exceed 50 characters");
 
-            if (invoice.PaymentMode < 1 || invoice.PaymentMode > 6)
-                AddError("Payment mode must from 1 to 6 (Cash/Card/Gift Voucher/Loyalty Card/Mixed/Cheque)");
+            if (invoice.PaymentMode < 1 || invoice.PaymentMode > 3)
+                AddError("Payment mode must from 1 to 3 (Cash/Card/Credit)");
 
             // Validate USIN length if provided
             if (!IsEmpty(invoice.USIN) && TrimSafe(invoice.USIN).Length > 50)
