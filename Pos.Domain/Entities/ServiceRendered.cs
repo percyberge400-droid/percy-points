@@ -1,10 +1,13 @@
-﻿namespace Pos.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Pos.Domain.Entities
 {
     [Table("ServiceRendered")]
     public class ServiceRendered
     {
         [Key]
-        public int ID { get; set; }
+        public long ID { get; set; }
         public string? NAME { get; set; }
     }
 }

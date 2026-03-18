@@ -14,16 +14,19 @@ namespace Pos.Application.Services.ClientService
         private readonly ISqlServerUnitOfWork _sqlServerUnitOfWork;
         private readonly AppSettings _settings;
         private readonly IPosClientRepository _posClientRepository;
+        private readonly IInvoiceTypeRepository _invoiceTypeRepository;
         public ClientService(
             ISqlServerRepositoryFactory sqlRepositoryFactory,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
             IOptions<AppSettings> options,
-            IPosClientRepository posClientRepository)
+            IPosClientRepository posClientRepository,
+            IInvoiceTypeRepository invoiceTypeRepository)
         {
             _sqlClientRepository = sqlRepositoryFactory.CreateRepository<PosClients>();
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
             _settings = options.Value;
             _posClientRepository = posClientRepository;
+            _invoiceTypeRepository = invoiceTypeRepository;
         }
 
         public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
@@ -133,6 +136,11 @@ namespace Pos.Application.Services.ClientService
             if (!response)
                 return false;
             return true;
+        }
+
+        public async Task<IEnumerable<InvoiceType>> GetInvoiceType(string env)
+        {
+            return await _invoiceTypeRepository.GetAllInvoiceType(env);
         }
     }
 }

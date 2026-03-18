@@ -71,5 +71,9 @@ namespace Pos.Cloud.Api.Controllers
         [HttpGet("disbale-log-bit")]
         public async Task<ActionResult<ApiResponse<string>>> DisablePosCLientLogBit(long posId, string env) =>
             Ok(await _clientService.DisablePosCLientLogBit(env, posId));
+
+        [HttpGet("GetInvoiceType")]
+        public async Task<IActionResult> GetInvoiceType(string env) =>
+            Ok(await _clientService.GetInvoiceType(env));
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace Pos.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Pos.Domain.Entities
 {
     [Table("FileRecords")]
     public class FileRecord

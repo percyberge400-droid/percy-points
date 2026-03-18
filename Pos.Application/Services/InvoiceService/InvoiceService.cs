@@ -1,4 +1,7 @@
-﻿using Pos.Application.AutoMapperProfile;
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.InvoiceDTOs;
@@ -11,7 +14,11 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Services.NetworkService;
 using Pos.Application.Utility;
 using Pos.Application.Utility.OldDecryption;
+using Pos.Domain.Entities;
+using Pos.Domain.ValueObjects;
 using POSPRA.Application.Services.FiscalService;
+using System.Text;
+using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Pos.Application.Services.InvoiceService
@@ -321,18 +328,6 @@ namespace Pos.Application.Services.InvoiceService
             async Task LogError(string message) =>
                 await _logService.CreateLogAsync(
                     _logService.BuildLog(message, AlertType.Exception, "Invoice", nameof(CreateAsync)));
-        }
-
-        public async Task<LogResponseDto> IsLogEnabled(long posId, string env)
-        {
-            PosClients client = await _posClientRepository.GetByPosId(posId, env);
-
-            return new LogResponseDto
-            {
-                IsLogSynced = client?.IsLogSynced ?? false,
-                LogSyncedDateFrom = client?.LogSyncedDateFrom,
-                LogSyncedDateTo = client?.LogSyncedDateTo
-            };
         }
 
         /// <summary>
