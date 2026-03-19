@@ -1,6 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Pos.Application.AutoMapperProfile;
@@ -19,6 +17,8 @@ using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
 using Pos.Domain.ValueObjects;
 using POSPRA.Application.Services.FiscalService;
+using System.Text;
+using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Pos.Application.Services.InvoiceService

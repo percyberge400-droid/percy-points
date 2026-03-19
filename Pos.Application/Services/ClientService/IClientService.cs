@@ -11,5 +11,8 @@ namespace Pos.Application.Services.ClientService
         Task<bool> IsServiceEnabled(long posId, string env);
         Task<LogResponseDto> IsLogEnabled(long posId, string env);
         Task<bool> DisablePosCLientLogBit(string env, long posId);
+        Task<IEnumerable<InvoiceType>> GetInvoiceType(string env);
+        Task<IEnumerable<Payment>> GetPayment(string env);
+        Task<IEnumerable<ServiceRendered>> GetServiceRendered(string env);
     }
 }

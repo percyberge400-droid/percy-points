@@ -62,6 +62,9 @@ namespace Pos.Infrastructure
             services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
             services.AddScoped<ICloudLogsRepository, CloudLogsRepository>();
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IInvoiceTypeRepository, InvoiceTypeRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IServiceRenderedRepository, ServiceRenderedRepository>();
 
             // -------------------------
             // Core Services
