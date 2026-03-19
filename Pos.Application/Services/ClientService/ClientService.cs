@@ -15,18 +15,24 @@ namespace Pos.Application.Services.ClientService
         private readonly AppSettings _settings;
         private readonly IPosClientRepository _posClientRepository;
         private readonly IInvoiceTypeRepository _invoiceTypeRepository;
+        private readonly IPaymentRepository _paymentRepository;
+        private readonly IServiceRenderedRepository _serviceRenderedRepository;
         public ClientService(
             ISqlServerRepositoryFactory sqlRepositoryFactory,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
             IOptions<AppSettings> options,
             IPosClientRepository posClientRepository,
-            IInvoiceTypeRepository invoiceTypeRepository)
+            IInvoiceTypeRepository invoiceTypeRepository,
+            IPaymentRepository paymentRepository,
+            IServiceRenderedRepository serviceRenderedRepository)
         {
             _sqlClientRepository = sqlRepositoryFactory.CreateRepository<PosClients>();
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
             _settings = options.Value;
             _posClientRepository = posClientRepository;
             _invoiceTypeRepository = invoiceTypeRepository;
+            _paymentRepository = paymentRepository;
+            _serviceRenderedRepository = serviceRenderedRepository;
         }
 
         public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
@@ -141,6 +147,14 @@ namespace Pos.Application.Services.ClientService
         public async Task<IEnumerable<InvoiceType>> GetInvoiceType(string env)
         {
             return await _invoiceTypeRepository.GetAllInvoiceType(env);
+        }
+        public async Task<IEnumerable<Payment>> GetPayment(string env)
+        {
+            return await _paymentRepository.GetAllPayment(env);
+        }
+        public async Task<IEnumerable<ServiceRendered>> GetServiceRendered(string env)
+        {
+            return await _serviceRenderedRepository.GetServiceRendered(env);
         }
     }
 }
