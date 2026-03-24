@@ -29,6 +29,12 @@
         public const string IsLogEnabled = "Live/get-islog-enable";
         public const string DisableLogBit = "Live/disbale-log-bit";
 
+        // Reference
+        public const string GetAllPaymentMethods = "api/Reference/get-all-payment-methods";
+        public const string GetAllInvoiceTypes = "api/Reference/get-all-invoice-types";
+        public const string GetAllServicesRendered = "api/Reference/get-all-services-rendered";
+
+
         // Configuration API
         public const string SetEnvironment = "api/Configuration/set-environment";
     }
@@ -40,6 +46,12 @@
         public const string ConfigurationsFetchError = "Error occurred while fetching configurations: ";
         public const string HeartbeatUpdated = "Heartbeat updated";
         public const string ErrorUpdatingHeartbeat = "Error updating heartbeat";
+        public const string ErrorGettingInvoiceTypes = "Error getting invoice types";
+        public const string ErrorGettingInvoiceTypesCount = "Error getting invoice type count";
+        public const string ErrorGettingPaymentMethods = "Error getting payment methods";
+        public const string ErrorGettingPaymentMethodsCount = "Error getting payment method count";
+        public const string ErrorGettingServicesRendered = "Error getting services rendered";
+        public const string ErrorGettingServicesRenderedCount = "Error getting service rendered count";
 
         // ===== Generic Success =====
         public const string OperationSuccess = "Operation completed successfully.";

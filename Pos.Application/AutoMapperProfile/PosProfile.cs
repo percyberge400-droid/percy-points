@@ -5,6 +5,7 @@ using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
+using Pos.Application.DTOs.ReferenceDtos;
 using Pos.Domain.Entities;
 
 namespace Pos.Application.AutoMapperProfile
@@ -33,6 +34,30 @@ namespace Pos.Application.AutoMapperProfile
 
             CreateMap<Logs, SyncLogDto>();
             CreateMap<SyncLogDto, Logs>();
+
+            // Payment
+            CreateMap<Payment, ReferenceDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => (int)src.ID))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NAME ?? string.Empty));
+            CreateMap<ReferenceDto, Payment>()
+                .ForMember(dest => dest.ID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.NAME, opt => opt.MapFrom(src => src.Name ?? string.Empty));
+
+            // InvoiceType
+            CreateMap<InvoiceType, ReferenceDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => (int)src.ID))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NAME ?? string.Empty));
+            CreateMap<ReferenceDto, InvoiceType>()
+                .ForMember(dest => dest.ID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.NAME, opt => opt.MapFrom(src => src.Name ?? string.Empty));
+
+            // ServiceRendered
+            CreateMap<ServiceRendered, ReferenceDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => (int)src.ID))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NAME ?? string.Empty));
+            CreateMap<ReferenceDto, ServiceRendered>()
+                .ForMember(dest => dest.ID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.NAME, opt => opt.MapFrom(src => src.Name ?? string.Empty));
 
             // DTO ➜ Entity
             // Child mapping

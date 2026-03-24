@@ -5,9 +5,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.Services.ReferenceService.InvoiceTypeService;
+using Pos.Application.Services.ReferenceService.PaymentService;
+using Pos.Application.Services.ReferenceService.ServicesRenderedService;
 using Pos.Application.Services.ScriptService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
+using Pos.SetupUI.Helpers.Reference;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
@@ -62,7 +66,12 @@ namespace Pos.SetupUI
 
         private readonly IScriptService _scriptservice;
 
+        private readonly IPaymentService _paymentservice;
+        private readonly IInvoiceTypeService _invoiceTypeService;
+        private readonly IServicesRenderedService _servicesRenderedService;
+
         #endregion
+
 
         #region Constructor
 
@@ -646,11 +655,12 @@ namespace Pos.SetupUI
                     ShowProgressBar(false);
                     return;
                 }
+                await Task.Delay(300);
 
+                await SyncReferenceApisAfterDbSetupAsync(selectedEnvironment, txtPassword.Text);
                 await Task.Delay(300);
 
                 string DBconnection = GetDbConnectionStringForConfig(dbPath, LocalDBPassword);
-
                 await Task.Delay(300);
 
                 ShowMessage("Initializing database...", true, false);
@@ -693,6 +703,18 @@ namespace Pos.SetupUI
                 ShowProgressBar(false);
                 ShowMessage($"Fatal error: {ex.Message}", false, false);
             }
+        }
+
+        private async Task SyncReferenceApisAfterDbSetupAsync(string selectedEnvironment, string password)
+        {
+            var syncer = new SyncReferenceApis(
+                _paymentservice,
+                _invoiceTypeService,
+                _servicesRenderedService,
+                _isServiceAvailable,
+                ShowMessage
+            );
+            await syncer.SyncAllAfterDbSetupAsync(selectedEnvironment, password);
         }
 
         private bool CreateEncryptedDatabaseFile(string dbPath, string password)
@@ -1127,7 +1149,7 @@ namespace Pos.SetupUI
                     ShowMessage("No data to send.", false, true);
                     return;
                 }
-             
+
                 //if (fileRecords != null && int.TryParse(username, out int userPosId))
                 //{
                 //    fileRecords = fileRecords
@@ -1702,12 +1724,12 @@ namespace Pos.SetupUI
                         data["localDBPassword"]?.ToString() ?? "N/A"
                     );
                 }
-                  }
+            }
             catch (Exception ex)
             {
                 ShowMessage($"Error extracting branch details: {ex.Message}", false, true);
             }
-            return ("N/A","N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A");
+            return ("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A");
         }
 
         private void SaveAllConfigs(string username, string password, string mac, string Token, string dbPath,

@@ -34,7 +34,7 @@
         /// <param name="message">A human-readable message for the response.</param>
         /// <param name="data">Optional data returned in the response.</param>
         /// <param name="errors">Optional errors associated with the response.</param>
-        public ApiResponse(string statusCode, string message, T data = default, object errors = null)
+        public ApiResponse(string statusCode, string message, T data = default!, object errors = null!)
         {
             StatusCode = statusCode;
             Message = message;
