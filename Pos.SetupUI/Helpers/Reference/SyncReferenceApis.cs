@@ -131,8 +131,8 @@ namespace Pos.SetupUI.Helpers.Reference
         // Shared HTTP helper to avoid duplication
         private async Task<string?> PostAsync(string endpoint, string selectedEnvironment, string password)
         {
-            //var baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
-            var baseUrl = "https://localhost:7020/";
+            var baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+            //var baseUrl = "https://localhost:7020/";
             var apiUrl = $"{baseUrl}{endpoint}";
 
             if (string.IsNullOrWhiteSpace(apiUrl))

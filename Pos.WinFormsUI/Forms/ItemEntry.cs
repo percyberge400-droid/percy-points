@@ -4,6 +4,9 @@ using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.InvoiceService;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.ProductCatalogService;
+using Pos.Application.Services.ReferenceService.InvoiceTypeService;
+using Pos.Application.Services.ReferenceService.PaymentService;
+using Pos.Application.Services.ReferenceService.ServicesRenderedService;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 using Pos.SecurityEncryption;
@@ -34,6 +37,12 @@ namespace Pos.WinFormsUI
         private readonly ILogService _logService;
         private readonly IInvoiceService _invoiceService;
         private readonly IProductCatalogueService _productCatalogueService;
+
+        // Reference
+        private readonly IInvoiceTypeService _invoiceTypeService;
+        private readonly IPaymentService _paymentService;
+        private readonly IServicesRenderedService _servicesRenderedService;
+
         private readonly HttpClient _httpClient;
 
         private ProgressBar progressBar;
@@ -47,7 +56,10 @@ namespace Pos.WinFormsUI
             IHttpClientFactory httpClientFactory,
             ILogService logService,
             IProductCatalogueService productCatalogueService,
-            IInvoiceService invoiceService)
+            IInvoiceService invoiceService,
+            IInvoiceTypeService invoiceTypeService,
+            IPaymentService paymentService,
+            IServicesRenderedService servicesRenderedService)
         {
             InitializeComponent();
             InitializeProgressBar();
@@ -145,6 +157,10 @@ namespace Pos.WinFormsUI
             _productCatalogueService = productCatalogueService;
             _invoiceService = invoiceService;
             _httpClient = new HttpClient();
+            _invoiceTypeService = invoiceTypeService;
+            _invoiceTypeService = invoiceTypeService;
+            _paymentService = paymentService;
+            _servicesRenderedService = servicesRenderedService;
         }
 
         #endregion
@@ -563,7 +579,10 @@ namespace Pos.WinFormsUI
         {
             var type = GetSelectedInvoiceType();
 
-            if (type == 3 || type == 4) // Debit or Credit
+            bool isDebitOrCredit = type.Name.Contains("Debit", StringComparison.OrdinalIgnoreCase)
+                                || type.Name.Contains("Credit", StringComparison.OrdinalIgnoreCase);
+
+            if (isDebitOrCredit)
             {
                 refUSIN.ReadOnly = false;
                 refUSIN.BackColor = SystemColors.Window;
@@ -763,9 +782,9 @@ namespace Pos.WinFormsUI
                 Discount = discountAmount,  // ✅ Discount in Rs. (from after-tax amount)
                 TaxRate = (double)taxRatePercent,
                 TaxCharged = taxAmount,     // ✅ Tax calculated on gross (before discount)
-                FurtherTax = GetSelectedSaleType(),
+                FurtherTax = GetSelectedSaleType().Id,
                 TotalAmount = totalAmount,  // ✅ (Gross + Tax) - Discount
-                InvoiceType = GetSelectedInvoiceType(),
+                InvoiceType = GetSelectedInvoiceType().Id,
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
             };
         }
@@ -881,7 +900,7 @@ namespace Pos.WinFormsUI
                     TaxCharged = item.TaxCharged ?? 0m,
                     TaxRate = item.TaxRate,
                     Discount = item.Discount ?? 0m,
-                    InvoiceType = (byte)GetSelectedInvoiceType(),
+                    InvoiceType = GetSelectedInvoiceType().Id,
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
                 }).ToList();
 
@@ -890,18 +909,18 @@ namespace Pos.WinFormsUI
                     POSID = int.TryParse(posid.Text, out var posId) ? posId : 0,
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
-                    InvoiceType = (byte)GetSelectedInvoiceType(),
+                    InvoiceType = GetSelectedInvoiceType().Id,
                     BuyerPNTN = buyerntn.Text.Trim(),
                     BuyerCNIC = buyercnic.Text.Trim(),
                     BuyerName = BuyerBname.Text.Trim(),
                     BuyerPhoneNumber = buyerphone.Text.Trim(),
-                    PaymentMode = GetSelectedPaymentMode(),
+                    PaymentMode = GetSelectedPaymentMode().Id,
                     TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
                     TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
                     TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
                     TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
                     Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
-                    FurtherTax = (byte)GetSelectedSaleType(),
+                    FurtherTax = (byte)GetSelectedSaleType().Id,
                     DateTime = DateTime.Now,
                     Items = itemDtos
                 };
@@ -1512,7 +1531,7 @@ namespace Pos.WinFormsUI
 
         private void UpdateExistingItem(DataGridViewRow row, InvoiceItems inputData)
         {
-            row.Cells["colSaleType"].Value = GetSaleTypeName(GetSelectedSaleType());
+            row.Cells["colSaleType"].Value = GetSaleTypeName();
             row.Cells["colProductCode"].Value = inputData.ItemCode ?? "";
             row.Cells["colProductDescription"].Value = inputData.ItemName ?? "";
             row.Cells["colHSCode"].Value = inputData.PCTCode ?? "";
@@ -1851,39 +1870,31 @@ namespace Pos.WinFormsUI
         #endregion
 
         #region Helper Methods for ComboBoxes
-        private byte GetSelectedInvoiceType()
+        private (byte Id, string Name) GetSelectedInvoiceType()
         {
             if (invoicetype.SelectedItem is KeyValuePair<byte, string> kvp)
-                return kvp.Key;
-
-            return 1; // Default to Sale
+                return (kvp.Key, kvp.Value);
+            return (0, string.Empty);
         }
 
-        private byte GetSelectedPaymentMode()
+        private (byte Id, string Name) GetSelectedPaymentMode()
         {
             if (paymentmode.SelectedItem is KeyValuePair<byte, string> kvp)
-                return kvp.Key;
-
-            return 1; // Default to Card
+                return (kvp.Key, kvp.Value);
+            return (0, string.Empty);
         }
 
-        private byte GetSelectedSaleType()
+        private (byte Id, string Name) GetSelectedSaleType()
         {
             if (FurtureTax.SelectedItem is KeyValuePair<byte, string> kvp)
-                return kvp.Key;
-
-            return 1;
+                return (kvp.Key, kvp.Value);
+            return (0, string.Empty);
         }
 
-        private string GetSaleTypeName(byte FurtureTax)
+        private string GetSaleTypeName()
         {
-            return FurtureTax switch
-            {
-                1 => "New",
-                2 => "Debit",
-                3 => "Credit",
-                _ => "New"
-            };
+            var selected = GetSelectedSaleType();
+            return string.IsNullOrEmpty(selected.Name) ? string.Empty : selected.Name;
         }
 
         #endregion
@@ -1897,12 +1908,12 @@ namespace Pos.WinFormsUI
                 POSID = int.TryParse(posid.Text, out var posId) ? posId : 0,
                 USIN = USIN.Text.Trim(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
-                InvoiceType = (byte)GetSelectedInvoiceType(),
+                InvoiceType = GetSelectedInvoiceType().Id,
                 BuyerNTN = buyerntn.Text.Trim(),
                 BuyerCNIC = buyercnic.Text.Trim(),
                 BuyerName = BuyerBname.Text.Trim(),
                 BuyerPhoneNumber = buyerphone.Text.Trim(),
-                PaymentMode = GetSelectedPaymentMode(),
+                PaymentMode = GetSelectedPaymentMode().Id,
                 TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : 0m,
                 TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : 0m,
                 TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : 0m,
@@ -2151,22 +2162,6 @@ namespace Pos.WinFormsUI
                     this.BeginInvoke(new Action(() => refUSIN.Focus()));
                     return false;
                 }
-            }
-
-            // Invoice Type validation (1-4)
-            byte invoiceType = GetSelectedInvoiceType();
-            if (invoiceType < 1 || invoiceType > 4)
-            {
-                AlertManager.ShowError("Please select a valid Invoice Type.");
-                return false;
-            }
-
-            // Payment Mode validation (1-3)
-            byte paymentMode = GetSelectedPaymentMode();
-            if (paymentMode < 1 || paymentMode > 3)
-            {
-                AlertManager.ShowError("Please select a valid Payment Mode.");
-                return false;
             }
 
             return true;
@@ -2692,7 +2687,7 @@ namespace Pos.WinFormsUI
             var row = dataGridView1.Rows[rowIndex];
 
             row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
-            row.Cells["colSaleType"].Value = GetSaleTypeName(GetSelectedSaleType());
+            row.Cells["colSaleType"].Value = GetSaleTypeName();
             row.Cells["colProductCode"].Value = item.ItemCode ?? "";
             row.Cells["colProductDescription"].Value = item.ItemName ?? "";
             row.Cells["colHSCode"].Value = item.PCTCode ?? "";

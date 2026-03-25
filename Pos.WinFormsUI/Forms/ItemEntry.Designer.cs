@@ -1,4 +1,8 @@
-﻿namespace Pos.WinFormsUI
+﻿using Pos.Application.Services.ReferenceService.InvoiceTypeService;
+using Pos.Application.Services.ReferenceService.PaymentService;
+using Pos.Application.Services.ReferenceService.ServicesRenderedService;
+
+namespace Pos.WinFormsUI
 {
     partial class ItemEntry
     {
@@ -1013,47 +1017,50 @@
         //}
 
         // Custom method to initialize ComboBoxes
-        private void InitializeComboBoxes()
+        private async Task InitializeComboBoxesAsync()
         {
+            var invoiceTypesResponse = await _invoiceTypeService.GetInvoiceTypesAsync();
+            var paymentMethodsResponse = await _paymentService.GetPaymentMethodsAsync();
+            var servicesRenderedResponse = await _servicesRenderedService.GetServicesRenderedAsync();
+
             // Payment mode ComboBox
-            paymentmode.DataSource = new List<KeyValuePair<byte, string>>()
-            {
-                new KeyValuePair<byte, string>(1, "Card"),
-                new KeyValuePair<byte, string>(2, "Cash"),
-                new KeyValuePair<byte, string>(3, "Online")
-            };
+            var paymentMethods = paymentMethodsResponse.Data
+                .Select(x => new KeyValuePair<byte, string>((byte)x.Id, x.Name))
+                .ToList();
+            paymentmode.DataSource = paymentMethods;
             paymentmode.DisplayMember = "Value";
             paymentmode.ValueMember = "Key";
-            paymentmode.SelectedValue = (byte)2; // default: Cash
+            var defaultPayment = paymentMethods.FirstOrDefault(x => x.Value.Equals("Cash", StringComparison.OrdinalIgnoreCase));
+            if (defaultPayment.Value != null)
+                paymentmode.SelectedValue = defaultPayment.Key;
 
             // Invoice type ComboBox
-            invoicetype.DataSource = new List<KeyValuePair<byte, string>>()
-            {
-                new KeyValuePair<byte, string>(1, "Sale"),
-                new KeyValuePair<byte, string>(2, "Purchase"),
-                new KeyValuePair<byte, string>(3, "Debit Invoice"),
-                new KeyValuePair<byte, string>(4, "Credit Invoice")
-            };
+            var invoiceTypes = invoiceTypesResponse.Data
+                .Select(x => new KeyValuePair<byte, string>((byte)x.Id, x.Name))
+                .ToList();
+            invoicetype.DataSource = invoiceTypes;
             invoicetype.DisplayMember = "Value";
             invoicetype.ValueMember = "Key";
-            invoicetype.SelectedValue = (byte)1; // default: Sale
+            var defaultInvoice = invoiceTypes.FirstOrDefault(x => x.Value.Equals("Sale", StringComparison.OrdinalIgnoreCase));
+            if (defaultInvoice.Value != null)
+                invoicetype.SelectedValue = defaultInvoice.Key;
 
-            FurtureTax.DataSource = new List<KeyValuePair<byte, string>>()
-            {
-                new KeyValuePair<byte, string>(1, "New"),
-                new KeyValuePair<byte, string>(2, "Debit"),
-                new KeyValuePair<byte, string>(3, "Credit")
-            };
+            // Services Rendered (FurtureTax) ComboBox
+            var servicesRendered = servicesRenderedResponse.Data
+                .Select(x => new KeyValuePair<byte, string>((byte)x.Id, x.Name))
+                .ToList();
+            FurtureTax.DataSource = servicesRendered;
             FurtureTax.DisplayMember = "Value";
             FurtureTax.ValueMember = "Key";
-            FurtureTax.SelectedValue = (byte)1; // default: Sale
-
+            var defaultService = servicesRendered.FirstOrDefault(x => x.Value.Equals("New", StringComparison.OrdinalIgnoreCase));
+            if (defaultService.Value != null)
+                FurtureTax.SelectedValue = defaultService.Key;
         }
 
         // Event handler for form load
-        private void item_entry_Load(object sender, EventArgs e)
+        private async void item_entry_Load(object sender, EventArgs e)
         {
-            InitializeComboBoxes();
+            await InitializeComboBoxesAsync();
             //SetButtonShortcutTexts();
             AddButtonTooltips();
         }

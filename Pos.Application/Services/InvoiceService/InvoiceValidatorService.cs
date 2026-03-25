@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
+using Pos.Application.Services.ReferenceService.InvoiceTypeService;
+using Pos.Application.Services.ReferenceService.PaymentService;
+using Pos.Application.Services.ReferenceService.ServicesRenderedService;
 using Pos.Domain.Entities;
 
 namespace POSPRA.Application.Services.FiscalService
@@ -17,16 +20,22 @@ namespace POSPRA.Application.Services.FiscalService
         private const int MAX_DECIMAL_PLACES = 2;
         private const int MAX_POSID_DIGITS = 6;
         private readonly AppSettings _settings;
+        private readonly IInvoiceTypeService _invoiceTypeService;
+        private readonly IPaymentService _paymentService;
+        private readonly IServicesRenderedService _servicesRenderedService;
 
-        public InvoiceValidatorService(IOptions<AppSettings> options)
+        public InvoiceValidatorService(IOptions<AppSettings> options, IServicesRenderedService servicesRenderedService, IPaymentService paymentService, IInvoiceTypeService invoiceTypeService)
         {
             _settings = options.Value;
+            _servicesRenderedService = servicesRenderedService;
+            _paymentService = paymentService;
+            _invoiceTypeService = invoiceTypeService;
         }
 
         /// <summary>
         /// Validates an entire invoice, including all items.
         /// </summary>
-        public ValidationResult ValidateInvoice(Invoice invoice)
+        public async Task<ValidationResult> ValidateInvoiceAsync(Invoice invoice)
         {
             if (invoice == null)
                 return new ValidationResult(false, "Invoice cannot be null.");
@@ -78,19 +87,38 @@ namespace POSPRA.Application.Services.FiscalService
             // -------- Buyer Info --------
             ValidateBuyer(invoice, AddError);
 
-            // -------- Invoice Details --------
-            if (invoice.InvoiceType < 1 || invoice.InvoiceType > 4)
-                AddError("Invalid invoice type (must be 1-4: Purchase/Sale/Debit/Credit)");
+            // -------- Fetch data dynamically (throws on failure as intended) --------
+            var invoiceTypesResponse = await _invoiceTypeService.GetInvoiceTypesAsync();
+            var invoiceTypes = invoiceTypesResponse.Data;
 
-            if ((invoice.InvoiceType == 3 || invoice.InvoiceType == 4) && IsEmpty(invoice.RefUSIN))
-                AddError("Ref USIN required for debit/credit invoices");
+            int paymentModeCount = (await _paymentService.GetPaymentMethodsCountAsync()).Data;
+            int servicesRenderedCount = (await _servicesRenderedService.GetServicesRenderedCountAsync()).Data;
+
+            // -------- Invoice Type (dynamic) --------
+            var validInvoiceType = invoiceTypes.FirstOrDefault(t => t.Id == invoice.InvoiceType);
+            if (validInvoiceType == null)
+                AddError($"Invalid invoice type (must be one of: {string.Join(", ", invoiceTypes.Select(t => $"{t.Id}-{t.Name}"))})");
+            else
+            {
+                // Dynamically detect debit/credit by name instead of hardcoded IDs
+                bool isDebitOrCredit = validInvoiceType.Name.Contains("Debit", StringComparison.OrdinalIgnoreCase)
+                                    || validInvoiceType.Name.Contains("Credit", StringComparison.OrdinalIgnoreCase);
+
+                if (isDebitOrCredit && IsEmpty(invoice.RefUSIN))
+                    AddError($"Ref USIN is required for {validInvoiceType.Name} invoices");
+            }
 
             // Validate RefUSIN length if provided
             if (!IsEmpty(invoice.RefUSIN) && TrimSafe(invoice.RefUSIN).Length > 50)
                 AddError("Ref USIN cannot exceed 50 characters");
 
-            if (invoice.PaymentMode < 1 || invoice.PaymentMode > 3)
-                AddError("Payment mode must from 1 to 3 (Cash/Card/Credit)");
+            // -------- Payment Mode (dynamic) --------
+            if (invoice.PaymentMode < 1 || invoice.PaymentMode > paymentModeCount)
+                AddError($"Invalid payment mode (must be 1-{paymentModeCount})");
+
+            //// -------- Services Rendered (dynamic) --------
+            //if (invoice.ServicesRendered < 1 || invoice.ServicesRendered > servicesRenderedCount)
+            //    AddError($"Invalid services rendered value (must be 1-{servicesRenderedCount})");
 
             // Validate USIN length if provided
             if (!IsEmpty(invoice.USIN) && TrimSafe(invoice.USIN).Length > 50)

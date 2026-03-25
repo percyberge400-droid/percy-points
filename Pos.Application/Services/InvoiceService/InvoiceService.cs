@@ -166,7 +166,7 @@ namespace Pos.Application.Services.InvoiceService
 
                 // Map & validate entity
                 var invoiceEntity = _mapper.Map<Invoice>(dto);
-                var validation = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
+                var validation = await _invoiceValidatorService.ValidateInvoiceAsync(invoiceEntity);
 
                 if (!validation.IsValid)
                 {
@@ -249,7 +249,7 @@ namespace Pos.Application.Services.InvoiceService
 
                 // Map & validate entity
                 var invoiceEntity = _mapper.Map<Invoice>(dto);
-                var validation = _invoiceValidatorService.ValidateInvoice(invoiceEntity);
+                var validation = await _invoiceValidatorService.ValidateInvoiceAsync(invoiceEntity);
 
                 if (!validation.IsValid)
                 {

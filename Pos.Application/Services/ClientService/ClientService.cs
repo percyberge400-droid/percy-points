@@ -143,20 +143,5 @@ namespace Pos.Application.Services.ClientService
                 return false;
             return true;
         }
-
-        public async Task<IEnumerable<InvoiceType>> GetInvoiceType(string env)
-        {
-            return await _invoiceTypeRepository.GetAllInvoiceType(env);
-        }
-
-        public async Task<IEnumerable<Payment>> GetPayment(string env)
-        {
-            return await _paymentRepository.GetAllPayment(env);
-        }
-
-        public async Task<IEnumerable<ServiceRendered>> GetServiceRendered(string env)
-        {
-            return await _serviceRenderedRepository.GetServiceRendered(env);
-        }
     }
 }
