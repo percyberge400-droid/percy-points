@@ -75,7 +75,17 @@ namespace Pos.SetupUI
 
         #region Constructor
 
-        public ConfigForm2(string xmlConfigPath, string jsonWorkerPath, string jsonMainPath, string setupConfigPath, string winformsConfigPath, IScriptService scriptservice, string installationInfo)
+        public ConfigForm2(
+            string xmlConfigPath,
+            string jsonWorkerPath,
+            string jsonMainPath,
+            string setupConfigPath,
+            string winformsConfigPath,
+            IScriptService scriptservice,
+            IPaymentService paymentservice,
+            IInvoiceTypeService invoiceTypeService,
+            IServicesRenderedService servicesRenderedService,
+            string installationInfo)
         {
             InitializeComponent();
 
@@ -86,10 +96,10 @@ namespace Pos.SetupUI
             _winformsConfigPath = winformsConfigPath;
             _installationInfo = installationInfo;
 
-            _defaultIMSPath = ConfigurationManager.AppSettings["DefaulIMStFilePath"];
-            _defaultPassword = ConfigurationManager.AppSettings["DbPassword"];
-            _backupDir = ConfigurationManager.AppSettings["backupDir"];
-            _workerServiceName = ConfigurationManager.AppSettings["FiscalServiceName"];
+            _defaultIMSPath = ConfigurationManager.AppSettings["DefaulIMStFilePath"]!;
+            _defaultPassword = ConfigurationManager.AppSettings["DbPassword"]!;
+            _backupDir = ConfigurationManager.AppSettings["backupDir"]!;
+            _workerServiceName = ConfigurationManager.AppSettings["FiscalServiceName"]!;
 
             _scriptservice = scriptservice;
 
@@ -99,6 +109,9 @@ namespace Pos.SetupUI
             LoadLogoImage();
             CheckServiceAvailability();
             LoadDefaultPaths();
+            _paymentservice = paymentservice;
+            _invoiceTypeService = invoiceTypeService;
+            _servicesRenderedService = servicesRenderedService;
         }
 
         #endregion

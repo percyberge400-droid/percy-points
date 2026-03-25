@@ -21,6 +21,12 @@ using Pos.Application.Services.NetworkService;
 using Pos.Application.Services.PosService;
 using Pos.Application.Services.POSService;
 using Pos.Application.Services.ProductCatalogService;
+using Pos.Application.Services.ReferenceService;
+using Pos.Application.Services.ReferenceService.InvoiceTypeService;
+using Pos.Application.Services.ReferenceService.LocalReferenceService;
+using Pos.Application.Services.ReferenceService.PaymentService;
+using Pos.Application.Services.ReferenceService.ServicesRenderedService;
+using Pos.Application.Services.ReferenceService.SyncOnButtonClickedService;
 using Pos.Application.Services.ScriptService;
 using Pos.Application.Utility;
 using Pos.Domain.ValueObjects;
@@ -87,6 +93,12 @@ namespace Pos.Infrastructure
             services.AddScoped<IPosService, PosService>();
             services.AddScoped<ICloudLogService, CloudLogService>();
             services.AddScoped<AESEncryption>();
+            services.AddScoped<IServicesRenderedService, ServicesRenderedService>();
+            services.AddScoped<IInvoiceTypeService, InvoiceTypeService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IReferenceService, ReferenceService>();
+            services.AddScoped<ISyncOnButtonClickedService, SyncOnButtonClickedService>();
+            services.AddScoped(typeof(ILocalReferenceService<>), typeof(LocalReferenceService<>));
 
             // -------------------------
             // SQLite Dynamic Factory
@@ -148,6 +160,7 @@ namespace Pos.Infrastructure
                 options.UseSqlite(sqliteConnection);
             });
 
+            services.AddScoped<DbContext>(sp => sp.GetRequiredService<SqliteDbContext>());
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             services.AddScoped<ISqliteUnitOfWork>(provider =>
@@ -192,7 +205,9 @@ namespace Pos.Infrastructure
             services.AddScoped<IUnitOfWork>(provider =>
             {
                 var envService = provider.GetRequiredService<IEnvironmentService>();
-                var env = envService.GetCurrentEnvironmentAsync().Result;
+                var env = envService.GetCurrentEnvironmentAsync()
+                                    .GetAwaiter()
+                                    .GetResult();
 
                 return env == EnvironmentType.Sandbox
                     ? provider.GetRequiredService<ISqliteUnitOfWork>()

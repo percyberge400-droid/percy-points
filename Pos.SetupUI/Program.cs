@@ -1,11 +1,19 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
 using Pos.Application.Interfaces;
+using Pos.Application.Interfaces.Repositories;
+using Pos.Application.Services.ReferenceService.InvoiceTypeService;
+using Pos.Application.Services.ReferenceService.LocalReferenceService;
+using Pos.Application.Services.ReferenceService.PaymentService;
+using Pos.Application.Services.ReferenceService.ServicesRenderedService;
 using Pos.Application.Services.ScriptService;
 using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
+using Pos.Infrastructure.Services;
 using Pos.SecurityEncryption;
 using System.Configuration;
 using System.Reflection;
@@ -99,11 +107,16 @@ namespace Pos.SetupUI
             var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
             sqliteConnection.Open();
 
-
             // ------------------------------
             // 6. Build DI Container
             // ------------------------------
             var services = new ServiceCollection();
+
+            // Logging
+            services.AddLogging(builder => builder.AddDebug());
+
+            // AutoMapper
+            services.AddAutoMapper(cfg => cfg.AddProfile<PosProfile>(), Assembly.GetExecutingAssembly());
 
             // Register DbContext
             services.AddDbContext<SqliteDbContext>(options =>
@@ -124,29 +137,43 @@ namespace Pos.SetupUI
             services.AddScoped<ISqliteUnitOfWork, SqliteUnitOfWork>();
             services.AddSingleton<ISqliteDynamicFactory, SqliteDynamicFactory>();
 
+            // Repository dependencies
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IInvoiceTypeRepository, InvoiceTypeRepository>();
+            services.AddScoped<IServiceRenderedRepository, ServiceRenderedRepository>();
+
+            services.AddScoped(typeof(ILocalReferenceService<>), typeof(LocalReferenceService<>));
+
+            services.AddScoped<IEnvironmentService, EnvironmentService>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<DbContext>(sp => sp.GetRequiredService<SqliteDbContext>());
+
+            // Reference Services
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IInvoiceTypeService, InvoiceTypeService>();
+            services.AddScoped<IServicesRenderedService, ServicesRenderedService>();
+
 
             // ------------------------------
             // 7. Run App
             // ------------------------------
             using (var serviceProvider = services.BuildServiceProvider())
             {
-                using (var context = serviceProvider.GetRequiredService<SqliteDbContext>())
-                {
-                    //context.Database.EnsureCreated();
-                }
-
                 ApplicationConfiguration.Initialize();
 
                 System.Windows.Forms.Application.Run(
-                    new ConfigForm2(
-                        configPath,
-                        jsonWorkerPath,
-                        jsonMainPath,
-                        setupConfig,
-                        configPath,
-                        serviceProvider.GetService<IScriptService>(),
-                        installationInfo
-                    )
+                new ConfigForm2(
+                    configPath,
+                    jsonWorkerPath,
+                    jsonMainPath,
+                    setupConfig,
+                    configPath,
+                    serviceProvider.GetService<IScriptService>(),
+                    serviceProvider.GetService<IPaymentService>(),
+                    serviceProvider.GetService<IInvoiceTypeService>(),
+                    serviceProvider.GetService<IServicesRenderedService>(),
+                    installationInfo
+                )
                 );
             }
         }

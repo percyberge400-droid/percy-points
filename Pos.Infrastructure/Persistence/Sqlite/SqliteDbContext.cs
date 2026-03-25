@@ -10,7 +10,10 @@ public class SqliteDbContext : DbContext
 
     /// <summary>Product Catalog Table.</summary>
     public DbSet<ProductCatalogue> ProductCatalogue { get; set; } = null!;
+    // <summary>Reference Tablesc.</summary>
     public DbSet<Payment> Payment { get; set; } = null!;
+    public DbSet<ServiceRendered> ServiceRendered { get; set; } = null!;
+    public DbSet<InvoiceType> InvoiceType { get; set; } = null!;
 
     /// <summary>Logs table.</summary>
     public DbSet<Logs> Logs { get; set; } = null!;

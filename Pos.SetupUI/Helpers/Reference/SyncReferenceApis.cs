@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Pos.Application.DTOs;
 using Pos.Application.DTOs.ReferenceDtos;
 using Pos.Application.Services.ReferenceService.InvoiceTypeService;
 using Pos.Application.Services.ReferenceService.PaymentService;
@@ -35,8 +36,8 @@ namespace Pos.SetupUI.Helpers.Reference
 
         public async Task SyncAllAfterDbSetupAsync(string selectedEnvironment, string password)
         {
-            if (!_isServiceAvailable)
-                return;
+            //if (!_isServiceAvailable)
+            //    return;
 
             await SyncPaymentsAfterDbSetupAsync(selectedEnvironment, password);
             await SyncInvoiceTypesAfterDbSetupAsync(selectedEnvironment, password);
@@ -52,20 +53,16 @@ namespace Pos.SetupUI.Helpers.Reference
                 var json = await PostAsync(Endpoints.GetAllPaymentMethods, selectedEnvironment, password);
                 if (json == null) return;
 
-                var entities = JsonConvert.DeserializeObject<List<Payment>>(json);
+                var wrapper = JsonConvert.DeserializeObject<ApiResponse<List<ReferenceDto>>>(json);
+                var entities = wrapper?.Data;
+
                 if (entities == null || !entities.Any())
                 {
                     _showMessage("No payment methods returned from server.", true, false);
                     return;
                 }
 
-                await _paymentService.SyncPaymentMethodsAsync(selectedEnvironment,
-                    entities.Select(x => new ReferenceDto
-                    {
-                        Id = (int)x.ID,
-                        Name = x.NAME ?? string.Empty
-                    }).ToList()
-                );
+                await _paymentService.SyncPaymentMethodsAsync(selectedEnvironment, entities);
 
                 _showMessage("Payment methods synchronized successfully.", true, false);
             }
@@ -84,20 +81,16 @@ namespace Pos.SetupUI.Helpers.Reference
                 var json = await PostAsync(Endpoints.GetAllInvoiceTypes, selectedEnvironment, password);
                 if (json == null) return;
 
-                var entities = JsonConvert.DeserializeObject<List<InvoiceType>>(json);
+                var wrapper = JsonConvert.DeserializeObject<ApiResponse<List<ReferenceDto>>>(json);
+                var entities = wrapper?.Data;
+
                 if (entities == null || !entities.Any())
                 {
                     _showMessage("No invoice types returned from server.", true, false);
                     return;
                 }
 
-                await _invoiceTypeService.SyncInvoiceTypesAsync(selectedEnvironment,
-                    entities.Select(x => new InvoiceTypeDto
-                    {
-                        Id = (int)x.ID,
-                        Name = x.NAME ?? string.Empty
-                    }).ToList()
-                );
+                await _invoiceTypeService.SyncInvoiceTypesAsync(selectedEnvironment, entities);
 
                 _showMessage("Invoice types synchronized successfully.", true, false);
             }
@@ -116,20 +109,16 @@ namespace Pos.SetupUI.Helpers.Reference
                 var json = await PostAsync(Endpoints.GetAllServicesRendered, selectedEnvironment, password);
                 if (json == null) return;
 
-                var entities = JsonConvert.DeserializeObject<List<ServiceRendered>>(json);
+                var wrapper = JsonConvert.DeserializeObject<ApiResponse<List<ReferenceDto>>>(json);
+                var entities = wrapper?.Data;
+
                 if (entities == null || !entities.Any())
                 {
                     _showMessage("No services rendered returned from server.", true, false);
                     return;
                 }
 
-                await _servicesRenderedService.SyncServicesRenderedAsync(selectedEnvironment,
-                    entities.Select(x => new ServicesRenderedDto
-                    {
-                        Id = (int)x.ID,
-                        Name = x.NAME ?? string.Empty
-                    }).ToList()
-                );
+                await _servicesRenderedService.SyncServicesRenderedAsync(selectedEnvironment, entities);
 
                 _showMessage("Services rendered synchronized successfully.", true, false);
             }
@@ -142,7 +131,8 @@ namespace Pos.SetupUI.Helpers.Reference
         // Shared HTTP helper to avoid duplication
         private async Task<string?> PostAsync(string endpoint, string selectedEnvironment, string password)
         {
-            var baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+            //var baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+            var baseUrl = "https://localhost:7020/";
             var apiUrl = $"{baseUrl}{endpoint}";
 
             if (string.IsNullOrWhiteSpace(apiUrl))
