@@ -132,7 +132,6 @@ namespace Pos.SetupUI.Helpers.Reference
         private async Task<string?> PostAsync(string endpoint, string selectedEnvironment, string password)
         {
             var baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
-            //var baseUrl = "https://localhost:7020/";
             var apiUrl = $"{baseUrl}{endpoint}";
 
             if (string.IsNullOrWhiteSpace(apiUrl))
@@ -141,10 +140,12 @@ namespace Pos.SetupUI.Helpers.Reference
                 return null;
             }
 
+            var payload = new { environment = selectedEnvironment };
+
             using var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
             {
                 Content = new StringContent(
-                    JsonConvert.SerializeObject(selectedEnvironment),
+                    JsonConvert.SerializeObject(payload),
                     Encoding.UTF8,
                     "application/json"
                 )

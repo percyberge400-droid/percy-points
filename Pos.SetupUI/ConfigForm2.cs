@@ -677,7 +677,7 @@ namespace Pos.SetupUI
                 await Task.Delay(300);
 
                 ShowMessage("Initializing database...", true, false);
-                if (!InitializeDatabase(DBconnection))
+                if (!InitializeDatabase(dbPath, LocalDBPassword))
                 {
                     ShowProgressBar(false);
                     return;
@@ -1438,12 +1438,19 @@ namespace Pos.SetupUI
         }
 
 
-        private bool InitializeDatabase(string dbPath)
+        private bool InitializeDatabase(string dbPath, string password)
         {
             try
             {
+                var connectionString = new SqliteConnectionStringBuilder
+                {
+                    DataSource = dbPath,
+                    Mode = SqliteOpenMode.ReadWriteCreate,
+                    Password = password
+                }.ToString();
+
                 var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
-                    .UseSqlite($"Data Source={dbPath}")
+                    .UseSqlite(connectionString)
                     .Options;
 
                 using var context = new SqliteDbContext(sqliteOptions);
