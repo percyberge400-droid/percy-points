@@ -14,6 +14,8 @@ namespace Pos.Application.DTOs.LogDTOs
 
         /// <summary>Severity/category: 1=Info, 2=Warning, 3=Error, 4=Audit, etc.</summary>
         public string? Type { get; set; }
+        public string? Url { get; set; }
+        public DateTime Timestamp { get; set; }
 
         /// <summary>True if this log was synced to the central server.</summary>
         public bool IsSynced { get; set; }
@@ -22,12 +24,6 @@ namespace Pos.Application.DTOs.LogDTOs
         public DateTime? CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
         public DateTime? CreatedAtPk { get; set; } = DateTime.Now;
-
-        // ---------- User / Security ----------
-        public string? UserId { get; set; }
-        public string? UserName { get; set; }
-        public string? UserRole { get; set; }
-        public string? SessionId { get; set; }
 
         // ---------- Request Context ----------
         public string? HttpMethod { get; set; }

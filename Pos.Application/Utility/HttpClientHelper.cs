@@ -183,7 +183,11 @@ namespace Pos.Application.Utility
                 if (!response.IsSuccessStatusCode)
                     return await HandleError<TResponse>(
                         response, content, url, "POST",
+<<<<<<< HEAD
                         logService, appSettings);      //  removed ! — both are nullable
+=======
+                        logService, appSettings);      // ✅ removed ! — both are nullable
+>>>>>>> fff8287... Update CreateLogDto.cs, Pos.Application.csproj, and 12 more files...
 
                 if (string.IsNullOrWhiteSpace(content))
                     return new ApiResponse<TResponse>(
@@ -221,6 +225,62 @@ namespace Pos.Application.Utility
         // ─────────────────────────────────────────────
         //  POST — raw string response (CSV, plain text)
         // ─────────────────────────────────────────────
+<<<<<<< HEAD
+=======
+        //public static async Task<ApiResponse<string>> PostAsyncRawString(
+        //    string url,
+        //    object body,
+        //    string? bearerToken = null,
+        //    Dictionary<string, string>? headers = null,
+        //    ILogService? logService = null,
+        //    AppSettings? appSettings = null)
+        //{
+        //    var handler = new HttpClientHandler
+        //    {
+        //        ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+        //    };
+
+        //    using var httpClient = new HttpClient(handler);
+
+        //    try
+        //    {
+        //        var json = JsonSerializer.Serialize(body);
+
+        //        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        //        {
+        //            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        //        };
+
+        //        if (!string.IsNullOrWhiteSpace(bearerToken))
+        //            request.Headers.Authorization =
+        //                new AuthenticationHeaderValue("Bearer", bearerToken);
+
+        //        if (headers != null)
+        //            foreach (var h in headers)
+        //                request.Headers.Add(h.Key, h.Value);
+
+        //        var response = await httpClient.SendAsync(request);
+        //        var content = await response.Content.ReadAsStringAsync();
+
+        //        if (!response.IsSuccessStatusCode)
+        //            return await HandleError<string>(
+        //                response, content, url, "POST",
+        //                logService, appSettings);
+
+        //        // ✅ Return raw content as-is — no JSON deserialization
+        //        return new ApiResponse<string>(
+        //            ((int)response.StatusCode).ToString(),
+        //            "Success",
+        //            content);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return await HandleException<string>(
+        //            ex, url, "POST", logService, appSettings);
+        //    }
+        //}
+
+>>>>>>> fff8287... Update CreateLogDto.cs, Pos.Application.csproj, and 12 more files...
         // ─────────────────────────────────────────────
         //  POST — extracts "data" field as raw CSV string
         //  Use ONLY for APIs returning { statusCode, message, data: "csv..." }
@@ -271,7 +331,11 @@ namespace Pos.Application.Utility
                         "Success",
                         string.Empty);
 
+<<<<<<< HEAD
                 //  Extract "data" field directly from JSON wrapper
+=======
+                // ✅ Extract "data" field directly from JSON wrapper
+>>>>>>> fff8287... Update CreateLogDto.cs, Pos.Application.csproj, and 12 more files...
                 // Correctly unescapes \r\n so CSV splits into proper lines
                 using var doc = JsonDocument.Parse(content);
                 var root = doc.RootElement;
@@ -308,7 +372,11 @@ namespace Pos.Application.Utility
 
             var log = logService.BuildLog(
                 message: errorMessage,
+<<<<<<< HEAD
                 type: AlertType.Error.ToString(),        //  enum → string
+=======
+                type: AlertType.Error.ToString(),        // ✅ enum → string
+>>>>>>> fff8287... Update CreateLogDto.cs, Pos.Application.csproj, and 12 more files...
                 module: "POS FBR",
                 action: method
                 //PosId: AesEncryptionHelper.Decrypt(appSettings.POS.ToString()!),
@@ -350,7 +418,11 @@ namespace Pos.Application.Utility
             {
                 POSID = appSettings.POS,//AesEncryptionHelper.Decrypt(appSettings.POS.ToString()!),
                 Message = ex.Message,
+<<<<<<< HEAD
                 Type = AlertType.Error.ToString(),          //  enum → string
+=======
+                Type = AlertType.Error.ToString(),          // ✅ enum → string
+>>>>>>> fff8287... Update CreateLogDto.cs, Pos.Application.csproj, and 12 more files...
                 Url = url,
                 Timestamp = DateTime.Now,
                 HttpMethod = method,

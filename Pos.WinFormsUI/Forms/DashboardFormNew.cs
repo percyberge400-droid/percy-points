@@ -27,11 +27,12 @@ namespace Pos.WinFormsUI.Dashboard
         private readonly IServiceProvider _provider;
         private readonly IFileRecordService _fileRecordService;
         private readonly ILogService _logService;
+        private readonly AppSettings _appSettings;
         private readonly IInvoiceService _invoiceService;
         private readonly ISendLogToCloudService _sendLogToCloudService;
         private readonly string _baseUrl;
 
-        private readonly HttpClient _httpClient;
+        //private readonly HttpClient _httpClient;
         private System.Timers.Timer _heartbeatTimer;
 
         private bool _isInitialLoad = true;
@@ -110,7 +111,7 @@ namespace Pos.WinFormsUI.Dashboard
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             _sendLogToCloudService = sendLogToCloudService;
             _baseUrl = ConfigurationManager.AppSettings["BaseUrl"];
-            _httpClient = new HttpClient(); // local instance for manual URL handling
+            //_httpClient = new HttpClient(); // local instance for manual URL handling
             //RoundAllButtons(this, 4);
 
             FormBorderStyle = FormBorderStyle.None;
@@ -192,6 +193,58 @@ namespace Pos.WinFormsUI.Dashboard
 
             InitializePaginationControls();
             EnableVirtualMode();
+            LoadUserProfile();
+
+            _appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"]!,
+                Token = ConfigurationManager.AppSettings["Token"]!,
+                EC = ConfigurationManager.AppSettings["EC"]!,
+                POS = int.Parse(ConfigurationManager.AppSettings["POS"]!),
+                Environment = ConfigurationManager.AppSettings["Environment"]!
+            };
+        }
+        #region
+        private void LoadUserProfile()
+        {
+            try
+            {
+                var settings = AppSettingsReader.Load();
+                SetUserDetails(settings);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load profile: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SetUserDetails(WinformsAppSettings settings)
+        {
+            lblUserPosID.Text = settings.PosID ?? "N/A";
+            //lblUserBranchAddress.Text = settings.BranchAddress ?? "N/A";
+            lblUserBusinessName.Text = settings.BusinessName ?? "N/A";
+            lblUserBranchName.Text = settings.BranchName ?? "N/A";
+            //lblUserPhoneNo.Text = settings.PhoneNumber ?? "N/A";
+
+            //GradientInfoPanelBuilder.Build(
+            //    panel: panelProfile,
+
+            //    fields: new List<(string, string)>
+
+            //    {
+
+            //        ("🏠 Business Name",        $"{lblUserBusinessName.Text}"),
+
+            //        ("📍 Branch",  $" {lblUserBranchName.Text}"),
+
+            //        ("🔒 Reg No.",       $" {lblUserPosID.Text}")
+
+            //    },
+
+            //    recordCount: 3,
+
+            //    gradientStart: ColorTranslator.FromHtml("#8860C1"),  // left purple
 
         }
 
@@ -611,50 +664,45 @@ namespace Pos.WinFormsUI.Dashboard
                     UpdateHeartbeatLabel(isError: true);
                     return;
                 }
-                // Get environment and token from appsettings
-                string selectedEnvironment = ConfigurationManager.AppSettings["Environment"]!;
-                string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED: get token from appsettings
-
-                var fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
 
                 // Prepare request body
                 var requestBody = new GetByPosIdDto
                 {
                     PosId = posId,
-                    Environment = selectedEnvironment
-                };
-                var json = JsonContent.Create(requestBody);
-
-                // Create HttpRequestMessage to add headers
-                using var request = new HttpRequestMessage(HttpMethod.Post, fullUrl)
-                {
-                    Content = json
+                    Environment = _appSettings.Environment
                 };
 
-                // CHANGED: Add Authorization header for middleware
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                // Full URL for heartbeat endpoint
+                string fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
 
-                // Send request
-                var response = await _httpClient.SendAsync(request);
+                // ✅ Use HttpClientHelper.PostAsync instead of raw HttpClient
+                var result = await HttpClientHelper.PostAsync<ApiResponse<HeartBeatDto>>(
+                    url: fullUrl,
+                    body: requestBody,
+                    bearerToken: _appSettings.Token,
+                    logService: _logService,
+                    appSettings: _appSettings
+                );
 
-                if (response.IsSuccessStatusCode)
+                // ✅ Check outer response
+                if (result.StatusCode != "200")
                 {
-                    var heartbeatResponse = await response.Content.ReadFromJsonAsync<ApiResponse<HeartBeatDto>>();
+                    System.Diagnostics.Debug.WriteLine($"Heartbeat failed: {result.Message}");
+                    UpdateHeartbeatLabel(isError: true);
+                    return;
+                }
 
-                    if (heartbeatResponse?.StatusCode == ApiStatusCode.Success && heartbeatResponse.Data != null)
-                    {
-                        var serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
-                        UpdateHeartbeatLabel(serverTime, isError: false);
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Heartbeat API returned no data: {heartbeatResponse?.Message}");
-                        UpdateHeartbeatLabel(isError: true);
-                    }
+                // ✅ Check inner API response
+                var heartbeatResponse = result.Data;
+
+                if (heartbeatResponse?.StatusCode == ApiStatusCode.Success && heartbeatResponse.Data != null)
+                {
+                    var serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
+                    UpdateHeartbeatLabel(serverTime, isError: false);
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Heartbeat failed: {response.StatusCode}");
+                    System.Diagnostics.Debug.WriteLine($"Heartbeat API returned no data: {heartbeatResponse?.Message}");
                     UpdateHeartbeatLabel(isError: true);
                 }
             }
@@ -664,7 +712,6 @@ namespace Pos.WinFormsUI.Dashboard
                 UpdateHeartbeatLabel(isError: true);
             }
         }
-
         private void UpdateHeartbeatLabel(DateTime? heartbeatTime = null, bool isError = false)
         {
             if (lblHeartbeat1.InvokeRequired)
@@ -1033,7 +1080,7 @@ namespace Pos.WinFormsUI.Dashboard
                 _heartbeatTimer?.Stop();
                 _heartbeatTimer?.Dispose();
                 _checkSemaphore?.Dispose();
-                _httpClient?.Dispose();
+                //_httpClient?.Dispose();
 
                 // Dispose pagination controls
                 paginationInvoices?.Dispose();

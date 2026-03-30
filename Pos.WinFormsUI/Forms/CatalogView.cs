@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using System.Net.Http.Json;
+﻿using Newtonsoft.Json.Linq;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.LogService;
@@ -8,6 +7,8 @@ using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
 using Pos.WinFormsUI.AlertClasses;
+using System.Configuration;
+using System.Net.Http.Json;
 
 namespace Pos.WinFormsUI.Forms
 {
@@ -15,7 +16,7 @@ namespace Pos.WinFormsUI.Forms
     {
         private readonly ILogService _logService;
         private readonly IProductCatalogueService _productCatalogueService;
-
+        private readonly AppSettings _appSettings;
         // State management
         private int _currentPage = 1;
         private int _pageSize = 50;
@@ -27,7 +28,7 @@ namespace Pos.WinFormsUI.Forms
         private System.Windows.Forms.Timer _searchDebounceTimer; // Remove readonly
         private const int SEARCH_DEBOUNCE_MS = 300;
         private string _lastSearchTerm = string.Empty;
-        private readonly HttpClient _httpClient;
+        //private readonly HttpClient _httpClient;
 
         public CatalogView(IProductCatalogueService productCatalogueService, ILogService logService)
         {
@@ -37,7 +38,16 @@ namespace Pos.WinFormsUI.Forms
 
             InitializeComponentEvents();
             StyleProductDataGridView();
-            _httpClient = new HttpClient();
+            //_httpClient = new HttpClient();
+
+            _appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
+                Token = ConfigurationManager.AppSettings["Token"] ?? string.Empty,
+                EC = ConfigurationManager.AppSettings["EC"] ?? string.Empty,
+                POS = int.TryParse(ConfigurationManager.AppSettings["POS"], out int posId) ? posId : 0,
+                Environment = ConfigurationManager.AppSettings["Environment"] ?? string.Empty
+            };
         }
 
         private void InitializeComponentEvents()
@@ -252,29 +262,20 @@ namespace Pos.WinFormsUI.Forms
         {
             await CreateLog("Starting data refresh from API", "Info");
 
-            // Get environment and token from appsettings
-            string selectedEnvironment = ConfigurationManager.AppSettings["Environment"]!;
-            string token = ConfigurationManager.AppSettings["Token"]!;
             string posId = AesEncryptionHelper.Decrypt(ConfigurationManager.AppSettings["Username"]!);
 
-            var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
-            var url = $"{_baseUrl}{Endpoints.GetProductCatalogue}?posId={posId}";
+            // ── Replace raw HttpClient with HttpClientHelper.GetAsync ─────────
+            string endpoint = $"{Endpoints.GetProductCatalogue}?posId={posId}";
 
-            // Create HttpRequestMessage to add headers
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            // CHANGED: Add Authorization header for middleware
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            // Send request
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
-
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<ProductCatalogueDto>>>();
+            var result = await HttpClientHelper.GetAsync<ProductCatalogueDto>(
+                endpoint: endpoint,
+                bearerToken: _appSettings.Token,
+                baseUrl: _appSettings.BaseUrl,
+                logService: _logService,
+                appSettings: _appSettings
+            );
 
             var apiProducts = result?.Data ?? new List<ProductCatalogueDto>();
-
 
             if (!apiProducts.Any())
             {
@@ -303,9 +304,7 @@ namespace Pos.WinFormsUI.Forms
                     .ContinueWith(t =>
                     {
                         if (t.Result.StatusCode == ApiStatusCode.Success)
-                        {
                             Interlocked.Increment(ref successCount);
-                        }
                     }, cancellationToken);
 
                 saveTasks.Add(task);
@@ -326,9 +325,7 @@ namespace Pos.WinFormsUI.Forms
 
             // Wait for remaining tasks
             if (saveTasks.Any())
-            {
                 await Task.WhenAll(saveTasks);
-            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -338,12 +335,11 @@ namespace Pos.WinFormsUI.Forms
             {
                 SearchBox.Text = string.Empty;
             });
-            await LoadFromLocalDB(cancellationToken);
 
+            await LoadFromLocalDB(cancellationToken);
             AlertManager.ShowSuccess($"Successfully loaded {successCount} products!");
             await CreateLog($"Refresh completed: {successCount} products", "Success");
         }
-
         private async Task LoadFromLocalDB(CancellationToken cancellationToken = default)
         {
             var query = new ProductCatalogueQueryDto

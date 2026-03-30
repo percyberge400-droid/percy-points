@@ -193,8 +193,6 @@ namespace Pos.Application.Services.LogService
         string type,
         string? module = null,
         string? action = null,
-        string? userId = null,
-        string? userName = null,
         string? clientIp = null,
         string? userAgent = null)
         {
@@ -205,8 +203,6 @@ namespace Pos.Application.Services.LogService
                 IsSynced = false,
                 Module = module,
                 ActionName = action,
-                UserId = userId,
-                UserName = userName,
                 HttpMethod = null,
                 RequestPath = null,
                 QueryString = null,

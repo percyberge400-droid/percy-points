@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Pos.Application.DTOs;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
@@ -18,6 +19,7 @@ namespace Pos.WinFormsUI.Forms
     {
         private readonly IServiceProvider _provider;
         private readonly ILogService _logService;
+        private readonly AppSettings _appSettings;
         private CancellationTokenSource _internetCheckCts;
         private CancellationTokenSource _workerServiceCts;
         private readonly List<Form> _independentForms = new();
@@ -91,6 +93,14 @@ namespace Pos.WinFormsUI.Forms
             }
             var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
             decryptedPosId = Convert.ToInt64(AesEncryptionHelper.Decrypt(encryptedPosId));
+            _appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
+                Token = ConfigurationManager.AppSettings["Token"] ?? string.Empty,
+                EC = ConfigurationManager.AppSettings["EC"] ?? string.Empty,
+                POS = int.TryParse(ConfigurationManager.AppSettings["POS"], out int posId) ? posId : 0,
+                Environment = ConfigurationManager.AppSettings["Environment"] ?? string.Empty
+            };
         }
 
         public void StartUpdateWatcher(CancellationToken cancellationToken)
@@ -169,7 +179,7 @@ namespace Pos.WinFormsUI.Forms
                     ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
                     : "0.0.0,0,Date";
 
-                Log($"Loaded local version: {localVersionPath}");
+                Log($"Loaded local version path: {localVersionPath}");
                 Log($"Loaded local version: {fullLocalVersion}");
 
                 var parts = fullLocalVersion.Split(',');
@@ -177,37 +187,29 @@ namespace Pos.WinFormsUI.Forms
                 string isUpdate = parts.Length > 1 ? parts[1] : "0";
                 string updateDate = parts.Length > 2 ? parts[2] : DateTime.Now.ToString();
 
-                // Fetch server version
-                string apiBase = "http://10.105.200.161/api/Configuration/";
-                string versionApi = $"{apiBase}get-update-version";
+                // ── Fetch server version via HttpClientHelper ──────────────────
+                Log("Fetching server version from API...");
 
-                string serverVersion;
-                using (var client = new HttpClient())
+                var result = await HttpClientHelper.GetAsync<ConfigurationResponseDto>(
+                    endpoint: "Configuration/get-update-version",
+                    bearerToken: _appSettings.Token,
+                    baseUrl: "http://10.105.200.161/api/",
+                    logService: _logService,
+                    appSettings: _appSettings
+                );
+
+                if (result?.Data == null
+                    || result.Data.Count == 0
+                    || string.IsNullOrWhiteSpace(result.Data[0].AppVersion))
                 {
-                    var versionRequest = new HttpRequestMessage(HttpMethod.Post, versionApi);
-                    versionRequest.Headers.Add("accept", "*/*");
-                    versionRequest.Content = new StringContent(
-                        $"{{\"moduleName\": \"{ModuleName}\"}}",
-                        System.Text.Encoding.UTF8,
-                        "application/json"
-                    );
-
-                    var versionHttpResponse = await client.SendAsync(versionRequest, cancellationToken);
-                    versionHttpResponse.EnsureSuccessStatusCode();
-                    var response = await versionHttpResponse.Content
-                        .ReadFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(cancellationToken: cancellationToken);
-
-                    if (response?.Data == null || string.IsNullOrWhiteSpace(response.Data.AppVersion))
-                    {
-                        Log("Server returned invalid version data.");
-                        return;
-                    }
-
-                    serverVersion = response.Data.AppVersion.Trim();
-                    Log($"Server version: {serverVersion}");
+                    Log($"Server returned invalid version data. Status: {result?.StatusCode} | Message: {result?.Message}");
+                    return;
                 }
 
-                // Compare versions
+                string serverVersion = result.Data[0].AppVersion.Trim();
+                Log($"Server version: {serverVersion}");
+
+                // ── Compare versions ───────────────────────────────────────────
                 bool updateRequired = false;
                 try
                 {
@@ -228,7 +230,7 @@ namespace Pos.WinFormsUI.Forms
 
                 Log($"Update available: {localVersion} → {serverVersion}");
 
-                // Mark pending update
+                // ── Mark pending update ────────────────────────────────────────
                 if (isUpdate != "1")
                 {
                     string updatedFullVersion = $"{localVersion},1,{DateTime.Now}";
@@ -267,11 +269,6 @@ namespace Pos.WinFormsUI.Forms
                             {
                                 Log($"Failed to launch updater: {ex.Message}");
                             }
-
-                            //string updatedFullVersion = $"{serverVersion},0,{DateTime.Now}";
-                            //File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
-                            //Log("Updated local version after launching updater.");
-                            //System.Windows.Forms.Application.Exit();
                         }
                     }
                 }
@@ -281,7 +278,6 @@ namespace Pos.WinFormsUI.Forms
                 Log($"Unexpected error: {ex.Message}");
             }
         }
-
         private string GetInstallPath()
         {
             string commonInfo = Path.Combine(
@@ -1025,7 +1021,7 @@ namespace Pos.WinFormsUI.Forms
             _ = Task.Run(async () =>
             {
                 bool wasRunning = true;
-                bool wasEnabled = true; // initially assume enabled
+                bool wasEnabled = true;
                 int consecutiveChecks = 0;
                 bool internetStatus = false;
 
@@ -1034,66 +1030,60 @@ namespace Pos.WinFormsUI.Forms
                     try
                     {
                         internetStatus = await CheckInternetConnectivityAsync();
+
                         if (internetStatus)
                         {
-                            string selectedenvironment = ConfigurationManager.AppSettings["Environment"]!;
-                            string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED
+                            // ── IsServiceEnabled via HttpClientHelper ──────────────
+                            string isEnabledEndpoint =
+                                $"{Endpoints.IsServiceEnabled}?posId={decryptedPosId}&env={_appSettings.Environment}";
 
-                            var fullUrl = $"{_baseUrl}{Endpoints.IsServiceEnabled}?posId={decryptedPosId}&env={selectedenvironment}";
                             bool isEnabled = true;
 
-                            using (var httpClient = new HttpClient())
+                            try
                             {
-                                try
+                                var isEnabledResult = await HttpClientHelper.GetAsync<bool>(
+                                    endpoint: isEnabledEndpoint,
+                                    bearerToken: _appSettings.Token,
+                                    baseUrl: _baseUrl,
+                                    logService: _logService,
+                                    appSettings: _appSettings
+                                );
+
+                                if (isEnabledResult?.Data != null && isEnabledResult.Data.Count > 0)
+                                    isEnabled = isEnabledResult.Data[0];
+
+                                // Trigger only when status changes from enabled → disabled
+                                if (wasEnabled && !isEnabled)
                                 {
-                                    using var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
+                                    ShowAlert("POS Service Disabled, Contact FBR!", AlertType.Warning, true);
+                                    _ = CreateLog("POS Service Disabled, Contact FBR!", AlertType.Warning);
 
-                                    // CHANGED: Add Authorization header for middleware
-                                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                                    // CHANGED: Use SendAsync instead of GetAsync
-                                    var response = await httpClient.SendAsync(request);
-
-                                    response.EnsureSuccessStatusCode();
-
-                                    string result = await response.Content.ReadAsStringAsync();
-                                    isEnabled = bool.TryParse(result, out bool parsedValue) && parsedValue;
-
-                                    // Trigger only when status changes from enabled → disabled
-                                    if (wasEnabled && !isEnabled)
+                                    if (await IsWorkerServiceRunningAsync())
                                     {
-
-                                        ShowAlert("POS Service Disabled, Contact FBR!", AlertType.Warning, true);
-                                        _ = CreateLog("POS Service Disabled, Contact FBR!", AlertType.Warning);
-
-                                        if (await IsWorkerServiceRunningAsync())
-                                        {
-                                            bool stopped = await StopWorkerServiceAsync();
-                                        }
-
+                                        bool stopped = await StopWorkerServiceAsync();
                                     }
-                                    // Trigger when service comes back online
-                                    else if (!wasEnabled && isEnabled)
-                                    {
-                                        _ = CreateLog("POS Service Enabled.", AlertType.Info);
-                                        ShowAlert("POS Service Enabled.", AlertType.Info, true);
-
-                                        if (!await IsWorkerServiceRunningAsync())
-                                        {
-                                            bool started = await StartWorkerServiceAsync();
-                                        }
-                                    }
-
-                                    wasEnabled = isEnabled;
                                 }
-                                catch (Exception ex)
+                                // Trigger when service comes back online
+                                else if (!wasEnabled && isEnabled)
                                 {
-                                    _ = CreateLog($"Error calling API", AlertType.Error);
+                                    _ = CreateLog("POS Service Enabled.", AlertType.Info);
+                                    ShowAlert("POS Service Enabled.", AlertType.Info, true);
+
+                                    if (!await IsWorkerServiceRunningAsync())
+                                    {
+                                        bool started = await StartWorkerServiceAsync();
+                                    }
                                 }
+
+                                wasEnabled = isEnabled;
+                            }
+                            catch (Exception ex)
+                            {
+                                _ = CreateLog($"Error calling IsServiceEnabled API: {ex.Message}", AlertType.Error);
                             }
                         }
 
-                        // --- Worker Service state handling ---
+                        // ── Worker Service state handling (unchanged) ──────────────
                         bool isRunning = await IsWorkerServiceRunningAsync();
                         UpdateStatusBadge(posStatus, isRunning, isRunning ? "Active" : "Inactive");
 
@@ -1113,11 +1103,13 @@ namespace Pos.WinFormsUI.Forms
                         {
                             consecutiveChecks++;
 
-                            // Remind every 5 checks (25 seconds)
                             if (consecutiveChecks % 5 == 0)
                             {
-                                ShowAlert($"POS Service still inactive ({consecutiveChecks * 5}s)",
-                                          nameof(AlertType.Warning), false, "Service Monitor");
+                                ShowAlert(
+                                    $"POS Service still inactive ({consecutiveChecks * 5}s)",
+                                    nameof(AlertType.Warning),
+                                    false,
+                                    "Service Monitor");
                             }
                         }
 
@@ -1136,7 +1128,6 @@ namespace Pos.WinFormsUI.Forms
                 }
             }, ct);
         }
-
         private Task<bool> IsWorkerServiceRunningAsync()
         {
             return Task.Run(() =>

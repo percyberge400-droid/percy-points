@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Pos.Application.DTOs;
+using Pos.Application.Services.LogService;
+using Pos.Application.Services.POSService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
@@ -14,12 +17,25 @@ namespace Pos.WinFormsUI.Forms
     public partial class LoginForm2 : Form
     {
         private readonly IServiceProvider _provider;
+        private readonly ILogService _logService;
+        private readonly AppSettings _appSettings;
         private const string SERVICE_NAME = "POSWorker";
         private const string ModuleName = "PRAPOS_2.0";
         public LoginForm2(IServiceProvider provider)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             InitializeComponent();
+            _logService = _provider.GetRequiredService<ILogService>();
+
+            
+            _appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
+                Token = ConfigurationManager.AppSettings["Token"] ?? string.Empty,
+                EC = ConfigurationManager.AppSettings["EC"] ?? string.Empty,
+                POS = int.TryParse(ConfigurationManager.AppSettings["POS"], out int posId) ? posId : 0,
+                Environment = ConfigurationManager.AppSettings["Environment"] ?? string.Empty
+            };
 
             // Transparent background
             this.FormBorderStyle = FormBorderStyle.None;
@@ -553,36 +569,40 @@ namespace Pos.WinFormsUI.Forms
 
             Log($"Local version: {localVersion} | isUpdate: {isUpdate} | updateDate: {updateDate}");
 
-            // ---------------- Call API ----------------
-            string apiBase = "http://10.105.200.161/api/Configuration/";
-            string versionApi = $"{apiBase}get-update-version";
+            // ---------------- Build AppSettings ----------------
+            var appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
+                Token = ConfigurationManager.AppSettings["Token"] ?? string.Empty,
+                EC = ConfigurationManager.AppSettings["EC"] ?? string.Empty,
+                POS = int.TryParse(ConfigurationManager.AppSettings["POS"], out int posId) ? posId : 0,
+                Environment = ConfigurationManager.AppSettings["Environment"] ?? string.Empty
+            };
 
+            // ---------------- Call API via HttpClientHelper ----------------
             string serverVersion;
             try
             {
-                using var client = new HttpClient();
                 Log("Fetching server version from API...");
 
-                var versionRequest = new HttpRequestMessage(HttpMethod.Post, versionApi);
-                versionRequest.Headers.Add("accept", "*/*");
-                versionRequest.Content = new StringContent(
-      $"{{\"moduleName\": \"{ModuleName}\"}}",
-      System.Text.Encoding.UTF8,
-      "application/json"
-  );
+                var result = await HttpClientHelper.GetAsync<ConfigurationResponseDto>(
+                    endpoint: "Configuration/get-update-version",
+                    bearerToken: appSettings.Token,
+                    baseUrl: "http://10.105.200.161/api/",
+                    logService: _logService,
+                    appSettings: appSettings
+                );
 
-                var versionHttpResponse = await client.SendAsync(versionRequest);
-                versionHttpResponse.EnsureSuccessStatusCode();
-                var response = await versionHttpResponse.Content
-                    .ReadFromJsonAsync<ApiResponse<ConfigurationResponseDto>>();
-
-                if (response?.Data == null || string.IsNullOrWhiteSpace(response.Data.AppVersion))
+                // GetAsync returns ApiResponse<List<T>> — take first item
+                if (result?.Data == null
+                    || result.Data.Count == 0
+                    || string.IsNullOrWhiteSpace(result.Data[0].AppVersion))
                 {
-                    Log("Invalid API response.");
+                    Log($"Invalid API response. Status: {result?.StatusCode} | Message: {result?.Message}");
                     return;
                 }
 
-                serverVersion = response.Data.AppVersion.Trim();
+                serverVersion = result.Data[0].AppVersion.Trim();
                 Log($"Server version: {serverVersion}");
             }
             catch (Exception ex)
@@ -630,7 +650,6 @@ namespace Pos.WinFormsUI.Forms
             // ---------------- Branch: Auto-launch or Prompt ----------------
             if (autoLaunch)
             {
-                // Show info message then auto-launch — no Yes/No needed
                 this.Invoke(new Action(() =>
                 {
                     MessageBox.Show(
@@ -650,7 +669,6 @@ namespace Pos.WinFormsUI.Forms
                 // First detection OR within trigger days — prompt the user
                 if (isUpdate != "1")
                 {
-                    // Mark as pending so the day counter starts now
                     string updatedFullVersion = $"{localVersion},1,{DateTime.Now}";
                     File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
                     Log("Marked update as pending in app-version.txt.");
@@ -680,6 +698,7 @@ namespace Pos.WinFormsUI.Forms
                 LaunchUpdater(installPath, Log);
             }
         }
+        
         // ---------------- Helper: Launch Updater ----------------
         private void LaunchUpdater(string installPath, Action<string> Log)
         {

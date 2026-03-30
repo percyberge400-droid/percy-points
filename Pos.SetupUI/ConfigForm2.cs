@@ -3,11 +3,10 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
 using Pos.Application.DTOs.LogDTOs;
-using Pos.Application.Services.ReferenceService.InvoiceTypeService;
-using Pos.Application.Services.ReferenceService.PaymentService;
-using Pos.Application.Services.ReferenceService.ServicesRenderedService;
+using Pos.Application.Services.LogService;
 using Pos.Application.Services.ScriptService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
@@ -41,7 +40,8 @@ namespace Pos.SetupUI
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
-
+        private readonly ILogService _logService;
+        private readonly AppSettings _appSettings;
 
         #endregion
 
@@ -109,9 +109,15 @@ namespace Pos.SetupUI
             LoadLogoImage();
             CheckServiceAvailability();
             LoadDefaultPaths();
-            _paymentservice = paymentservice;
-            _invoiceTypeService = invoiceTypeService;
-            _servicesRenderedService = servicesRenderedService;
+
+            _appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
+                Token = ConfigurationManager.AppSettings["Token"] ?? string.Empty,
+                EC = ConfigurationManager.AppSettings["EC"] ?? string.Empty,
+                POS = int.TryParse(ConfigurationManager.AppSettings["POS"], out int posId) ? posId : 0,
+                Environment = ConfigurationManager.AppSettings["Environment"] ?? string.Empty
+            };
         }
 
         #endregion
@@ -1533,11 +1539,8 @@ namespace Pos.SetupUI
                     Environment = selectedEnvironment
                 };
 
-
-                // string apiUrl = ConfigurationManager.AppSettings["ApiUrl"];
-
-                var _baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
-                var apiUrl = $"{_baseUrl}{Endpoints.Authenticate}";
+                var baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+                var apiUrl = $"{baseUrl}{Endpoints.Authenticate}";
 
                 if (string.IsNullOrWhiteSpace(apiUrl))
                 {
@@ -1545,40 +1548,35 @@ namespace Pos.SetupUI
                     return null;
                 }
 
-                // CHANGED: Use HttpRequestMessage to add headers
-                using var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
-                {
-                    Content = new StringContent(
-                        JsonConvert.SerializeObject(payload),
-                        Encoding.UTF8,
-                        "application/json"
-                    )
-                };
+                // ✅ Use string — System.Text.Json cannot deserialize into Newtonsoft JObject
+                var apiResponse = await HttpClientHelper.PostAsync<string>(
+                    url: apiUrl,
+                    body: payload,
+                    bearerToken: password,
+                    logService: null,         // ✅ pass null — ConfigForm has no logService yet
+                    appSettings: null          // ✅ pass null — safe, HttpClientHelper guards for null
+                );
 
-                // CHANGED: Add Authorization header for middleware
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", password);
-
-                // Send request
-                using var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-                var response = await client.SendAsync(request);
-
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
+                if (apiResponse == null || apiResponse.StatusCode != "200")
                 {
                     ShowMessage(
-                        $"Authentication failed: {(int)response.StatusCode} - {response.ReasonPhrase}",
+                        $"Authentication failed: {apiResponse?.StatusCode} - {apiResponse?.Message}",
                         false,
-                        false
-                    );
+                        false);
                     return null;
                 }
 
-                return ParseAuthResponse(responseBody);
+                if (string.IsNullOrWhiteSpace(apiResponse.Data))
+                {
+                    ShowMessage("Empty response from authentication server.", false, false);
+                    return null;
+                }
+
+                // ✅ Parse raw JSON string into JObject using Newtonsoft
+                return ParseAuthResponse(apiResponse.Data);
             }
-            catch (HttpRequestException ex) when (ex.InnerException is SocketException se && se.SocketErrorCode == SocketError.HostUnreachable)
+            catch (HttpRequestException ex) when (ex.InnerException is SocketException se
+                                               && se.SocketErrorCode == SocketError.HostUnreachable)
             {
                 ShowMessage("Unable to reach the host. Please check your network connection or server address.", false, true);
                 return null;
@@ -1611,35 +1609,39 @@ namespace Pos.SetupUI
                 };
 
                 string apiUrl = ConfigurationManager.AppSettings["EnvironmentApiUrl"];
+
                 if (string.IsNullOrWhiteSpace(apiUrl))
                 {
                     ShowMessage("API URL is missing in configuration.", false, false);
                     return null;
                 }
 
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-                var jsonContent = new StringContent(
-                    JsonConvert.SerializeObject(payload),
-                    Encoding.UTF8,
-                    "application/json"
+                // ✅ Use string — avoids System.Text.Json vs Newtonsoft conflict
+                var apiResponse = await HttpClientHelper.PostAsync<string>(
+                    url: apiUrl,
+                    body: payload,
+                    bearerToken: null,         //  no token for this endpoint
+                    logService: null,         //  safe — HttpClientHelper guards for null
+                    appSettings: null          // safe — HttpClientHelper guards for null
                 );
 
-                var response = await client.PostAsync(apiUrl, jsonContent);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
+                if (apiResponse == null || apiResponse.StatusCode != "200")
                 {
                     ShowMessage(
-                        $"Authentication failed: {(int)response.StatusCode} - {response.ReasonPhrase}",
+                        $"Authentication failed: {apiResponse?.StatusCode} - {apiResponse?.Message}",
                         false,
-                        false
-                    );
+                        false);
                     return null;
                 }
 
-                return ParseAuthResponse(responseBody);
+                if (string.IsNullOrWhiteSpace(apiResponse.Data))
+                {
+                    ShowMessage("Empty response from server.", false, false);
+                    return null;
+                }
+
+                // ✅ Parse raw JSON string into JObject using Newtonsoft
+                return ParseAuthResponse(apiResponse.Data);
             }
             catch (Exception ex)
             {
@@ -1647,7 +1649,6 @@ namespace Pos.SetupUI
                 return null;
             }
         }
-
         private JObject ParseAuthResponse(string responseBody)
         {
             try

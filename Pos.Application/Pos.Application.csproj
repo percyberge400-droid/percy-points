@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pos.Domain\Pos.Domain.csproj" />
+    <ProjectReference Include="..\Pos.SecurityEncryption\Pos.SecurityEncryption.csproj" />
   </ItemGroup>
 
 </Project>

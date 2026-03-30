@@ -11,6 +11,7 @@ using Pos.WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Net.Http.Json;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Pos.WinFormsUI.Forms
 {
@@ -25,6 +26,7 @@ namespace Pos.WinFormsUI.Forms
         private readonly ILogService _logService;
         private readonly string environment;
         private readonly HttpClient _httpClient;
+        private readonly AppSettings _appSettings;
 
 
         public ExportInvoiceForm(ILiveService liveService, ILogService logService)
@@ -34,6 +36,14 @@ namespace Pos.WinFormsUI.Forms
             _liveService = liveService ?? throw new ArgumentNullException(nameof(liveService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
 
+            _appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
+                Token = ConfigurationManager.AppSettings["Token"] ?? string.Empty,
+                EC = ConfigurationManager.AppSettings["EC"] ?? string.Empty,
+                POS = int.TryParse(ConfigurationManager.AppSettings["POS"], out int posId) ? posId : 0,
+                Environment = ConfigurationManager.AppSettings["Environment"] ?? string.Empty
+            };
             environment = ConfigurationManager.AppSettings["Environment"];
 
             // --- Date setup ---
@@ -111,48 +121,32 @@ namespace Pos.WinFormsUI.Forms
 
                 await Task.Delay(100); // small delay for smooth UI
 
-                int.TryParse(ConfigurationManager.AppSettings["Username"], out var posId);
-                var DecriptedPOSID = ConfigurationManager.AppSettings["Username"];
-                int EncriptedPOSID = Convert.ToInt32(AesEncryptionHelper.Decrypt(DecriptedPOSID!));
+                var decryptedPOSID = ConfigurationManager.AppSettings["Username"];
+                int encryptedPOSID = Convert.ToInt32(AesEncryptionHelper.Decrypt(decryptedPOSID!));
 
-                // Get environment and token from config
-                string environment = ConfigurationManager.AppSettings["Environment"]!;
-                string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED
-
-                string baseUrl = ConfigurationManager.AppSettings["BaseUrl"]!;
-                // Construct the full URL for the export CSV API
-                var fullUrl = $"{baseUrl.TrimEnd('/')}/{Endpoints.ExportCSV.TrimStart('/')}";
+                // Construct full URL with environment query string
+                var fullUrlWithEnv = $"{_appSettings.BaseUrl.TrimEnd('/')}/{Endpoints.ExportCSV.TrimStart('/')}?environment={_appSettings.Environment}";
 
                 // Prepare request body
                 var requestBody = new InvoiceFilterDto
                 {
-                    PosId = EncriptedPOSID,
+                    PosId = encryptedPOSID,
                     FromDate = dateTimePickerFrom.Value.Date,
                     ToDate = dateTimePickerTo.Value.Date,
-                    RegistrationNumber = 0 // ensure this matches curl
+                    RegistrationNumber = 0
                 };
 
-                // JSON content
-                var json = JsonContent.Create(requestBody);
+                // ── Call API via HttpClientHelper ─────────────────────────────
+                var apiResponse = await HttpClientHelper.PostAsyncRawString(
+                    url: fullUrlWithEnv,
+                    body: requestBody,
+                    bearerToken: _appSettings.Token,
+                    logService: _logService,
+                    appSettings: _appSettings
+                );
 
-                // Create HttpRequestMessage to add headers
-                using var request = new HttpRequestMessage(HttpMethod.Post, fullUrl)
-                {
-                    Content = json
-                };
-
-                // CHANGED: Add Authorization header
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                // Optionally keep environment in query string as well
-                var urlWithEnv = $"{fullUrl}?environment={environment}";
-                request.RequestUri = new Uri(urlWithEnv);
-
-                // Send request
-                var responseMessage = await _httpClient.SendAsync(request);
-
-
-                if (responseMessage == null)
+                // ── Validate response ─────────────────────────────────────────
+                if (apiResponse == null)
                 {
                     await CreateLog("No response from service", AlertType.Error);
                     AlertManager.ShowError("No response from service.");
@@ -161,12 +155,16 @@ namespace Pos.WinFormsUI.Forms
                     return;
                 }
 
+                if (apiResponse.StatusCode != "200")
+                {
+                    await CreateLog($"API error: {apiResponse.Message}", AlertType.Error);
+                    AlertManager.ShowError($"Export failed: {apiResponse.Message}");
+                    lblExportStatus.Text = $"❌ {apiResponse.Message}";
+                    lblExportStatus.ForeColor = System.Drawing.Color.Red;
+                    return;
+                }
 
-                // Read and deserialize the response
-                var response = await responseMessage.Content.ReadFromJsonAsync<ApiResponse<string>>();
-
-                // Handle empty or missing data
-                if (string.IsNullOrWhiteSpace(response?.Data))
+                if (string.IsNullOrWhiteSpace(apiResponse.Data))
                 {
                     lblExportStatus.Text = "⚠ No invoices found for the selected range.";
                     lblExportStatus.ForeColor = System.Drawing.Color.Orange;
@@ -175,16 +173,11 @@ namespace Pos.WinFormsUI.Forms
                     return;
                 }
 
-                if (response == null)
-                {
-                    await CreateLog("No response from service", AlertType.Error);
-                    AlertManager.ShowError("No response from service.");
-                    lblExportStatus.Text = "❌ No response from service.";
-                    lblExportStatus.ForeColor = System.Drawing.Color.Red;
-                    return;
-                }
+                // ── Parse CSV lines from response ─────────────────────────────
+                var lines = apiResponse.Data.Split(
+                    new[] { "\r\n", "\n" },
+                    StringSplitOptions.RemoveEmptyEntries);
 
-                var lines = response.Data.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 if (lines.Length <= 1)
                 {
                     lblExportStatus.Text = "⚠ No invoice records to export.";
@@ -193,123 +186,189 @@ namespace Pos.WinFormsUI.Forms
                     return;
                 }
 
-                // --- Auto filename ---
-                using (var sfd = new SaveFileDialog())
+                // ── Column mapping (CSV index → Excel header) ─────────────────
+                var columnMap = new (int Index, string Header)[]
                 {
-                    sfd.Filter = "Excel Workbook (*.xlsx)|*.xlsx";
-                    sfd.Title = "Save Exported Invoices";
-                    sfd.FileName = $"Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                    (1,  "Invoice Number"),
+                    (3,  "USIN"),
+                    (2,  "POSID"),
+                    (21, "Buyer NTN"),
+                    (23, "Buyer CNIC"),
+                    (5,  "Buyer Name"),
+                    (6,  "Buyer Phone Number"),
+                    (7,  "Total Sale Value"),
+                    (8,  "Total Quantity"),
+                    (9,  "Total Tax Charged"),
+                    (10, "Discount"),
+                    (11, "Total Bill Amount"),
+                    (12, "Payment Mode"),
+                    (4,  "Invoice Entry DateTime"),
+                    (13, "Synced DateTime"),
+                    (16, "Invoice Type"),
+                    (17, "RefUSIN"),
+                    (22, "Further Tax"),
+                };
 
-                    if (sfd.ShowDialog() == DialogResult.OK)
+                // ── Ask user: CSV or XLSX ─────────────────────────────────────
+                using var sfd = new SaveFileDialog
+                {
+                    Filter = "Excel Workbook (*.xlsx)|*.xlsx|CSV File (*.csv)|*.csv",
+                    Title = "Save Exported Invoices",
+                    FileName = $"Invoices_{DateTime.Now:yyyyMMdd_HHmmss}"
+                };
+
+                if (sfd.ShowDialog() != DialogResult.OK)
+                {
+                    await CreateLog("Export canceled by user", AlertType.Info);
+                    lblExportStatus.Text = "⚠ Export canceled by user.";
+                    lblExportStatus.ForeColor = System.Drawing.Color.Orange;
+                    return;
+                }
+
+                try
+                {
+                    bool isCsv = sfd.FilterIndex == 2; // 1 = xlsx, 2 = csv
+
+                    if (isCsv)
                     {
-                        try
+                        // ── Export as CSV ─────────────────────────────────────
+                        var csvLines = new List<string>
+                {
+                    // Write custom header row
+                    string.Join(",", columnMap.Select(c => $"\"{c.Header}\""))
+                };
+
+                        for (int i = 1; i < lines.Length; i++) // skip original header row
                         {
-                            using var workbook = new XLWorkbook();
-                            var sheet = workbook.Worksheets.Add("Invoices");
+                            var cols = lines[i].Split(',');
 
-                            // Map CSV column indexes (0-based) to custom headers
-                            var columnMap = new (int Index, string Header)[]
+                            // Skip rows without Invoice Number
+                            if (cols.Length <= 1 || string.IsNullOrWhiteSpace(cols[1]))
+                                continue;
+
+                            var rowValues = new List<string>();
+
+                            foreach (var (index, header) in columnMap)
                             {
-                                (1, "Invoice Number"),         // FBRInvoiceNumber
-                                (3, "USIN"),                   // USIN
-                                (2, "POSID"),                  // POSID
-                                (21, "Buyer NTN"),             // BuyerNTN
-                                (23, "Buyer CNIC"),            // BuyerCNIC
-                                (5, "Buyer Name"),             // BuyerName
-                                (6, "Buyer Phone Number"),     // BuyerPhoneNumber
-                                (7, "Total Sale Value"),       // TotalSaleValue
-                                (8, "Total Quantity"),         // TotalQuantity
-                                (9, "Total Tax Charged"),      // TotalTaxCharged
-                                (10, "Discount"),              // Discount
-                                (11, "Total Bill Amount"),     // TotalBillAmount
-                                (12, "Payment Mode"),          // PaymentMode
-                                (4, "Invoice Entry DateTime"), // EntryDate
-                                (13, "Synced DateTime"),       // DateTime
-                                (16, "Invoice Type"),          // InvoiceType
-                                (17, "RefUSIN"),               // RefUSIN
-                                (22, "Further Tax"),           // FurtherTax
-                            };
+                                string value = index < cols.Length ? cols[index].Trim() : string.Empty;
 
-                            int excelRow = 1; // Start at 1 for headers
-
-                            for (int i = 0; i < lines.Length; i++)
-                            {
-                                var cols = lines[i].Split(',');
-
-                                if (i == 0)
+                                value = header switch
                                 {
-                                    // Write custom headers
-                                    for (int j = 0; j < columnMap.Length; j++)
-                                        sheet.Cell(excelRow, j + 1).Value = columnMap[j].Header;
-
-                                    excelRow++; // Move to first data row
-                                }
-                                else
-                                {
-                                    // --- Skip rows without Invoice Number ---
-                                    if (cols.Length <= 1 || string.IsNullOrWhiteSpace(cols[1]))
-                                        continue;
-
-                                    for (int j = 0; j < columnMap.Length; j++)
+                                    "Payment Mode" => value switch
                                     {
-                                        int index = columnMap[j].Index;
-                                        if (index < cols.Length)
-                                        {
-                                            string value = cols[index].Trim();
+                                        "1" => "Card",
+                                        "2" => "Cash",
+                                        "3" => "Online",
+                                        _ => value
+                                    },
+                                    "Invoice Type" => value switch
+                                    {
+                                        "1" => "New",
+                                        "2" => "Debit Invoice",
+                                        "3" => "Credit Invoice",
+                                        _ => value
+                                    },
+                                    _ => value
+                                };
 
-                                            // --- Replace Payment Mode values ---
-                                            if (columnMap[j].Header == "Payment Mode")
-                                            {
-                                                value = value switch
-                                                {
-                                                    "1" => "Card",
-                                                    "2" => "Cash",
-                                                    "3" => "Online",
-                                                    _ => value
-                                                };
-                                            }
-
-                                            // --- Replace Invoice Type values ---
-                                            if (columnMap[j].Header == "Invoice Type")
-                                            {
-                                                value = value switch
-                                                {
-                                                    "1" => "New",
-                                                    "2" => "Debit Invoice",
-                                                    "3" => "Credit Invoice",
-                                                    _ => value
-                                                };
-                                            }
-
-                                            sheet.Cell(excelRow, j + 1).Value = value;
-                                        }
-                                    }
-
-                                    excelRow++; // Increment only after writing a row
-                                }
+                                rowValues.Add($"\"{value}\"");
                             }
 
-                            workbook.SaveAs(sfd.FileName);
+                            csvLines.Add(string.Join(",", rowValues));
+                        }
 
-                            await CreateLog("Invoices exported successfully", AlertType.Success);
-                            AlertManager.ShowSuccess("Invoices exported successfully!");
-                            lblExportStatus.Text = $"✅ Exported successfully:\n{sfd.FileName}";
-                            lblExportStatus.ForeColor = System.Drawing.Color.Green;
-                        }
-                        catch (Exception ex)
-                        {
-                            await CreateLog($"Export failed: {ex.Message}", AlertType.Error);
-                            AlertManager.ShowError("Export failed!");
-                            lblExportStatus.Text = "❌ Export failed.";
-                            lblExportStatus.ForeColor = System.Drawing.Color.Red;
-                        }
+                        // Ensure .csv extension
+                        string csvPath = sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
+                            ? sfd.FileName
+                            : sfd.FileName + ".csv";
+
+                        await File.WriteAllLinesAsync(csvPath, csvLines, Encoding.UTF8);
+
+                        await CreateLog("Invoices exported successfully as CSV", AlertType.Success);
+                        AlertManager.ShowSuccess("Invoices exported successfully!");
+                        lblExportStatus.Text = $"✅ Exported successfully:\n{csvPath}";
+                        lblExportStatus.ForeColor = System.Drawing.Color.Green;
                     }
                     else
                     {
-                        await CreateLog("Export canceled by user", AlertType.Info);
-                        lblExportStatus.Text = "⚠ Export canceled by user.";
-                        lblExportStatus.ForeColor = System.Drawing.Color.Orange;
+                        // ── Export as XLSX ────────────────────────────────────
+                        using var workbook = new XLWorkbook();
+                        var sheet = workbook.Worksheets.Add("Invoices");
+                        int excelRow = 1;
+
+                        for (int i = 0; i < lines.Length; i++)
+                        {
+                            var cols = lines[i].Split(',');
+
+                            if (i == 0)
+                            {
+                                // Write custom headers
+                                for (int j = 0; j < columnMap.Length; j++)
+                                    sheet.Cell(excelRow, j + 1).Value = columnMap[j].Header;
+
+                                excelRow++;
+                            }
+                            else
+                            {
+                                // Skip rows without Invoice Number
+                                if (cols.Length <= 1 || string.IsNullOrWhiteSpace(cols[1]))
+                                    continue;
+
+                                for (int j = 0; j < columnMap.Length; j++)
+                                {
+                                    int index = columnMap[j].Index;
+                                    string header = columnMap[j].Header;
+
+                                    if (index < cols.Length)
+                                    {
+                                        string value = cols[index].Trim();
+
+                                        value = header switch
+                                        {
+                                            "Payment Mode" => value switch
+                                            {
+                                                "1" => "Card",
+                                                "2" => "Cash",
+                                                "3" => "Online",
+                                                _ => value
+                                            },
+                                            "Invoice Type" => value switch
+                                            {
+                                                "1" => "New",
+                                                "2" => "Debit Invoice",
+                                                "3" => "Credit Invoice",
+                                                _ => value
+                                            },
+                                            _ => value
+                                        };
+
+                                        sheet.Cell(excelRow, j + 1).Value = value;
+                                    }
+                                }
+
+                                excelRow++;
+                            }
+                        }
+
+                        // Ensure .xlsx extension
+                        string xlsxPath = sfd.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase)
+                            ? sfd.FileName
+                            : sfd.FileName + ".xlsx";
+
+                        workbook.SaveAs(xlsxPath);
+
+                        await CreateLog("Invoices exported successfully as XLSX", AlertType.Success);
+                        AlertManager.ShowSuccess("Invoices exported successfully!");
+                        lblExportStatus.Text = $"✅ Exported successfully:\n{xlsxPath}";
+                        lblExportStatus.ForeColor = System.Drawing.Color.Green;
                     }
+                }
+                catch (Exception ex)
+                {
+                    await CreateLog($"Export failed: {ex.Message}", AlertType.Error);
+                    AlertManager.ShowError("Export failed!");
+                    lblExportStatus.Text = "❌ Export failed.";
+                    lblExportStatus.ForeColor = System.Drawing.Color.Red;
                 }
             }
             catch (Exception ex)

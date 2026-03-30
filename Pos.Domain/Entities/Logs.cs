@@ -13,6 +13,7 @@ namespace Pos.Domain.Entities
         [Key]
         public long Id { get; set; }
         public long POSID { get; set; }
+        public string? RegistrationNo { get; set; }
 
         /// <summary>Main descriptive message or error text.</summary>
         public string? Message { get; set; }
@@ -28,11 +29,9 @@ namespace Pos.Domain.Entities
 
         public DateTime CreatedAtPk { get; set; } = DateTime.Now;
 
-        // ---------- User / Security ----------
-        public string? UserId { get; set; }
-        public string? UserName { get; set; }
-        public string? UserRole { get; set; }
-        public string? SessionId { get; set; }
+        //// ---------- User / Security ----------
+        //public string? Url { get; set; }
+        //public string? Timestamp { get; set; }
 
         // ---------- Request Context ----------
         public string? HttpMethod { get; set; }
@@ -104,7 +103,7 @@ namespace Pos.Domain.Entities
             Type = type;
             IsSynced = isSynced;
             CreatedAtUtc = DateTime.UtcNow;
-            CreatedAtPk = DateTime.UtcNow;
+            CreatedAtPk = DateTime.Now;
         }
     }
 }
