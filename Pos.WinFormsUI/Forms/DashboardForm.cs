@@ -2096,7 +2096,7 @@ namespace Pos.WinFormsUI.Forms
 
                 // 3. Load invoice data from API/service
                 var response = await Task.Run(() =>
-                    _invoiceService.GetInvoiceWithItems(128762).GetAwaiter().GetResult());
+                    _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
 
 
                 if (response?.Data == null)

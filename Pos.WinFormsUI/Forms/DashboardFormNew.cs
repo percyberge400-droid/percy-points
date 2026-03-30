@@ -209,8 +209,8 @@ namespace Pos.WinFormsUI.Dashboard
         {
             try
             {
-                var settings = AppSettingsReader.Load();
-                SetUserDetails(settings);
+                //var settings = AppSettingsReader.Load();
+                //SetUserDetails(settings);
             }
             catch (Exception ex)
             {
@@ -218,13 +218,14 @@ namespace Pos.WinFormsUI.Dashboard
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        #endregion
 
         private void SetUserDetails(WinformsAppSettings settings)
         {
-            lblUserPosID.Text = settings.PosID ?? "N/A";
-            //lblUserBranchAddress.Text = settings.BranchAddress ?? "N/A";
-            lblUserBusinessName.Text = settings.BusinessName ?? "N/A";
-            lblUserBranchName.Text = settings.BranchName ?? "N/A";
+            //lblUserPosID.Text = settings.PosID ?? "N/A";
+            ////lblUserBranchAddress.Text = settings.BranchAddress ?? "N/A";
+            //lblUserBusinessName.Text = settings.BusinessName ?? "N/A";
+            //lblUserBranchName.Text = settings.BranchName ?? "N/A";
             //lblUserPhoneNo.Text = settings.PhoneNumber ?? "N/A";
 
             //GradientInfoPanelBuilder.Build(
