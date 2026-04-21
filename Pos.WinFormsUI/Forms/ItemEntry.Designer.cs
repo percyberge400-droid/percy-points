@@ -1023,37 +1023,54 @@ namespace Pos.WinFormsUI
             var paymentMethodsResponse = await _paymentService.GetPaymentMethodsAsync();
             var servicesRenderedResponse = await _servicesRenderedService.GetServicesRenderedAsync();
 
-            // Payment mode ComboBox
+            if (invoiceTypesResponse?.Data == null ||
+                paymentMethodsResponse?.Data == null ||
+                servicesRenderedResponse?.Data == null)
+                return;
+
+            // Payment
             var paymentMethods = paymentMethodsResponse.Data
                 .Select(x => new KeyValuePair<byte, string>((byte)x.Id, x.Name))
                 .ToList();
+
             paymentmode.DataSource = paymentMethods;
             paymentmode.DisplayMember = "Value";
             paymentmode.ValueMember = "Key";
-            var defaultPayment = paymentMethods.FirstOrDefault(x => x.Value.Equals("Cash", StringComparison.OrdinalIgnoreCase));
-            if (defaultPayment.Value != null)
+
+            var defaultPayment = paymentMethods
+                .FirstOrDefault(x => x.Value.Equals("Cash", StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(defaultPayment.Value))
                 paymentmode.SelectedValue = defaultPayment.Key;
 
-            // Invoice type ComboBox
+            // Invoice
             var invoiceTypes = invoiceTypesResponse.Data
                 .Select(x => new KeyValuePair<byte, string>((byte)x.Id, x.Name))
                 .ToList();
+
             invoicetype.DataSource = invoiceTypes;
             invoicetype.DisplayMember = "Value";
             invoicetype.ValueMember = "Key";
-            var defaultInvoice = invoiceTypes.FirstOrDefault(x => x.Value.Equals("Sale", StringComparison.OrdinalIgnoreCase));
-            if (defaultInvoice.Value != null)
+
+            var defaultInvoice = invoiceTypes
+                .FirstOrDefault(x => x.Value.Equals("Sale", StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(defaultInvoice.Value))
                 invoicetype.SelectedValue = defaultInvoice.Key;
 
-            // Services Rendered (FurtureTax) ComboBox
+            // Services
             var servicesRendered = servicesRenderedResponse.Data
                 .Select(x => new KeyValuePair<byte, string>((byte)x.Id, x.Name))
                 .ToList();
+
             FurtureTax.DataSource = servicesRendered;
             FurtureTax.DisplayMember = "Value";
             FurtureTax.ValueMember = "Key";
-            var defaultService = servicesRendered.FirstOrDefault(x => x.Value.Equals("New", StringComparison.OrdinalIgnoreCase));
-            if (defaultService.Value != null)
+
+            var defaultService = servicesRendered
+                .FirstOrDefault(x => x.Value.Equals("New", StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(defaultService.Value))
                 FurtureTax.SelectedValue = defaultService.Key;
         }
 
