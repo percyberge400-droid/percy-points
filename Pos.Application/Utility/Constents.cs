@@ -30,9 +30,9 @@
         public const string DisableLogBit = "Live/disbale-log-bit";
 
         // Reference
-        public const string GetAllPaymentMethods = "api/Reference/get-all-payment-methods";
-        public const string GetAllInvoiceTypes = "api/Reference/get-all-invoice-types";
-        public const string GetAllServicesRendered = "api/Reference/get-all-services-rendered";
+        public const string GetAllPaymentMethods = "Reference/get-all-payment-methods";
+        public const string GetAllInvoiceTypes = "Reference/get-all-invoice-types";
+        public const string GetAllServicesRendered = "Reference/get-all-services-rendered";
 
 
         // Configuration API

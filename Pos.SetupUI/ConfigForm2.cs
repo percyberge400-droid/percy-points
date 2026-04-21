@@ -1,7 +1,6 @@
 ﻿using LiteDB;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.FiscalDtos;
@@ -37,8 +36,8 @@ namespace Pos.SetupUI
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
         int X, int Y, int cx, int cy, uint uFlags);
 
-        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        private static readonly IntPtr HWND_TOPMOST = new(-1);
+        private static readonly IntPtr HWND_NOTOPMOST = new(-2);
 
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOSIZE = 0x0001;
@@ -105,7 +104,9 @@ namespace Pos.SetupUI
             _workerServiceName = ConfigurationManager.AppSettings["FiscalServiceName"]!;
 
             _scriptservice = scriptservice;
-
+            _paymentservice = paymentservice;
+            _invoiceTypeService = invoiceTypeService;
+            _servicesRenderedService = servicesRenderedService;
             InitializeFormSettings();
             InitializeEventHandlers();
             InitializeMessageTimer();
@@ -181,7 +182,7 @@ namespace Pos.SetupUI
             string logoKey = ConfigurationManager.AppSettings["LOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
-                var res = Resource.ResourceManager.GetObject(logoKey);
+                object? res = Resource.ResourceManager.GetObject(logoKey);
                 if (res is Image img)
                 {
                     LOGO_img.Image = img;
@@ -192,7 +193,7 @@ namespace Pos.SetupUI
             string logoKey2 = ConfigurationManager.AppSettings["PRAL"];
             if (!string.IsNullOrEmpty(logoKey2))
             {
-                var res = Resource.ResourceManager.GetObject(logoKey2);
+                object? res = Resource.ResourceManager.GetObject(logoKey2);
                 if (res is Image img)
                 {
                     pictureBox1.Image = img;
@@ -331,7 +332,7 @@ namespace Pos.SetupUI
                 string serviceExePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _workerServiceName);
 
                 // Unregister the Windows service
-                Process process = new Process();
+                Process process = new();
                 process.StartInfo.FileName = "sc.exe";
                 process.StartInfo.Arguments = $"delete \"{_workerServiceName}\"";
                 process.StartInfo.UseShellExecute = false;
@@ -424,7 +425,7 @@ namespace Pos.SetupUI
                 File.WriteAllText(jsonFilePath, jsonObject.ToString(Newtonsoft.Json.Formatting.Indented));
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
@@ -450,12 +451,12 @@ namespace Pos.SetupUI
             {
                 if (!this.IsDisposed)
                 {
-                    this.Invoke((Action)(() =>
+                    this.Invoke(() =>
                     {
                         this.TopMost = false;
                         SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0,
                             SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-                    }));
+                    });
                 }
             });
         }
@@ -647,7 +648,7 @@ namespace Pos.SetupUI
                 CreateDatabaseDirectory(dbPath);
 
                 ShowMessage("Retrieving system information...", true, false);
-                var mac = TryGetMacAddress();
+                string mac = TryGetMacAddress();
                 await Task.Delay(300);
 
                 ShowMessage("Authenticating with server...", true, false);
@@ -822,7 +823,7 @@ namespace Pos.SetupUI
 
             try
             {
-                var directory = Path.GetDirectoryName(dbPath);
+                string? directory = Path.GetDirectoryName(dbPath);
                 if (string.IsNullOrWhiteSpace(directory))
                 {
                     ShowMessage("Invalid database file path.", false, true);
@@ -844,7 +845,7 @@ namespace Pos.SetupUI
                 }
 
                 // Check file extension
-                var extension = Path.GetExtension(dbPath);
+                string extension = Path.GetExtension(dbPath);
                 if (string.IsNullOrEmpty(extension) || !extension.Equals(".db", StringComparison.OrdinalIgnoreCase))
                 {
                     ShowMessage("Database file must have .db extension.", false, true);
@@ -1015,7 +1016,7 @@ namespace Pos.SetupUI
                         }
 
                         bool hasAnyData = false;
-                        foreach (var collectionName in result.CollectionNames)
+                        foreach (string collectionName in result.CollectionNames)
                         {
                             try
                             {
@@ -1332,7 +1333,7 @@ namespace Pos.SetupUI
         /// </summary>
         private int GetIntValue(BsonDocument doc, params string[] keys)
         {
-            foreach (var key in keys)
+            foreach (string key in keys)
             {
                 if (doc.ContainsKey(key))
                 {
@@ -1361,7 +1362,7 @@ namespace Pos.SetupUI
         /// </summary>
         private string GetStringValue(BsonDocument doc, params string[] keys)
         {
-            foreach (var key in keys)
+            foreach (string key in keys)
             {
                 if (doc.ContainsKey(key))
                 {
@@ -1383,7 +1384,7 @@ namespace Pos.SetupUI
         /// </summary>
         private DateTime GetDateTimeValue(BsonDocument doc, params string[] keys)
         {
-            foreach (var key in keys)
+            foreach (string key in keys)
             {
                 if (doc.ContainsKey(key))
                 {
@@ -1451,7 +1452,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                var connectionString = new SqliteConnectionStringBuilder
+                string connectionString = new SqliteConnectionStringBuilder
                 {
                     DataSource = dbPath,
                     Mode = SqliteOpenMode.ReadWriteCreate,
@@ -1480,7 +1481,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                var mac = GetMacAddress();
+                string mac = GetMacAddress();
                 if (mac == "UNKNOWN" || string.IsNullOrWhiteSpace(mac))
                 {
                     // Generate a persistent machine identifier as fallback
@@ -1499,13 +1500,13 @@ namespace Pos.SetupUI
         private string GenerateMachineId()
         {
             // Create a persistent machine identifier based on machine name and other factors
-            var machineName = Environment.MachineName;
-            var userName = Environment.UserName;
-            var combined = $"{machineName}_{userName}_{Environment.OSVersion.Version}";
+            string machineName = Environment.MachineName;
+            string userName = Environment.UserName;
+            string combined = $"{machineName}_{userName}_{Environment.OSVersion.Version}";
 
             using (var md5 = System.Security.Cryptography.MD5.Create())
             {
-                var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(combined));
+                byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(combined));
                 return BitConverter.ToString(hash).Replace("-", "").Substring(0, 12);
             }
         }
@@ -1521,7 +1522,7 @@ namespace Pos.SetupUI
                 if (nic == null)
                     return "UNKNOWN";
 
-                var bytes = nic.GetPhysicalAddress().GetAddressBytes();
+                byte[] bytes = nic.GetPhysicalAddress().GetAddressBytes();
                 return string.Join("-", bytes.Select(b => b.ToString("X2")));
             }
             catch
@@ -1542,8 +1543,8 @@ namespace Pos.SetupUI
                     Environment = selectedEnvironment
                 };
 
-                var baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
-                var apiUrl = $"{baseUrl}{Endpoints.Authenticate}";
+                string baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+                string apiUrl = $"{baseUrl}{Endpoints.Authenticate}";
 
                 if (string.IsNullOrWhiteSpace(apiUrl))
                 {
@@ -1824,8 +1825,8 @@ namespace Pos.SetupUI
                 {
                     settings = new JObject();
                 }
-                var encUser = AesEncryptionHelper.Encrypt(username);
-                var encAccessCode = AesEncryptionHelper.Encrypt(AccessCode);
+                string encUser = AesEncryptionHelper.Encrypt(username);
+                string encAccessCode = AesEncryptionHelper.Encrypt(AccessCode);
 
                 // Update values inside the blob
                 settings["Username"] = encUser;
@@ -1888,7 +1889,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                JObject appSettings = new JObject();
+                JObject appSettings = new();
 
                 // Try to read existing encrypted settings
                 if (File.Exists(jsonFilePath))
@@ -2017,7 +2018,7 @@ namespace Pos.SetupUI
 
                 return path;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null; // or rethrow if needed
             }
@@ -2028,7 +2029,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                JObject appSettingsToEncrypt = new JObject();
+                JObject appSettingsToEncrypt = new();
 
                 // Add new settings
                 appSettingsToEncrypt["DefaultDBFilePath"] = dbPath;
@@ -2344,7 +2345,7 @@ namespace Pos.SetupUI
             TextBox tb = (TextBox)sender;
 
             // Keep only digits
-            string digitsOnly = new string(tb.Text.Where(char.IsDigit).ToArray());
+            string digitsOnly = new(tb.Text.Where(char.IsDigit).ToArray());
 
             // Trim to 9 digits maximum
             if (digitsOnly.Length > 9)
