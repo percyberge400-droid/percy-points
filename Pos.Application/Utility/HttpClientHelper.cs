@@ -99,11 +99,11 @@ namespace Pos.Application.Utility
         //  GET
         // ─────────────────────────────────────────────
         public static async Task<ApiResponse<List<T>>> GetAsync<T>(
-            string endpoint,
-            string? bearerToken,
-            string? baseUrl,
-            ILogService logService,
-            AppSettings appSettings)
+      string endpoint,
+      string? bearerToken,
+      string? baseUrl,
+      ILogService logService,
+      AppSettings appSettings)
         {
             var handler = new HttpClientHandler
             {
@@ -122,18 +122,21 @@ namespace Pos.Application.Utility
                 var content = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
+                {
                     return await HandleError<List<T>>(
                         response, content, url, "GET",
                         logService, appSettings);
+                }
 
-                var data = string.IsNullOrWhiteSpace(content)
-                    ? new List<T>()
-                    : JsonSerializer.Deserialize<List<T>>(content, _jsonOptions) ?? new List<T>();
+                var apiResponse = string.IsNullOrWhiteSpace(content)
+                    ? new ApiResponse<List<T>> { Data = new List<T>() }
+                    : JsonSerializer.Deserialize<ApiResponse<List<T>>>(content, _jsonOptions);
 
                 return new ApiResponse<List<T>>(
-                    ApiStatusCode.Success.ToString(),
-                    "Success",
-                    data);
+                    apiResponse?.StatusCode ?? ApiStatusCode.Success.ToString(),
+                    apiResponse?.Message ?? "Success",
+                    apiResponse?.Data ?? new List<T>()
+                );
             }
             catch (Exception ex)
             {
@@ -313,11 +316,11 @@ namespace Pos.Application.Utility
                 type: AlertType.Error.ToString(),        //  enum → string
                 module: "POS FBR",
                 action: method
-                //PosId: AesEncryptionHelper.Decrypt(appSettings.POS.ToString()!),
-                //responseStatusCode: (int)response.StatusCode,
-                //responseBody: content,
-                //url: url,
-                //timestamp: DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            //PosId: AesEncryptionHelper.Decrypt(appSettings.POS.ToString()!),
+            //responseStatusCode: (int)response.StatusCode,
+            //responseBody: content,
+            //url: url,
+            //timestamp: DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             );
             // Manually populate the fields BuildLog doesn't cover
             log.ResponseStatusCode = (int)response.StatusCode;
@@ -326,7 +329,7 @@ namespace Pos.Application.Utility
             log.Timestamp = DateTime.Now;
             log.POSID = appSettings.POS;
             log.POSID = long.Parse(AesEncryptionHelper.Decrypt(appSettings.EC)); // EC holds the reg no
-            
+
 
 
             await logService.CreateLogAsync(log);

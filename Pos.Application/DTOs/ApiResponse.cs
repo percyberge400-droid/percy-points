@@ -26,6 +26,7 @@
         /// Can be a list, dictionary, or <c>null</c>.
         /// </summary>
         public object Errors { get; set; }
+        public ApiResponse() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiResponse{T}"/> class.
