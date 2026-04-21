@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.ServiceProcess;
 using System.Text;
 using System.Xml;
@@ -212,7 +213,7 @@ namespace Pos.SetupUI
                 {
                     StopWorkerService();
 
-                    var result = MessageBox.Show(
+                    DialogResult result = MessageBox.Show(
                         "The Fiscal service was detected and stopped.\nDo you want to uninstall the existing service?",
                         "Uninstall Service",
                         MessageBoxButtons.YesNo,
@@ -277,9 +278,9 @@ namespace Pos.SetupUI
         {
             try
             {
-                using (var controller = new ServiceController(_workerServiceName))
+                using (ServiceController controller = new(_workerServiceName))
                 {
-                    var status = controller.Status;
+                    ServiceControllerStatus status = controller.Status;
                     return true;
                 }
             }
@@ -296,7 +297,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                using (var controller = new ServiceController(_workerServiceName))
+                using (ServiceController controller = new(_workerServiceName))
                 {
                     if (controller.Status != ServiceControllerStatus.Stopped &&
                         controller.Status != ServiceControllerStatus.StopPending)
@@ -377,7 +378,7 @@ namespace Pos.SetupUI
                     if (!_isServiceAvailable)
                         return false;
 
-                    using (var controller = new ServiceController(_workerServiceName))
+                    using (ServiceController controller = new(_workerServiceName))
                     {
                         controller.Refresh();
                         return controller.Status == ServiceControllerStatus.Running;
@@ -535,7 +536,7 @@ namespace Pos.SetupUI
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            var result = MessageBox.Show(
+            DialogResult result = MessageBox.Show(
                 "Are you sure you want to cancel?",
                 "Cancel Setup",
                 MessageBoxButtons.YesNo,
@@ -553,7 +554,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                using var ofd = new OpenFileDialog
+                using OpenFileDialog ofd = new()
                 {
                     Filter = "Image Files|*.png;*.jpg",
                     Title = "Select Company Logo"
@@ -562,7 +563,7 @@ namespace Pos.SetupUI
                 if (ofd.ShowDialog() != DialogResult.OK)
                     return;
 
-                var fileInfo = new FileInfo(ofd.FileName);
+                FileInfo fileInfo = new(ofd.FileName);
                 if (!fileInfo.Exists)
                 {
                     ShowMessage(" File not found.", false, true);
@@ -578,8 +579,8 @@ namespace Pos.SetupUI
 
                 // Convert image → Base64
                 string base64;
-                using (var img = Image.FromFile(ofd.FileName))
-                using (var ms = new MemoryStream())
+                using (Image img = Image.FromFile(ofd.FileName))
+                using (MemoryStream ms = new())
                 {
                     img.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
                     base64 = Convert.ToBase64String(ms.ToArray());
@@ -595,7 +596,7 @@ namespace Pos.SetupUI
                 string configFile = Path.Combine(dir, "AppSettings.config");
 
                 // Load or create XML config
-                var xml = new XmlDocument();
+                XmlDocument xml = new();
                 if (File.Exists(configFile))
                     xml.Load(configFile);
                 else
@@ -604,7 +605,7 @@ namespace Pos.SetupUI
                     xml.AppendChild(xml.CreateElement("appSettings"));
                 }
 
-                var appSettings = xml.SelectSingleNode("//appSettings");
+                XmlNode? appSettings = xml.SelectSingleNode("//appSettings");
                 if (appSettings == null)
                 {
                     appSettings = xml.CreateElement("appSettings");
@@ -612,7 +613,7 @@ namespace Pos.SetupUI
                 }
 
                 // Update or create logo entry
-                var node = appSettings.SelectSingleNode("add[@key='CompLogobase64']") as XmlElement;
+                XmlElement? node = appSettings.SelectSingleNode("add[@key='CompLogobase64']") as XmlElement;
                 if (node == null)
                 {
                     node = xml.CreateElement("add");
@@ -652,14 +653,14 @@ namespace Pos.SetupUI
                 await Task.Delay(300);
 
                 ShowMessage("Authenticating with server...", true, false);
-                var json = await AuthenticateAsync(username, password, mac, selectedEnvironment);
+                JObject json = await AuthenticateAsync(username, password, mac, selectedEnvironment);
                 if (json == null)
                 {
                     ShowProgressBar(false);
                     return;
                 }
 
-                var (branchName, branchAddress, businessName, IsActive, AccessCode, PhoneNO, NTN, e_Key, LocalDBPassword) = ExtractBranchDetails(json);
+                (string? branchName, string? branchAddress, string? businessName, string? IsActive, string? AccessCode, string? PhoneNO, string? NTN, string? e_Key, string? LocalDBPassword) = ExtractBranchDetails(json);
 
                 if (!VerifyAuthentication(json))
                 {
@@ -680,8 +681,7 @@ namespace Pos.SetupUI
                 }
                 await Task.Delay(300);
 
-                await SyncReferenceApisAfterDbSetupAsync(selectedEnvironment, txtPassword.Text);
-                await Task.Delay(300);
+
 
                 string DBconnection = GetDbConnectionStringForConfig(dbPath, LocalDBPassword);
                 await Task.Delay(300);
@@ -699,6 +699,9 @@ namespace Pos.SetupUI
                     ShowMessage("Migrating old database...", true, false);
                     await MigrateOldDatabaseAsync(oldDbPath, username, password, dbPath);
                 }
+
+                await SyncReferenceApisAfterDbSetupAsync(selectedEnvironment, txtPassword.Text);
+                await Task.Delay(300);
 
                 if (_isServiceAvailable)
                 {
@@ -730,7 +733,7 @@ namespace Pos.SetupUI
 
         private async Task SyncReferenceApisAfterDbSetupAsync(string selectedEnvironment, string password)
         {
-            var syncer = new SyncReferenceApis(
+            SyncReferenceApis syncer = new(
                 _paymentservice,
                 _invoiceTypeService,
                 _servicesRenderedService,
@@ -744,17 +747,17 @@ namespace Pos.SetupUI
         {
             try
             {
-                var connectionStringBuilder = new SqliteConnectionStringBuilder
+                SqliteConnectionStringBuilder connectionStringBuilder = new()
                 {
                     DataSource = dbPath,
                     Mode = SqliteOpenMode.ReadWriteCreate,
                     Password = password
                 };
 
-                using var connection = new SqliteConnection(connectionStringBuilder.ToString());
+                using SqliteConnection connection = new(connectionStringBuilder.ToString());
                 connection.Open();   // THIS CREATES THE FILE
 
-                using var cmd = connection.CreateCommand();
+                using SqliteCommand cmd = connection.CreateCommand();
                 cmd.CommandText = "PRAGMA journal_mode=WAL;";
                 cmd.ExecuteNonQuery();
 
@@ -913,7 +916,7 @@ namespace Pos.SetupUI
 
             try
             {
-                var validationResult = ValidateImsFile(oldDbPath, _defaultPassword);
+                ImsValidationResult validationResult = ValidateImsFile(oldDbPath, _defaultPassword);
 
                 if (!validationResult.IsValid)
                 {
@@ -973,7 +976,7 @@ namespace Pos.SetupUI
         /// </summary>
         private ImsValidationResult ValidateImsFile(string imsFilePath, string password)
         {
-            var result = new ImsValidationResult();
+            ImsValidationResult result = new();
 
             try
             {
@@ -984,7 +987,7 @@ namespace Pos.SetupUI
                     return result;
                 }
 
-                var fileInfo = new FileInfo(imsFilePath);
+                FileInfo fileInfo = new(imsFilePath);
                 if (fileInfo.Length == 0)
                 {
                     result.IsValid = false;
@@ -1001,7 +1004,7 @@ namespace Pos.SetupUI
                     return result;
                 }
 
-                using (var db = new LiteDatabase($"Filename={imsFilePath};Password={password}"))
+                using (LiteDatabase db = new($"Filename={imsFilePath};Password={password}"))
                 {
                     try
                     {
@@ -1020,7 +1023,7 @@ namespace Pos.SetupUI
                         {
                             try
                             {
-                                var collection = db.GetCollection(collectionName);
+                                ILiteCollection<BsonDocument> collection = db.GetCollection(collectionName);
                                 int count = collection.Count();
                                 result.CollectionCounts[collectionName] = count;
 
@@ -1088,7 +1091,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     if (fs.Length < 8192)
                         return false;
@@ -1122,8 +1125,8 @@ namespace Pos.SetupUI
                 ShowMessage("Loading data from old database...", true, false);
 
                 // Load data from IMS file
-                var fileRecords = await Task.Run(() => LoadFileRecordsFromIms(oldDbPath));
-                var logs = await Task.Run(() => LoadLogsFromIms(oldDbPath));
+                List<FileRecordDto> fileRecords = await Task.Run(() => LoadFileRecordsFromIms(oldDbPath));
+                List<SyncLogDto> logs = await Task.Run(() => LoadLogsFromIms(oldDbPath));
 
                 ShowMessage($"Loaded {fileRecords.Count} file records and {logs.Count} logs", true, false);
                 await Task.Delay(500);
@@ -1190,7 +1193,7 @@ namespace Pos.SetupUI
                         MessageBoxIcon.Warning
                     ); return;
                 }
-                var payload = new ScriptDTO
+                ScriptDTO payload = new()
                 {
                     FileRecord = fileRecords,
                     Log = logs,
@@ -1223,7 +1226,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                var response = await _scriptservice.CreateScript(payload);
+                ApiResponse<ScriptDTO> response = await _scriptservice.CreateScript(payload);
 
                 if (response.StatusCode == "200")
                 {
@@ -1246,20 +1249,20 @@ namespace Pos.SetupUI
         /// </summary>
         private List<FileRecordDto> LoadFileRecordsFromIms(string imsFilePath)
         {
-            var fileRecords = new List<FileRecordDto>();
+            List<FileRecordDto> fileRecords = new();
 
             try
             {
-                using (var db = new LiteDatabase($"Filename={imsFilePath};Password={_defaultPassword}"))
+                using (LiteDatabase db = new($"Filename={imsFilePath};Password={_defaultPassword}"))
                 {
-                    var collection = db.GetCollection("filerecords");
-                    var documents = collection.FindAll().ToList();
+                    ILiteCollection<BsonDocument> collection = db.GetCollection("filerecords");
+                    List<BsonDocument> documents = collection.FindAll().ToList();
 
-                    foreach (var doc in documents)
+                    foreach (BsonDocument? doc in documents)
                     {
                         try
                         {
-                            var fileRecord = new FileRecordDto
+                            FileRecordDto fileRecord = new()
                             {
                                 ID = GetIntValue(doc, "_id", "ID", "Id"),
                                 POSID = GetIntValue(doc, "POSID", "PosId"),
@@ -1293,23 +1296,23 @@ namespace Pos.SetupUI
         /// </summary>
         private List<SyncLogDto> LoadLogsFromIms(string imsFilePath)
         {
-            var logs = new List<SyncLogDto>();
+            List<SyncLogDto> logs = new();
 
-            using (var db = new LiteDatabase($"Filename={imsFilePath};Password={_defaultPassword};Mode=ReadOnly"))
+            using (LiteDatabase db = new($"Filename={imsFilePath};Password={_defaultPassword};Mode=ReadOnly"))
             {
-                var collection = db.GetCollection("logs");
+                ILiteCollection<BsonDocument> collection = db.GetCollection("logs");
 
                 // Stream instead of .ToList() to reduce memory & improve speed
-                foreach (var doc in collection.FindAll())
+                foreach (BsonDocument? doc in collection.FindAll())
                 {
                     try
                     {
-                        var log = new SyncLogDto
+                        SyncLogDto log = new()
                         {
-                            Id = doc.TryGetValue("_id", out var idVal) ? idVal.AsInt64 : 0,
-                            Message = doc.TryGetValue("Message", out var msgVal) ? msgVal.AsString : string.Empty,
-                            Type = doc.TryGetValue("TypeId", out var typeVal) ? typeVal.ToString() : string.Empty,
-                            IsSynced = doc.TryGetValue("IsSynced", out var syncVal) && syncVal.AsBoolean,
+                            Id = doc.TryGetValue("_id", out BsonValue? idVal) ? idVal.AsInt64 : 0,
+                            Message = doc.TryGetValue("Message", out BsonValue? msgVal) ? msgVal.AsString : string.Empty,
+                            Type = doc.TryGetValue("TypeId", out BsonValue? typeVal) ? typeVal.ToString() : string.Empty,
+                            IsSynced = doc.TryGetValue("IsSynced", out BsonValue? syncVal) && syncVal.AsBoolean,
                         };
 
                         logs.Add(log);
@@ -1433,8 +1436,8 @@ namespace Pos.SetupUI
                 );
 
                 // Create backup safely — read-while-in-use supported
-                using (var source = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (var destination = new FileStream(backupFile, FileMode.Create, FileAccess.Write))
+                using (FileStream source = new(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream destination = new(backupFile, FileMode.Create, FileAccess.Write))
                 {
                     source.CopyTo(destination);
                 }
@@ -1459,11 +1462,11 @@ namespace Pos.SetupUI
                     Password = password
                 }.ToString();
 
-                var sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
+                DbContextOptions<SqliteDbContext> sqliteOptions = new DbContextOptionsBuilder<SqliteDbContext>()
                     .UseSqlite(connectionString)
                     .Options;
 
-                using var context = new SqliteDbContext(sqliteOptions);
+                using SqliteDbContext context = new(sqliteOptions);
                 context.Database.EnsureCreated();
                 return true;
             }
@@ -1504,7 +1507,7 @@ namespace Pos.SetupUI
             string userName = Environment.UserName;
             string combined = $"{machineName}_{userName}_{Environment.OSVersion.Version}";
 
-            using (var md5 = System.Security.Cryptography.MD5.Create())
+            using (MD5 md5 = System.Security.Cryptography.MD5.Create())
             {
                 byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(combined));
                 return BitConverter.ToString(hash).Replace("-", "").Substring(0, 12);
@@ -1515,7 +1518,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                var nic = NetworkInterface.GetAllNetworkInterfaces()
+                NetworkInterface? nic = NetworkInterface.GetAllNetworkInterfaces()
                     .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up &&
                                          n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
 
@@ -1553,7 +1556,7 @@ namespace Pos.SetupUI
                 }
 
                 // ✅ Use string — System.Text.Json cannot deserialize into Newtonsoft JObject
-                var apiResponse = await HttpClientHelper.PostAsync<string>(
+                ApiResponse<string>? apiResponse = await HttpClientHelper.PostAsync<string>(
                     url: apiUrl,
                     body: payload,
                     bearerToken: password,
@@ -1621,7 +1624,7 @@ namespace Pos.SetupUI
                 }
 
                 // ✅ Use string — avoids System.Text.Json vs Newtonsoft conflict
-                var apiResponse = await HttpClientHelper.PostAsync<string>(
+                ApiResponse<string>? apiResponse = await HttpClientHelper.PostAsync<string>(
                     url: apiUrl,
                     body: payload,
                     bearerToken: null,         //  no token for this endpoint
@@ -1662,7 +1665,7 @@ namespace Pos.SetupUI
                     throw new ArgumentException("Empty response body");
                 }
 
-                var json = JToken.Parse(responseBody);
+                JToken json = JToken.Parse(responseBody);
 
                 // Handle string responses that contain JSON
                 if (json.Type == JTokenType.String)
@@ -1734,7 +1737,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                var data = json["data"];
+                JToken? data = json["data"];
                 if (data != null && data.Type == JTokenType.Object)
                 {
                     return (
@@ -1786,7 +1789,7 @@ namespace Pos.SetupUI
                 if (!File.Exists(_winformsConfigPath))
                 {
                     // Create a basic App.config structure if it doesn't exist
-                    var newConfig = new XDocument(
+                    XDocument newConfig = new(
                         new XElement("configuration",
                             new XElement("appSettings")
                         )
@@ -1794,8 +1797,8 @@ namespace Pos.SetupUI
                     newConfig.Save(_winformsConfigPath);
                 }
 
-                var xml = XDocument.Load(_winformsConfigPath);
-                var appSettingsNode = xml.Root.Element("appSettings");
+                XDocument xml = XDocument.Load(_winformsConfigPath);
+                XElement? appSettingsNode = xml.Root.Element("appSettings");
                 if (appSettingsNode == null)
                 {
                     appSettingsNode = new XElement("appSettings");
@@ -1803,7 +1806,7 @@ namespace Pos.SetupUI
                 }
 
                 // Read existing encrypted blob
-                var encryptedElement = appSettingsNode.Elements("add")
+                XElement? encryptedElement = appSettingsNode.Elements("add")
                     .FirstOrDefault(x => x.Attribute("key")?.Value == "EncryptedSettings");
 
                 JObject settings;
@@ -1865,10 +1868,10 @@ namespace Pos.SetupUI
         }
         private void UpdateOrCreateNode(XmlDocument doc, string key, string value)
         {
-            var node = doc.SelectSingleNode($"//appSettings/add[@key='{key}']");
+            XmlNode? node = doc.SelectSingleNode($"//appSettings/add[@key='{key}']");
             if (node == null)
             {
-                var appSettings = doc.SelectSingleNode("//appSettings") ?? doc.CreateElement("appSettings");
+                XmlNode appSettings = doc.SelectSingleNode("//appSettings") ?? doc.CreateElement("appSettings");
                 if (appSettings.ParentNode == null)
                     doc.DocumentElement.AppendChild(appSettings);
 
@@ -1897,7 +1900,7 @@ namespace Pos.SetupUI
                     try
                     {
                         string jsonContent = File.ReadAllText(jsonFilePath);
-                        var root = JObject.Parse(jsonContent);
+                        JObject root = JObject.Parse(jsonContent);
 
                         // Try to find and decrypt existing blob
                         if (root["AppSettings"]?["EncryptedSettings"] != null)
@@ -1922,7 +1925,7 @@ namespace Pos.SetupUI
                 string newEncryptedBlob = AesEncryptionHelper.Encrypt(json);
 
                 // Create root structure
-                var newRoot = new JObject
+                JObject newRoot = new()
                 {
                     ["AppSettings"] = new JObject
                     {
@@ -1936,9 +1939,9 @@ namespace Pos.SetupUI
                     try
                     {
                         string existingContent = File.ReadAllText(jsonFilePath);
-                        var existingRoot = JObject.Parse(existingContent);
+                        JObject existingRoot = JObject.Parse(existingContent);
 
-                        foreach (var property in existingRoot.Properties())
+                        foreach (JProperty property in existingRoot.Properties())
                         {
                             if (property.Name != "AppSettings")
                             {
@@ -2047,17 +2050,17 @@ namespace Pos.SetupUI
                     try
                     {
                         string existingContent = File.ReadAllText(jsonFilePath);
-                        var existingRoot = JObject.Parse(existingContent);
+                        JObject existingRoot = JObject.Parse(existingContent);
 
                         // Check if there's an existing encrypted blob
                         if (existingRoot["AppSettings"]?["EncryptedSettings"] != null)
                         {
                             string existingBlob = existingRoot["AppSettings"]["EncryptedSettings"].ToString();
                             string decryptedJson = AesEncryptionHelper.Decrypt(existingBlob);
-                            var existingSettings = JObject.Parse(decryptedJson);
+                            JObject existingSettings = JObject.Parse(decryptedJson);
 
                             // Merge existing settings (new values override old ones)
-                            foreach (var prop in existingSettings.Properties())
+                            foreach (JProperty prop in existingSettings.Properties())
                             {
                                 if (appSettingsToEncrypt[prop.Name] == null)
                                 {
@@ -2077,7 +2080,7 @@ namespace Pos.SetupUI
                 string encryptedBlob = AesEncryptionHelper.Encrypt(appSettingsJson);
 
                 // Create the encrypted JSON structure
-                var root = new JObject
+                JObject root = new()
                 {
                     ["AppSettings"] = new JObject
                     {
@@ -2091,9 +2094,9 @@ namespace Pos.SetupUI
                     try
                     {
                         string existingContent = File.ReadAllText(jsonFilePath);
-                        var existingRoot = JObject.Parse(existingContent);
+                        JObject existingRoot = JObject.Parse(existingContent);
 
-                        foreach (var property in existingRoot.Properties())
+                        foreach (JProperty property in existingRoot.Properties())
                         {
                             if (property.Name != "AppSettings")
                             {
@@ -2147,7 +2150,7 @@ namespace Pos.SetupUI
         {
             try
             {
-                var docSetup = new XmlDocument();
+                XmlDocument docSetup = new();
                 docSetup.Load(_setupConfigPath);
                 UpdateOrCreateNode(docSetup, "DefaultDBFilePath", dbPath);
                 docSetup.Save(_setupConfigPath);
@@ -2180,7 +2183,7 @@ namespace Pos.SetupUI
 
         private void BrowseAndSelectNewDatabaseFile(TextBox targetTextBox)
         {
-            using (var dialog = new SaveFileDialog())
+            using (SaveFileDialog dialog = new())
             {
                 dialog.Title = "Select or create SQLite DB file";
                 dialog.Filter = "SQLite DB (*.db)|*.db|All files (*.*)|*.*";
@@ -2195,7 +2198,7 @@ namespace Pos.SetupUI
 
         private void BrowseAndSelectExistingFile(TextBox targetTextBox, string title, string filter)
         {
-            using (var dialog = new OpenFileDialog())
+            using (OpenFileDialog dialog = new())
             {
                 dialog.Title = title;
                 dialog.Filter = filter;
