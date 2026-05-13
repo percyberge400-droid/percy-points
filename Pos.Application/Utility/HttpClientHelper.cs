@@ -2,7 +2,6 @@
 using Pos.Application.DTOs.LogDTOs;
 //using Pos.Application.DTOs.POS.LogDTOs;
 using Pos.Application.Services.LogService;
-using Pos.SecurityEncryption;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -130,7 +129,7 @@ namespace Pos.Application.Utility
 
                 var apiResponse = string.IsNullOrWhiteSpace(content)
                     ? new ApiResponse<List<T>> { Data = new List<T>() }
-                    : JsonSerializer.Deserialize<ApiResponse<List<T>>>(content, _jsonOptions);
+                    : DeserializeFlexible<T>(content, _jsonOptions);
 
                 return new ApiResponse<List<T>>(
                     apiResponse?.StatusCode ?? ApiStatusCode.Success.ToString(),
@@ -439,6 +438,51 @@ namespace Pos.Application.Utility
             if (!httpClient.DefaultRequestHeaders.Accept.Any())
                 httpClient.DefaultRequestHeaders.Accept
                     .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
+
+        private static ApiResponse<List<T>> DeserializeFlexible<T>(string content, JsonSerializerOptions options)
+        {
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                var data = ExtractList<T>(root, options);
+                return new ApiResponse<List<T>>(
+                    ApiStatusCode.Success.ToString(), "Success", data);
+            }
+
+            string statusCode = root.TryGetProperty("statusCode", out var sc)
+                ? sc.GetString() ?? ApiStatusCode.Success.ToString()
+                : ApiStatusCode.Success.ToString();
+
+            string message = root.TryGetProperty("message", out var mg)
+                ? mg.GetString() ?? "Success"
+                : "Success";
+
+            if (!root.TryGetProperty("data", out var dataProp))
+                return new ApiResponse<List<T>>(statusCode, message, new List<T>());
+
+            return new ApiResponse<List<T>>(statusCode, message,
+                ExtractList<T>(dataProp, options));
+        }
+
+        private static List<T> ExtractList<T>(JsonElement element, JsonSerializerOptions options)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Array:
+                    return JsonSerializer.Deserialize<List<T>>(element.GetRawText(), options)
+                           ?? new List<T>();
+
+                case JsonValueKind.Null:
+                case JsonValueKind.Undefined:
+                    return new List<T>();
+
+                default:
+                    var single = JsonSerializer.Deserialize<T>(element.GetRawText(), options);
+                    return single is not null ? new List<T> { single } : new List<T>();
+            }
         }
     }
 }
