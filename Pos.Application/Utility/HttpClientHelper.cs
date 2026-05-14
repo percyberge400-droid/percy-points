@@ -2,6 +2,7 @@
 using Pos.Application.DTOs.LogDTOs;
 //using Pos.Application.DTOs.POS.LogDTOs;
 using Pos.Application.Services.LogService;
+using Pos.SecurityEncryption;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
