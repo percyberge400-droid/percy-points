@@ -38,8 +38,11 @@ namespace Pos.Cloud.Api.Controllers
         }
 
         [HttpPost("decrypt-save")]
-        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment) =>
-        Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment));
+        public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment)
+        {
+            var bearerToken = Request.Headers.Authorization.ToString();
+            return Ok(await _liveService.DecryptAndSaveInvoicesAsync(dto, environment, false, bearerToken));
+        }
 
         [HttpPost("export-csv")]
         public async Task<ActionResult<ApiResponse<string>>> GetInvoicesCsv(InvoiceFilterDto dto, string environment)

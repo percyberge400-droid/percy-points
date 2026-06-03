@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Pos.Application.DTOs;
@@ -12,6 +11,7 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.Application.Utility.OldDecryption;
 using Pos.Domain.Entities;
+using System.Text.Json;
 
 namespace Pos.Application.Services.LiveService
 {
@@ -49,13 +49,30 @@ namespace Pos.Application.Services.LiveService
             _cloudLogService = cloudLogService;
         }
 
-        public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment, bool isWindows7 = false)
+        public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment, bool isWindows7 = false, string bearerToken = "")
         {
             if (dtos == null || dtos.Count == 0)
             {
                 return new ApiResponse<List<FileRecordDto>>(
                     ApiStatusCode.Error.ToString(),
                     ResponseMessages.DataNotFound, null);
+            }
+
+            // Check if any POSID is null, empty, or 0
+            if (dtos.Any(x => x.POSID == null || x.POSID == 0))
+            {
+                return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Error.ToString(), ResponseMessages.ContainNullPosId, null);
+            }
+
+            // Check if all records have the same POSID
+            var distinctPosIds = dtos
+                .Select(x => x.POSID)
+                .Distinct()
+                .ToList();
+
+            if (distinctPosIds.Count > 1)
+            {
+                return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Error.ToString(), ResponseMessages.ContainSamePosId, null);
             }
 
             var options = new JsonSerializerOptions
@@ -70,6 +87,11 @@ namespace Pos.Application.Services.LiveService
                 var syncedRecords = new List<FileRecordDto>();
 
                 var posClient = await _posClientRepository.GetByPosId(dtos[0].POSID, environment);
+
+                if (posClient.Token != bearerToken.Replace("Bearer ", ""))
+                {
+                    return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Error.ToString(), ResponseMessages.InvalidBearerToken, null);
+                }
 
                 foreach (var item in dtos)
                 {
