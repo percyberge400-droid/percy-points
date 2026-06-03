@@ -23,5 +23,8 @@ namespace Pos.Domain.Entities
         public string? Token { get; set; }
         [NotMapped]
         public EnvironmentType Environment { get; set; }
+        public string? LocalDBPassword { get; set; }
+        public DateTime? LogSyncedDateFrom { get; set; }
+        public DateTime? LogSyncedDateTo { get; set; }
     }
 }

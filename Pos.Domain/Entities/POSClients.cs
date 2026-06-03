@@ -48,8 +48,11 @@ namespace Pos.Domain.Entities
         public bool? IsServiceEnabled { get; set; }
         [NotMapped]
         public string? PhoneNumber { get; set; }
+        [NotMapped]
         public string? LocalDBPassword { get; set; }
+        [NotMapped]
         public DateTime? LogSyncedDateFrom { get; set; }
+        [NotMapped]
         public DateTime? LogSyncedDateTo { get; set; }
     }
 }

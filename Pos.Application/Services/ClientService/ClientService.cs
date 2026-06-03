@@ -17,6 +17,7 @@ namespace Pos.Application.Services.ClientService
         private readonly IInvoiceTypeRepository _invoiceTypeRepository;
         private readonly IPaymentRepository _paymentRepository;
         private readonly IServiceRenderedRepository _serviceRenderedRepository;
+        private readonly IConfigurationRepository _configurationRepository;
         public ClientService(
             ISqlServerRepositoryFactory sqlRepositoryFactory,
             ISqlServerUnitOfWork sqlServerUnitOfWork,
@@ -24,7 +25,8 @@ namespace Pos.Application.Services.ClientService
             IPosClientRepository posClientRepository,
             IInvoiceTypeRepository invoiceTypeRepository,
             IPaymentRepository paymentRepository,
-            IServiceRenderedRepository serviceRenderedRepository)
+            IServiceRenderedRepository serviceRenderedRepository,
+            IConfigurationRepository configurationRepository)
         {
             _sqlClientRepository = sqlRepositoryFactory.CreateRepository<PosClients>();
             _sqlServerUnitOfWork = sqlServerUnitOfWork;
@@ -33,12 +35,13 @@ namespace Pos.Application.Services.ClientService
             _invoiceTypeRepository = invoiceTypeRepository;
             _paymentRepository = paymentRepository;
             _serviceRenderedRepository = serviceRenderedRepository;
+            _configurationRepository = configurationRepository;
         }
 
         public async Task<ApiResponse<PosClients>> GetByMacAsync(ClientValidationDto dto)
         {
             // Check POS ID
-            var entity = await _posClientRepository.GetByMacAsync(dto);
+            PosClients entity = await _posClientRepository.GetByMacAsync(dto);
             if (entity == null)
             {
                 return new ApiResponse<PosClients>(
@@ -96,6 +99,12 @@ namespace Pos.Application.Services.ClientService
             {
                 entity.IsConnected = true;
             }
+
+            POSConfigurations? configuration = await _configurationRepository.GetByPosId(dto.PosId, dto.Environment);
+
+            entity.LocalDBPassword = configuration?.LocalDBPassword;
+            entity.LogSyncedDateFrom = configuration?.LogSyncedDateFrom;
+            entity.LogSyncedDateTo = configuration?.LogSyncedDateTo;
 
             // ✅ 8. Return success
             return new ApiResponse<PosClients>(
