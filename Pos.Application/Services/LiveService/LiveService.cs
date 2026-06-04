@@ -51,6 +51,11 @@ namespace Pos.Application.Services.LiveService
 
         public async Task<ApiResponse<List<FileRecordDto>>> DecryptAndSaveInvoicesAsync(List<FileRecordDto> dtos, string environment, bool isWindows7 = false, string bearerToken = "")
         {
+            if (string.IsNullOrEmpty(bearerToken))
+            {
+                return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Error.ToString(), ResponseMessages.InvalidBearerToken, null);
+            }
+
             if (dtos == null || dtos.Count == 0)
             {
                 return new ApiResponse<List<FileRecordDto>>(
