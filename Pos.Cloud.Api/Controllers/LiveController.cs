@@ -37,7 +37,7 @@ namespace Pos.Cloud.Api.Controllers
             _configurationService = configurationService;
         }
 
-        [HttpPost("decrypt-save")]
+        [HttpPost("post-invoice")]
         public async Task<IActionResult> Create([FromBody] List<FileRecordDto> dto, string environment)
         {
             var bearerToken = Request.Headers.Authorization.ToString();

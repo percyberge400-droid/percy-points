@@ -17,7 +17,7 @@
 
         // Live API
         public const string CreateCloudLog = "live/create-cloud-log";
-        public const string DecryptSave = "live/decrypt-save";
+        public const string PostInvoice = "live/post-invoice";
         public const string ExportCSV = "live/export-csv";
         public const string Authenticate = "Live/authenticate-by-mac";
         public const string IsServiceEnabled = "Live/get-isservice-enable";
