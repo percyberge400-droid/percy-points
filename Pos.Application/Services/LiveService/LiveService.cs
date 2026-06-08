@@ -63,13 +63,11 @@ namespace Pos.Application.Services.LiveService
                     ResponseMessages.DataNotFound, null);
             }
 
-            // Check if any POSID is null, empty, or 0
             if (dtos.Any(x => x.POSID == null || x.POSID == 0))
             {
                 return new ApiResponse<List<FileRecordDto>>(ApiStatusCode.Error.ToString(), ResponseMessages.ContainNullPosId, null);
             }
 
-            // Check if all records have the same POSID
             var distinctPosIds = dtos
                 .Select(x => x.POSID)
                 .Distinct()
