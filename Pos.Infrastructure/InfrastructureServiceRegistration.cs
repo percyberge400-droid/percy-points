@@ -34,6 +34,7 @@ using Pos.Infrastructure.Persistence;
 using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
 using Pos.Infrastructure.Persistence.Repositories.ProductCatalogue;
+using Pos.Infrastructure.Services.DatabaseMigrationService;
 using POSPRA.Application.Services.FiscalService;
 
 namespace Pos.Infrastructure
@@ -99,6 +100,7 @@ namespace Pos.Infrastructure
             services.AddScoped<IReferenceService, ReferenceService>();
             services.AddScoped<ISyncOnButtonClickedService, SyncOnButtonClickedService>();
             services.AddScoped(typeof(ILocalReferenceService<>), typeof(LocalReferenceService<>));
+            services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();
 
             // -------------------------
             // SQLite Dynamic Factory
@@ -124,7 +126,7 @@ namespace Pos.Infrastructure
             }
 
 
-            var folder = Path.GetDirectoryName(dbFilePath);
+            string? folder = Path.GetDirectoryName(dbFilePath);
             if (!string.IsNullOrEmpty(folder))
                 Directory.CreateDirectory(folder);
 
@@ -145,14 +147,14 @@ namespace Pos.Infrastructure
 
 
 
-            var connectionStringBuilder = new SqliteConnectionStringBuilder
+            SqliteConnectionStringBuilder connectionStringBuilder = new()
             {
                 DataSource = dbFilePath,
                 Mode = SqliteOpenMode.ReadWriteCreate,
                 Password = sqlitePassword
             };
 
-            var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
+            SqliteConnection sqliteConnection = new(connectionStringBuilder.ToString());
             sqliteConnection.Open();
 
             services.AddDbContext<SqliteDbContext>(options =>
@@ -165,13 +167,13 @@ namespace Pos.Infrastructure
 
             services.AddScoped<ISqliteUnitOfWork>(provider =>
             {
-                var sqliteCtx = provider.GetRequiredService<SqliteDbContext>();
+                SqliteDbContext sqliteCtx = provider.GetRequiredService<SqliteDbContext>();
                 return new SqliteUnitOfWork(sqliteCtx);
             });
 
             services.AddScoped<ISqliteRepositoryFactory>(provider =>
             {
-                var uow = provider.GetRequiredService<ISqliteUnitOfWork>() as SqliteUnitOfWork;
+                SqliteUnitOfWork? uow = provider.GetRequiredService<ISqliteUnitOfWork>() as SqliteUnitOfWork;
                 return new SqliteRepositoryFactory(uow.DbContext);
             });
 
@@ -182,20 +184,20 @@ namespace Pos.Infrastructure
 
             services.AddDbContextFactory<SqlServerDbContext>(options =>
             {
-                var sqlConnString = configuration.GetConnectionString("SqlServerConnection");
+                string? sqlConnString = configuration.GetConnectionString("SqlServerConnection");
                 options.UseSqlServer(sqlConnString);
             });
 
             services.AddScoped<ISqlServerUnitOfWork>(provider =>
             {
-                var factory = provider.GetRequiredService<DbContextFactory>();
-                var sqlCtx = factory.CreateSqlServerDbContext();
+                DbContextFactory factory = provider.GetRequiredService<DbContextFactory>();
+                SqlServerDbContext sqlCtx = factory.CreateSqlServerDbContext();
                 return new SqlServerUnitOfWork(sqlCtx);
             });
 
             services.AddScoped<ISqlServerRepositoryFactory>(provider =>
             {
-                var uow = provider.GetRequiredService<ISqlServerUnitOfWork>() as SqlServerUnitOfWork;
+                SqlServerUnitOfWork? uow = provider.GetRequiredService<ISqlServerUnitOfWork>() as SqlServerUnitOfWork;
                 return new SqlServerRepositoryFactory(uow.DbContext);
             });
 
@@ -204,8 +206,8 @@ namespace Pos.Infrastructure
             // -------------------------
             services.AddScoped<IUnitOfWork>(provider =>
             {
-                var envService = provider.GetRequiredService<IEnvironmentService>();
-                var env = envService.GetCurrentEnvironmentAsync()
+                IEnvironmentService envService = provider.GetRequiredService<IEnvironmentService>();
+                EnvironmentType env = envService.GetCurrentEnvironmentAsync()
                                     .GetAwaiter()
                                     .GetResult();
 
