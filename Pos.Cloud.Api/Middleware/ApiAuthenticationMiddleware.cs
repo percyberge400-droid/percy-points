@@ -1,6 +1,7 @@
 ﻿using Pos.Application.DTOs;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
+using Pos.Cloud.Api.Utility;
 using System.Text.Json;
 
 namespace Pos.Cloud.Api.Middleware;
@@ -11,24 +12,36 @@ public class ApiAuthenticationMiddleware
     private readonly ILogger<ApiAuthenticationMiddleware> _logger;
 
     // -----------------------------------------------
-    // Endpoints where POSID comes from Query Params
+    // POSID from Query Params (GET endpoints)
     // -----------------------------------------------
     private static readonly HashSet<string> _queryParamRoutes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "/api/live/get-isservice-enable",
-        "/api/live/get-islog-enable",
-        "/api/live/disbale-log-bit"
+        ApiRoutes.IsServiceEnabled,       // GET ?posId=&env=
+        ApiRoutes.IsLogEnabled,           // GET ?posId=&env=
+        ApiRoutes.DisableLogBit,          // GET ?posId=&env=
+        ApiRoutes.ProductCatalogueGetAll  // GET ?posId=
     };
 
     // -----------------------------------------------
-    // Endpoints where POSID comes from Request Body
+    // POSID from List<T> Body — first item
+    // Environment always from query string for these
     // -----------------------------------------------
-    private static readonly HashSet<string> _bodyRoutes = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> _listBodyRoutes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "/api/live/decrypt-save",
-        "/api/live/export-csv",
-        "/api/live/authenticate-by-mac",
-        "/api/live/create-cloud-log"
+        ApiRoutes.DecryptSave,    // List<FileRecordDto> → POSID, env from ?environment=
+        ApiRoutes.CreateCloudLog  // List<SyncLogDto>    → POSID, env from ?environment=
+    };
+
+    // -----------------------------------------------
+    // POSID from Single Object Body
+    // -----------------------------------------------
+    private static readonly HashSet<string> _singleBodyRoutes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ApiRoutes.ExportCsv,          // InvoiceFilterDto    → POSID (string)
+        ApiRoutes.Authenticate,       // ClientValidationDto → POSID (string)
+        ApiRoutes.UpdateConfigFlag,   // no body POSID       → query only
+        ApiRoutes.IsCloudSyncEnabled, // GetByPosIdDto       → PosId (long)
+        ApiRoutes.HeartBeat           // GetByPosIdDto       → PosId (long)
     };
 
     public ApiAuthenticationMiddleware(RequestDelegate next, ILogger<ApiAuthenticationMiddleware> logger)
@@ -42,12 +55,19 @@ public class ApiAuthenticationMiddleware
         var path = context.Request.Path.Value ?? string.Empty;
 
         // -----------------------------------------------
-        // Step 1: Extract Bearer Token
+        // Step 1: Skip ignored routes — no auth needed
+        // -----------------------------------------------
+        if (ApiRoutes.IgnoredRoutes.Contains(path))
+        {
+            _logger.LogInformation("Skipping auth for ignored route: {Path}", path);
+            await _next(context);
+            return;
+        }
+
+        // -----------------------------------------------
+        // Step 2: Extract Bearer Token
         // -----------------------------------------------
         var bearerToken = context.Request.Headers.Authorization.ToString();
-
-        var userName = context.Request.Headers["Username"].ToString();
-        var password = context.Request.Headers["Password"].ToString();
 
         if (string.IsNullOrEmpty(bearerToken))
         {
@@ -57,23 +77,24 @@ public class ApiAuthenticationMiddleware
         }
 
         // -----------------------------------------------
-        // Step 2: Extract POSID based on route type
+        // Step 3: Extract POSID + Environment
         // -----------------------------------------------
         string? posId = null;
         string? environment = null;
 
         if (_queryParamRoutes.Contains(path))
         {
-            // GET endpoints — posId and env from query string
-            // /api/live/get-isservice-enable?posId=123&env=live
-            // /api/live/get-islog-enable?posId=123&env=live
-            // /api/live/disbale-log-bit?posId=123&env=live
-            posId = context.Request.Query["posId"].ToString();
-            environment = context.Request.Query["env"].ToString();
+            // GET endpoints — both posId and env from query string
+            posId = context.Request.Query["posId"].FirstOrDefault();
+
+            environment = context.Request.Query["env"].FirstOrDefault()
+                       ?? context.Request.Query["environment"].FirstOrDefault();
         }
-        else if (_bodyRoutes.Contains(path))
+        else if (_listBodyRoutes.Contains(path))
         {
-            // POST endpoints — posId from body
+            // POST List<T> endpoints
+            // POSID  → from body first item
+            // Environment → ALWAYS from query string (?environment=Sandbox)
             context.Request.EnableBuffering();
 
             try
@@ -83,98 +104,127 @@ public class ApiAuthenticationMiddleware
 
                 if (!string.IsNullOrEmpty(body))
                 {
-                    (posId, environment) = ExtractPosIdFromBody(path, body);
+                    var list = JsonSerializer.Deserialize<List<JsonElement>>(
+                        body,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    var first = list?.FirstOrDefault() ?? default;
+                    posId = first.GetPropertyAsString("POSID");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to parse request body at: {Path}", path);
+                _logger.LogError(ex, "Failed to parse list body: {Path}", path);
                 await WriteUnauthorizedResponse(context);
                 return;
             }
 
-            // environment from query string for POST endpoints
+            // Environment always comes from query string for list endpoints
+            environment = context.Request.Query["environment"].FirstOrDefault()
+                       ?? context.Request.Query["env"].FirstOrDefault();
+        }
+        else if (_singleBodyRoutes.Contains(path))
+        {
+            // POST Single object endpoints
+            // POSID + Environment → from body object
+            // Fallback environment → from query string
+            context.Request.EnableBuffering();
+
+            try
+            {
+                var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
+                context.Request.Body.Position = 0; // Reset for controller
+
+                if (!string.IsNullOrEmpty(body))
+                {
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var dto = JsonSerializer.Deserialize<JsonElement>(body, options);
+
+                    // Try all POSID key variations
+                    posId = dto.GetPropertyAsString("POSID")
+                         ?? dto.GetPropertyAsString("PosId")
+                         ?? dto.GetPropertyAsString("posId");
+
+                    // Try all environment key variations
+                    environment = dto.GetPropertyAsString("Environment")
+                               ?? dto.GetPropertyAsString("environment");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse single body: {Path}", path);
+                await WriteUnauthorizedResponse(context);
+                return;
+            }
+
+            // Fallback: environment from query string
             if (string.IsNullOrEmpty(environment))
-                environment = context.Request.Query["environment"].ToString();
+            {
+                environment = context.Request.Query["environment"].FirstOrDefault()
+                           ?? context.Request.Query["env"].FirstOrDefault();
+            }
         }
 
+        // -----------------------------------------------
+        // Step 4: Validate POSID extracted successfully
+        // -----------------------------------------------
         if (string.IsNullOrEmpty(posId))
         {
-            _logger.LogWarning("POSID could not be extracted from request: {Path}", path);
+            _logger.LogWarning("POSID could not be extracted: {Path}", path);
             await WriteUnauthorizedResponse(context);
             return;
         }
 
         // -----------------------------------------------
-        // Step 3: Validate Token Against DB
+        // Step 5: Parse POSID string → long
+        // -----------------------------------------------
+        if (!long.TryParse(posId, out long posIdLong))
+        {
+            _logger.LogWarning("Invalid POSID format: {PosId}, Path: {Path}", posId, path);
+            await WriteUnauthorizedResponse(context);
+            return;
+        }
+
+        // -----------------------------------------------
+        // Step 6: Validate Token Against DB
         // -----------------------------------------------
         try
         {
-            if (!long.TryParse(posId, out long posIdLong))
+            using var scope = context.RequestServices.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<IPosClientRepository>();
+
+            var posClient = await repo.GetByPosId(posIdLong, environment);
+
+            if (posClient == null)
             {
-                _logger.LogWarning("Invalid POSID format: {PosId}, Path: {Path}", posId, path);
+                _logger.LogWarning("PosClient not found — POSID: {PosId}, Env: {Env}", posIdLong, environment);
                 await WriteUnauthorizedResponse(context);
                 return;
             }
 
-            using var scope = context.RequestServices.CreateScope();
-            var posClientRepository = scope.ServiceProvider.GetRequiredService<IPosClientRepository>();
-
-            var posClient = await posClientRepository.GetByPosId(posIdLong, environment);
-
-            if (posClient == null || posClient.Token != bearerToken.Replace("Bearer ", "").Trim())
+            if (posClient.Token != bearerToken.Replace("Bearer ", "").Trim())
             {
-                _logger.LogWarning("Token mismatch for POSID: {PosId}, Path: {Path}", posId, path);
+                _logger.LogWarning("Token mismatch — POSID: {PosId}", posIdLong);
                 await WriteUnauthorizedResponse(context);
                 return;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during token validation for POSID: {PosId}", posId);
+            _logger.LogError(ex, "Error during auth — POSID: {PosId}", posIdLong);
             await WriteUnauthorizedResponse(context);
             return;
         }
 
         // -----------------------------------------------
-        // Step 4: Authenticated — continue pipeline
+        // Step 7: Authenticated — continue pipeline
         // -----------------------------------------------
-        _logger.LogInformation("Auth success — POSID: {PosId}, Path: {Path}", posId, path);
+        _logger.LogInformation("Auth success — POSID: {PosId}, Env: {Env}, Path: {Path}", posIdLong, environment, path);
         await _next(context);
     }
 
     // -----------------------------------------------
-    // Extract POSID from different DTO body shapes
-    // -----------------------------------------------
-    private static (string? posId, string? environment) ExtractPosIdFromBody(string path, string body)
-    {
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-        // POST /api/live/decrypt-save       → List<FileRecordDto>       → POSID
-        // POST /api/live/create-cloud-log   → List<SyncLogDto>          → POSID
-        if (path.Contains("decrypt-save", StringComparison.OrdinalIgnoreCase) ||
-            path.Contains("create-cloud-log", StringComparison.OrdinalIgnoreCase))
-        {
-            var dtos = JsonSerializer.Deserialize<List<JsonElement>>(body, options);
-            var posId = dtos?.FirstOrDefault().GetPropertyOrDefault("POSID");
-            return (posId, null);
-        }
-
-        // POST /api/live/export-csv         → InvoiceFilterDto          → POSID
-        // POST /api/live/authenticate-by-mac → ClientValidationDto      → POSID
-        if (path.Contains("export-csv", StringComparison.OrdinalIgnoreCase) ||
-            path.Contains("authenticate-by-mac", StringComparison.OrdinalIgnoreCase))
-        {
-            var dto = JsonSerializer.Deserialize<JsonElement>(body, options);
-            var posId = dto.GetPropertyOrDefault("POSID");
-            return (posId, null);
-        }
-
-        return (null, null);
-    }
-
-    // -----------------------------------------------
-    // Unified Unauthorized Response
+    // Unauthorized Response
     // -----------------------------------------------
     private static async Task WriteUnauthorizedResponse(HttpContext context)
     {
@@ -192,12 +242,21 @@ public class ApiAuthenticationMiddleware
 }
 
 // -----------------------------------------------
-// Extension: Safely get property from JsonElement
+// Extension: Safely read JsonElement as string
+// Handles both Number (128762) and String ("128762")
 // -----------------------------------------------
 public static class JsonElementExtensions
 {
-    public static string? GetPropertyOrDefault(this JsonElement element, string propertyName)
+    public static string? GetPropertyAsString(this JsonElement element, string propertyName)
     {
-        return element.TryGetProperty(propertyName, out var prop) ? prop.GetString() : null;
+        if (!element.TryGetProperty(propertyName, out var prop))
+            return null;
+
+        return prop.ValueKind switch
+        {
+            JsonValueKind.String => prop.GetString(),  // "128762" → "128762"
+            JsonValueKind.Number => prop.GetRawText(), // 128762   → "128762"
+            _ => null
+        };
     }
 }

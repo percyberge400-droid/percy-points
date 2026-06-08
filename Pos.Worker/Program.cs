@@ -22,7 +22,7 @@ var builder = Host.CreateDefaultBuilder(args)
 
         // Add decrypted settings as in-memory collection
         config.AddInMemoryCollection(decryptedSettings);
-        config.AddEnvironmentVariables();
+        //config.AddEnvironmentVariables();
     })
     .ConfigureServices((context, services) =>
     {
