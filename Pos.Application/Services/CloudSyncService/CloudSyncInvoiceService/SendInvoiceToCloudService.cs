@@ -104,7 +104,7 @@ namespace Pos.Application.Services.CloudSyncService.CloudSyncInvoiceService
                 using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
                 // Add environment as a query parameter
-                var url = $"{_baseUrl}{Endpoints.DecryptSave}?environment={env}";
+                var url = $"{_baseUrl}{Endpoints.PostInvoice}?environment={env}";
 
                 // CHANGED: Use HttpRequestMessage to set headers for middleware
                 using var request = new HttpRequestMessage(HttpMethod.Post, url)

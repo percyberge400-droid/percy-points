@@ -15,6 +15,7 @@ using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
 using Pos.Infrastructure.Services;
 using Pos.SecurityEncryption;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Reflection;
 using System.Text.Json;
@@ -29,7 +30,7 @@ namespace Pos.SetupUI
             // ------------------------------
             // 1. DECRYPT APP.CONFIG FIRST
             // ------------------------------
-            var decryptedAppConfigValues = EncryptedSettingsHelper.DecryptAppConfigFile();
+            Dictionary<string, string> decryptedAppConfigValues = EncryptedSettingsHelper.DecryptAppConfigFile();
             InjectIntoConfigurationManager(decryptedAppConfigValues);
 
             // ------------------------------
@@ -57,13 +58,13 @@ namespace Pos.SetupUI
             {
                 try
                 {
-                    var decryptedWorkerSettings = DecryptJsonFile(jsonWorkerPath);
+                    Dictionary<string, string> decryptedWorkerSettings = DecryptJsonFile(jsonWorkerPath);
 
-                    if (decryptedWorkerSettings.TryGetValue("AppSettings:DefaultDBFilePath", out var p1) ||
+                    if (decryptedWorkerSettings.TryGetValue("AppSettings:DefaultDBFilePath", out string? p1) ||
                         decryptedWorkerSettings.TryGetValue("DefaultDBFilePath", out p1))
                         dbPath = p1;
 
-                    if (decryptedAppConfigValues.TryGetValue("AppSettings:DefaultDBPassword", out var p2) ||
+                    if (decryptedAppConfigValues.TryGetValue("AppSettings:DefaultDBPassword", out string? p2) ||
                         decryptedAppConfigValues.TryGetValue("DefaultDBPassword", out p2))
                         dbPassword = p2;
                 }
@@ -97,20 +98,20 @@ namespace Pos.SetupUI
             // ------------------------------
             // 5. Create SQLCipher encrypted connection
             // ------------------------------
-            var connectionStringBuilder = new SqliteConnectionStringBuilder
+            SqliteConnectionStringBuilder connectionStringBuilder = new()
             {
                 DataSource = dbPath,
                 Mode = SqliteOpenMode.ReadWriteCreate,
                 Password = dbPassword
             };
 
-            var sqliteConnection = new SqliteConnection(connectionStringBuilder.ToString());
+            SqliteConnection sqliteConnection = new(connectionStringBuilder.ToString());
             sqliteConnection.Open();
 
             // ------------------------------
             // 6. Build DI Container
             // ------------------------------
-            var services = new ServiceCollection();
+            ServiceCollection services = new();
 
             // Logging
             services.AddLogging(builder => builder.AddDebug());
@@ -157,7 +158,7 @@ namespace Pos.SetupUI
             // ------------------------------
             // 7. Run App
             // ------------------------------
-            using (var serviceProvider = services.BuildServiceProvider())
+            using (ServiceProvider serviceProvider = services.BuildServiceProvider())
             {
                 ApplicationConfiguration.Initialize();
 
@@ -172,7 +173,8 @@ namespace Pos.SetupUI
                     serviceProvider.GetService<IPaymentService>(),
                     serviceProvider.GetService<IInvoiceTypeService>(),
                     serviceProvider.GetService<IServicesRenderedService>(),
-                    installationInfo
+                    installationInfo,
+                    serviceProvider.GetService<SqliteDbContext>()
                 )
                 );
             }
@@ -204,7 +206,7 @@ namespace Pos.SetupUI
         // --------------------------------------------
         private static Dictionary<string, string> DecryptJsonFile(string jsonFilePath)
         {
-            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> result = new(StringComparer.OrdinalIgnoreCase);
 
             try
             {
@@ -219,11 +221,11 @@ namespace Pos.SetupUI
                 if (!string.IsNullOrEmpty(encryptedBlob))
                 {
                     string decryptedJson = AesEncryptionHelper.Decrypt(encryptedBlob);
-                    var decryptedDict = JsonSerializer.Deserialize<Dictionary<string, object>>(decryptedJson);
+                    Dictionary<string, object>? decryptedDict = JsonSerializer.Deserialize<Dictionary<string, object>>(decryptedJson);
 
                     if (decryptedDict != null)
                     {
-                        foreach (var kvp in decryptedDict)
+                        foreach (KeyValuePair<string, object> kvp in decryptedDict)
                         {
                             string configKey = kvp.Key.StartsWith("AppSettings:")
                                 ? kvp.Key
@@ -237,7 +239,7 @@ namespace Pos.SetupUI
                 {
                     if (doc.RootElement.TryGetProperty("AppSettings", out JsonElement appSettings))
                     {
-                        foreach (var prop in appSettings.EnumerateObject())
+                        foreach (JsonProperty prop in appSettings.EnumerateObject())
                         {
                             result[$"AppSettings:{prop.Name}"] = prop.Value.ToString();
                         }
@@ -259,9 +261,9 @@ namespace Pos.SetupUI
                     return enc.GetString();
                 }
 
-                foreach (var prop in element.EnumerateObject())
+                foreach (JsonProperty prop in element.EnumerateObject())
                 {
-                    var result = FindEncryptedBlobInJson(prop.Value);
+                    string result = FindEncryptedBlobInJson(prop.Value);
                     if (result != null)
                         return result;
                 }
@@ -278,14 +280,14 @@ namespace Pos.SetupUI
         {
             try
             {
-                var settings = ConfigurationManager.AppSettings;
+                NameValueCollection settings = ConfigurationManager.AppSettings;
 
-                var readOnlyField = typeof(System.Collections.Specialized.NameValueCollection)
+                FieldInfo? readOnlyField = typeof(System.Collections.Specialized.NameValueCollection)
                     .GetField("_readOnly", BindingFlags.Instance | BindingFlags.NonPublic);
 
                 readOnlyField?.SetValue(settings, false);
 
-                foreach (var kvp in decryptedValues)
+                foreach (KeyValuePair<string, string> kvp in decryptedValues)
                 {
                     string key = kvp.Key.Replace("AppSettings:", "");
                     settings[key] = kvp.Value;
