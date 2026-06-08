@@ -11,7 +11,6 @@ using Pos.Application.Services.ReferenceService.PaymentService;
 using Pos.Application.Services.ReferenceService.ServicesRenderedService;
 using Pos.Application.Services.ScriptService;
 using Pos.Application.Utility;
-using Pos.Infrastructure.Services.DatabaseMigrationService;
 using Pos.SecurityEncryption;
 using Pos.SetupUI.Helpers.Reference;
 using System.Configuration;
@@ -45,6 +44,7 @@ namespace Pos.SetupUI
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_SHOWWINDOW = 0x0040;
         private readonly ILogService _logService;
+        private readonly AppSettings _appSettings;
 
         #endregion
 
@@ -56,7 +56,6 @@ namespace Pos.SetupUI
         private readonly string _winformsConfigPath;
         private readonly string _setupConfigPath;
         private readonly string _installationInfo;
-        private readonly SqliteDbContext _context;
 
         private int _isLoadingFlag = 0;
         private System.Windows.Forms.Timer _messageHideTimer;
@@ -89,8 +88,7 @@ namespace Pos.SetupUI
             IPaymentService paymentservice,
             IInvoiceTypeService invoiceTypeService,
             IServicesRenderedService servicesRenderedService,
-            string installationInfo,
-            SqliteDbContext context)
+            string installationInfo)
         {
             InitializeComponent();
 
@@ -116,7 +114,15 @@ namespace Pos.SetupUI
             LoadLogoImage();
             CheckServiceAvailability();
             LoadDefaultPaths();
-            _context = context;
+
+            _appSettings = new AppSettings
+            {
+                BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
+                Token = ConfigurationManager.AppSettings["Token"] ?? string.Empty,
+                EC = ConfigurationManager.AppSettings["EC"] ?? string.Empty,
+                POS = int.TryParse(ConfigurationManager.AppSettings["POS"], out int posId) ? posId : 0,
+                Environment = ConfigurationManager.AppSettings["Environment"] ?? string.Empty
+            };
         }
 
         #endregion
@@ -688,17 +694,6 @@ namespace Pos.SetupUI
                 }
                 await Task.Delay(300);
 
-                ShowMessage("Updating Local Database...", true, false);
-
-                DatabaseMigrationService migrationService = new(
-                    DBconnection,
-                    _context
-                );
-
-                await migrationService.ApplyMigrationsAsync();
-
-                await Task.Delay(300);
-
                 if (_isServiceAvailable && !string.IsNullOrWhiteSpace(oldDbPath))
                 {
                     ShowMessage("Migrating old database...", true, false);
@@ -784,7 +779,7 @@ namespace Pos.SetupUI
             string escapedPath = dbPath.Replace("\\", "\\\\");
 
             // Return only path + mode + password, no "Data Source="
-            string connectionString = $"Data Source={escapedPath};Mode=ReadWriteCreate;Password={dbPassword}";
+            string connectionString = $"{escapedPath};Mode=ReadWriteCreate;Password={dbPassword}";
 
             return connectionString;
         }
