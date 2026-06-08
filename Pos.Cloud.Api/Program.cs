@@ -1,6 +1,7 @@
 ﻿using Microsoft.OpenApi.Models;
 using Pos.Application.AutoMapperProfile;
 using Pos.Application.DTOs;
+using Pos.Cloud.Api.Middleware;
 using Pos.Infrastructure;
 using Pos.SecurityEncryption;
 
@@ -73,6 +74,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ApiAuthenticationMiddleware>();
 app.UseAuthorization();
 
 // --------------------------
