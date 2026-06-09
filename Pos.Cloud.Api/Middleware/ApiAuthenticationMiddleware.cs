@@ -16,10 +16,10 @@ public class ApiAuthenticationMiddleware
     // -----------------------------------------------
     private static readonly HashSet<string> _queryParamRoutes = new(StringComparer.OrdinalIgnoreCase)
     {
-        ApiRoutes.IsServiceEnabled,       // GET ?posId=&env=
-        ApiRoutes.IsLogEnabled,           // GET ?posId=&env=
-        ApiRoutes.DisableLogBit,          // GET ?posId=&env=
-        ApiRoutes.ProductCatalogueGetAll  // GET ?posId=
+        ApiRoutes.IsServiceEnabled,
+        ApiRoutes.IsLogEnabled,
+        ApiRoutes.DisableLogBit,
+        ApiRoutes.ProductCatalogueGetAll
     };
 
     // -----------------------------------------------
@@ -28,8 +28,8 @@ public class ApiAuthenticationMiddleware
     // -----------------------------------------------
     private static readonly HashSet<string> _listBodyRoutes = new(StringComparer.OrdinalIgnoreCase)
     {
-        ApiRoutes.PostInvoice,    // List<FileRecordDto> → POSID, env from ?environment=
-        ApiRoutes.CreateCloudLog  // List<SyncLogDto>    → POSID, env from ?environment=
+        ApiRoutes.PostInvoice,
+        ApiRoutes.CreateCloudLog
     };
 
     // -----------------------------------------------
@@ -37,11 +37,11 @@ public class ApiAuthenticationMiddleware
     // -----------------------------------------------
     private static readonly HashSet<string> _singleBodyRoutes = new(StringComparer.OrdinalIgnoreCase)
     {
-        ApiRoutes.ExportCsv,          // InvoiceFilterDto    → POSID (string)
-        ApiRoutes.Authenticate,       // ClientValidationDto → POSID (string)
-        ApiRoutes.UpdateConfigFlag,   // no body POSID       → query only
-        ApiRoutes.IsCloudSyncEnabled, // GetByPosIdDto       → PosId (long)
-        ApiRoutes.HeartBeat           // GetByPosIdDto       → PosId (long)
+        ApiRoutes.ExportCsv,
+        ApiRoutes.Authenticate,
+        ApiRoutes.UpdateConfigFlag,
+        ApiRoutes.IsCloudSyncEnabled,
+        ApiRoutes.HeartBeat
     };
 
     public ApiAuthenticationMiddleware(RequestDelegate next, ILogger<ApiAuthenticationMiddleware> logger)
@@ -92,9 +92,6 @@ public class ApiAuthenticationMiddleware
         }
         else if (_listBodyRoutes.Contains(path))
         {
-            // POST List<T> endpoints
-            // POSID  → from body first item
-            // Environment → ALWAYS from query string (?environment=Sandbox)
             context.Request.EnableBuffering();
 
             try
@@ -125,9 +122,6 @@ public class ApiAuthenticationMiddleware
         }
         else if (_singleBodyRoutes.Contains(path))
         {
-            // POST Single object endpoints
-            // POSID + Environment → from body object
-            // Fallback environment → from query string
             context.Request.EnableBuffering();
 
             try
@@ -254,8 +248,8 @@ public static class JsonElementExtensions
 
         return prop.ValueKind switch
         {
-            JsonValueKind.String => prop.GetString(),  // "128762" → "128762"
-            JsonValueKind.Number => prop.GetRawText(), // 128762   → "128762"
+            JsonValueKind.String => prop.GetString(), 
+            JsonValueKind.Number => prop.GetRawText(),
             _ => null
         };
     }
