@@ -100,7 +100,6 @@ namespace Pos.Infrastructure
             services.AddScoped<IReferenceService, ReferenceService>();
             services.AddScoped<ISyncOnButtonClickedService, SyncOnButtonClickedService>();
             services.AddScoped(typeof(ILocalReferenceService<>), typeof(LocalReferenceService<>));
-            services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();
 
             // -------------------------
             // SQLite Dynamic Factory

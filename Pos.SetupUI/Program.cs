@@ -14,6 +14,7 @@ using Pos.Application.Services.ScriptService;
 using Pos.Infrastructure.Persistence.Factory;
 using Pos.Infrastructure.Persistence.Repositories;
 using Pos.Infrastructure.Services;
+using Pos.Infrastructure.Services.DatabaseMigrationService;
 using Pos.SecurityEncryption;
 using System.Collections.Specialized;
 using System.Configuration;
@@ -154,6 +155,8 @@ namespace Pos.SetupUI
             services.AddScoped<IInvoiceTypeService, InvoiceTypeService>();
             services.AddScoped<IServicesRenderedService, ServicesRenderedService>();
 
+            // DataBase Migration Service
+            services.AddScoped<IDatabaseMigrationService, DatabaseMigrationService>();
 
             // ------------------------------
             // 7. Run App
