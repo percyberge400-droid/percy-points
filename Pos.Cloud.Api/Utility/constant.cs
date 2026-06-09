@@ -5,7 +5,7 @@
         // -----------------------------------------------
         // Live Routes
         // -----------------------------------------------
-        public const string DecryptSave = "/api/live/decrypt-save";
+        public const string PostInvoice = "/api/live/post-invoice";
         public const string ExportCsv = "/api/live/export-csv";
         public const string Authenticate = "/api/live/authenticate-by-mac";
         public const string UpdateConfigFlag = "/api/live/update-configuration-flag";

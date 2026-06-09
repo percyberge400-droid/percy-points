@@ -28,7 +28,7 @@ public class ApiAuthenticationMiddleware
     // -----------------------------------------------
     private static readonly HashSet<string> _listBodyRoutes = new(StringComparer.OrdinalIgnoreCase)
     {
-        ApiRoutes.DecryptSave,    // List<FileRecordDto> → POSID, env from ?environment=
+        ApiRoutes.PostInvoice,    // List<FileRecordDto> → POSID, env from ?environment=
         ApiRoutes.CreateCloudLog  // List<SyncLogDto>    → POSID, env from ?environment=
     };
 
