@@ -16,7 +16,9 @@
     "IMSUpdateInterval": 60,
     "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db",
     "DefaultDBPassword": "Pral@123",
-    "Environment": "Sandbox"
+    "Environment": "Sandbox",
+    "Username": "Pral",
+    "Password": "Pral@123"
   },
   "Logging": {
     "LogLevel": {
