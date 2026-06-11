@@ -71,6 +71,7 @@
         public const string ContainNullPosId = "Requested data contain POSID zero or null.";
         public const string ContainSamePosId = "All records must have the same POSID.";
         public const string InvalidBearerToken = "The bearer token does not match the token provided in the request header.";
+        public const string BasicAuthenticationfailed = "Basic Authentication Failed.";
         public const string UnsyncedDataNotFound = "Unsynced Data not found.";
         public const string DuplicateRecord = "Duplicate record detected.";
         public const string InvalidInput = "Invalid input provided.";

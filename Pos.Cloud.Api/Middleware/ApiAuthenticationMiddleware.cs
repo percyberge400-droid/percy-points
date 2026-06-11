@@ -1,4 +1,5 @@
-﻿using Pos.Application.DTOs;
+﻿using Microsoft.Extensions.Options;
+using Pos.Application.DTOs;
 using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Cloud.Api.Utility;
@@ -10,6 +11,7 @@ public class ApiAuthenticationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ApiAuthenticationMiddleware> _logger;
+    private readonly AppSettings _appSettings;  // 👈 add this
 
     // -----------------------------------------------
     // POSID from Query Params (GET endpoints)
@@ -44,10 +46,11 @@ public class ApiAuthenticationMiddleware
         ApiRoutes.HeartBeat
     };
 
-    public ApiAuthenticationMiddleware(RequestDelegate next, ILogger<ApiAuthenticationMiddleware> logger)
+    public ApiAuthenticationMiddleware(RequestDelegate next, ILogger<ApiAuthenticationMiddleware> logger, IOptions<AppSettings> appSettings)
     {
         _next = next;
         _logger = logger;
+        _appSettings = appSettings.Value;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -69,10 +72,13 @@ public class ApiAuthenticationMiddleware
         // -----------------------------------------------
         var bearerToken = context.Request.Headers.Authorization.ToString();
 
+        var userName = context.Request.Headers["Username"].ToString();
+        var password = context.Request.Headers["Password"].ToString();
+
         if (string.IsNullOrEmpty(bearerToken))
         {
             _logger.LogWarning("Missing bearer token: {Path}", path);
-            await WriteUnauthorizedResponse(context);
+            await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
             return;
         }
 
@@ -112,7 +118,7 @@ public class ApiAuthenticationMiddleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to parse list body: {Path}", path);
-                await WriteUnauthorizedResponse(context);
+                await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
                 return;
             }
 
@@ -147,7 +153,7 @@ public class ApiAuthenticationMiddleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to parse single body: {Path}", path);
-                await WriteUnauthorizedResponse(context);
+                await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
                 return;
             }
 
@@ -165,7 +171,7 @@ public class ApiAuthenticationMiddleware
         if (string.IsNullOrEmpty(posId))
         {
             _logger.LogWarning("POSID could not be extracted: {Path}", path);
-            await WriteUnauthorizedResponse(context);
+            await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
             return;
         }
 
@@ -175,7 +181,7 @@ public class ApiAuthenticationMiddleware
         if (!long.TryParse(posId, out long posIdLong))
         {
             _logger.LogWarning("Invalid POSID format: {PosId}, Path: {Path}", posId, path);
-            await WriteUnauthorizedResponse(context);
+            await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
             return;
         }
 
@@ -192,21 +198,29 @@ public class ApiAuthenticationMiddleware
             if (posClient == null)
             {
                 _logger.LogWarning("PosClient not found — POSID: {PosId}, Env: {Env}", posIdLong, environment);
-                await WriteUnauthorizedResponse(context);
+                await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
                 return;
             }
 
             if (posClient.Token != bearerToken.Replace("Bearer ", "").Trim())
             {
                 _logger.LogWarning("Token mismatch — POSID: {PosId}", posIdLong);
-                await WriteUnauthorizedResponse(context);
+                await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
+                return;
+            }
+
+            if (!string.Equals(_appSettings.Username, userName, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(_appSettings.Password, password, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("Basic authentication failed — POSID: {PosId}", userName);
+                await WriteUnauthorizedResponse(context, ResponseMessages.BasicAuthenticationfailed);
                 return;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during auth — POSID: {PosId}", posIdLong);
-            await WriteUnauthorizedResponse(context);
+            await WriteUnauthorizedResponse(context, ResponseMessages.InvalidBearerToken);
             return;
         }
 
@@ -220,14 +234,14 @@ public class ApiAuthenticationMiddleware
     // -----------------------------------------------
     // Unauthorized Response
     // -----------------------------------------------
-    private static async Task WriteUnauthorizedResponse(HttpContext context)
+    private static async Task WriteUnauthorizedResponse(HttpContext context, string message)
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.ContentType = "application/json";
 
         var response = new ApiResponse<object>(
             ApiStatusCode.Error.ToString(),
-            ResponseMessages.InvalidBearerToken,
+            message,
             null
         );
 
@@ -248,7 +262,7 @@ public static class JsonElementExtensions
 
         return prop.ValueKind switch
         {
-            JsonValueKind.String => prop.GetString(), 
+            JsonValueKind.String => prop.GetString(),
             JsonValueKind.Number => prop.GetRawText(),
             _ => null
         };

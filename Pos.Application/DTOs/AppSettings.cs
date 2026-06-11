@@ -13,5 +13,6 @@
         public string EC { get; set; } = string.Empty;
         public int POS { get; set; }
         public string Token { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
     }
 }
