@@ -18,7 +18,8 @@
     "DefaultDBPassword": "Pral@123",
     "Environment": "Sandbox",
     "Username": "Pral",
-    "Password": "Pral@123"
+    "Password": "Pral@123",
+    "EnableBasicAuth": true
   },
   "Logging": {
     "LogLevel": {

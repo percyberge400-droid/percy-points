@@ -208,12 +208,15 @@ public class ApiAuthenticationMiddleware
                 return;
             }
 
-            if (!string.Equals(_appSettings.Username, userName, StringComparison.OrdinalIgnoreCase) ||
-                !string.Equals(_appSettings.Password, password, StringComparison.OrdinalIgnoreCase))
+            if (_appSettings.EnableBasicAuth)
             {
-                _logger.LogWarning("Basic authentication failed — POSID: {PosId}", userName);
-                await WriteUnauthorizedResponse(context, ResponseMessages.BasicAuthenticationfailed);
-                return;
+                if (!string.Equals(_appSettings.Username, userName, StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(_appSettings.Password, password, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Basic authentication failed — POSID: {PosId}", userName);
+                    await WriteUnauthorizedResponse(context, ResponseMessages.BasicAuthenticationfailed);
+                    return;
+                }
             }
         }
         catch (Exception ex)
