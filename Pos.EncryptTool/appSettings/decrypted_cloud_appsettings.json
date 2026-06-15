@@ -17,8 +17,8 @@
     "DefaultDBFilePath": "C:\\POS_DB\\POSPRA.db",
     "DefaultDBPassword": "Pral@123",
     "Environment": "Sandbox",
-    "Username": "Pral",
-    "Password": "Pral@123",
+    "AuthUsername": "Pral",
+    "AuthPassword": "Pral@123",
     "EnableBasicAuth": true
   },
   "Logging": {

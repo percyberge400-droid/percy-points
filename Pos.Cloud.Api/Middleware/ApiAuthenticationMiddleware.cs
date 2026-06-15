@@ -71,8 +71,8 @@ public class ApiAuthenticationMiddleware
         // -----------------------------------------------
         var bearerToken = context.Request.Headers.Authorization.ToString();
 
-        var userName = context.Request.Headers["Username"].ToString();
-        var password = context.Request.Headers["Password"].ToString();
+        var userName = context.Request.Headers["AuthUsername"].ToString();
+        var password = context.Request.Headers["AuthPassword"].ToString();
 
         if (string.IsNullOrEmpty(bearerToken))
         {
@@ -210,10 +210,10 @@ public class ApiAuthenticationMiddleware
 
             if (_appSettings.EnableBasicAuth)
             {
-                if (!string.Equals(_appSettings.Username, userName, StringComparison.OrdinalIgnoreCase) ||
-                    !string.Equals(_appSettings.Password, password, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(_appSettings.AuthUsername, userName, StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(_appSettings.AuthPassword, password, StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogWarning("Basic authentication failed — POSID: {PosId}", userName);
+                    _logger.LogWarning("Basic authentication failed for user {UserName}.", userName);
                     await WriteUnauthorizedResponse(context, ResponseMessages.BasicAuthenticationfailed);
                     return;
                 }
