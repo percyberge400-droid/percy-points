@@ -152,7 +152,7 @@
             posStatus.AutoSize = true;
             posStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             posStatus.ForeColor = Color.Black;
-            posStatus.Location = new Point(495, 17);
+            posStatus.Location = new Point(495, 19);
             posStatus.Name = "posStatus";
             posStatus.Size = new Size(72, 23);
             posStatus.TabIndex = 0;
@@ -178,7 +178,7 @@
             internetStatus.AutoSize = true;
             internetStatus.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
             internetStatus.ForeColor = Color.Black;
-            internetStatus.Location = new Point(304, 17);
+            internetStatus.Location = new Point(304, 19);
             internetStatus.Name = "internetStatus";
             internetStatus.Size = new Size(66, 23);
             internetStatus.TabIndex = 2;
@@ -327,18 +327,18 @@
             contextMenuCatalog.ImageScalingSize = new Size(20, 20);
             contextMenuCatalog.Items.AddRange(new ToolStripItem[] { productCatalogToolStripMenuItem, uploadLogoToolStripMenuItem });
             contextMenuCatalog.Name = "contextMenuCatalog";
-            contextMenuCatalog.Size = new Size(186, 52);
+            contextMenuCatalog.Size = new Size(202, 52);
             // 
             // productCatalogToolStripMenuItem
             // 
             productCatalogToolStripMenuItem.Name = "productCatalogToolStripMenuItem";
-            productCatalogToolStripMenuItem.Size = new Size(185, 24);
-            productCatalogToolStripMenuItem.Text = "Product Catalog";
+            productCatalogToolStripMenuItem.Size = new Size(201, 24);
+            productCatalogToolStripMenuItem.Text = "Product Catalogue";
             // 
             // uploadLogoToolStripMenuItem
             // 
             uploadLogoToolStripMenuItem.Name = "uploadLogoToolStripMenuItem";
-            uploadLogoToolStripMenuItem.Size = new Size(185, 24);
+            uploadLogoToolStripMenuItem.Size = new Size(201, 24);
             uploadLogoToolStripMenuItem.Text = "Upload Logo";
             // 
             // Main

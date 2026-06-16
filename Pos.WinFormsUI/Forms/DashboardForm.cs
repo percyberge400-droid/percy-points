@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DocumentFormat.OpenXml.InkML;
+using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.CommanDtos;
@@ -18,6 +19,7 @@ using System.Data;
 using System.Drawing.Drawing2D;
 using System.Net.Http.Json;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Pos.WinFormsUI.Forms
 {
     public partial class DashboardForm : Form
@@ -359,119 +361,108 @@ namespace Pos.WinFormsUI.Forms
 
             if (lblInvoices == null) return;
 
-            int screenWidth = this.Width;
-            int availableWidth = panelInvoices.Width;
+            //   Position pagination first 
+            paginationInvoices.Location = new Point(
+                lblInvoices.Right + 5,
+                lblInvoices.Top - 3
+            );
 
-            // Handle button visibility and repositioning based on screen width
-            HandleInvoiceButtonLayout(screenWidth);
-
-            // Calculate available space after the label
-            int spaceAfterLabel = availableWidth - lblInvoices.Right;
-
-            // Pagination control width (approximately 250px)
-            int paginationWidth = 250;
-
-            // Minimum safe spacing
-            int minSpacing = 5;
-
-            //if (screenWidth <= 1280)
-            //{
-            //    // For small screens, position below the label
-            //    paginationInvoices.Location = new Point(lblInvoices.Left, lblInvoices.Bottom + 5);
-            //}
-            //else if (spaceAfterLabel < paginationWidth + minSpacing)
-            //{
-            //    // Not enough horizontal space, position below
-            //    paginationInvoices.Location = new Point(lblInvoices.Left, lblInvoices.Bottom + 5);
-            //}
-            //else
-            //{
-            // Enough space, position next to label
-            paginationInvoices.Location = new Point(lblInvoices.Right + minSpacing, lblInvoices.Top - 3);
-            //}
+            // NOW buttons know where pagination ends 
+            HandleInvoiceButtonLayout();
         }
-        private void HandleInvoiceButtonLayout(int screenWidth)
+        private void HandleInvoiceButtonLayout()
         {
-
-            // Find the buttons and calendar control
+            //Find the date range label(calendar control)
             if (btnFilterSynced == null || btnExportInvoice == null) return;
+            if (paginationInvoices == null) return;
 
-            // Find the date range label (calendar control)
-            Control lblDateRange = this.Controls.Find("lblDateRange", true).FirstOrDefault();
+            Control lblDateRange = panelInvoices.Controls
+                .Find("lblDateRange", true)
+                .FirstOrDefault();
+
             if (lblDateRange == null) return;
 
-            // Store original sizes on first call
-            if (!_originalButtonPositions.ContainsKey("btnFilterSyncedSize"))
+            //  Spacing constants 
+            const int spacingBetweenButtons = 10;
+            const int spacingToCalendar = 8;
+            const int spacingToPagination = 8;
+
+            //  Button dimensions (always fixed) 
+            Size exportSize = new Size(182, 37);
+            Size syncSize = new Size(190, 37);
+
+            //  Actual available gap at runtime 
+            int gapStart = paginationInvoices.Right + spacingToPagination;
+            int gapEnd = lblDateRange.Left - spacingToCalendar;
+            int gapWidth = gapEnd - gapStart;
+
+            //  How much space each mode needs 
+            int spaceForExportOnly = exportSize.Width;
+            int spaceForBoth = exportSize.Width + spacingBetweenButtons + syncSize.Width;
+
+            //  Vertical center helper (relative to lblDateRange) 
+            int CenterY(int btnHeight) =>
+                lblDateRange.Top + ((lblDateRange.Height - btnHeight) / 2);
+
+            if (gapWidth < spaceForExportOnly)
             {
-                _originalButtonPositions["btnFilterSyncedSize"] = new Point(btnFilterSynced.Width, btnFilterSynced.Height);
-            }
-
-            if (!_originalButtonPositions.ContainsKey("btnExportInvoiceSize"))
-            {
-                _originalButtonPositions["btnExportInvoiceSize"] = new Point(btnExportInvoice.Width, btnExportInvoice.Height);
-            }
-
-            // Define spacing between buttons and calendar
-            int spacingBetweenButtons = 10; // Space between Export and FilterSynced
-            int spacingToCalendar = 5;     // Space between buttons and calendar
-
-            // Threshold for button overlap
-            int overlapThreshold = 1366;
-
-            if (screenWidth <= overlapThreshold)
-            {
-                btnExportInvoice.Text = "  EXPORT  ";
-                btnExportInvoice.Font = new Font("Arial", 10.8f);
-                btnExportInvoice.AutoSize = true;
-
-
-                // COMPACT MODE: Hide btnFilterSynced
+                //  CRITICAL: not even Export fits — show it anyway 
+                // overlap is inevitable, but Export must stay visible
                 btnFilterSynced.Visible = false;
 
-                // Position btnExportInvoice to the left of calendar
-                int exportLeft = lblDateRange.Left - _originalButtonPositions["btnExportInvoiceSize"].X - spacingToCalendar;
+                btnExportInvoice.Text = "EXPORT";
+                btnExportInvoice.Font = new Font("Arial", 9F);
+                btnExportInvoice.AutoSize = false;
+                btnExportInvoice.Size = exportSize;
+                btnExportInvoice.Visible = true;
+                btnExportInvoice.BringToFront();
 
                 btnExportInvoice.Location = new Point(
-                    exportLeft,
-                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnExportInvoiceSize"].Y) / 2) // Vertically center with calendar
+                    gapEnd - exportSize.Width,
+                    CenterY(exportSize.Height)
                 );
+            }
+            else if (gapWidth < spaceForBoth)
+            {
+                //  COMPACT: only Export fits 
+                btnFilterSynced.Visible = false;
 
-                btnExportInvoice.Size = new Size(
-                    _originalButtonPositions["btnExportInvoiceSize"].X,
-                    _originalButtonPositions["btnExportInvoiceSize"].Y
+                btnExportInvoice.Text = "  EXPORT  ";
+                btnExportInvoice.Font = new Font("Arial", 10.8f);
+                btnExportInvoice.AutoSize = false;
+                btnExportInvoice.Size = exportSize;
+                btnExportInvoice.Visible = true;
+
+                btnExportInvoice.Location = new Point(
+                    gapEnd - exportSize.Width,
+                    CenterY(exportSize.Height)
                 );
             }
             else
             {
-                btnExportInvoice.Font = new Font("Arial", 12F);
-                btnExportInvoice.Text = "📄 Export Invoices";
-
-
-                // 
-                // NORMAL MODE: Show both buttons
+                // ── NORMAL: both buttons fit ───────────────────────────────
                 btnFilterSynced.Visible = true;
 
+                btnExportInvoice.Text = "📄 Export Invoices";
+                btnExportInvoice.Font = new Font("Arial", 12F);
+                btnExportInvoice.AutoSize = false;
+                btnExportInvoice.Size = exportSize;
 
-                // Position btnFilterSynced to the left of calendar
-                int syncedLeft = lblDateRange.Left - _originalButtonPositions["btnFilterSyncedSize"].X - spacingToCalendar;
+                btnFilterSynced.Size = syncSize;
 
+                // FilterSynced sits just left of lblDateRange
                 btnFilterSynced.Location = new Point(
-                    syncedLeft,
-                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnFilterSyncedSize"].Y) / 2) // Vertically center with calendar
+                    gapEnd - syncSize.Width,
+                    CenterY(syncSize.Height)
                 );
 
-                btnFilterSynced.Size = new Size(190, 37);
-
-
-                // Position btnExportInvoice to the left of btnFilterSynced
-                int exportLeft = btnFilterSynced.Left - _originalButtonPositions["btnExportInvoiceSize"].X - spacingBetweenButtons;
-
+                // Export sits left of FilterSynced
                 btnExportInvoice.Location = new Point(
-                    exportLeft,
-                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnExportInvoiceSize"].Y) / 2) // Vertically center with calendar
+                    btnFilterSynced.Left - spacingBetweenButtons - exportSize.Width,
+                    CenterY(exportSize.Height)
                 );
 
-                btnExportInvoice.Size = new Size(182, 37);
+
 
             }
         }
@@ -1939,7 +1930,7 @@ namespace Pos.WinFormsUI.Forms
             var colId = new DataGridViewTextBoxColumn
             {
                 Name = "colId",
-                HeaderText = "  Sr No",
+                HeaderText = "  Sr. No.",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -2299,7 +2290,7 @@ namespace Pos.WinFormsUI.Forms
             var colLogID = new DataGridViewTextBoxColumn
             {
                 Name = "colLogID",
-                HeaderText = "   Sr No",
+                HeaderText = "   Sr. No.",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -2539,7 +2530,7 @@ namespace Pos.WinFormsUI.Forms
                 for (int i = 0; i < values.Count; i++)
                 {
                     float sweepAngle = values[i] / total * 360f;
-                    using (Brush brush = new SolidBrush(colors[i]))
+                    using (System.Drawing.Brush brush = new SolidBrush(colors[i]))
                         g.FillPie(brush, rect, startAngle, sweepAngle);
                     startAngle += sweepAngle;
                 }

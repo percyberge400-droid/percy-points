@@ -205,9 +205,9 @@
             lblCustomerRegType.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblCustomerRegType.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             lblCustomerRegType.ForeColor = Color.FromArgb(75, 85, 99);
-            lblCustomerRegType.Location = new Point(1249, 57);
+            lblCustomerRegType.Location = new Point(1239, 57);
             lblCustomerRegType.Name = "lblCustomerRegType";
-            lblCustomerRegType.Size = new Size(62, 20);
+            lblCustomerRegType.Size = new Size(57, 20);
             lblCustomerRegType.TabIndex = 41;
             lblCustomerRegType.Text = "Search";
             // 
