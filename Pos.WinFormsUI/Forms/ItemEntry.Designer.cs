@@ -309,6 +309,7 @@ namespace Pos.WinFormsUI
             FurtureTax.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             FurtureTax.DropDownStyle = ComboBoxStyle.DropDownList;
             FurtureTax.Font = new Font("Microsoft Sans Serif", 9F);
+            FurtureTax.ItemHeight = 18;
             FurtureTax.Location = new Point(677, 113);
             FurtureTax.Name = "FurtureTax";
             FurtureTax.Size = new Size(205, 26);
@@ -611,7 +612,7 @@ namespace Pos.WinFormsUI
             refUSIN.Location = new Point(410, 41);
             refUSIN.Name = "refUSIN";
             refUSIN.PlaceholderText = "Reference User Invoice No.";
-            refUSIN.Size = new Size(123, 24);
+            refUSIN.Size = new Size(123, 26);
             refUSIN.TabIndex = 8;
             // 
             // refUSINlbl
@@ -667,9 +668,10 @@ namespace Pos.WinFormsUI
             USIN.Font = new Font("Microsoft Sans Serif", 9F);
             USIN.ImeMode = ImeMode.Disable;
             USIN.Location = new Point(281, 41);
+            USIN.MaxLength = 50;
             USIN.Name = "USIN";
             USIN.PlaceholderText = "User Invoice No.";
-            USIN.Size = new Size(123, 24);
+            USIN.Size = new Size(123, 26);
             USIN.TabIndex = 7;
             // 
             // USINlbl

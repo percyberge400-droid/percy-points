@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DocumentFormat.OpenXml.InkML;
+using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.DTOs.FiscalDtos;
-using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDtos;
-using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.Services.CloudSyncService.CloudSyncLogService;
 using Pos.Application.Services.FileRecordService;
 using Pos.Application.Services.InvoiceService;
@@ -20,6 +19,7 @@ using System.Data;
 using System.Drawing.Drawing2D;
 using System.Net.Http.Json;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Pos.WinFormsUI.Forms
 {
     public partial class DashboardForm : Form
@@ -59,11 +59,11 @@ namespace Pos.WinFormsUI.Forms
         private DateTime _lastRefreshTime = DateTime.Now;
 
         private int _printingRowIndex = -1;
-        private readonly string _posId;
+        private string _posId;
 
         private int _lastSyncedInvoiceCount = 0;
 
-        private readonly SemaphoreSlim _checkSemaphore = new(1, 1);
+        private readonly SemaphoreSlim _checkSemaphore = new SemaphoreSlim(1, 1);
 
         // NEW: Virtual Mode Cache
         private List<InvoiceDisplayModel> _invoiceCache;
@@ -78,19 +78,19 @@ namespace Pos.WinFormsUI.Forms
         private int _lastPieChartPending = -1;
 
         private int currentInvoicePage = 1;
-        private readonly int invoiceRecordsPerPage = 500;
+        private int invoiceRecordsPerPage = 500;
         private int totalInvoicePages = 1;
         private int totalInvoiceRecords = 0;
 
         private int currentLogsPage = 1;
-        private readonly int logsRecordsPerPage = 500;
+        private int logsRecordsPerPage = 500;
         private int totalLogsPages = 1;
         private int totalLogsRecords = 0;
 
         private ModernPaginationControl paginationInvoices;
         private ModernPaginationControl paginationLogs;
 
-        private Dictionary<string, Point> _originalButtonPositions = new();
+        private Dictionary<string, Point> _originalButtonPositions = new Dictionary<string, Point>();
 
 
         public DashboardForm(IServiceProvider provider,
@@ -202,7 +202,7 @@ namespace Pos.WinFormsUI.Forms
             if (control == null || control.Width <= 0 || control.Height <= 0)
                 return;
 
-            using (GraphicsPath path = new())
+            using (GraphicsPath path = new GraphicsPath())
             {
                 int diameter = radius * 2;
                 path.AddArc(0, 0, diameter, diameter, 180, 90);
@@ -232,10 +232,10 @@ namespace Pos.WinFormsUI.Forms
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
                 e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
 
-                Rectangle rect = new(0, 0, btn.Width - 1, btn.Height - 1);
+                Rectangle rect = new Rectangle(0, 0, btn.Width - 1, btn.Height - 1);
                 int d = radius * 2;
 
-                using (GraphicsPath path = new())
+                using (GraphicsPath path = new GraphicsPath())
                 {
                     path.AddArc(rect.X, rect.Y, d, d, 180, 90);
                     path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
@@ -244,13 +244,13 @@ namespace Pos.WinFormsUI.Forms
                     path.CloseFigure();
 
                     // --- smoother blended outline ---
-                    using (Pen smoothPen = new(Color.FromArgb(60, 0, 0, 0), 3))
+                    using (Pen smoothPen = new Pen(Color.FromArgb(60, 0, 0, 0), 3))
                     {
                         smoothPen.Alignment = PenAlignment.Outset;
                         e.Graphics.DrawPath(smoothPen, path);
                     }
 
-                    using (Pen borderPen = new(ControlPaint.Dark(btn.BackColor, 0.3f), 1.5f))
+                    using (Pen borderPen = new Pen(ControlPaint.Dark(btn.BackColor, 0.3f), 1.5f))
                     {
                         borderPen.Alignment = PenAlignment.Center;
                         e.Graphics.DrawPath(borderPen, path);
@@ -355,122 +355,114 @@ namespace Pos.WinFormsUI.Forms
         {
             if (paginationInvoices == null || panelInvoices == null) return;
 
-            Label? lblInvoices = panelInvoices.Controls
+            var lblInvoices = panelInvoices.Controls
                 .OfType<Label>()
                 .FirstOrDefault(l => l.Text.Contains("INVOICES", StringComparison.OrdinalIgnoreCase));
 
             if (lblInvoices == null) return;
 
-            int screenWidth = this.Width;
-            int availableWidth = panelInvoices.Width;
+            //   Position pagination first 
+            paginationInvoices.Location = new Point(
+                lblInvoices.Right + 5,
+                lblInvoices.Top - 3
+            );
 
-            // Handle button visibility and repositioning based on screen width
-            HandleInvoiceButtonLayout(screenWidth);
-
-            // Calculate available space after the label
-            int spaceAfterLabel = availableWidth - lblInvoices.Right;
-
-            // Minimum safe spacing
-            int minSpacing = 5;
-
-            //if (screenWidth <= 1280)
-            //{
-            //    // For small screens, position below the label
-            //    paginationInvoices.Location = new Point(lblInvoices.Left, lblInvoices.Bottom + 5);
-            //}
-            //else if (spaceAfterLabel < paginationWidth + minSpacing)
-            //{
-            //    // Not enough horizontal space, position below
-            //    paginationInvoices.Location = new Point(lblInvoices.Left, lblInvoices.Bottom + 5);
-            //}
-            //else
-            //{
-            // Enough space, position next to label
-            paginationInvoices.Location = new Point(lblInvoices.Right + minSpacing, lblInvoices.Top - 3);
-            //}
+            // NOW buttons know where pagination ends 
+            HandleInvoiceButtonLayout();
         }
-        private void HandleInvoiceButtonLayout(int screenWidth)
+        private void HandleInvoiceButtonLayout()
         {
-
-            // Find the buttons and calendar control
+            //Find the date range label(calendar control)
             if (btnFilterSynced == null || btnExportInvoice == null) return;
+            if (paginationInvoices == null) return;
 
-            // Find the date range label (calendar control)
-            Control lblDateRange = this.Controls.Find("lblDateRange", true).FirstOrDefault();
+            Control lblDateRange = panelInvoices.Controls
+                .Find("lblDateRange", true)
+                .FirstOrDefault();
+
             if (lblDateRange == null) return;
 
-            // Store original sizes on first call
-            if (!_originalButtonPositions.ContainsKey("btnFilterSyncedSize"))
+            //  Spacing constants 
+            const int spacingBetweenButtons = 10;
+            const int spacingToCalendar = 8;
+            const int spacingToPagination = 8;
+
+            //  Button dimensions (always fixed) 
+            Size exportSize = new Size(182, 37);
+            Size syncSize = new Size(190, 37);
+
+            //  Actual available gap at runtime 
+            int gapStart = paginationInvoices.Right + spacingToPagination;
+            int gapEnd = lblDateRange.Left - spacingToCalendar;
+            int gapWidth = gapEnd - gapStart;
+
+            //  How much space each mode needs 
+            int spaceForExportOnly = exportSize.Width;
+            int spaceForBoth = exportSize.Width + spacingBetweenButtons + syncSize.Width;
+
+            //  Vertical center helper (relative to lblDateRange) 
+            int CenterY(int btnHeight) =>
+                lblDateRange.Top + ((lblDateRange.Height - btnHeight) / 2);
+
+            if (gapWidth < spaceForExportOnly)
             {
-                _originalButtonPositions["btnFilterSyncedSize"] = new Point(btnFilterSynced.Width, btnFilterSynced.Height);
-            }
-
-            if (!_originalButtonPositions.ContainsKey("btnExportInvoiceSize"))
-            {
-                _originalButtonPositions["btnExportInvoiceSize"] = new Point(btnExportInvoice.Width, btnExportInvoice.Height);
-            }
-
-            // Define spacing between buttons and calendar
-            int spacingBetweenButtons = 10; // Space between Export and FilterSynced
-            int spacingToCalendar = 5;     // Space between buttons and calendar
-
-            // Threshold for button overlap
-            int overlapThreshold = 1366;
-
-            if (screenWidth <= overlapThreshold)
-            {
-                btnExportInvoice.Text = "  EXPORT  ";
-                btnExportInvoice.Font = new Font("Arial", 10.8f);
-                btnExportInvoice.AutoSize = true;
-
-
-                // COMPACT MODE: Hide btnFilterSynced
+                //  CRITICAL: not even Export fits — show it anyway 
+                // overlap is inevitable, but Export must stay visible
                 btnFilterSynced.Visible = false;
 
-                // Position btnExportInvoice to the left of calendar
-                int exportLeft = lblDateRange.Left - _originalButtonPositions["btnExportInvoiceSize"].X - spacingToCalendar;
+                btnExportInvoice.Text = "EXPORT";
+                btnExportInvoice.Font = new Font("Arial", 9F);
+                btnExportInvoice.AutoSize = false;
+                btnExportInvoice.Size = exportSize;
+                btnExportInvoice.Visible = true;
+                btnExportInvoice.BringToFront();
 
                 btnExportInvoice.Location = new Point(
-                    exportLeft,
-                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnExportInvoiceSize"].Y) / 2) // Vertically center with calendar
+                    gapEnd - exportSize.Width,
+                    CenterY(exportSize.Height)
                 );
+            }
+            else if (gapWidth < spaceForBoth)
+            {
+                //  COMPACT: only Export fits 
+                btnFilterSynced.Visible = false;
 
-                btnExportInvoice.Size = new Size(
-                    _originalButtonPositions["btnExportInvoiceSize"].X,
-                    _originalButtonPositions["btnExportInvoiceSize"].Y
+                btnExportInvoice.Text = "  EXPORT  ";
+                btnExportInvoice.Font = new Font("Arial", 10.8f);
+                btnExportInvoice.AutoSize = false;
+                btnExportInvoice.Size = exportSize;
+                btnExportInvoice.Visible = true;
+
+                btnExportInvoice.Location = new Point(
+                    gapEnd - exportSize.Width,
+                    CenterY(exportSize.Height)
                 );
             }
             else
             {
-                btnExportInvoice.Font = new Font("Arial", 12F);
-                btnExportInvoice.Text = "📄 Export Invoices";
-
-
-                // 
-                // NORMAL MODE: Show both buttons
+                // ── NORMAL: both buttons fit ───────────────────────────────
                 btnFilterSynced.Visible = true;
 
+                btnExportInvoice.Text = "📄 Export Invoices";
+                btnExportInvoice.Font = new Font("Arial", 12F);
+                btnExportInvoice.AutoSize = false;
+                btnExportInvoice.Size = exportSize;
 
-                // Position btnFilterSynced to the left of calendar
-                int syncedLeft = lblDateRange.Left - _originalButtonPositions["btnFilterSyncedSize"].X - spacingToCalendar;
+                btnFilterSynced.Size = syncSize;
 
+                // FilterSynced sits just left of lblDateRange
                 btnFilterSynced.Location = new Point(
-                    syncedLeft,
-                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnFilterSyncedSize"].Y) / 2) // Vertically center with calendar
+                    gapEnd - syncSize.Width,
+                    CenterY(syncSize.Height)
                 );
 
-                btnFilterSynced.Size = new Size(190, 37);
-
-
-                // Position btnExportInvoice to the left of btnFilterSynced
-                int exportLeft = btnFilterSynced.Left - _originalButtonPositions["btnExportInvoiceSize"].X - spacingBetweenButtons;
-
+                // Export sits left of FilterSynced
                 btnExportInvoice.Location = new Point(
-                    exportLeft,
-                    lblDateRange.Top + ((lblDateRange.Height - _originalButtonPositions["btnExportInvoiceSize"].Y) / 2) // Vertically center with calendar
+                    btnFilterSynced.Left - spacingBetweenButtons - exportSize.Width,
+                    CenterY(exportSize.Height)
                 );
 
-                btnExportInvoice.Size = new Size(182, 37);
+
 
             }
         }
@@ -478,7 +470,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (paginationLogs == null || panelLogs == null) return;
 
-            Label? lblLogs = panelLogs.Controls
+            var lblLogs = panelLogs.Controls
                 .OfType<Label>()
                 .FirstOrDefault(l => l.Text.Contains("LOGS", StringComparison.OrdinalIgnoreCase));
 
@@ -489,6 +481,9 @@ namespace Pos.WinFormsUI.Forms
 
             // Calculate available space after the label
             int spaceAfterLabel = availableWidth - lblLogs.Right;
+
+            // Pagination control width (approximately 250px)
+            int paginationWidth = 250;
 
             // Minimum safe spacing
             int minSpacing = 15;
@@ -514,7 +509,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count) return;
 
-            InvoiceDisplayModel item = _invoiceCache[e.RowIndex];
+            var item = _invoiceCache[e.RowIndex];
 
             switch (InvoicesDataGridView.Columns[e.ColumnIndex].Name)
             {
@@ -543,7 +538,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (_logCache == null || e.RowIndex >= _logCache.Count) return;
 
-            LogDisplayModel item = _logCache[e.RowIndex];
+            var item = _logCache[e.RowIndex];
 
             switch (LogsDataGridView.Columns[e.ColumnIndex].Name)
             {
@@ -610,7 +605,7 @@ namespace Pos.WinFormsUI.Forms
                 string selectedEnvironment = ConfigurationManager.AppSettings["Environment"]!;
                 string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED: get token from appsettings
 
-                string fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
+                var fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
 
                 // Prepare request body
                 var requestBody = new GetByPosIdDto
@@ -630,15 +625,15 @@ namespace Pos.WinFormsUI.Forms
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                 // Send request
-                HttpResponseMessage response = await _httpClient.SendAsync(request);
+                var response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    ApiResponse<HeartBeatDto>? heartbeatResponse = await response.Content.ReadFromJsonAsync<ApiResponse<HeartBeatDto>>();
+                    var heartbeatResponse = await response.Content.ReadFromJsonAsync<ApiResponse<HeartBeatDto>>();
 
                     if (heartbeatResponse?.StatusCode == ApiStatusCode.Success && heartbeatResponse.Data != null)
                     {
-                        DateTime? serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
+                        var serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
                         UpdateHeartbeatLabel(serverTime, isError: false);
                     }
                     else
@@ -682,9 +677,9 @@ namespace Pos.WinFormsUI.Forms
 
         private async Task<T> ExecuteWithNewScope<T>(Func<Task<T>> serviceCall)
         {
-            using IServiceScope scope = _provider.CreateScope();
-            IFileRecordService fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
-            ILogService logService = scope.ServiceProvider.GetRequiredService<ILogService>();
+            using var scope = _provider.CreateScope();
+            var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+            var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
             return await serviceCall();
         }
 
@@ -695,12 +690,12 @@ namespace Pos.WinFormsUI.Forms
 
             try
             {
-                using IServiceScope scope = _provider.CreateScope();
-                IFileRecordService fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
-                ILogService logService = scope.ServiceProvider.GetRequiredService<ILogService>();
+                using var scope = _provider.CreateScope();
+                var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+                var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                DateTime startDate = skipDateFilter ? DateTime.MinValue : _startDate;
-                DateTime endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
+                var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
                 var invoiceDto = new GetAllFileRecordDto
                 {
@@ -718,8 +713,8 @@ namespace Pos.WinFormsUI.Forms
                     NumberOfRecords = logsRecordsPerPage
                 };
 
-                ApiResponse<PageResponseDto<FileRecordDto>> invoiceResponse = await fileService.GetAllAsync(invoiceDto);
-                ApiResponse<PageResponseDto<LogDto>> logResponse = await logService.GetAllAsync(logDto);
+                var invoiceResponse = await fileService.GetAllAsync(invoiceDto);
+                var logResponse = await logService.GetAllAsync(logDto);
 
                 if (invoiceResponse?.Data == null || logResponse?.Data == null)
                     return false;
@@ -973,7 +968,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (progressBar != null && InvoicesDataGridView != null)
             {
-                Rectangle gridBounds = InvoicesDataGridView.Bounds;
+                var gridBounds = InvoicesDataGridView.Bounds;
                 progressBar.Left = gridBounds.Left + (gridBounds.Width - progressBar.Width) / 2;
                 progressBar.Top = gridBounds.Top + (gridBounds.Height - progressBar.Height) / 2;
                 progressBar.BringToFront();
@@ -1122,8 +1117,8 @@ namespace Pos.WinFormsUI.Forms
                 using (var pen = new Pen(Color.FromArgb(209, 213, 219), 1))
                 {
                     var rect = new Rectangle(0, 0, lblDateRange.Width - 1, lblDateRange.Height - 1);
-                    int radius = 6;
-                    using (GraphicsPath path = GetRoundedRect(rect, radius))
+                    var radius = 6;
+                    using (var path = GetRoundedRect(rect, radius))
                     {
                         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                         e.Graphics.DrawPath(pen, path);
@@ -1133,10 +1128,10 @@ namespace Pos.WinFormsUI.Forms
                 using (var iconBrush = new SolidBrush(Color.FromArgb(107, 114, 128)))
                 {
                     var iconFont = new Font("Segoe UI Symbol", 10F);
-                    string iconText = "📅";
-                    SizeF iconSize = e.Graphics.MeasureString(iconText, iconFont);
-                    float iconX = lblDateRange.Width - iconSize.Width - 10;
-                    float iconY = (lblDateRange.Height - iconSize.Height) / 2;
+                    var iconText = "📅";
+                    var iconSize = e.Graphics.MeasureString(iconText, iconFont);
+                    var iconX = lblDateRange.Width - iconSize.Width - 10;
+                    var iconY = (lblDateRange.Height - iconSize.Height) / 2;
                     e.Graphics.DrawString(iconText, iconFont, iconBrush, iconX, iconY);
                 }
             };
@@ -1147,8 +1142,8 @@ namespace Pos.WinFormsUI.Forms
             try
             {
                 AddButtonTooltips();
-                string encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
-                string decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+                var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+                var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
                 StartHeartbeatTimer(decryptedPosId);
 
                 _autoRefreshTimer.Stop();
@@ -1192,11 +1187,11 @@ namespace Pos.WinFormsUI.Forms
         {
             try
             {
-                using IServiceScope scope = _provider.CreateScope();
-                IFileRecordService fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+                using var scope = _provider.CreateScope();
+                var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
 
-                DateTime startDate = skipDateFilter ? DateTime.MinValue : _startDate;
-                DateTime endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
+                var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
                 var dto = new GetAllFileRecordDto
                 {
@@ -1206,7 +1201,7 @@ namespace Pos.WinFormsUI.Forms
                     NumberOfRecords = invoiceRecordsPerPage
                 };
 
-                ApiResponse<PageResponseDto<FileRecordDto>> response = await fileService.GetAllAsync(dto);
+                var response = await fileService.GetAllAsync(dto);
 
                 if (response?.Data?.Items == null || !response.Data.Items.Any())
                 {
@@ -1232,7 +1227,7 @@ namespace Pos.WinFormsUI.Forms
                 totalInvoiceRecords = response.Data.TotalRecords ?? 0;
                 totalInvoicePages = response.Data.TotalPages ?? 1;
 
-                List<FileRecordDto> invoices = response.Data.Items;
+                var invoices = response.Data.Items;
 
                 _invoiceCache = invoices
                     .Select((inv, index) => new InvoiceDisplayModel
@@ -1269,7 +1264,7 @@ namespace Pos.WinFormsUI.Forms
                 DrawInvoicePieChart(panelinvoicechart, _syncedCount, _pendingCount);
                 UpdateInvoicePageInfo(currentInvoicePage, totalInvoicePages);
 
-                InvoiceDisplayModel? lastSyncedInvoice = _invoiceCache
+                var lastSyncedInvoice = _invoiceCache
                     .Where(i => i.IsSynced == "Yes")
                     .OrderByDescending(i => i.DateCreatedRaw)
                     .FirstOrDefault();
@@ -1321,8 +1316,8 @@ namespace Pos.WinFormsUI.Forms
                 }
                 else
                 {
-                    DateTime startDate = skipDateFilter ? DateTime.MinValue : _startDate;
-                    DateTime endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
+                    var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                    var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
                     var Logsdto = new GetAllLogsDto
                     {
@@ -1332,7 +1327,7 @@ namespace Pos.WinFormsUI.Forms
                         EndDate = endDate
                     };
 
-                    ApiResponse<PageResponseDto<LogDto>> response = await _logService.GetAllAsync(Logsdto);
+                    var response = await _logService.GetAllAsync(Logsdto);
 
                     if (response?.Data?.Items == null || !response.Data.Items.Any())
                     {
@@ -1361,7 +1356,7 @@ namespace Pos.WinFormsUI.Forms
 
                     logs = logs.Where(l =>
                     {
-                        string type = (l.Type ?? string.Empty).ToLower();
+                        var type = (l.Type ?? string.Empty).ToLower();
                         return filter switch
                         {
                             "error" or "exception" => type.Contains("error") || type.Contains("exception"),
@@ -1444,7 +1439,7 @@ namespace Pos.WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new())
+                using (SaveFileDialog sfd = new SaveFileDialog())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Local_Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
@@ -1452,10 +1447,10 @@ namespace Pos.WinFormsUI.Forms
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new();
+                        StringBuilder csvContent = new StringBuilder();
                         csvContent.AppendLine("Sr. No.,POS ID,Invoice Number,Is Synced,Date Created");
 
-                        foreach (InvoiceDisplayModel invoice in _invoiceCache)
+                        foreach (var invoice in _invoiceCache)
                         {
                             csvContent.AppendLine($"{invoice.SerialNo},{invoice.PosId},{EscapeCsvField(invoice.InvoiceNumber)},{invoice.IsSynced},{invoice.DateCreated}");
                         }
@@ -1553,17 +1548,17 @@ namespace Pos.WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new())
+                using (SaveFileDialog sfd = new SaveFileDialog())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Logs_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new();
+                        StringBuilder csvContent = new StringBuilder();
                         csvContent.AppendLine("Sr. No.,Message,Type,Date/Time");
 
-                        foreach (LogDisplayModel log in _logCache)
+                        foreach (var log in _logCache)
                         {
                             csvContent.AppendLine($"{log.SerialNo},{EscapeCsvField(log.Message)},{log.Type},{log.DateCreated}");
                         }
@@ -1832,7 +1827,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (panel == null || image == null) return;
 
-            PictureBox pic = new()
+            PictureBox pic = new PictureBox
             {
                 Image = image,
                 SizeMode = PictureBoxSizeMode.Zoom,
@@ -1935,7 +1930,7 @@ namespace Pos.WinFormsUI.Forms
             var colId = new DataGridViewTextBoxColumn
             {
                 Name = "colId",
-                HeaderText = "  Sr No",
+                HeaderText = "  Sr. No.",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -2028,7 +2023,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (_hoveredCell != null)
             {
-                DataGridViewCell cell = _hoveredCell;
+                var cell = _hoveredCell;
                 _hoveredCell = null;
                 InvoicesDataGridView.InvalidateCell(cell);
             }
@@ -2038,7 +2033,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
             {
-                Rectangle cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
                 var mousePoint = new Point(e.X + cellBounds.X, e.Y + cellBounds.Y);
 
                 if (_printLinkBounds.Contains(mousePoint))
@@ -2062,15 +2057,15 @@ namespace Pos.WinFormsUI.Forms
             if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index)
                 return;
 
-            Point mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
+            var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
             if (!_printLinkBounds.Contains(mousePos))
                 return;
 
             if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count)
                 return;
 
-            InvoiceDisplayModel invoice = _invoiceCache[e.RowIndex];
-            string invoiceNumber = invoice.InvoiceNumber;
+            var invoice = _invoiceCache[e.RowIndex];
+            var invoiceNumber = invoice.InvoiceNumber;
 
             _printingRowIndex = e.RowIndex;
 
@@ -2091,7 +2086,7 @@ namespace Pos.WinFormsUI.Forms
                 }
 
                 // 3. Load invoice data from API/service
-                ApiResponse<InvoiceDto> response = await Task.Run(() =>
+                var response = await Task.Run(() =>
                     _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
 
 
@@ -2107,7 +2102,7 @@ namespace Pos.WinFormsUI.Forms
 
                 response.Data.InvoiceNumber = invoiceNumber;
 
-                Thread printThread = new(() =>
+                Thread printThread = new Thread(() =>
                 {
                     try
                     {
@@ -2235,7 +2230,7 @@ namespace Pos.WinFormsUI.Forms
 
                 using (var font = new Font("Segoe UI", 9.5F, fontStyle))
                 {
-                    SizeF textSize = e.Graphics.MeasureString(linkText, font);
+                    var textSize = e.Graphics.MeasureString(linkText, font);
                     float x = e.CellBounds.X + (e.CellBounds.Width - textSize.Width) / 2;
                     float y = e.CellBounds.Y + (e.CellBounds.Height - textSize.Height) / 2;
 
@@ -2295,7 +2290,7 @@ namespace Pos.WinFormsUI.Forms
             var colLogID = new DataGridViewTextBoxColumn
             {
                 Name = "colLogID",
-                HeaderText = "   Sr No",
+                HeaderText = "   Sr. No.",
                 Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.Automatic,
@@ -2390,7 +2385,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (e.ColumnIndex == 2 && e.RowIndex >= 0)
             {
-                string value = e.Value?.ToString() ?? "";
+                var value = e.Value?.ToString() ?? "";
                 Color badgeColor = Color.FromArgb(209, 250, 229);
                 Color textColor = Color.FromArgb(5, 150, 105);
 
@@ -2423,7 +2418,7 @@ namespace Pos.WinFormsUI.Forms
                     int x = e.CellBounds.X + 15;
                     int y = e.CellBounds.Y + (e.CellBounds.Height - badgeHeight) / 2;
 
-                    using (GraphicsPath path = GetRoundedRect(new Rectangle(x, y, badgeWidth, badgeHeight), 6))
+                    using (var path = GetRoundedRect(new Rectangle(x, y, badgeWidth, badgeHeight), 6))
                     {
                         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                         using (var brush = new SolidBrush(badgeColor))
@@ -2492,18 +2487,18 @@ namespace Pos.WinFormsUI.Forms
 
             panel.Controls.Clear();
 
-            List<int> values = new() { syncedCount, pendingCount };
-            List<Color> colors = new()
+            List<int> values = new List<int> { syncedCount, pendingCount };
+            List<Color> colors = new List<Color>
             {
                 ColorTranslator.FromHtml("#66BB6A"),
                 ColorTranslator.FromHtml("#EF5350")
             };
-            List<string> labels = new() { "Synced", "Not Synced" };
+            List<string> labels = new List<string> { "Synced", "Not Synced" };
 
             float total = values.Sum();
             if (total == 0) total = 1;
 
-            Label header = new()
+            Label header = new Label
             {
                 Text = "ALL INVOICES DETAIL",
                 AutoSize = false,
@@ -2525,23 +2520,23 @@ namespace Pos.WinFormsUI.Forms
             int pieX = (panelWidth - pieSize) / 2;
             int pieY = header.Bottom + ((availableHeight - pieSize) / 2) + 10;
 
-            Bitmap bmp = new(pieSize, pieSize);
+            Bitmap bmp = new Bitmap(pieSize, pieSize);
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                Rectangle rect = new(0, 0, pieSize, pieSize);
+                Rectangle rect = new Rectangle(0, 0, pieSize, pieSize);
                 float startAngle = 0;
 
                 for (int i = 0; i < values.Count; i++)
                 {
                     float sweepAngle = values[i] / total * 360f;
-                    using (Brush brush = new SolidBrush(colors[i]))
+                    using (System.Drawing.Brush brush = new SolidBrush(colors[i]))
                         g.FillPie(brush, rect, startAngle, sweepAngle);
                     startAngle += sweepAngle;
                 }
             }
 
-            PictureBox pic = new()
+            PictureBox pic = new PictureBox
             {
                 Image = bmp,
                 SizeMode = PictureBoxSizeMode.Normal,
@@ -2562,7 +2557,7 @@ namespace Pos.WinFormsUI.Forms
             {
                 int offsetX = i * spacingX;
 
-                Panel colorBox = new()
+                Panel colorBox = new Panel
                 {
                     BackColor = colors[i],
                     Size = new Size(boxSize, boxSize),
@@ -2570,7 +2565,7 @@ namespace Pos.WinFormsUI.Forms
                 };
                 panel.Controls.Add(colorBox);
 
-                Label lbl = new()
+                Label lbl = new Label
                 {
                     Text = $"{labels[i]}: {values[i]}",
                     ForeColor = Color.Black,

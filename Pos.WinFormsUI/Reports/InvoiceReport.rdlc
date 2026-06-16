@@ -688,8 +688,7 @@
                 <Value>=First(Fields!Total.Value, "HeaderDataSet")</Value>
                 <Style>
                   <FontSize>8pt</FontSize>
-                  <Format>'Rs' 0.00;('Rs' 0.00)</Format>
-                  <rd:FormatSymbolCulture>en-PK</rd:FormatSymbolCulture>
+                  <Format>0.00;(0.00)</Format>
                 </Style>
               </TextRun>
             </TextRuns>
@@ -1073,8 +1072,8 @@
         </Style>
       </Textbox>
       <Line Name="Line5">
-        <Top>8.7971cm</Top>
-        <Left>0.31031cm</Left>
+        <Top>8.8606cm</Top>
+        <Left>0.29024cm</Left>
         <Height>0cm</Height>
         <Width>6.47266cm</Width>
         <ZIndex>23</ZIndex>
@@ -1193,7 +1192,7 @@
           <Paragraph>
             <TextRuns>
               <TextRun>
-                <Value>Registration no: </Value>
+                <Value>Registration No.: </Value>
                 <Style>
                   <FontSize>7pt</FontSize>
                   <FontWeight>SemiBold</FontWeight>

@@ -190,24 +190,22 @@
             // 
             // lblBusinessName
             // 
-            lblBusinessName.Dock = DockStyle.Fill;
             lblBusinessName.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblBusinessName.ForeColor = Color.Gray;
             lblBusinessName.Location = new Point(3, 200);
             lblBusinessName.Name = "lblBusinessName";
-            lblBusinessName.Size = new Size(267, 63);
+            lblBusinessName.Size = new Size(267, 45);
             lblBusinessName.TabIndex = 8;
             lblBusinessName.Text = "Business Name";
             lblBusinessName.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lblUserBusinessName
             // 
-            lblUserBusinessName.Dock = DockStyle.Fill;
             lblUserBusinessName.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
             lblUserBusinessName.ForeColor = Color.FromArgb(64, 64, 64);
             lblUserBusinessName.Location = new Point(276, 200);
             lblUserBusinessName.Name = "lblUserBusinessName";
-            lblUserBusinessName.Size = new Size(399, 63);
+            lblUserBusinessName.Size = new Size(399, 45);
             lblUserBusinessName.TabIndex = 9;
             lblUserBusinessName.Text = "dummy text";
             lblUserBusinessName.TextAlign = ContentAlignment.MiddleLeft;

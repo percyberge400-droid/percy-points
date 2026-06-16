@@ -688,7 +688,7 @@ namespace Pos.WinFormsUI
             decimal saleValuePerUnit = 0m;
             decimal taxRatePercent = 0m;
             decimal discountPercent = 0m;
-
+            
             // Parse with NEW limits
             if (decimal.TryParse(qty.Text, out decimal q))
             {
