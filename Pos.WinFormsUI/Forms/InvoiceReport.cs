@@ -197,7 +197,9 @@ namespace Pos.WinFormsUI.Forms
             headerRow["TotalTax"] = dto.TotalTaxCharged;//Math.Round(dto.TotalTaxCharged, 2, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
             headerRow["Total"] = dto.TotalBillAmount;// Math.Round(, 2, MidpointRounding.AwayFromZero);
-            headerRow["OfflineDisclaimer"] = OfflineDisclaimerText;
+            headerRow["OfflineDisclaimer"] = _isOffline
+                ? OfflineDisclaimerText
+                : string.Empty;
 
             headerTable.Rows.Add(headerRow);
 

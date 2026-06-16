@@ -5,11 +5,9 @@ using Pos.Application.Services.LogService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
-using Pos.WinFormsUI.Dashboard;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
-using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 
@@ -30,7 +28,7 @@ namespace Pos.WinFormsUI.Forms
         private readonly string _baseUrl;
         private readonly string _jsonworkerpath;
 
-        private string LocalFolder = "";
+        private readonly string LocalFolder = "";
 
         // API base URL here
         private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
@@ -41,9 +39,10 @@ namespace Pos.WinFormsUI.Forms
         private int _posPulseFrame = 0;
         private int _environmentPulseFrame = 0; // New pulse frame for environment
         private System.Windows.Forms.Timer _animationTimer;
-        private long decryptedPosId;
+        private readonly long decryptedPosId;
         private static System.Timers.Timer updateTimer;
         private bool updateCheckInProgress = false;
+        private string _currentView = "Dashboard";
 
         public Main(IServiceProvider provider, ILogService logService)
         {
@@ -51,7 +50,7 @@ namespace Pos.WinFormsUI.Forms
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             InitializeComponent();
             StyleContextMenu();
-            var cts = new CancellationTokenSource();
+            CancellationTokenSource cts = new();
             StartUpdateWatcher(cts.Token);  // 👈 Start hidden checker
 
             productCatalogToolStripMenuItem.Click += productCatalogToolStripMenuItem_Click;
@@ -85,13 +84,13 @@ namespace Pos.WinFormsUI.Forms
             string posCOMP = ConfigurationManager.AppSettings["posCOMP"];
             if (!string.IsNullOrEmpty(posCOMP))
             {
-                var res = Resources.ResourceManager.GetObject(posCOMP);
+                object? res = Resources.ResourceManager.GetObject(posCOMP);
                 if (res is Image img)
                 {
                     pictureBox2.Image = img;
                 }
             }
-            var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+            string encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
             decryptedPosId = Convert.ToInt64(AesEncryptionHelper.Decrypt(encryptedPosId));
             _appSettings = new AppSettings
             {
@@ -113,7 +112,7 @@ namespace Pos.WinFormsUI.Forms
             DateTime now = DateTime.Now;
 
             // Today 12:00 PM
-            DateTime nextRun = new DateTime(now.Year, now.Month, now.Day, 12, 0, 0);
+            DateTime nextRun = new(now.Year, now.Month, now.Day, 12, 0, 0);
 
             // If it's already past 12 PM today → schedule for tomorrow
             if (now >= nextRun)
@@ -182,7 +181,7 @@ namespace Pos.WinFormsUI.Forms
                 Log($"Loaded local version path: {localVersionPath}");
                 Log($"Loaded local version: {fullLocalVersion}");
 
-                var parts = fullLocalVersion.Split(',');
+                string[] parts = fullLocalVersion.Split(',');
                 string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
                 string isUpdate = parts.Length > 1 ? parts[1] : "0";
                 string updateDate = parts.Length > 2 ? parts[2] : DateTime.Now.ToString();
@@ -190,7 +189,7 @@ namespace Pos.WinFormsUI.Forms
                 // ── Fetch server version via HttpClientHelper ──────────────────
                 Log("Fetching server version from API...");
 
-                var result = await HttpClientHelper.GetAsync<ConfigurationResponseDto>(
+                Application.DTOs.ApiResponse<List<ConfigurationResponseDto>>? result = await HttpClientHelper.GetAsync<ConfigurationResponseDto>(
                     endpoint: "Configuration/get-update-version",
                     bearerToken: _appSettings.Token,
                     baseUrl: "http://10.105.200.161/api/",
@@ -213,8 +212,8 @@ namespace Pos.WinFormsUI.Forms
                 bool updateRequired = false;
                 try
                 {
-                    var vLocal = Version.Parse(localVersion);
-                    var vServer = Version.Parse(serverVersion);
+                    Version vLocal = Version.Parse(localVersion);
+                    Version vServer = Version.Parse(serverVersion);
                     if (vLocal < vServer) updateRequired = true;
                 }
                 catch
@@ -239,7 +238,7 @@ namespace Pos.WinFormsUI.Forms
                 }
                 else if (DateTime.TryParse(updateDate, out DateTime lastUpdate))
                 {
-                    var autoUpdateTriggerDaysSetting = ConfigurationManager.AppSettings["AutoUpdateTriggerDays"];
+                    string? autoUpdateTriggerDaysSetting = ConfigurationManager.AppSettings["AutoUpdateTriggerDays"];
 
                     if (int.TryParse(autoUpdateTriggerDaysSetting, out int autoUpdateTriggerDays))
                     {
@@ -255,7 +254,7 @@ namespace Pos.WinFormsUI.Forms
 
                             try
                             {
-                                var psi = new ProcessStartInfo
+                                ProcessStartInfo psi = new()
                                 {
                                     FileName = updaterExe,
                                     UseShellExecute = true,
@@ -288,7 +287,7 @@ namespace Pos.WinFormsUI.Forms
 
             if (File.Exists(commonInfo))
             {
-                foreach (var line in File.ReadAllLines(commonInfo))
+                foreach (string line in File.ReadAllLines(commonInfo))
                 {
                     if (line.StartsWith("InstallPath=", StringComparison.OrdinalIgnoreCase))
                     {
@@ -300,7 +299,7 @@ namespace Pos.WinFormsUI.Forms
 
             if (string.IsNullOrWhiteSpace(installPath) || !Directory.Exists(installPath))
             {
-                var defaultPath = Path.Combine(
+                string defaultPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                     "PRAL", "POSComponent");
 
@@ -428,7 +427,7 @@ namespace Pos.WinFormsUI.Forms
         private void PaintStatusBadge(Graphics g, Label lbl, int pulseFrame)
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            Rectangle rect = new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1);
+            Rectangle rect = new(0, 0, lbl.Width - 1, lbl.Height - 1);
 
             // Determine if active based on text
             bool isActive = lbl.Text.Contains("Online") || lbl.Text.Contains("Active");
@@ -439,7 +438,7 @@ namespace Pos.WinFormsUI.Forms
             Color dotColor = Color.White;
 
             // Gradient background
-            using (var bgBrush = new LinearGradientBrush(
+            using (LinearGradientBrush bgBrush = new(
                 rect,
                 bgColor,
                 Color.FromArgb(Math.Max(0, bgColor.R - 20), Math.Max(0, bgColor.G - 20), Math.Max(0, bgColor.B - 20)),
@@ -450,7 +449,7 @@ namespace Pos.WinFormsUI.Forms
 
             // Animated pulse effect
             float pulseAlpha = (float)(Math.Sin(pulseFrame * 0.1) * 0.3 + 0.7);
-            using (Pen pulsePen = new Pen(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
+            using (Pen pulsePen = new(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
             {
                 g.DrawRoundedRectangle(pulsePen, rect, 12);
             }
@@ -471,13 +470,13 @@ namespace Pos.WinFormsUI.Forms
 
             // Glow effect
             float glowIntensity = (float)(Math.Sin(pulseFrame * 0.15) * 0.4 + 0.6);
-            using (var glowBrush = new SolidBrush(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
+            using (SolidBrush glowBrush = new(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
             {
                 g.FillEllipse(glowBrush, dotX - 3, dotY - 3, dotSize + 6, dotSize + 6);
             }
 
             // Main dot
-            using (var dotBrush = new LinearGradientBrush(
+            using (LinearGradientBrush dotBrush = new(
                 new Rectangle(dotX, dotY, dotSize, dotSize),
                 dotColor,
                 Color.White,
@@ -502,7 +501,7 @@ namespace Pos.WinFormsUI.Forms
         private void PaintEnvironmentBadge(Graphics g, Label lbl, int pulseFrame)
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            Rectangle rect = new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1);
+            Rectangle rect = new(0, 0, lbl.Width - 1, lbl.Height - 1);
 
             // Get background color from Tag (set in updatelbl method)
             Color backgroundColor = lbl.Tag is Color color ? color : Color.DarkGoldenrod;
@@ -514,7 +513,7 @@ namespace Pos.WinFormsUI.Forms
             Color dotColor = Color.White;
 
             // Gradient background
-            using (var bgBrush = new LinearGradientBrush(
+            using (LinearGradientBrush bgBrush = new(
                 rect,
                 bgColor,
                 Color.FromArgb(Math.Max(0, bgColor.R - 20), Math.Max(0, bgColor.G - 20), Math.Max(0, bgColor.B - 20)),
@@ -525,7 +524,7 @@ namespace Pos.WinFormsUI.Forms
 
             // Animated pulse effect
             float pulseAlpha = (float)(Math.Sin(pulseFrame * 0.1) * 0.3 + 0.7);
-            using (Pen pulsePen = new Pen(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
+            using (Pen pulsePen = new(Color.FromArgb((int)(pulseAlpha * 150), glowColor), 2))
             {
                 g.DrawRoundedRectangle(pulsePen, rect, 12);
             }
@@ -552,13 +551,13 @@ namespace Pos.WinFormsUI.Forms
 
             // Glow effect
             float glowIntensity = (float)(Math.Sin(pulseFrame * 0.15) * 0.4 + 0.6);
-            using (var glowBrush = new SolidBrush(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
+            using (SolidBrush glowBrush = new(Color.FromArgb((int)(glowIntensity * 80), dotColor)))
             {
                 g.FillEllipse(glowBrush, dotX - 3, dotY - 3, dotSize + 6, dotSize + 6);
             }
 
             // Main dot
-            using (var dotBrush = new LinearGradientBrush(
+            using (LinearGradientBrush dotBrush = new(
                 new Rectangle(dotX, dotY, dotSize, dotSize),
                 dotColor,
                 Color.White,
@@ -592,7 +591,7 @@ namespace Pos.WinFormsUI.Forms
             _animationTimer?.Dispose();
             StopInternetStatusChecker();
             StopWorkerServiceStatusChecker();
-            foreach (var form in _independentForms.ToArray())
+            foreach (Form form in _independentForms.ToArray())
             {
                 if (form != null && !form.IsDisposed)
                 {
@@ -613,7 +612,7 @@ namespace Pos.WinFormsUI.Forms
                 StopInternetStatusChecker();
                 StopWorkerServiceStatusChecker();
 
-                foreach (var form in _independentForms.ToArray())
+                foreach (Form form in _independentForms.ToArray())
                 {
                     try
                     {
@@ -655,8 +654,11 @@ namespace Pos.WinFormsUI.Forms
             RepositionStatusControls();
         }
 
-        private void RepositionStatusControls(string activeView = "Dashboard")
+        private void RepositionStatusControls(string activeView = null)
         {
+            if (activeView != null) _currentView = activeView;
+            activeView = _currentView;
+
             int screenWidth = Screen.PrimaryScreen.Bounds.Width; // full monitor width
             bool compactMode = screenWidth < 1360;
 
@@ -801,7 +803,7 @@ namespace Pos.WinFormsUI.Forms
                 posStatus.BringToFront();
 
                 currentX = posStatus.Left - badgeToLabelSpacing - lblWorkerService.Width;
-                lblWorkerService.Location = new Point(currentX, centerY + 10);
+                lblWorkerService.Location = new Point(currentX, centerY + 5);
                 lblWorkerService.BringToFront();
 
                 // Group 2: Internet Status
@@ -810,7 +812,7 @@ namespace Pos.WinFormsUI.Forms
                 internetStatus.BringToFront();
 
                 currentX = internetStatus.Left - badgeToLabelSpacing - lblNetworkStatus.Width;
-                lblNetworkStatus.Location = new Point(currentX, centerY + 10);
+                lblNetworkStatus.Location = new Point(currentX, centerY + 5);
                 lblNetworkStatus.BringToFront();
 
                 // Group 3: Environment (leftmost of status indicators)
@@ -835,7 +837,7 @@ namespace Pos.WinFormsUI.Forms
         private void Main_Resize(object sender, EventArgs e)
         {
             HandleFormStateChange();
-            RepositionStatusControls(); // Reposition all controls in panel2 on resize
+            RepositionStatusControls();
         }
 
         private void Panel2_Paint(object sender, PaintEventArgs e)
@@ -843,7 +845,7 @@ namespace Pos.WinFormsUI.Forms
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
             // Glossy gradient background
-            using (var brush = new LinearGradientBrush(
+            using (LinearGradientBrush brush = new(
                 panel2.ClientRectangle,
                 Color.White,
                 Color.White,
@@ -853,7 +855,7 @@ namespace Pos.WinFormsUI.Forms
             }
 
             // Subtle top highlight
-            using (var highlight = new LinearGradientBrush(
+            using (LinearGradientBrush highlight = new(
                 new Rectangle(0, 0, panel2.Width, 20),
                 Color.FromArgb(60, 255, 255, 255),
                 Color.Transparent,
@@ -863,7 +865,7 @@ namespace Pos.WinFormsUI.Forms
             }
 
             // Bottom shadow line
-            using (Pen shadow = new Pen(Color.FromArgb(40, 0, 0, 0), 1))
+            using (Pen shadow = new(Color.FromArgb(40, 0, 0, 0), 1))
                 e.Graphics.DrawLine(shadow, 0, panel2.Height - 1, panel2.Width, panel2.Height - 1);
         }
 
@@ -916,7 +918,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (this.WindowState == FormWindowState.Minimized)
             {
-                foreach (var form in _independentForms)
+                foreach (Form form in _independentForms)
                 {
                     if (form != null && !form.IsDisposed && form.Visible)
                     {
@@ -927,7 +929,7 @@ namespace Pos.WinFormsUI.Forms
             }
             else if (this.WindowState == FormWindowState.Normal || this.WindowState == FormWindowState.Maximized)
             {
-                foreach (var form in _independentForms)
+                foreach (Form form in _independentForms)
                 {
                     if (form != null && !form.IsDisposed && form.Tag?.ToString() == "was_visible")
                     {
@@ -999,8 +1001,8 @@ namespace Pos.WinFormsUI.Forms
         {
             try
             {
-                using var ping = new Ping();
-                var reply = await ping.SendPingAsync("8.8.8.8", 2000);
+                using Ping ping = new();
+                PingReply reply = await ping.SendPingAsync("8.8.8.8", 2000);
                 return reply.Status == IPStatus.Success;
             }
             catch { return false; }
@@ -1041,7 +1043,7 @@ namespace Pos.WinFormsUI.Forms
 
                             try
                             {
-                                var isEnabledResult = await HttpClientHelper.GetAsync<bool>(
+                                Application.DTOs.ApiResponse<List<bool>> isEnabledResult = await HttpClientHelper.GetAsync<bool>(
                                     endpoint: isEnabledEndpoint,
                                     bearerToken: _appSettings.Token,
                                     baseUrl: _baseUrl,
@@ -1134,7 +1136,7 @@ namespace Pos.WinFormsUI.Forms
             {
                 try
                 {
-                    using var sc = new ServiceController("POSWorker");
+                    using ServiceController sc = new("POSWorker");
                     return sc.Status == ServiceControllerStatus.Running;
                 }
                 catch { return false; }
@@ -1147,7 +1149,7 @@ namespace Pos.WinFormsUI.Forms
             {
                 try
                 {
-                    using var sc = new ServiceController("POSWorker");
+                    using ServiceController sc = new("POSWorker");
 
                     if (sc.Status == ServiceControllerStatus.Running)
                     {
@@ -1172,7 +1174,7 @@ namespace Pos.WinFormsUI.Forms
             {
                 try
                 {
-                    using var sc = new ServiceController("POSWorker");
+                    using ServiceController sc = new("POSWorker");
 
                     // Start only if not already running
                     if (sc.Status != ServiceControllerStatus.Running)
@@ -1200,7 +1202,7 @@ namespace Pos.WinFormsUI.Forms
 
         private async Task CreateLog(string message, string type)
         {
-            var log = new CreateLogDto { Message = message, Type = type };
+            CreateLogDto log = new() { Message = message, Type = type };
             await _logService.CreateLogAsync(log);
         }
 
@@ -1288,7 +1290,7 @@ namespace Pos.WinFormsUI.Forms
 
         private void uploadLogoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var frm = new UploadLogoForm())
+            using (UploadLogoForm frm = new())
             {
                 frm.ShowDialog();
             }
@@ -1323,7 +1325,7 @@ namespace Pos.WinFormsUI.Forms
         public static GraphicsPath CreateRoundRectPath(Rectangle rect, int radius)
         {
             int d = radius * 2;
-            GraphicsPath path = new GraphicsPath();
+            GraphicsPath path = new();
             path.AddArc(rect.X, rect.Y, d, d, 180, 90);
             path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
             path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
@@ -1363,13 +1365,13 @@ namespace Pos.WinFormsUI.Forms
     {
         public static void DrawRoundedRectangle(this Graphics g, Pen pen, Rectangle rect, int radius)
         {
-            using var path = Main.CreateRoundRectPath(rect, radius);
+            using GraphicsPath path = Main.CreateRoundRectPath(rect, radius);
             g.DrawPath(pen, path);
         }
 
         public static void FillRoundedRectangle(this Graphics g, Brush brush, Rectangle rect, int radius)
         {
-            using var path = Main.CreateRoundRectPath(rect, radius);
+            using GraphicsPath path = Main.CreateRoundRectPath(rect, radius);
             g.FillPath(brush, path);
         }
     }
@@ -1386,35 +1388,35 @@ namespace Pos.WinFormsUI.Forms
 
         protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
         {
-            var rc = new Rectangle(4, 2, e.Item.Width - 8, e.Item.Height - 4);
+            Rectangle rc = new(4, 2, e.Item.Width - 8, e.Item.Height - 4);
 
             if (e.Item.Selected)
             {
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
                 // Gradient background on hover
-                using (var brush = new LinearGradientBrush(
+                using (LinearGradientBrush brush = new(
                     rc,
                     _hoverColor,
                     Color.FromArgb(250, 255, 253),
                     LinearGradientMode.Vertical))
-                using (var path = Main.CreateRoundRectPath(rc, 8))
+                using (GraphicsPath path = Main.CreateRoundRectPath(rc, 8))
                 {
                     e.Graphics.FillPath(brush, path);
                 }
 
                 // Accent border on hover
-                using (var pen = new Pen(_accentColor, 2))
-                using (var path = Main.CreateRoundRectPath(rc, 8))
+                using (Pen pen = new(_accentColor, 2))
+                using (GraphicsPath path = Main.CreateRoundRectPath(rc, 8))
                 {
                     e.Graphics.DrawPath(pen, path);
                 }
 
                 // Subtle glow effect
-                using (var glowPen = new Pen(Color.FromArgb(40, 72, 167, 135), 4))
+                using (Pen glowPen = new(Color.FromArgb(40, 72, 167, 135), 4))
                 {
-                    var glowRect = new Rectangle(rc.X - 2, rc.Y - 2, rc.Width + 4, rc.Height + 4);
-                    using (var path = Main.CreateRoundRectPath(glowRect, 10))
+                    Rectangle glowRect = new(rc.X - 2, rc.Y - 2, rc.Width + 4, rc.Height + 4);
+                    using (GraphicsPath path = Main.CreateRoundRectPath(glowRect, 10))
                     {
                         e.Graphics.DrawPath(glowPen, path);
                     }
@@ -1430,10 +1432,10 @@ namespace Pos.WinFormsUI.Forms
 
                 // Colors + font
                 Color textColor = e.Item.Selected ? _accentColor : _textColor;
-                Font font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+                Font font = new("Segoe UI", 10.2F, FontStyle.Bold);
 
                 // Use FULL ITEM RECTANGLE
-                Rectangle rect = new Rectangle(0, 0, e.Item.Width, e.Item.Height);
+                Rectangle rect = new(0, 0, e.Item.Width, e.Item.Height);
 
                 // Measure text
                 SizeF textSize = e.Graphics.MeasureString(e.Text, font);
@@ -1442,7 +1444,7 @@ namespace Pos.WinFormsUI.Forms
                 float x = rect.X + (rect.Width - textSize.Width) / 2;
                 float y = rect.Y + (rect.Height - textSize.Height) / 2;
 
-                using (var brush = new SolidBrush(textColor))
+                using (SolidBrush brush = new(textColor))
                 {
                     e.Graphics.DrawString(e.Text, font, brush, x, y);
                 }
@@ -1458,14 +1460,14 @@ namespace Pos.WinFormsUI.Forms
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
             // Rounded border with shadow
-            var rect = new Rectangle(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
-            using (var shadowPen = new Pen(Color.FromArgb(30, 0, 0, 0), 3))
+            Rectangle rect = new(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+            using (Pen shadowPen = new(Color.FromArgb(30, 0, 0, 0), 3))
             {
-                var shadowRect = new Rectangle(2, 2, rect.Width, rect.Height);
+                Rectangle shadowRect = new(2, 2, rect.Width, rect.Height);
                 e.Graphics.DrawRectangle(shadowPen, shadowRect);
             }
 
-            using (var pen = new Pen(_borderColor, 1.5f))
+            using (Pen pen = new(_borderColor, 1.5f))
             {
                 e.Graphics.DrawRectangle(pen, rect);
             }
@@ -1473,15 +1475,15 @@ namespace Pos.WinFormsUI.Forms
 
         protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
         {
-            var rc = new Rectangle(15, e.Item.Height / 2, e.Item.Width - 30, 1);
+            Rectangle rc = new(15, e.Item.Height / 2, e.Item.Width - 30, 1);
 
             // Gradient separator line
-            using (var brush = new LinearGradientBrush(
+            using (LinearGradientBrush brush = new(
                 new Point(rc.Left, rc.Top),
                 new Point(rc.Right, rc.Top),
                 Color.Transparent,
                 _borderColor))
-            using (var pen = new Pen(brush, 1))
+            using (Pen pen = new(brush, 1))
             {
                 e.Graphics.DrawLine(pen, rc.Left, rc.Top, rc.Right, rc.Top);
             }

@@ -121,7 +121,7 @@
             lblPageNumber.AutoSize = true;
             lblPageNumber.Location = new Point(1376, 8);
             lblPageNumber.Name = "lblPageNumber";
-            lblPageNumber.Size = new Size(53, 20);
+            lblPageNumber.Size = new Size(65, 25);
             lblPageNumber.TabIndex = 7;
             lblPageNumber.Text = "Page 1";
             // 
@@ -146,7 +146,7 @@
             lblTotalRecords.Dock = DockStyle.Left;
             lblTotalRecords.Location = new Point(0, 0);
             lblTotalRecords.Name = "lblTotalRecords";
-            lblTotalRecords.Size = new Size(111, 20);
+            lblTotalRecords.Size = new Size(138, 25);
             lblTotalRecords.TabIndex = 8;
             lblTotalRecords.Text = "10000 products";
             // 
@@ -158,9 +158,9 @@
             btnLoad.FlatStyle = FlatStyle.Flat;
             btnLoad.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLoad.ForeColor = Color.White;
-            btnLoad.Location = new Point(1288, 38);
+            btnLoad.Location = new Point(1249, 38);
             btnLoad.Name = "btnLoad";
-            btnLoad.Size = new Size(288, 40);
+            btnLoad.Size = new Size(327, 42);
             btnLoad.TabIndex = 3;
             btnLoad.Text = "🔄Sync Products From Cloud";
             btnLoad.UseVisualStyleBackColor = false;
@@ -186,7 +186,7 @@
             labelInvoicesTitle.Location = new Point(0, 0);
             labelInvoicesTitle.Name = "labelInvoicesTitle";
             labelInvoicesTitle.Padding = new Padding(6, 6, 0, 6);
-            labelInvoicesTitle.Size = new Size(311, 49);
+            labelInvoicesTitle.Size = new Size(369, 57);
             labelInvoicesTitle.TabIndex = 40;
             labelInvoicesTitle.Text = "PRODUCT CATALOGUE";
             // 
@@ -196,7 +196,7 @@
             label1.AutoSize = true;
             label1.Location = new Point(2819, -18);
             label1.Name = "label1";
-            label1.Size = new Size(53, 20);
+            label1.Size = new Size(65, 25);
             label1.TabIndex = 3;
             label1.Text = "Page 1";
             // 
@@ -205,9 +205,9 @@
             lblCustomerRegType.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblCustomerRegType.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold);
             lblCustomerRegType.ForeColor = Color.FromArgb(75, 85, 99);
-            lblCustomerRegType.Location = new Point(1239, 57);
+            lblCustomerRegType.Location = new Point(1219, 57);
             lblCustomerRegType.Name = "lblCustomerRegType";
-            lblCustomerRegType.Size = new Size(57, 20);
+            lblCustomerRegType.Size = new Size(70, 20);
             lblCustomerRegType.TabIndex = 41;
             lblCustomerRegType.Text = "Search";
             // 
@@ -219,7 +219,7 @@
             SearchBox.Location = new Point(1317, 52);
             SearchBox.Name = "SearchBox";
             SearchBox.PlaceholderText = "Search";
-            SearchBox.Size = new Size(252, 24);
+            SearchBox.Size = new Size(252, 28);
             SearchBox.TabIndex = 0;
             // 
             // progressBar

@@ -688,7 +688,7 @@ namespace Pos.WinFormsUI
             decimal saleValuePerUnit = 0m;
             decimal taxRatePercent = 0m;
             decimal discountPercent = 0m;
-            
+
             // Parse with NEW limits
             if (decimal.TryParse(qty.Text, out decimal q))
             {
@@ -927,7 +927,6 @@ namespace Pos.WinFormsUI
                     TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out decimal saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
                     TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out decimal taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
                     Discount = decimal.TryParse(Discount.Text, out decimal discount) ? discount : itemDtos.Sum(x => x.Discount),
-                    FurtherTax = GetSelectedSaleType().Id,
                     DateTime = DateTime.Now,
                     Items = itemDtos
                 };
@@ -976,12 +975,12 @@ namespace Pos.WinFormsUI
                     // ── Print ─────────────────────────────────────────────────────
                     try
                     {
-                        bool isOffline = !(await _networkService.IsInternetAvailableAsync());
+                        //bool isOffline = !(await _networkService.IsInternetAvailableAsync());
 
-                        if (isOffline)
-                        {
-                            //await CreateLog("Invoice saved in offline mode.", AlertType.Warning);
-                        }
+                        //if (isOffline)
+                        //{
+                        //    //await CreateLog("Invoice saved in offline mode.", AlertType.Warning);
+                        //}
 
                         string printerName = InvoiceReport.FindThermalPrinter();
                         bool showDialog = string.IsNullOrWhiteSpace(printerName);
@@ -989,7 +988,7 @@ namespace Pos.WinFormsUI
                         if (showDialog)
                         {
                             // Blocking dialog path – pass isOffline flag
-                            InvoiceReport printForm = new(invoiceDto, printDirectly: false, isOffline: isOffline);
+                            InvoiceReport printForm = new(invoiceDto, printDirectly: false, isOffline: true);
                             printForm.ShowDialog();
                         }
                         else
@@ -999,7 +998,7 @@ namespace Pos.WinFormsUI
                             {
                                 try
                                 {
-                                    InvoiceReport printForm = new(invoiceDto, printDirectly: false, isOffline: isOffline);
+                                    InvoiceReport printForm = new(invoiceDto, printDirectly: false, isOffline: true);
                                     printForm.PrintDirectlyToThermal();
                                 }
                                 catch (Exception ex)

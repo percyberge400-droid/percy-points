@@ -2,14 +2,15 @@
 using Pos.Application.DTOs;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
+using Pos.Application.DTOs.ReferenceDtos;
 using Pos.Application.Services.LiveService;
 using Pos.Application.Services.LogService;
+using Pos.Application.Services.ReferenceService.InvoiceTypeService;
+using Pos.Application.Services.ReferenceService.PaymentService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
-using Pos.WinFormsUI.AlertClasses;
 using System.Configuration;
-using System.Net.Http.Json;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -28,13 +29,24 @@ namespace Pos.WinFormsUI.Forms
         private readonly HttpClient _httpClient;
         private readonly AppSettings _appSettings;
 
+        // For Dynamic Payment Method and Invoice Type
+        private readonly IPaymentService _paymentService;
+        private readonly IInvoiceTypeService _invoiceTypeService;
+        private Dictionary<string, string>? _paymentModeMap;
+        private Dictionary<string, string>? _invoiceTypeMap;
 
-        public ExportInvoiceForm(ILiveService liveService, ILogService logService)
+        public ExportInvoiceForm(
+            ILiveService liveService,
+            ILogService logService,
+            IPaymentService paymentService,
+            IInvoiceTypeService invoiceTypeService)
         {
             InitializeComponent();
 
             _liveService = liveService ?? throw new ArgumentNullException(nameof(liveService));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
+            _paymentService = paymentService ?? throw new ArgumentNullException(nameof(paymentService));
+            _invoiceTypeService = invoiceTypeService ?? throw new ArgumentNullException(nameof(invoiceTypeService));
 
             _appSettings = new AppSettings
             {
@@ -53,6 +65,7 @@ namespace Pos.WinFormsUI.Forms
             dateTimePickerTo.Format = DateTimePickerFormat.Custom;
             dateTimePickerFrom.CustomFormat = "dd MMM yyyy";
             dateTimePickerTo.CustomFormat = "dd MMM yyyy";
+            this.ActiveControl = ExportInvoiceBtn;
 
             // --- Button hover styling ---
             ExportInvoiceBtn.MouseEnter += (s, e) => ExportInvoiceBtn.BackColor = System.Drawing.Color.FromArgb(60, 179, 113);
@@ -65,6 +78,27 @@ namespace Pos.WinFormsUI.Forms
 
             _httpClient = new HttpClient();
         }
+
+        private async Task EnsureLookupsLoadedAsync()
+        {
+            if (_paymentModeMap is not null && _invoiceTypeMap is not null)
+                return;
+
+            ApiResponse<List<ReferenceDto>> paymentResponse = await _paymentService.GetPaymentMethodsAsync();
+            _paymentModeMap = paymentResponse.Data
+                .ToDictionary(p => p.Id.ToString(), p => p.Name, StringComparer.OrdinalIgnoreCase);
+
+            ApiResponse<List<ReferenceDto>> invoiceTypeResponse = await _invoiceTypeService.GetInvoiceTypesAsync();
+            _invoiceTypeMap = invoiceTypeResponse.Data
+                .ToDictionary(t => t.Id.ToString(), t => t.Name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private string ResolveColumnValue(string header, string value) => header switch
+        {
+            "Payment Mode" => _paymentModeMap!.TryGetValue(value.Trim(), out string? p) ? p : value,
+            "Invoice Type" => _invoiceTypeMap!.TryGetValue(value.Trim(), out string? t) ? t : value,
+            _ => value
+        };
 
         private async Task CreateLog(string message, string type)
         {
@@ -101,6 +135,7 @@ namespace Pos.WinFormsUI.Forms
         }
 
         private void dateTimePickerFrom_ValueChanged(object sender, EventArgs e) => ValidateDateRange();
+
         private void dateTimePickerTo_ValueChanged(object sender, EventArgs e) => ValidateDateRange();
 
         private async Task ExportInvoiceBtn_ClickAsync(object sender, EventArgs e)
@@ -121,14 +156,16 @@ namespace Pos.WinFormsUI.Forms
 
                 await Task.Delay(100); // small delay for smooth UI
 
-                var decryptedPOSID = ConfigurationManager.AppSettings["Username"];
+                await EnsureLookupsLoadedAsync();
+
+                string? decryptedPOSID = ConfigurationManager.AppSettings["Username"];
                 int encryptedPOSID = Convert.ToInt32(AesEncryptionHelper.Decrypt(decryptedPOSID!));
 
                 // Construct full URL with environment query string
-                var fullUrlWithEnv = $"{_appSettings.BaseUrl.TrimEnd('/')}/{Endpoints.ExportCSV.TrimStart('/')}?environment={_appSettings.Environment}";
+                string fullUrlWithEnv = $"{_appSettings.BaseUrl.TrimEnd('/')}/{Endpoints.ExportCSV.TrimStart('/')}?environment={_appSettings.Environment}";
 
                 // Prepare request body
-                var requestBody = new InvoiceFilterDto
+                InvoiceFilterDto requestBody = new()
                 {
                     PosId = encryptedPOSID,
                     FromDate = dateTimePickerFrom.Value.Date,
@@ -137,7 +174,7 @@ namespace Pos.WinFormsUI.Forms
                 };
 
                 // ── Call API via HttpClientHelper ─────────────────────────────
-                var apiResponse = await HttpClientHelper.PostAsyncRawString(
+                ApiResponse<string> apiResponse = await HttpClientHelper.PostAsyncRawString(
                     url: fullUrlWithEnv,
                     body: requestBody,
                     bearerToken: _appSettings.Token,
@@ -174,7 +211,7 @@ namespace Pos.WinFormsUI.Forms
                 }
 
                 // ── Parse CSV lines from response ─────────────────────────────
-                var lines = apiResponse.Data.Split(
+                string[] lines = apiResponse.Data.Split(
                     new[] { "\r\n", "\n" },
                     StringSplitOptions.RemoveEmptyEntries);
 
@@ -187,7 +224,7 @@ namespace Pos.WinFormsUI.Forms
                 }
 
                 // ── Column mapping (CSV index → Excel header) ─────────────────
-                var columnMap = new (int Index, string Header)[]
+                (int Index, string Header)[] columnMap = new (int Index, string Header)[]
                 {
                     (1,  "Invoice Number"),
                     (3,  "USIN"),
@@ -210,7 +247,7 @@ namespace Pos.WinFormsUI.Forms
                 };
 
                 // ── Ask user: CSV or XLSX ─────────────────────────────────────
-                using var sfd = new SaveFileDialog
+                using SaveFileDialog sfd = new()
                 {
                     Filter = "Excel Workbook (*.xlsx)|*.xlsx|CSV File (*.csv)|*.csv",
                     Title = "Save Exported Invoices",
@@ -232,52 +269,29 @@ namespace Pos.WinFormsUI.Forms
                     if (isCsv)
                     {
                         // ── Export as CSV ─────────────────────────────────────
-                        var csvLines = new List<string>
+                        List<string> csvLines = new()
                 {
-                    // Write custom header row
                     string.Join(",", columnMap.Select(c => $"\"{c.Header}\""))
                 };
 
                         for (int i = 1; i < lines.Length; i++) // skip original header row
                         {
-                            var cols = lines[i].Split(',');
+                            string[] cols = lines[i].Split(',');
 
-                            // Skip rows without Invoice Number
                             if (cols.Length <= 1 || string.IsNullOrWhiteSpace(cols[1]))
                                 continue;
 
-                            var rowValues = new List<string>();
+                            List<string> rowValues = new();
 
-                            foreach (var (index, header) in columnMap)
+                            foreach ((int index, string header) in columnMap)
                             {
                                 string value = index < cols.Length ? cols[index].Trim() : string.Empty;
-
-                                value = header switch
-                                {
-                                    "Payment Mode" => value switch
-                                    {
-                                        "1" => "Card",
-                                        "2" => "Cash",
-                                        "3" => "Online",
-                                        _ => value
-                                    },
-                                    "Invoice Type" => value switch
-                                    {
-                                        "1" => "New",
-                                        "2" => "Debit Invoice",
-                                        "3" => "Credit Invoice",
-                                        _ => value
-                                    },
-                                    _ => value
-                                };
-
-                                rowValues.Add($"\"{value}\"");
+                                rowValues.Add($"\"{ResolveColumnValue(header, value)}\"");
                             }
 
                             csvLines.Add(string.Join(",", rowValues));
                         }
 
-                        // Ensure .csv extension
                         string csvPath = sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)
                             ? sfd.FileName
                             : sfd.FileName + ".csv";
@@ -292,17 +306,16 @@ namespace Pos.WinFormsUI.Forms
                     else
                     {
                         // ── Export as XLSX ────────────────────────────────────
-                        using var workbook = new XLWorkbook();
-                        var sheet = workbook.Worksheets.Add("Invoices");
+                        using XLWorkbook workbook = new();
+                        IXLWorksheet sheet = workbook.Worksheets.Add("Invoices");
                         int excelRow = 1;
 
                         for (int i = 0; i < lines.Length; i++)
                         {
-                            var cols = lines[i].Split(',');
+                            string[] cols = lines[i].Split(',');
 
                             if (i == 0)
                             {
-                                // Write custom headers
                                 for (int j = 0; j < columnMap.Length; j++)
                                     sheet.Cell(excelRow, j + 1).Value = columnMap[j].Header;
 
@@ -310,7 +323,6 @@ namespace Pos.WinFormsUI.Forms
                             }
                             else
                             {
-                                // Skip rows without Invoice Number
                                 if (cols.Length <= 1 || string.IsNullOrWhiteSpace(cols[1]))
                                     continue;
 
@@ -322,27 +334,7 @@ namespace Pos.WinFormsUI.Forms
                                     if (index < cols.Length)
                                     {
                                         string value = cols[index].Trim();
-
-                                        value = header switch
-                                        {
-                                            "Payment Mode" => value switch
-                                            {
-                                                "1" => "Card",
-                                                "2" => "Cash",
-                                                "3" => "Online",
-                                                _ => value
-                                            },
-                                            "Invoice Type" => value switch
-                                            {
-                                                "1" => "New",
-                                                "2" => "Debit Invoice",
-                                                "3" => "Credit Invoice",
-                                                _ => value
-                                            },
-                                            _ => value
-                                        };
-
-                                        sheet.Cell(excelRow, j + 1).Value = value;
+                                        sheet.Cell(excelRow, j + 1).Value = ResolveColumnValue(header, value);
                                     }
                                 }
 
@@ -350,7 +342,6 @@ namespace Pos.WinFormsUI.Forms
                             }
                         }
 
-                        // Ensure .xlsx extension
                         string xlsxPath = sfd.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase)
                             ? sfd.FileName
                             : sfd.FileName + ".xlsx";
@@ -383,13 +374,6 @@ namespace Pos.WinFormsUI.Forms
                 progressBarExport.Style = ProgressBarStyle.Blocks;
                 ExportInvoiceBtn.Enabled = true;
             }
-        }
-
-        private void ExportInvoiceForm_Load(object sender, EventArgs e) { }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
