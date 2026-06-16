@@ -1,5 +1,7 @@
 ﻿
 // DashboardForm.Designer.cs
+using Pos.WinFormsUI.Helpers;
+
 namespace Pos.WinFormsUI.Forms
 {
     partial class DashboardForm
@@ -42,8 +44,8 @@ namespace Pos.WinFormsUI.Forms
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelLogStats;
 
         // Invoices panel
-        private System.Windows.Forms.DateTimePicker dtpStartDate;
-        private System.Windows.Forms.DateTimePicker dtpEndDate;
+        private NoTodayDatePicker dtpStartDate;
+        private NoTodayDatePicker dtpEndDate;
         private System.Windows.Forms.Label lblDateRange;
 
 
@@ -77,8 +79,8 @@ namespace Pos.WinFormsUI.Forms
             btnClearFilter = new Button();
             btnToday = new Button();
             lblDateRange = new Label();
-            dtpStartDate = new DateTimePicker();
-            dtpEndDate = new DateTimePicker();
+            dtpStartDate = new NoTodayDatePicker();
+            dtpEndDate = new NoTodayDatePicker();
             InvoicesDataGridView = new DataGridView();
             labelInvoicesTitle = new Label();
             panelLogs = new Panel();

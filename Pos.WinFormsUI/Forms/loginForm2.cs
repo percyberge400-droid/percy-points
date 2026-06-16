@@ -1,14 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.DTOs;
 using Pos.Application.Services.LogService;
-using Pos.Application.Services.POSService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
-using System.Net.Http.Json;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
 
@@ -27,7 +25,7 @@ namespace Pos.WinFormsUI.Forms
             InitializeComponent();
             _logService = _provider.GetRequiredService<ILogService>();
 
-            
+
             _appSettings = new AppSettings
             {
                 BaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty,
@@ -62,7 +60,7 @@ namespace Pos.WinFormsUI.Forms
             string logoKey = ConfigurationManager.AppSettings["LOGO"];
             if (!string.IsNullOrEmpty(logoKey))
             {
-                var res = Resources.ResourceManager.GetObject(logoKey);
+                object? res = Resources.ResourceManager.GetObject(logoKey);
                 if (res is Image img)
                 {
                     picLogo.Image = img;
@@ -72,7 +70,7 @@ namespace Pos.WinFormsUI.Forms
             string posCOMP = ConfigurationManager.AppSettings["pos"];
             if (!string.IsNullOrEmpty(posCOMP))
             {
-                var res = Resources.ResourceManager.GetObject(posCOMP);
+                object? res = Resources.ResourceManager.GetObject(posCOMP);
                 if (res is Image img)
                 {
                     pictureBox2.Image = img;
@@ -368,7 +366,7 @@ namespace Pos.WinFormsUI.Forms
             if (control == null || control.Width <= 0 || control.Height <= 0)
                 return;
 
-            using (GraphicsPath path = new GraphicsPath())
+            using (GraphicsPath path = new())
             {
                 path.StartFigure();
                 path.AddArc(0, 0, radius, radius, 180, 90);                             // Top-left
@@ -398,7 +396,7 @@ namespace Pos.WinFormsUI.Forms
             var originalParent = textBox.Parent;
 
             // Create wrapper panel
-            Panel wrapper = new Panel
+            Panel wrapper = new()
             {
                 Location = originalLocation,
                 Size = new Size(originalSize.Width, 38),
@@ -433,10 +431,10 @@ namespace Pos.WinFormsUI.Forms
             {
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-                Rectangle rect = new Rectangle(0, 0, wrapper.Width, wrapper.Height);
+                Rectangle rect = new(0, 0, wrapper.Width, wrapper.Height);
 
                 // Draw semi-transparent white background (more opaque)
-                using (SolidBrush bgBrush = new SolidBrush(Color.FromArgb(220, 255, 255, 255)))
+                using (SolidBrush bgBrush = new(Color.FromArgb(220, 255, 255, 255)))
                 {
                     using (GraphicsPath bgPath = CreateRoundedRectPath(rect, radius))
                     {
@@ -445,9 +443,9 @@ namespace Pos.WinFormsUI.Forms
                 }
 
                 // Draw white border (thicker and more visible)
-                using (Pen pen = new Pen(Color.FromArgb(255, 255, 255), 3))
+                using (Pen pen = new(Color.FromArgb(255, 255, 255), 3))
                 {
-                    Rectangle borderRect = new Rectangle(2, 2, wrapper.Width - 4, wrapper.Height - 4);
+                    Rectangle borderRect = new(2, 2, wrapper.Width - 4, wrapper.Height - 4);
                     using (GraphicsPath borderPath = CreateRoundedRectPath(borderRect, radius - 1))
                     {
                         e.Graphics.DrawPath(pen, borderPath);
@@ -476,7 +474,7 @@ namespace Pos.WinFormsUI.Forms
 
         private GraphicsPath CreateRoundedRectPath(Rectangle rect, int radius)
         {
-            GraphicsPath path = new GraphicsPath();
+            GraphicsPath path = new();
             path.StartFigure();
             path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
             path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
@@ -502,7 +500,7 @@ namespace Pos.WinFormsUI.Forms
         //            "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         //    }
         //}
-        
+
         private string GetInstallPath()
         {
             string commonInfo = Path.Combine(
@@ -513,7 +511,7 @@ namespace Pos.WinFormsUI.Forms
 
             if (File.Exists(commonInfo))
             {
-                foreach (var line in File.ReadAllLines(commonInfo))
+                foreach (string line in File.ReadAllLines(commonInfo))
                 {
                     if (line.StartsWith("InstallPath=", StringComparison.OrdinalIgnoreCase))
                     {
@@ -525,7 +523,7 @@ namespace Pos.WinFormsUI.Forms
 
             if (string.IsNullOrWhiteSpace(installPath) || !Directory.Exists(installPath))
             {
-                var defaultPath = Path.Combine(
+                string defaultPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                     "PRAL", "POSComponent");
 
@@ -562,7 +560,7 @@ namespace Pos.WinFormsUI.Forms
                 ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
                 : "0.0.0,0,Date";
 
-            var parts = fullLocalVersion.Split(',');
+            string[] parts = fullLocalVersion.Split(',');
             string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
             string isUpdate = parts.Length > 1 ? parts[1] : "0";
             string updateDate = parts.Length > 2 ? parts[2] : DateTime.Now.ToString();
@@ -633,7 +631,7 @@ namespace Pos.WinFormsUI.Forms
             Log($"Update available: {localVersion} → {serverVersion}");
 
             // ---------------- AutoUpdateTriggerDays Logic ----------------
-            var autoUpdateTriggerDaysSetting = ConfigurationManager.AppSettings["AutoUpdateTriggerDays"];
+            string? autoUpdateTriggerDaysSetting = ConfigurationManager.AppSettings["AutoUpdateTriggerDays"];
             bool autoLaunch = false;
 
             if (isUpdate == "1" &&
@@ -698,7 +696,7 @@ namespace Pos.WinFormsUI.Forms
                 LaunchUpdater(installPath, Log);
             }
         }
-        
+
         // ---------------- Helper: Launch Updater ----------------
         private void LaunchUpdater(string installPath, Action<string> Log)
         {

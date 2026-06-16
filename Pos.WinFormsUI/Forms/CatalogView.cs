@@ -1,14 +1,12 @@
-﻿using Newtonsoft.Json.Linq;
-using Pos.Application.DTOs;
+﻿using Pos.Application.DTOs;
+using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.LogService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Utility;
 using Pos.SecurityEncryption;
 using Pos.WinFormsUI.AlertClasses;
-using Pos.WinFormsUI.AlertClasses;
 using System.Configuration;
-using System.Net.Http.Json;
 
 namespace Pos.WinFormsUI.Forms
 {
@@ -19,9 +17,9 @@ namespace Pos.WinFormsUI.Forms
         private readonly AppSettings _appSettings;
         // State management
         private int _currentPage = 1;
-        private int _pageSize = 50;
+        private readonly int _pageSize = 50;
         private CancellationTokenSource _currentOperationCts;
-        private readonly object _loadingLock = new object();
+        private readonly object _loadingLock = new();
         private bool _isLoading = false;
 
         // Search
@@ -208,7 +206,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (progressBar != null && ProductCatalogueDataGridView != null)
             {
-                var gridBounds = ProductCatalogueDataGridView.Bounds;
+                Rectangle gridBounds = ProductCatalogueDataGridView.Bounds;
                 progressBar.Left = gridBounds.Left + (gridBounds.Width - progressBar.Width) / 2;
                 progressBar.Top = gridBounds.Top + (gridBounds.Height - progressBar.Height) / 2;
                 progressBar.BringToFront();
@@ -219,7 +217,7 @@ namespace Pos.WinFormsUI.Forms
         #region Core Operations
         private async void btnLoad_Click(object sender, EventArgs e)
         {
-            var confirm = MessageBox.Show(
+            DialogResult confirm = MessageBox.Show(
                 "This will clear existing local data and fetch fresh data from the server.\n\nAre you sure you want to continue?",
                 "Confirm Data Refresh",
                 MessageBoxButtons.YesNo,
@@ -267,7 +265,7 @@ namespace Pos.WinFormsUI.Forms
             // ── Replace raw HttpClient with HttpClientHelper.GetAsync ─────────
             string endpoint = $"{Endpoints.GetProductCatalogue}?posId={posId}";
 
-            var result = await HttpClientHelper.GetAsync<ProductCatalogueDto>(
+            ApiResponse<List<ProductCatalogueDto>> result = await HttpClientHelper.GetAsync<ProductCatalogueDto>(
                 endpoint: endpoint,
                 bearerToken: _appSettings.Token,
                 baseUrl: _appSettings.BaseUrl,
@@ -275,7 +273,7 @@ namespace Pos.WinFormsUI.Forms
                 appSettings: _appSettings
             );
 
-            var apiProducts = result?.Data ?? new List<ProductCatalogueDto>();
+            List<ProductCatalogueDto> apiProducts = result?.Data ?? new List<ProductCatalogueDto>();
 
             if (!apiProducts.Any())
             {
@@ -284,7 +282,7 @@ namespace Pos.WinFormsUI.Forms
             }
 
             // Step 2: Clear local database
-            var clearResult = await _productCatalogueService.DeleteProductCatalogue();
+            ApiResponse<object> clearResult = await _productCatalogueService.DeleteProductCatalogue();
             cancellationToken.ThrowIfCancellationRequested();
 
             if (clearResult.StatusCode != ApiStatusCode.Success && clearResult.StatusCode != ApiStatusCode.NotFound)
@@ -294,13 +292,13 @@ namespace Pos.WinFormsUI.Forms
 
             // Step 3: Save to local database with progress
             int successCount = 0;
-            var saveTasks = new List<Task>();
+            List<Task> saveTasks = new();
 
-            foreach (var dto in apiProducts)
+            foreach (ProductCatalogueDto dto in apiProducts)
             {
                 if (cancellationToken.IsCancellationRequested) break;
 
-                var task = _productCatalogueService.PostProductCatalog(dto)
+                Task task = _productCatalogueService.PostProductCatalog(dto)
                     .ContinueWith(t =>
                     {
                         if (t.Result.StatusCode == ApiStatusCode.Success)
@@ -342,7 +340,7 @@ namespace Pos.WinFormsUI.Forms
         }
         private async Task LoadFromLocalDB(CancellationToken cancellationToken = default)
         {
-            var query = new ProductCatalogueQueryDto
+            ProductCatalogueQueryDto query = new()
             {
                 HSCode = null,
                 ProductDescription = null,
@@ -350,9 +348,9 @@ namespace Pos.WinFormsUI.Forms
                 pageNumber = _currentPage
             };
 
-            var response = await _productCatalogueService.GetProductCatalogueWithPagination(query);
+            ApiResponse<PageResponseDto<ProductCatalogueDto>> response = await _productCatalogueService.GetProductCatalogueWithPagination(query);
             cancellationToken.ThrowIfCancellationRequested();
-            var allItems = response.Data.Items;
+            List<ProductCatalogueDto>? allItems = response.Data.Items;
 
 
             //var allItems = response?.Items?.OrderBy(p => p.ItemSerialNumber).ToList()
@@ -373,12 +371,12 @@ namespace Pos.WinFormsUI.Forms
                 return;
             }
 
-            var response = await _productCatalogueService.GetProductCatalogue();
+            ApiResponse<List<ProductCatalogueDto>> response = await _productCatalogueService.GetProductCatalogue();
             cancellationToken.ThrowIfCancellationRequested();
 
-            var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
+            IEnumerable<ProductCatalogueDto> allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
-            var filtered = allItems.Where(p =>
+            List<ProductCatalogueDto> filtered = allItems.Where(p =>
                 (p.ProductCode.HasValue && p.ProductCode.Value.ToString().Contains(searchText)) ||
                 (p.ProductDescription?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true) ||
                 (p.HSCode?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true)
@@ -428,10 +426,10 @@ namespace Pos.WinFormsUI.Forms
             // ✅ Calculate starting serial number based on current page and page size
             int srNo = ((_currentPage - 1) * _pageSize) + 1;
 
-            foreach (var product in items)
+            foreach (ProductCatalogueDto product in items)
             {
                 int rowIndex = ProductCatalogueDataGridView.Rows.Add();
-                var row = ProductCatalogueDataGridView.Rows[rowIndex];
+                DataGridViewRow row = ProductCatalogueDataGridView.Rows[rowIndex];
 
                 row.Cells["colSrNo"].Value = srNo++;
                 SetCell(row, "colProductCode", product.ProductCode);
@@ -596,7 +594,7 @@ namespace Pos.WinFormsUI.Forms
             ProductCatalogueDataGridView.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
             // Sr. No. - CENTER ALIGN
-            var colSrNo = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colSrNo = new()
             {
                 Name = "colSrNo",
                 HeaderText = "Sr. No.",
@@ -607,7 +605,7 @@ namespace Pos.WinFormsUI.Forms
             colSrNo.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // Product Code - RIGHT ALIGN
-            var colProductCode = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colProductCode = new()
             {
                 Name = "colProductCode",
                 HeaderText = "   Product Code",
@@ -618,7 +616,7 @@ namespace Pos.WinFormsUI.Forms
             colProductCode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // Product Description - LEFT ALIGN
-            var colProductDesc = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colProductDesc = new()
             {
                 Name = "colProductDesc",
                 HeaderText = "Product Description",
@@ -629,7 +627,7 @@ namespace Pos.WinFormsUI.Forms
             colProductDesc.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // HS Code - CENTER ALIGN (FIXED - was Right before)
-            var colHScode = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colHScode = new()
             {
                 Name = "colHScode",
                 HeaderText = "   HS Code",
@@ -640,7 +638,7 @@ namespace Pos.WinFormsUI.Forms
             colHScode.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // Sale Type - CENTER ALIGN
-            var colSaleType = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colSaleType = new()
             {
                 Name = "colSaleType",
                 HeaderText = "Sale Type",
@@ -651,7 +649,7 @@ namespace Pos.WinFormsUI.Forms
             colSaleType.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // POS UOM - CENTER ALIGN
-            var colPosUOM = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colPosUOM = new()
             {
                 Name = "colPosUOM",
                 HeaderText = "POS UOM",
@@ -662,7 +660,7 @@ namespace Pos.WinFormsUI.Forms
             colPosUOM.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             // Price - RIGHT ALIGN (keeping as is)
-            var colPrice = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colPrice = new()
             {
                 Name = "colPrice",
                 HeaderText = "Price",
@@ -674,7 +672,7 @@ namespace Pos.WinFormsUI.Forms
             colPrice.DefaultCellStyle.Format = "N2";
 
             // Tax Rate - CENTER ALIGN
-            var colTaxRate = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colTaxRate = new()
             {
                 Name = "colTaxRate",
                 HeaderText = "Tax Rate (%)",

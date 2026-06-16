@@ -1,4 +1,6 @@
-﻿namespace Pos.WinFormsUI.Forms
+﻿using Pos.WinFormsUI.Helpers;
+
+namespace Pos.WinFormsUI.Forms
 {
     partial class ExportInvoiceForm
     {
@@ -28,8 +30,8 @@
             ToDateLbl = new Label();
             DateFromLbl = new Label();
             progressBarExport = new ProgressBar();
-            dateTimePickerTo = new DateTimePicker();
-            dateTimePickerFrom = new DateTimePicker();
+            dateTimePickerTo = new NoTodayDatePicker();
+            dateTimePickerFrom = new NoTodayDatePicker();
             ExportInvoiceBtn = new Button();
             panelPending.SuspendLayout();
             SuspendLayout();
@@ -43,7 +45,7 @@
             label1.Location = new Point(0, 0);
             label1.Name = "label1";
             label1.Size = new Size(271, 41);
-            label1.TabIndex = 0;
+            label1.TabIndex = 10;
             label1.Text = "EXPORT INVOICES";
             label1.TextAlign = ContentAlignment.MiddleCenter;
             // 
@@ -80,7 +82,7 @@
             ToDateLbl.Location = new Point(340, 41);
             ToDateLbl.Name = "ToDateLbl";
             ToDateLbl.Size = new Size(71, 23);
-            ToDateLbl.TabIndex = 1;
+            ToDateLbl.TabIndex = 9;
             ToDateLbl.Text = "To Date";
             // 
             // DateFromLbl
@@ -89,7 +91,7 @@
             DateFromLbl.Location = new Point(60, 41);
             DateFromLbl.Name = "DateFromLbl";
             DateFromLbl.Size = new Size(93, 23);
-            DateFromLbl.TabIndex = 2;
+            DateFromLbl.TabIndex = 8;
             DateFromLbl.Text = "From Date";
             // 
             // progressBarExport
@@ -111,7 +113,7 @@
             dateTimePickerTo.Location = new Point(417, 39);
             dateTimePickerTo.Name = "dateTimePickerTo";
             dateTimePickerTo.Size = new Size(143, 29);
-            dateTimePickerTo.TabIndex = 6;
+            dateTimePickerTo.TabIndex = 2;
             // 
             // dateTimePickerFrom
             // 
@@ -123,7 +125,7 @@
             dateTimePickerFrom.Location = new Point(159, 39);
             dateTimePickerFrom.Name = "dateTimePickerFrom";
             dateTimePickerFrom.Size = new Size(143, 29);
-            dateTimePickerFrom.TabIndex = 7;
+            dateTimePickerFrom.TabIndex = 1;
             // 
             // ExportInvoiceBtn
             // 
@@ -136,7 +138,7 @@
             ExportInvoiceBtn.Location = new Point(60, 96);
             ExportInvoiceBtn.Name = "ExportInvoiceBtn";
             ExportInvoiceBtn.Size = new Size(500, 40);
-            ExportInvoiceBtn.TabIndex = 8;
+            ExportInvoiceBtn.TabIndex = 3;
             ExportInvoiceBtn.Text = "📤  Export Invoices";
             ExportInvoiceBtn.UseVisualStyleBackColor = false;
             // 
@@ -165,8 +167,8 @@
         private Label RegLbl;
         private ProgressBar progressBarExport;
         private TextBox RegNoTxtBox;
-        private DateTimePicker dateTimePickerTo;
-        private DateTimePicker dateTimePickerFrom;
+        private NoTodayDatePicker dateTimePickerTo;
+        private NoTodayDatePicker dateTimePickerFrom;
         private Button ExportInvoiceBtn;
     }
 }
