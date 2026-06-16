@@ -1,8 +1,10 @@
-﻿using Pos.Application.DTOs.InvoiceDtos;
+﻿using Pos.Application.DTOs;
+using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDTOs;
 using Pos.Application.DTOs.ProductCatalogDtos;
 using Pos.Application.Services.InvoiceService;
 using Pos.Application.Services.LogService;
+using Pos.Application.Services.NetworkService;
 using Pos.Application.Services.ProductCatalogService;
 using Pos.Application.Services.ReferenceService.InvoiceTypeService;
 using Pos.Application.Services.ReferenceService.PaymentService;
@@ -28,7 +30,7 @@ namespace Pos.WinFormsUI
         private Size _originalClientSize = Size.Empty;
         private bool _originalLayoutCaptured = false;
 
-        private static List<InvoiceItems> _sessionItems = new();
+        private static readonly List<InvoiceItems> _sessionItems = new();
         public static Invoice CurrentInvoice;
         private readonly List<InvoiceItems> addedItems;
         private bool _isSaving = false;
@@ -48,6 +50,9 @@ namespace Pos.WinFormsUI
         private ProgressBar progressBar;
         private int _isLoadingFlag = 0;
 
+        // Network Checker
+        private readonly INetworkService _networkService;
+
         #endregion
 
         #region Constructor / Initialization
@@ -59,7 +64,8 @@ namespace Pos.WinFormsUI
             IInvoiceService invoiceService,
             IInvoiceTypeService invoiceTypeService,
             IPaymentService paymentService,
-            IServicesRenderedService servicesRenderedService)
+            IServicesRenderedService servicesRenderedService,
+            INetworkService networkService)
         {
             InitializeComponent();
             InitializeProgressBar();
@@ -80,8 +86,8 @@ namespace Pos.WinFormsUI
             SetupPanelResizeHandlers();
 
             // Load POSID from app.config (stored encrypted)
-            var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
-            var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+            string encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+            string decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
             posid.Text = decryptedPosId;   // show real POSID in UI
 
             addedItems = _sessionItems;
@@ -161,6 +167,7 @@ namespace Pos.WinFormsUI
             _invoiceTypeService = invoiceTypeService;
             _paymentService = paymentService;
             _servicesRenderedService = servicesRenderedService;
+            _networkService = networkService;
         }
 
         #endregion
@@ -189,7 +196,7 @@ namespace Pos.WinFormsUI
         {
             if (progressBar != null && dataGridView1 != null)
             {
-                var gridBounds = dataGridView1.Bounds;
+                Rectangle gridBounds = dataGridView1.Bounds;
                 progressBar.Left = gridBounds.Left + (gridBounds.Width - progressBar.Width) / 2;
                 progressBar.Top = gridBounds.Top + (gridBounds.Height - progressBar.Height) / 2;
                 progressBar.BringToFront();
@@ -535,7 +542,7 @@ namespace Pos.WinFormsUI
         {
             bool hasEmpty = false;
 
-            foreach (var tb in textBoxes)
+            foreach (TextBox tb in textBoxes)
             {
                 if (string.IsNullOrWhiteSpace(tb.Text))
                 {
@@ -564,7 +571,7 @@ namespace Pos.WinFormsUI
 
         private void ResetTextBoxHighlights(params TextBox[] textBoxes)
         {
-            foreach (var tb in textBoxes)
+            foreach (TextBox tb in textBoxes)
             {
                 tb.BackColor = Color.White;
             }
@@ -577,7 +584,7 @@ namespace Pos.WinFormsUI
 
         private void Invoicetype_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var type = GetSelectedInvoiceType();
+            (byte Id, string Name) type = GetSelectedInvoiceType();
 
             bool isDebitOrCredit = type.Name.Contains("Debit", StringComparison.OrdinalIgnoreCase)
                                 || type.Name.Contains("Credit", StringComparison.OrdinalIgnoreCase);
@@ -609,7 +616,7 @@ namespace Pos.WinFormsUI
 
         private async Task CreateLog(string message, string type)
         {
-            var log = new CreateLogDto
+            CreateLogDto log = new()
             {
                 Message = message,
                 Type = type,
@@ -620,8 +627,8 @@ namespace Pos.WinFormsUI
 
         private void SetupContextMenu()
         {
-            var contextMenu = new ContextMenuStrip();
-            var deleteItem = new ToolStripMenuItem("Delete Item");
+            ContextMenuStrip contextMenu = new();
+            ToolStripMenuItem deleteItem = new("Delete Item");
             deleteItem.Click += (s, e) => RemoveSelectedItem();
             contextMenu.Items.Add(deleteItem);
 
@@ -683,7 +690,7 @@ namespace Pos.WinFormsUI
             decimal discountPercent = 0m;
 
             // Parse with NEW limits
-            if (decimal.TryParse(qty.Text, out var q))
+            if (decimal.TryParse(qty.Text, out decimal q))
             {
                 if (q < 0 || q > MAX_QTY)
                 {
@@ -694,7 +701,7 @@ namespace Pos.WinFormsUI
                 quantity = q;
             }
 
-            if (decimal.TryParse(salevalue.Text, out var sv))
+            if (decimal.TryParse(salevalue.Text, out decimal sv))
             {
                 if (sv < 0 || sv > MAX_UNIT_PRICE)
                 {
@@ -715,12 +722,12 @@ namespace Pos.WinFormsUI
                 }
             }
 
-            if (decimal.TryParse(TaxRatebox.Text, out var tr))
+            if (decimal.TryParse(TaxRatebox.Text, out decimal tr))
             {
                 taxRatePercent = Math.Clamp(tr, 0m, 100m);
             }
 
-            if (decimal.TryParse(itemDiscountPercent.Text, out var dp))
+            if (decimal.TryParse(itemDiscountPercent.Text, out decimal dp))
             {
                 discountPercent = Math.Clamp(dp, 0m, 100m);
             }
@@ -856,12 +863,12 @@ namespace Pos.WinFormsUI
             progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.Value = 0;
 
-            var progressTaskCts = new CancellationTokenSource();
+            CancellationTokenSource progressTaskCts = new();
 
             try
             {
                 // Smooth progress animation while save + print run
-                var progressTask = Task.Run(async () =>
+                Task progressTask = Task.Run(async () =>
                 {
                     while (!progressTaskCts.Token.IsCancellationRequested)
                     {
@@ -889,7 +896,7 @@ namespace Pos.WinFormsUI
                 }
 
                 // Build DTOs
-                var itemDtos = addedItems.Select(item => new InvoiceItemDto
+                List<InvoiceItemDto> itemDtos = addedItems.Select(item => new InvoiceItemDto
                 {
                     ItemCode = item.ItemCode,
                     ItemName = item.ItemName,
@@ -904,9 +911,9 @@ namespace Pos.WinFormsUI
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim()
                 }).ToList();
 
-                var invoiceDto = new InvoiceDto
+                InvoiceDto invoiceDto = new()
                 {
-                    POSID = int.TryParse(posid.Text, out var posId) ? posId : 0,
+                    POSID = int.TryParse(posid.Text, out int posId) ? posId : 0,
                     USIN = USIN.Text.Trim(),
                     RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                     InvoiceType = GetSelectedInvoiceType().Id,
@@ -915,12 +922,12 @@ namespace Pos.WinFormsUI
                     BuyerName = BuyerBname.Text.Trim(),
                     BuyerPhoneNumber = buyerphone.Text.Trim(),
                     PaymentMode = GetSelectedPaymentMode().Id,
-                    TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
-                    TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : itemDtos.Sum(x => x.Quantity),
-                    TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
-                    TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
-                    Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : itemDtos.Sum(x => x.Discount),
-                    FurtherTax = (byte)GetSelectedSaleType().Id,
+                    TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out decimal billAmt) ? billAmt : itemDtos.Sum(x => x.TotalAmount),
+                    TotalQuantity = decimal.TryParse(TotalQuantity.Text, out decimal qty) ? qty : itemDtos.Sum(x => x.Quantity),
+                    TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out decimal saleVal) ? saleVal : itemDtos.Sum(x => x.SaleValue * x.Quantity),
+                    TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out decimal taxCharged) ? taxCharged : itemDtos.Sum(x => x.TaxCharged),
+                    Discount = decimal.TryParse(Discount.Text, out decimal discount) ? discount : itemDtos.Sum(x => x.Discount),
+                    FurtherTax = GetSelectedSaleType().Id,
                     DateTime = DateTime.Now,
                     Items = itemDtos
                 };
@@ -940,22 +947,19 @@ namespace Pos.WinFormsUI
                     //var result = await response.Content.ReadFromJsonAsync<ApiResponse<InvoiceDto>>();
                     //if (result == null)
                     //    throw new Exception("Empty or invalid API response.");
-                    var env = ConfigurationManager.AppSettings["Environment"];
-                    var result = await _invoiceService.CreateAsync(invoiceDto, env);
+                    string? env = ConfigurationManager.AppSettings["Environment"];
+                    ApiResponse<InvoiceDto> result = await _invoiceService.CreateAsync(invoiceDto, env);
 
                     if (result.StatusCode == ApiStatusCode.Success)
                     {
                         // Update invoice DTO with FBR invoice number
                         invoiceDto.InvoiceNumber = result.Data.InvoiceNumber;
-                        //invoiceDto.InvoiceNumber = invoiceDto.InvoiceNumber;
 
-                        // Reset after both save & print complete
+                        // Reset UI early (before printing – print is fire-and-forget)
                         progressTaskCts.Cancel();
                         await Task.Delay(300);
-
                         progressBar.Visible = false;
                         progressBar.Value = 0;
-                        // Clear UI early
                         addedItems.Clear();
                         dataGridView1.Rows.Clear();
                         ClearInvoiceFields();
@@ -969,33 +973,37 @@ namespace Pos.WinFormsUI
                         ResetUI(progressTaskCts);
                         return;
                     }
+                    // ── Print ─────────────────────────────────────────────────────
                     try
                     {
-                        // Print configuration
+                        bool isOffline = !(await _networkService.IsInternetAvailableAsync());
+
+                        if (isOffline)
+                        {
+                            //await CreateLog("Invoice saved in offline mode.", AlertType.Warning);
+                        }
+
                         string printerName = InvoiceReport.FindThermalPrinter();
                         bool showDialog = string.IsNullOrWhiteSpace(printerName);
-                        //bool showDialog = false; // Or set based on config/user choice
 
                         if (showDialog)
                         {
-                            // ShowDialog blocks by design, run on UI thread
-                            InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                            // Blocking dialog path – pass isOffline flag
+                            InvoiceReport printForm = new(invoiceDto, printDirectly: false, isOffline: isOffline);
                             printForm.ShowDialog();
                         }
                         else
                         {
-                            // Complete background printing - zero UI blocking
+                            // Fire-and-forget background print – pass isOffline flag
                             _ = Task.Run(() =>
                             {
                                 try
                                 {
-                                    // Create form and print entirely in background thread
-                                    InvoiceReport printForm = new InvoiceReport(invoiceDto);
+                                    InvoiceReport printForm = new(invoiceDto, printDirectly: false, isOffline: isOffline);
                                     printForm.PrintDirectlyToThermal();
                                 }
                                 catch (Exception ex)
                                 {
-                                    // Log error without blocking UI
                                     try
                                     {
                                         this.BeginInvoke(new Action(() =>
@@ -1003,7 +1011,7 @@ namespace Pos.WinFormsUI
                                             _ = CreateLog($"Print error: {ex.Message}", AlertType.Error);
                                         }));
                                     }
-                                    catch { /* Ignore if form is disposed */ }
+                                    catch { }
                                 }
                             });
                         }
@@ -1016,7 +1024,7 @@ namespace Pos.WinFormsUI
                     finally
                     {
                         AlertManager.ShowSuccess("Invoice saved successfully");
-                        _ = CreateLog("invoice saved successfully", AlertType.Success);
+                        _ = CreateLog("Invoice saved successfully.", AlertType.Success);
                     }
 
                 }
@@ -1054,7 +1062,7 @@ namespace Pos.WinFormsUI
                     return;
                 }
 
-                var row = dataGridView1.SelectedRows[0];
+                DataGridViewRow row = dataGridView1.SelectedRows[0];
                 string itemCode = row.Cells["colProductCode"].Value?.ToString()?.Trim();
 
                 if (string.IsNullOrEmpty(itemCode))
@@ -1071,7 +1079,7 @@ namespace Pos.WinFormsUI
                     return;
                 }
 
-                var item = addedItems[itemIndex];
+                InvoiceItems item = addedItems[itemIndex];
                 LoadItemForEditing(item);
                 addedItems.RemoveAt(itemIndex);
                 dataGridView1.Rows.Remove(row);
@@ -1093,8 +1101,8 @@ namespace Pos.WinFormsUI
         private void btnclear_Click(object sender, EventArgs e)
         {
             ClearForm(this);
-            var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
-            var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+            string encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+            string decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
             posid.Text = decryptedPosId;   // show real POSID in UI
         }
         #endregion
@@ -1102,10 +1110,10 @@ namespace Pos.WinFormsUI
         #region search functionality
         private async void btnsearch_Click(object sender, EventArgs e)
         {
-            var response = await _productCatalogueService.GetProductCatalogue();
-            var allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
+            ApiResponse<List<ProductCatalogueDto>> response = await _productCatalogueService.GetProductCatalogue();
+            IEnumerable<ProductCatalogueDto> allItems = response?.Data ?? Enumerable.Empty<ProductCatalogueDto>();
 
-            using (var dlg = CreateRealtimeSearchDialog(allItems.ToList()))
+            using (Form dlg = CreateRealtimeSearchDialog(allItems.ToList()))
             {
                 if (dlg.ShowDialog(this) == DialogResult.OK && dlg.Tag is ProductCatalogueDto selected)
                 {
@@ -1120,7 +1128,7 @@ namespace Pos.WinFormsUI
             Color accentBlue = ColorTranslator.FromHtml("#197FC2");
             Color shadow = ColorTranslator.FromHtml("#E6E9EE");
 
-            var dialog = new Form
+            Form dialog = new()
             {
                 FormBorderStyle = FormBorderStyle.None,
                 StartPosition = FormStartPosition.CenterParent,
@@ -1130,7 +1138,7 @@ namespace Pos.WinFormsUI
                 KeyPreview = true
             };
 
-            var layout = new TableLayoutPanel
+            TableLayoutPanel layout = new()
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
@@ -1142,10 +1150,10 @@ namespace Pos.WinFormsUI
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));
 
             // ----- HEADER -----
-            var header = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
+            Panel header = new() { Dock = DockStyle.Fill, BackColor = Color.Transparent };
             header.Paint += (s, e) =>
             {
-                using var brush = new LinearGradientBrush(
+                using LinearGradientBrush brush = new(
                     header.ClientRectangle,
                     ColorTranslator.FromHtml("#1B8C76"),  // top teal
                     ColorTranslator.FromHtml("#125E8A"),  // bottom blue
@@ -1155,7 +1163,7 @@ namespace Pos.WinFormsUI
             };
 
 
-            var lblTitle = new Label
+            Label lblTitle = new()
             {
                 Text = "🔍 Search Products",
                 Font = new Font("Segoe UI Semibold", 14F),
@@ -1164,7 +1172,7 @@ namespace Pos.WinFormsUI
                 BackColor = Color.Transparent
             };
 
-            var lblSubtitle = new Label
+            Label lblSubtitle = new()
             {
                 Text = "Type to search by code, name, or HS code",
                 Font = new Font("Segoe UI", 9F),
@@ -1173,7 +1181,7 @@ namespace Pos.WinFormsUI
                 BackColor = Color.Transparent
             };
 
-            var btnClose = new Label
+            Label btnClose = new()
             {
                 Text = "✕",
                 Font = new Font("Segoe UI", 16F, FontStyle.Bold),
@@ -1197,7 +1205,7 @@ namespace Pos.WinFormsUI
             header.Controls.AddRange(new Control[] { lblTitle, lblSubtitle, btnClose });
 
             // ----- CONTENT -----
-            var content = new Panel
+            Panel content = new()
             {
                 Dock = DockStyle.Fill,
                 BackColor = Color.White,
@@ -1205,7 +1213,7 @@ namespace Pos.WinFormsUI
             };
 
             // Search box
-            var inputWrapper = new Panel
+            Panel inputWrapper = new()
             {
                 Dock = DockStyle.Top,
                 Height = 44,
@@ -1214,11 +1222,11 @@ namespace Pos.WinFormsUI
             };
             inputWrapper.Paint += (s, e) =>
             {
-                using var p = new Pen(ColorTranslator.FromHtml("#D6E0E0"));
+                using Pen p = new(ColorTranslator.FromHtml("#D6E0E0"));
                 e.Graphics.DrawRectangle(p, new Rectangle(0, 0, inputWrapper.Width - 1, inputWrapper.Height - 1));
             };
 
-            var txtSearch = new TextBox
+            TextBox txtSearch = new()
             {
                 BorderStyle = BorderStyle.None,
                 Dock = DockStyle.Fill,
@@ -1232,7 +1240,7 @@ namespace Pos.WinFormsUI
             inputWrapper.Controls.Add(txtSearch);
 
             // Results count label
-            var lblResultCount = new Label
+            Label lblResultCount = new()
             {
                 Text = $"Showing all {allProducts.Count} products",
                 Font = new Font("Segoe UI", 9F),
@@ -1244,7 +1252,7 @@ namespace Pos.WinFormsUI
             };
 
             // Results ListView with columns
-            var listView = new ListView
+            ListView listView = new()
             {
                 Dock = DockStyle.Fill,
                 Font = new Font("Segoe UI", 9.5F),
@@ -1263,7 +1271,7 @@ namespace Pos.WinFormsUI
 
             // Product detail panel (shown when item selected)
             // Product detail panel (fixed footer-style)
-            var detailPanel = new Panel
+            Panel detailPanel = new()
             {
                 Dock = DockStyle.Bottom,
                 Height = 60,
@@ -1272,11 +1280,11 @@ namespace Pos.WinFormsUI
             };
             detailPanel.Paint += (s, e) =>
             {
-                using var p = new Pen(ColorTranslator.FromHtml("#D6E0E0"));
+                using Pen p = new(ColorTranslator.FromHtml("#D6E0E0"));
                 e.Graphics.DrawLine(p, 0, 0, detailPanel.Width, 0);
             };
 
-            var lblDetail = new Label
+            Label lblDetail = new()
             {
                 Dock = DockStyle.Fill,
                 Font = new Font("Segoe UI", 9F),
@@ -1288,10 +1296,10 @@ namespace Pos.WinFormsUI
             detailPanel.Controls.Add(lblDetail);
 
             // Initial population
-            var currentResults = new List<ProductCatalogueDto>(allProducts);
-            foreach (var p in allProducts)
+            List<ProductCatalogueDto> currentResults = new(allProducts);
+            foreach (ProductCatalogueDto p in allProducts)
             {
-                var item = new ListViewItem(p.ProductCode?.ToString() ?? "");
+                ListViewItem item = new(p.ProductCode?.ToString() ?? "");
                 item.SubItems.Add(p.ProductDescription ?? "");
                 item.SubItems.Add(p.HSCode ?? "");
                 item.SubItems.Add(p.TaxRate?.ToString() ?? "0");
@@ -1307,9 +1315,9 @@ namespace Pos.WinFormsUI
                 {
                     currentResults = new List<ProductCatalogueDto>(allProducts);
                     listView.Items.Clear();
-                    foreach (var p in allProducts)
+                    foreach (ProductCatalogueDto p in allProducts)
                     {
-                        var item = new ListViewItem(p.ProductCode?.ToString() ?? "");
+                        ListViewItem item = new(p.ProductCode?.ToString() ?? "");
                         item.SubItems.Add(p.ProductDescription ?? "");
                         item.SubItems.Add(p.HSCode ?? "");
                         item.SubItems.Add(p.TaxRate?.ToString() ?? "0");
@@ -1327,9 +1335,9 @@ namespace Pos.WinFormsUI
                         .ToList();
 
                     listView.Items.Clear();
-                    foreach (var p in currentResults)
+                    foreach (ProductCatalogueDto p in currentResults)
                     {
-                        var item = new ListViewItem(p.ProductCode?.ToString() ?? "");
+                        ListViewItem item = new(p.ProductCode?.ToString() ?? "");
                         item.SubItems.Add(p.ProductDescription ?? "");
                         item.SubItems.Add(p.HSCode ?? "");
                         item.SubItems.Add(p.TaxRate?.ToString() ?? "0");
@@ -1357,7 +1365,7 @@ namespace Pos.WinFormsUI
             {
                 if (listView.SelectedIndices.Count > 0 && listView.SelectedIndices[0] < currentResults.Count)
                 {
-                    var p = currentResults[listView.SelectedIndices[0]];
+                    ProductCatalogueDto p = currentResults[listView.SelectedIndices[0]];
                     lblDetail.Text = $"📦 Code: {p.ProductCode}   |   🏷️ HS Code: {p.HSCode ?? "N/A"}   |   💰 Tax Rate: {p.TaxRate?.ToString() ?? "0"}%";
                 }
                 else
@@ -1378,7 +1386,7 @@ namespace Pos.WinFormsUI
                 }
             };
 
-            var listContainer = new Panel
+            Panel listContainer = new()
             {
                 Dock = DockStyle.Fill
             };
@@ -1391,7 +1399,7 @@ namespace Pos.WinFormsUI
             content.Controls.Add(inputWrapper);
 
             // ----- FOOTER -----
-            var footerFlow = new FlowLayoutPanel
+            FlowLayoutPanel footerFlow = new()
             {
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.RightToLeft,
@@ -1400,7 +1408,7 @@ namespace Pos.WinFormsUI
                 WrapContents = false
             };
 
-            var btnSelect = new Button
+            Button btnSelect = new()
             {
                 Text = "✓ Select",
                 Size = new Size(140, 40),
@@ -1414,7 +1422,7 @@ namespace Pos.WinFormsUI
             btnSelect.FlatAppearance.BorderSize = 0;
             btnSelect.FlatAppearance.MouseOverBackColor = ColorTranslator.FromHtml("#5BC0A0");
 
-            var btnCancel = new Button
+            Button btnCancel = new()
             {
                 Text = "✖ Cancel",
                 Size = new Size(110, 40),
@@ -1561,9 +1569,9 @@ namespace Pos.WinFormsUI
         {
             if (e.RowIndex >= 0)
             {
-                var row = dataGridView1.Rows[e.RowIndex];
+                DataGridViewRow row = dataGridView1.Rows[e.RowIndex];
                 string itemCode = row.Cells["colProductCode"].Value?.ToString()?.Trim();
-                var item = addedItems.FirstOrDefault(i => i.ItemCode == itemCode);
+                InvoiceItems? item = addedItems.FirstOrDefault(i => i.ItemCode == itemCode);
                 if (item != null)
                 {
                     LoadItemForEditing(item);
@@ -1688,7 +1696,7 @@ namespace Pos.WinFormsUI
         {
             if (dataGridView1.SelectedRows.Count > 0)
             {
-                var result = MessageBox.Show("Are you sure you want to remove the selected item?",
+                DialogResult result = MessageBox.Show("Are you sure you want to remove the selected item?",
                     "Confirm Removal", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (result == DialogResult.Yes)
@@ -1727,18 +1735,18 @@ namespace Pos.WinFormsUI
             const decimal SAFE_MAX = 999999999999999999m;
 
             // Parse inputs
-            if (!decimal.TryParse(qty.Text, out var quantity) || quantity < 0 || quantity > SAFE_MAX)
+            if (!decimal.TryParse(qty.Text, out decimal quantity) || quantity < 0 || quantity > SAFE_MAX)
             {
                 return;
             }
 
-            if (!decimal.TryParse(salevalue.Text, out var saleValuePerUnit) || saleValuePerUnit < 0 || saleValuePerUnit > SAFE_MAX)
+            if (!decimal.TryParse(salevalue.Text, out decimal saleValuePerUnit) || saleValuePerUnit < 0 || saleValuePerUnit > SAFE_MAX)
             {
                 return;
             }
 
-            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out var tr) ? Math.Clamp(tr, 0m, 100m) : 0m;
-            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out var dp) ? Math.Clamp(dp, 0m, 100m) : 0m;
+            decimal taxRatePercent = decimal.TryParse(TaxRatebox.Text, out decimal tr) ? Math.Clamp(tr, 0m, 100m) : 0m;
+            decimal discountPercent = decimal.TryParse(itemDiscountPercent.Text, out decimal dp) ? Math.Clamp(dp, 0m, 100m) : 0m;
 
             // Safe calculations
             if (!TryMultiplyDecimal(quantity, saleValuePerUnit, out decimal grossAmount))
@@ -1893,7 +1901,7 @@ namespace Pos.WinFormsUI
 
         private string GetSaleTypeName()
         {
-            var selected = GetSelectedSaleType();
+            (byte Id, string Name) selected = GetSelectedSaleType();
             return string.IsNullOrEmpty(selected.Name) ? string.Empty : selected.Name;
         }
 
@@ -1905,7 +1913,7 @@ namespace Pos.WinFormsUI
         {
             return new Invoice
             {
-                POSID = int.TryParse(posid.Text, out var posId) ? posId : 0,
+                POSID = int.TryParse(posid.Text, out int posId) ? posId : 0,
                 USIN = USIN.Text.Trim(),
                 RefUSIN = string.IsNullOrWhiteSpace(refUSIN.Text) ? null : refUSIN.Text.Trim(),
                 InvoiceType = GetSelectedInvoiceType().Id,
@@ -1914,11 +1922,11 @@ namespace Pos.WinFormsUI
                 BuyerName = BuyerBname.Text.Trim(),
                 BuyerPhoneNumber = buyerphone.Text.Trim(),
                 PaymentMode = GetSelectedPaymentMode().Id,
-                TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out var billAmt) ? billAmt : 0m,
-                TotalQuantity = decimal.TryParse(TotalQuantity.Text, out var qty) ? qty : 0m,
-                TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out var saleVal) ? saleVal : 0m,
-                TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out var taxCharged) ? taxCharged : 0m,
-                Discount = decimal.TryParse(Discount.Text, out var discount) ? discount : 0m,
+                TotalBillAmount = decimal.TryParse(TotalBillAmount.Text, out decimal billAmt) ? billAmt : 0m,
+                TotalQuantity = decimal.TryParse(TotalQuantity.Text, out decimal qty) ? qty : 0m,
+                TotalSaleValue = decimal.TryParse(TotalSaleValue.Text, out decimal saleVal) ? saleVal : 0m,
+                TotalTaxCharged = decimal.TryParse(TotalTaxCharged.Text, out decimal taxCharged) ? taxCharged : 0m,
+                Discount = decimal.TryParse(Discount.Text, out decimal discount) ? discount : 0m,
                 DateTime = DateTime.Now
             };
         }
@@ -2540,10 +2548,10 @@ namespace Pos.WinFormsUI
         {
             if (control == null) return;
 
-            var rect = control.ClientRectangle;
+            Rectangle rect = control.ClientRectangle;
             if (rect.Width == 0 || rect.Height == 0) return;
 
-            var path = new GraphicsPath();
+            GraphicsPath path = new();
             path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
             path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
             path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
@@ -2562,7 +2570,7 @@ namespace Pos.WinFormsUI
                 _originalFonts.Clear();
                 _originalClientSize = this.ClientSize;
 
-                foreach (var ctrl in GetAllControls(this))
+                foreach (Control ctrl in GetAllControls(this))
                 {
                     if (!_originalBounds.ContainsKey(ctrl))
                         _originalBounds[ctrl] = ctrl.Bounds;
@@ -2570,7 +2578,7 @@ namespace Pos.WinFormsUI
                     if (!_originalFonts.ContainsKey(ctrl) && ctrl.Font != null)
                         _originalFonts[ctrl] = ctrl.Font;
 
-                    var parent = ctrl.Parent;
+                    Control? parent = ctrl.Parent;
                     if (parent != null && !_originalParentSizes.ContainsKey(parent))
                         _originalParentSizes[parent] = parent.ClientSize;
                 }
@@ -2591,7 +2599,7 @@ namespace Pos.WinFormsUI
             foreach (Control c in root.Controls)
             {
                 yield return c;
-                foreach (var child in GetAllControls(c))
+                foreach (Control child in GetAllControls(c))
                     yield return child;
             }
         }
@@ -2625,11 +2633,11 @@ namespace Pos.WinFormsUI
                     : 1.0;
 
                 // ✅ Use separate X and Y scaling instead of minimum
-                foreach (var kv in _originalBounds)
+                foreach (KeyValuePair<Control, Rectangle> kv in _originalBounds)
                 {
-                    var ctrl = kv.Key;
-                    var orig = kv.Value;
-                    var parent = ctrl.Parent;
+                    Control ctrl = kv.Key;
+                    Rectangle orig = kv.Value;
+                    Control? parent = ctrl.Parent;
 
                     if (parent == null) continue;
 
@@ -2643,7 +2651,7 @@ namespace Pos.WinFormsUI
                         || parentOrigSize.Width == 0 || parentOrigSize.Height == 0)
                         continue;
 
-                    var parentCurrentSize = parent.ClientSize;
+                    Size parentCurrentSize = parent.ClientSize;
                     double scaleX = parentCurrentSize.Width / (double)parentOrigSize.Width;
                     double scaleY = parentCurrentSize.Height / (double)parentOrigSize.Height;
 
@@ -2684,7 +2692,7 @@ namespace Pos.WinFormsUI
         private void AddItemToDataGrid(InvoiceItems item)
         {
             int rowIndex = dataGridView1.Rows.Add();
-            var row = dataGridView1.Rows[rowIndex];
+            DataGridViewRow row = dataGridView1.Rows[rowIndex];
 
             row.Cells["colSrNo"].Value = (rowIndex + 1).ToString();
             row.Cells["colSaleType"].Value = GetSaleTypeName();
@@ -2768,16 +2776,16 @@ namespace Pos.WinFormsUI
             dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
 
             // Common cell styles
-            var centerStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter };
-            var rightStyle = new DataGridViewCellStyle
+            DataGridViewCellStyle centerStyle = new() { Alignment = DataGridViewContentAlignment.MiddleCenter };
+            DataGridViewCellStyle rightStyle = new()
             {
                 Alignment = DataGridViewContentAlignment.MiddleRight,
                 Format = "0.00"
             };
-            var leftStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleLeft };
+            DataGridViewCellStyle leftStyle = new() { Alignment = DataGridViewContentAlignment.MiddleLeft };
 
             // Columns definition
-            var colSrNo = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colSrNo = new()
             {
                 Name = "colSrNo",
                 HeaderText = "Sr. No.",
@@ -2787,7 +2795,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = centerStyle
             };
 
-            var colSaleType = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colSaleType = new()
             {
                 Name = "colSaleType",
                 HeaderText = "Services Rendered",
@@ -2797,7 +2805,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = centerStyle
             };
 
-            var colProductCode = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colProductCode = new()
             {
                 Name = "colProductCode",
                 HeaderText = "Item Code",
@@ -2807,7 +2815,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = centerStyle
             };
 
-            var colProductDescription = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colProductDescription = new()
             {
                 Name = "colProductDescription",
                 HeaderText = "Item Description",
@@ -2817,7 +2825,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = leftStyle
             };
 
-            var colHSCode = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colHSCode = new()
             {
                 Name = "colHSCode",
                 HeaderText = "HS Code",
@@ -2827,7 +2835,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = centerStyle
             };
 
-            var colUnitPrice = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colUnitPrice = new()
             {
                 Name = "colUnitPrice",
                 HeaderText = "     Unit Price",
@@ -2837,7 +2845,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = rightStyle
             };
 
-            var colQuantity = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colQuantity = new()
             {
                 Name = "colQuantity",
                 HeaderText = " Quantity",
@@ -2847,7 +2855,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = rightStyle
             };
 
-            var colTaxRate = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colTaxRate = new()
             {
                 Name = "colTaxRate",
                 HeaderText = "  Tax Rate (%)",
@@ -2857,7 +2865,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = rightStyle
             };
 
-            var colTaxCharged = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colTaxCharged = new()
             {
                 Name = "colTaxCharged",
                 HeaderText = "  Tax Charged",
@@ -2867,7 +2875,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = rightStyle
             };
 
-            var colDiscount = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colDiscount = new()
             {
                 Name = "colDiscount",
                 HeaderText = "Discount(Rs.)",
@@ -2877,7 +2885,7 @@ namespace Pos.WinFormsUI
                 DefaultCellStyle = rightStyle
             };
 
-            var colTotalAmount = new DataGridViewTextBoxColumn
+            DataGridViewTextBoxColumn colTotalAmount = new()
             {
                 Name = "colTotalAmount",
                 HeaderText = "   Total Amount",

@@ -3,7 +3,9 @@ using Pos.Application.DTOs;
 using Pos.Application.DTOs.ClientDtos;
 using Pos.Application.DTOs.CommanDtos;
 using Pos.Application.DTOs.FiscalDtos;
+using Pos.Application.DTOs.InvoiceDtos;
 using Pos.Application.DTOs.LogDtos;
+using Pos.Application.DTOs.PageResponseDTOs;
 using Pos.Application.Services.CloudSyncService.CloudSyncLogService;
 using Pos.Application.Services.FileRecordService;
 using Pos.Application.Services.InvoiceService;
@@ -57,11 +59,11 @@ namespace Pos.WinFormsUI.Forms
         private DateTime _lastRefreshTime = DateTime.Now;
 
         private int _printingRowIndex = -1;
-        private string _posId;
+        private readonly string _posId;
 
         private int _lastSyncedInvoiceCount = 0;
 
-        private readonly SemaphoreSlim _checkSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _checkSemaphore = new(1, 1);
 
         // NEW: Virtual Mode Cache
         private List<InvoiceDisplayModel> _invoiceCache;
@@ -76,19 +78,19 @@ namespace Pos.WinFormsUI.Forms
         private int _lastPieChartPending = -1;
 
         private int currentInvoicePage = 1;
-        private int invoiceRecordsPerPage = 500;
+        private readonly int invoiceRecordsPerPage = 500;
         private int totalInvoicePages = 1;
         private int totalInvoiceRecords = 0;
 
         private int currentLogsPage = 1;
-        private int logsRecordsPerPage = 500;
+        private readonly int logsRecordsPerPage = 500;
         private int totalLogsPages = 1;
         private int totalLogsRecords = 0;
 
         private ModernPaginationControl paginationInvoices;
         private ModernPaginationControl paginationLogs;
 
-        private Dictionary<string, Point> _originalButtonPositions = new Dictionary<string, Point>();
+        private Dictionary<string, Point> _originalButtonPositions = new();
 
 
         public DashboardForm(IServiceProvider provider,
@@ -200,7 +202,7 @@ namespace Pos.WinFormsUI.Forms
             if (control == null || control.Width <= 0 || control.Height <= 0)
                 return;
 
-            using (GraphicsPath path = new GraphicsPath())
+            using (GraphicsPath path = new())
             {
                 int diameter = radius * 2;
                 path.AddArc(0, 0, diameter, diameter, 180, 90);
@@ -230,10 +232,10 @@ namespace Pos.WinFormsUI.Forms
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
                 e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
 
-                Rectangle rect = new Rectangle(0, 0, btn.Width - 1, btn.Height - 1);
+                Rectangle rect = new(0, 0, btn.Width - 1, btn.Height - 1);
                 int d = radius * 2;
 
-                using (GraphicsPath path = new GraphicsPath())
+                using (GraphicsPath path = new())
                 {
                     path.AddArc(rect.X, rect.Y, d, d, 180, 90);
                     path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
@@ -242,13 +244,13 @@ namespace Pos.WinFormsUI.Forms
                     path.CloseFigure();
 
                     // --- smoother blended outline ---
-                    using (Pen smoothPen = new Pen(Color.FromArgb(60, 0, 0, 0), 3))
+                    using (Pen smoothPen = new(Color.FromArgb(60, 0, 0, 0), 3))
                     {
                         smoothPen.Alignment = PenAlignment.Outset;
                         e.Graphics.DrawPath(smoothPen, path);
                     }
 
-                    using (Pen borderPen = new Pen(ControlPaint.Dark(btn.BackColor, 0.3f), 1.5f))
+                    using (Pen borderPen = new(ControlPaint.Dark(btn.BackColor, 0.3f), 1.5f))
                     {
                         borderPen.Alignment = PenAlignment.Center;
                         e.Graphics.DrawPath(borderPen, path);
@@ -353,7 +355,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (paginationInvoices == null || panelInvoices == null) return;
 
-            var lblInvoices = panelInvoices.Controls
+            Label? lblInvoices = panelInvoices.Controls
                 .OfType<Label>()
                 .FirstOrDefault(l => l.Text.Contains("INVOICES", StringComparison.OrdinalIgnoreCase));
 
@@ -367,9 +369,6 @@ namespace Pos.WinFormsUI.Forms
 
             // Calculate available space after the label
             int spaceAfterLabel = availableWidth - lblInvoices.Right;
-
-            // Pagination control width (approximately 250px)
-            int paginationWidth = 250;
 
             // Minimum safe spacing
             int minSpacing = 5;
@@ -479,7 +478,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (paginationLogs == null || panelLogs == null) return;
 
-            var lblLogs = panelLogs.Controls
+            Label? lblLogs = panelLogs.Controls
                 .OfType<Label>()
                 .FirstOrDefault(l => l.Text.Contains("LOGS", StringComparison.OrdinalIgnoreCase));
 
@@ -490,9 +489,6 @@ namespace Pos.WinFormsUI.Forms
 
             // Calculate available space after the label
             int spaceAfterLabel = availableWidth - lblLogs.Right;
-
-            // Pagination control width (approximately 250px)
-            int paginationWidth = 250;
 
             // Minimum safe spacing
             int minSpacing = 15;
@@ -518,7 +514,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count) return;
 
-            var item = _invoiceCache[e.RowIndex];
+            InvoiceDisplayModel item = _invoiceCache[e.RowIndex];
 
             switch (InvoicesDataGridView.Columns[e.ColumnIndex].Name)
             {
@@ -547,7 +543,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (_logCache == null || e.RowIndex >= _logCache.Count) return;
 
-            var item = _logCache[e.RowIndex];
+            LogDisplayModel item = _logCache[e.RowIndex];
 
             switch (LogsDataGridView.Columns[e.ColumnIndex].Name)
             {
@@ -614,7 +610,7 @@ namespace Pos.WinFormsUI.Forms
                 string selectedEnvironment = ConfigurationManager.AppSettings["Environment"]!;
                 string token = ConfigurationManager.AppSettings["Token"]!; // CHANGED: get token from appsettings
 
-                var fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
+                string fullUrl = $"{_baseUrl}{Endpoints.HeartBeat}";
 
                 // Prepare request body
                 var requestBody = new GetByPosIdDto
@@ -634,15 +630,15 @@ namespace Pos.WinFormsUI.Forms
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                 // Send request
-                var response = await _httpClient.SendAsync(request);
+                HttpResponseMessage response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var heartbeatResponse = await response.Content.ReadFromJsonAsync<ApiResponse<HeartBeatDto>>();
+                    ApiResponse<HeartBeatDto>? heartbeatResponse = await response.Content.ReadFromJsonAsync<ApiResponse<HeartBeatDto>>();
 
                     if (heartbeatResponse?.StatusCode == ApiStatusCode.Success && heartbeatResponse.Data != null)
                     {
-                        var serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
+                        DateTime? serverTime = heartbeatResponse.Data.HeartbeatUpdatedOn;
                         UpdateHeartbeatLabel(serverTime, isError: false);
                     }
                     else
@@ -686,9 +682,9 @@ namespace Pos.WinFormsUI.Forms
 
         private async Task<T> ExecuteWithNewScope<T>(Func<Task<T>> serviceCall)
         {
-            using var scope = _provider.CreateScope();
-            var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
-            var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
+            using IServiceScope scope = _provider.CreateScope();
+            IFileRecordService fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+            ILogService logService = scope.ServiceProvider.GetRequiredService<ILogService>();
             return await serviceCall();
         }
 
@@ -699,12 +695,12 @@ namespace Pos.WinFormsUI.Forms
 
             try
             {
-                using var scope = _provider.CreateScope();
-                var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
-                var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
+                using IServiceScope scope = _provider.CreateScope();
+                IFileRecordService fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+                ILogService logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
-                var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
+                DateTime startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                DateTime endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
                 var invoiceDto = new GetAllFileRecordDto
                 {
@@ -722,8 +718,8 @@ namespace Pos.WinFormsUI.Forms
                     NumberOfRecords = logsRecordsPerPage
                 };
 
-                var invoiceResponse = await fileService.GetAllAsync(invoiceDto);
-                var logResponse = await logService.GetAllAsync(logDto);
+                ApiResponse<PageResponseDto<FileRecordDto>> invoiceResponse = await fileService.GetAllAsync(invoiceDto);
+                ApiResponse<PageResponseDto<LogDto>> logResponse = await logService.GetAllAsync(logDto);
 
                 if (invoiceResponse?.Data == null || logResponse?.Data == null)
                     return false;
@@ -977,7 +973,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (progressBar != null && InvoicesDataGridView != null)
             {
-                var gridBounds = InvoicesDataGridView.Bounds;
+                Rectangle gridBounds = InvoicesDataGridView.Bounds;
                 progressBar.Left = gridBounds.Left + (gridBounds.Width - progressBar.Width) / 2;
                 progressBar.Top = gridBounds.Top + (gridBounds.Height - progressBar.Height) / 2;
                 progressBar.BringToFront();
@@ -1126,8 +1122,8 @@ namespace Pos.WinFormsUI.Forms
                 using (var pen = new Pen(Color.FromArgb(209, 213, 219), 1))
                 {
                     var rect = new Rectangle(0, 0, lblDateRange.Width - 1, lblDateRange.Height - 1);
-                    var radius = 6;
-                    using (var path = GetRoundedRect(rect, radius))
+                    int radius = 6;
+                    using (GraphicsPath path = GetRoundedRect(rect, radius))
                     {
                         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                         e.Graphics.DrawPath(pen, path);
@@ -1137,10 +1133,10 @@ namespace Pos.WinFormsUI.Forms
                 using (var iconBrush = new SolidBrush(Color.FromArgb(107, 114, 128)))
                 {
                     var iconFont = new Font("Segoe UI Symbol", 10F);
-                    var iconText = "📅";
-                    var iconSize = e.Graphics.MeasureString(iconText, iconFont);
-                    var iconX = lblDateRange.Width - iconSize.Width - 10;
-                    var iconY = (lblDateRange.Height - iconSize.Height) / 2;
+                    string iconText = "📅";
+                    SizeF iconSize = e.Graphics.MeasureString(iconText, iconFont);
+                    float iconX = lblDateRange.Width - iconSize.Width - 10;
+                    float iconY = (lblDateRange.Height - iconSize.Height) / 2;
                     e.Graphics.DrawString(iconText, iconFont, iconBrush, iconX, iconY);
                 }
             };
@@ -1151,8 +1147,8 @@ namespace Pos.WinFormsUI.Forms
             try
             {
                 AddButtonTooltips();
-                var encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
-                var decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
+                string encryptedPosId = ConfigurationManager.AppSettings["Username"] ?? "0";
+                string decryptedPosId = AesEncryptionHelper.Decrypt(encryptedPosId);
                 StartHeartbeatTimer(decryptedPosId);
 
                 _autoRefreshTimer.Stop();
@@ -1196,11 +1192,11 @@ namespace Pos.WinFormsUI.Forms
         {
             try
             {
-                using var scope = _provider.CreateScope();
-                var fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
+                using IServiceScope scope = _provider.CreateScope();
+                IFileRecordService fileService = scope.ServiceProvider.GetRequiredService<IFileRecordService>();
 
-                var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
-                var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
+                DateTime startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                DateTime endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
                 var dto = new GetAllFileRecordDto
                 {
@@ -1210,7 +1206,7 @@ namespace Pos.WinFormsUI.Forms
                     NumberOfRecords = invoiceRecordsPerPage
                 };
 
-                var response = await fileService.GetAllAsync(dto);
+                ApiResponse<PageResponseDto<FileRecordDto>> response = await fileService.GetAllAsync(dto);
 
                 if (response?.Data?.Items == null || !response.Data.Items.Any())
                 {
@@ -1236,7 +1232,7 @@ namespace Pos.WinFormsUI.Forms
                 totalInvoiceRecords = response.Data.TotalRecords ?? 0;
                 totalInvoicePages = response.Data.TotalPages ?? 1;
 
-                var invoices = response.Data.Items;
+                List<FileRecordDto> invoices = response.Data.Items;
 
                 _invoiceCache = invoices
                     .Select((inv, index) => new InvoiceDisplayModel
@@ -1273,7 +1269,7 @@ namespace Pos.WinFormsUI.Forms
                 DrawInvoicePieChart(panelinvoicechart, _syncedCount, _pendingCount);
                 UpdateInvoicePageInfo(currentInvoicePage, totalInvoicePages);
 
-                var lastSyncedInvoice = _invoiceCache
+                InvoiceDisplayModel? lastSyncedInvoice = _invoiceCache
                     .Where(i => i.IsSynced == "Yes")
                     .OrderByDescending(i => i.DateCreatedRaw)
                     .FirstOrDefault();
@@ -1325,8 +1321,8 @@ namespace Pos.WinFormsUI.Forms
                 }
                 else
                 {
-                    var startDate = skipDateFilter ? DateTime.MinValue : _startDate;
-                    var endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
+                    DateTime startDate = skipDateFilter ? DateTime.MinValue : _startDate;
+                    DateTime endDate = skipDateFilter ? DateTime.MaxValue : _endDate.AddDays(1).AddTicks(-1);
 
                     var Logsdto = new GetAllLogsDto
                     {
@@ -1336,7 +1332,7 @@ namespace Pos.WinFormsUI.Forms
                         EndDate = endDate
                     };
 
-                    var response = await _logService.GetAllAsync(Logsdto);
+                    ApiResponse<PageResponseDto<LogDto>> response = await _logService.GetAllAsync(Logsdto);
 
                     if (response?.Data?.Items == null || !response.Data.Items.Any())
                     {
@@ -1365,7 +1361,7 @@ namespace Pos.WinFormsUI.Forms
 
                     logs = logs.Where(l =>
                     {
-                        var type = (l.Type ?? string.Empty).ToLower();
+                        string type = (l.Type ?? string.Empty).ToLower();
                         return filter switch
                         {
                             "error" or "exception" => type.Contains("error") || type.Contains("exception"),
@@ -1448,7 +1444,7 @@ namespace Pos.WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new SaveFileDialog())
+                using (SaveFileDialog sfd = new())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Local_Invoices_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
@@ -1456,10 +1452,10 @@ namespace Pos.WinFormsUI.Forms
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new StringBuilder();
+                        StringBuilder csvContent = new();
                         csvContent.AppendLine("Sr. No.,POS ID,Invoice Number,Is Synced,Date Created");
 
-                        foreach (var invoice in _invoiceCache)
+                        foreach (InvoiceDisplayModel invoice in _invoiceCache)
                         {
                             csvContent.AppendLine($"{invoice.SerialNo},{invoice.PosId},{EscapeCsvField(invoice.InvoiceNumber)},{invoice.IsSynced},{invoice.DateCreated}");
                         }
@@ -1557,17 +1553,17 @@ namespace Pos.WinFormsUI.Forms
                     return;
                 }
 
-                using (SaveFileDialog sfd = new SaveFileDialog())
+                using (SaveFileDialog sfd = new())
                 {
                     sfd.Filter = "CSV Files (*.csv)|*.csv";
                     sfd.FileName = $"Logs_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
                     if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        StringBuilder csvContent = new StringBuilder();
+                        StringBuilder csvContent = new();
                         csvContent.AppendLine("Sr. No.,Message,Type,Date/Time");
 
-                        foreach (var log in _logCache)
+                        foreach (LogDisplayModel log in _logCache)
                         {
                             csvContent.AppendLine($"{log.SerialNo},{EscapeCsvField(log.Message)},{log.Type},{log.DateCreated}");
                         }
@@ -1836,7 +1832,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (panel == null || image == null) return;
 
-            PictureBox pic = new PictureBox
+            PictureBox pic = new()
             {
                 Image = image,
                 SizeMode = PictureBoxSizeMode.Zoom,
@@ -2032,7 +2028,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (_hoveredCell != null)
             {
-                var cell = _hoveredCell;
+                DataGridViewCell cell = _hoveredCell;
                 _hoveredCell = null;
                 InvoicesDataGridView.InvalidateCell(cell);
             }
@@ -2042,7 +2038,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (e.RowIndex >= 0 && e.ColumnIndex == InvoicesDataGridView.Columns["colPrint"].Index)
             {
-                var cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
+                Rectangle cellBounds = InvoicesDataGridView.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, false);
                 var mousePoint = new Point(e.X + cellBounds.X, e.Y + cellBounds.Y);
 
                 if (_printLinkBounds.Contains(mousePoint))
@@ -2066,15 +2062,15 @@ namespace Pos.WinFormsUI.Forms
             if (e.RowIndex < 0 || e.ColumnIndex != InvoicesDataGridView.Columns["colPrint"].Index)
                 return;
 
-            var mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
+            Point mousePos = InvoicesDataGridView.PointToClient(Cursor.Position);
             if (!_printLinkBounds.Contains(mousePos))
                 return;
 
             if (_invoiceCache == null || e.RowIndex >= _invoiceCache.Count)
                 return;
 
-            var invoice = _invoiceCache[e.RowIndex];
-            var invoiceNumber = invoice.InvoiceNumber;
+            InvoiceDisplayModel invoice = _invoiceCache[e.RowIndex];
+            string invoiceNumber = invoice.InvoiceNumber;
 
             _printingRowIndex = e.RowIndex;
 
@@ -2095,7 +2091,7 @@ namespace Pos.WinFormsUI.Forms
                 }
 
                 // 3. Load invoice data from API/service
-                var response = await Task.Run(() =>
+                ApiResponse<InvoiceDto> response = await Task.Run(() =>
                     _invoiceService.GetInvoiceWithItems(invoiceNumber).GetAwaiter().GetResult());
 
 
@@ -2111,7 +2107,7 @@ namespace Pos.WinFormsUI.Forms
 
                 response.Data.InvoiceNumber = invoiceNumber;
 
-                Thread printThread = new Thread(() =>
+                Thread printThread = new(() =>
                 {
                     try
                     {
@@ -2239,7 +2235,7 @@ namespace Pos.WinFormsUI.Forms
 
                 using (var font = new Font("Segoe UI", 9.5F, fontStyle))
                 {
-                    var textSize = e.Graphics.MeasureString(linkText, font);
+                    SizeF textSize = e.Graphics.MeasureString(linkText, font);
                     float x = e.CellBounds.X + (e.CellBounds.Width - textSize.Width) / 2;
                     float y = e.CellBounds.Y + (e.CellBounds.Height - textSize.Height) / 2;
 
@@ -2394,7 +2390,7 @@ namespace Pos.WinFormsUI.Forms
         {
             if (e.ColumnIndex == 2 && e.RowIndex >= 0)
             {
-                var value = e.Value?.ToString() ?? "";
+                string value = e.Value?.ToString() ?? "";
                 Color badgeColor = Color.FromArgb(209, 250, 229);
                 Color textColor = Color.FromArgb(5, 150, 105);
 
@@ -2427,7 +2423,7 @@ namespace Pos.WinFormsUI.Forms
                     int x = e.CellBounds.X + 15;
                     int y = e.CellBounds.Y + (e.CellBounds.Height - badgeHeight) / 2;
 
-                    using (var path = GetRoundedRect(new Rectangle(x, y, badgeWidth, badgeHeight), 6))
+                    using (GraphicsPath path = GetRoundedRect(new Rectangle(x, y, badgeWidth, badgeHeight), 6))
                     {
                         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                         using (var brush = new SolidBrush(badgeColor))
@@ -2496,18 +2492,18 @@ namespace Pos.WinFormsUI.Forms
 
             panel.Controls.Clear();
 
-            List<int> values = new List<int> { syncedCount, pendingCount };
-            List<Color> colors = new List<Color>
+            List<int> values = new() { syncedCount, pendingCount };
+            List<Color> colors = new()
             {
                 ColorTranslator.FromHtml("#66BB6A"),
                 ColorTranslator.FromHtml("#EF5350")
             };
-            List<string> labels = new List<string> { "Synced", "Not Synced" };
+            List<string> labels = new() { "Synced", "Not Synced" };
 
             float total = values.Sum();
             if (total == 0) total = 1;
 
-            Label header = new Label
+            Label header = new()
             {
                 Text = "ALL INVOICES DETAIL",
                 AutoSize = false,
@@ -2529,11 +2525,11 @@ namespace Pos.WinFormsUI.Forms
             int pieX = (panelWidth - pieSize) / 2;
             int pieY = header.Bottom + ((availableHeight - pieSize) / 2) + 10;
 
-            Bitmap bmp = new Bitmap(pieSize, pieSize);
+            Bitmap bmp = new(pieSize, pieSize);
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                Rectangle rect = new Rectangle(0, 0, pieSize, pieSize);
+                Rectangle rect = new(0, 0, pieSize, pieSize);
                 float startAngle = 0;
 
                 for (int i = 0; i < values.Count; i++)
@@ -2545,7 +2541,7 @@ namespace Pos.WinFormsUI.Forms
                 }
             }
 
-            PictureBox pic = new PictureBox
+            PictureBox pic = new()
             {
                 Image = bmp,
                 SizeMode = PictureBoxSizeMode.Normal,
@@ -2566,7 +2562,7 @@ namespace Pos.WinFormsUI.Forms
             {
                 int offsetX = i * spacingX;
 
-                Panel colorBox = new Panel
+                Panel colorBox = new()
                 {
                     BackColor = colors[i],
                     Size = new Size(boxSize, boxSize),
@@ -2574,7 +2570,7 @@ namespace Pos.WinFormsUI.Forms
                 };
                 panel.Controls.Add(colorBox);
 
-                Label lbl = new Label
+                Label lbl = new()
                 {
                     Text = $"{labels[i]}: {values[i]}",
                     ForeColor = Color.Black,

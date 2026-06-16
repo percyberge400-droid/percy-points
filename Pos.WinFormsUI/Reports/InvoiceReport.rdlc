@@ -1114,8 +1114,8 @@
             </Style>
           </Paragraph>
         </Paragraphs>
-        <Top>5.29411in</Top>
-        <Left>0.31031cm</Left>
+        <Top>5.28021in</Top>
+        <Left>0.29985cm</Left>
         <Height>0.15833in</Height>
         <Width>6.55727cm</Width>
         <ZIndex>24</ZIndex>
@@ -1395,15 +1395,46 @@
           <PaddingBottom>1pt</PaddingBottom>
         </Style>
       </Textbox>
+      <Textbox Name="OfflineDisclaimer">
+        <CanGrow>true</CanGrow>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>=First(Fields!OfflineDisclaimer.Value, "HeaderDataSet")</Value>
+                <Style>
+                  <FontStyle>Normal</FontStyle>
+                  <FontSize>6.5pt</FontSize>
+                  <FontWeight>Normal</FontWeight>
+                  <TextDecoration>None</TextDecoration>
+                </Style>
+              </TextRun>
+            </TextRuns>
+            <Style>
+              <TextAlign>Center</TextAlign>
+            </Style>
+          </Paragraph>
+        </Paragraphs>
+        <Top>5.47812in</Top>
+        <Left>0.29408cm</Left>
+        <Height>0.23098in</Height>
+        <Width>6.55727cm</Width>
+        <ZIndex>32</ZIndex>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+        </Style>
+      </Textbox>
     </ReportItems>
-    <Height>14.10687cm</Height>
+    <Height>15.1017cm</Height>
     <Style>
       <Border>
         <Style>None</Style>
       </Border>
     </Style>
   </Body>
-  <Width>7.14146cm</Width>
+  <Width>7.14544cm</Width>
   <Page>
     <PageHeight>20cm</PageHeight>
     <PageWidth>8cm</PageWidth>
@@ -1494,6 +1525,10 @@
           <DataField>TotalTax</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
+        <Field Name="OfflineDisclaimer">
+          <DataField>OfflineDisclaimer</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
         <Field Name="InvoiceType">
           <DataField>InvoiceType</DataField>
           <rd:TypeName>System.String</rd:TypeName>
@@ -1502,10 +1537,14 @@
           <DataField>BuyerPhoneNumber</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
+        <Field Name="PhoneNumber">
+          <DataField>PhoneNumber</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
       </Fields>
       <rd:DataSetInfo>
         <rd:DataSetName>ReportDataSet</rd:DataSetName>
-        <rd:SchemaPath>D:\pra-pos\POSPRA-WinFormsUI\Reports\ReportDataSet.xsd</rd:SchemaPath>
+        <rd:SchemaPath>D:\Project\POS_2.0\Pos.WinFormsUI\Reports\ReportDataSet.xsd</rd:SchemaPath>
         <rd:TableName>HeaderDataTable</rd:TableName>
         <rd:TableAdapterFillMethod />
         <rd:TableAdapterGetDataMethod />
@@ -1545,7 +1584,7 @@
       </Fields>
       <rd:DataSetInfo>
         <rd:DataSetName>ReportDataSet</rd:DataSetName>
-        <rd:SchemaPath>D:\pra-pos\POSPRA-WinFormsUI\Reports\ReportDataSet.xsd</rd:SchemaPath>
+        <rd:SchemaPath>D:\Project\POS_2.0\Pos.WinFormsUI\Reports\ReportDataSet.xsd</rd:SchemaPath>
         <rd:TableName>BodyDataTable</rd:TableName>
         <rd:TableAdapterFillMethod />
         <rd:TableAdapterGetDataMethod />

@@ -1,21 +1,17 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Drawing.Imaging;
-using System.Drawing.Printing;
-using Microsoft.Reporting.WinForms;
+﻿using Microsoft.Reporting.WinForms;
 using Pos.Application.DTOs.InvoiceDtos;
 using Pos.WinFormsUI.AlertClasses;
 using Pos.WinFormsUI.Forms.Logo;
 using QRCoder;
+using System.Configuration;
+using System.Data;
+using System.Drawing.Imaging;
+using System.Drawing.Printing;
 
 namespace Pos.WinFormsUI.Forms
 {
     public partial class InvoiceReport : Form
     {
-        public InvoiceReport()
-        {
-            InitializeComponent();
-        }
         private readonly InvoiceDto _invoiceDto;
         private readonly string _invoiceNumber;
         private readonly bool _isFromDashboard;
@@ -27,9 +23,14 @@ namespace Pos.WinFormsUI.Forms
         private static readonly string PhoneNumber = ConfigurationManager.AppSettings["phoneNumber"]!; //
         private static readonly string NTN = ConfigurationManager.AppSettings["NTN"]!;
         private static readonly Dictionary<string, byte[]> _qrCache = new();
-        private static LocalReport _cachedReportTemplate;
+        private readonly bool _isOffline;
         private int _itemCount; // To store the number of invoice items for dynamic height
         public event EventHandler ReportLoaded;
+        private const string OfflineDisclaimerText =
+    "⚠ OFFLINE INVOICE\n" +
+    "This invoice has been generated through the PRA Offline eIMS Component " +
+    "and is subject to verification by PRA systems. Invoice verification and " +
+    "synchronization may take up to two (2) hours from the time of issuance.";
 
         private void InvoiceReport_Shown(object? sender, EventArgs e)
         {
@@ -43,12 +44,16 @@ namespace Pos.WinFormsUI.Forms
         }
 
         // Constructor for Save button
-        public InvoiceReport(InvoiceDto invoiceDto, bool printDirectly = false)
+        public InvoiceReport(
+            InvoiceDto invoiceDto,
+            bool printDirectly = false,
+            bool isOffline = false)
         {
             InitializeComponent();
             _invoiceDto = invoiceDto ?? throw new ArgumentNullException(nameof(invoiceDto));
             _isFromDashboard = false;
             _printDirectly = printDirectly;
+            _isOffline = isOffline;
             InitializeReportViewer();
         }
 
@@ -58,6 +63,7 @@ namespace Pos.WinFormsUI.Forms
             InitializeComponent();
             _invoiceNumber = invoiceNumber ?? throw new ArgumentNullException(nameof(invoiceNumber));
             _isFromDashboard = true;
+            _isOffline = false;
             _printDirectly = printDirectly;
             InitializeReportViewer();
         }
@@ -93,7 +99,7 @@ namespace Pos.WinFormsUI.Forms
                 int width = (int)(8.0 / 2.54 * 100);  // ≈ 315 for 80mm
                 //int height = (int)(totalHeightCm / 2.54 * 100); // Dynamic
 
-                var pageSettings = new PageSettings
+                PageSettings pageSettings = new()
                 {
                     PaperSize = new PaperSize("Thermal 80mm", width, 0),
                     Margins = new Margins(5, 5, 5, 5) // 0.1 inch margins
@@ -115,7 +121,7 @@ namespace Pos.WinFormsUI.Forms
 
         private (DataTable Header, DataTable Body) BuildInvoiceDataSets(InvoiceDto dto)
         {
-            var headerTable = new DataTable("HeaderDataSet");
+            DataTable headerTable = new("HeaderDataSet");
             headerTable.Columns.AddRange(new[]
             {
         new DataColumn("BusinessName", typeof(string)),
@@ -134,10 +140,11 @@ namespace Pos.WinFormsUI.Forms
         new DataColumn("Discount", typeof(decimal)),
         new DataColumn("TotalTax", typeof(decimal)),
         new DataColumn("TotalQty", typeof(decimal)),
-        new DataColumn("Total", typeof(decimal))
+        new DataColumn("Total", typeof(decimal)),
+        new DataColumn("OfflineDisclaimer", typeof(string))
     });
 
-            var bodyTable = new DataTable("BodyDataSet");
+            DataTable bodyTable = new("BodyDataSet");
             bodyTable.Columns.AddRange(new[]
             {
         // ✅ changed Amount to decimal to avoid overflow
@@ -153,7 +160,7 @@ namespace Pos.WinFormsUI.Forms
             byte[] praLogo = LoadPraLogo();
             byte[] qr = GenerateQRCode(dto.InvoiceNumber);
 
-            var headerRow = headerTable.NewRow();
+            DataRow headerRow = headerTable.NewRow();
             headerRow["BusinessName"] = businessname;
             headerRow["PhoneNumber"] = PhoneNumber;
             headerRow["DateCreated"] = dto.DateTime;
@@ -190,12 +197,13 @@ namespace Pos.WinFormsUI.Forms
             headerRow["TotalTax"] = dto.TotalTaxCharged;//Math.Round(dto.TotalTaxCharged, 2, MidpointRounding.AwayFromZero);
             headerRow["TotalQty"] = dto.TotalQuantity;
             headerRow["Total"] = dto.TotalBillAmount;// Math.Round(, 2, MidpointRounding.AwayFromZero);
+            headerRow["OfflineDisclaimer"] = OfflineDisclaimerText;
 
             headerTable.Rows.Add(headerRow);
 
-            foreach (var item in dto.Items ?? Enumerable.Empty<dynamic>())
+            foreach (dynamic item in dto.Items ?? Enumerable.Empty<dynamic>())
             {
-                var row = bodyTable.NewRow();
+                DataRow row = bodyTable.NewRow();
                 row["Amount"] = item.TotalAmount; //Math.Round(item.TotalAmount + item.Discount, 0, MidpointRounding.AwayFromZero);
                 row["ItemName"] = item.ItemName ?? string.Empty;
                 row["TaxRate"] = item.TaxRate;
@@ -214,10 +222,10 @@ namespace Pos.WinFormsUI.Forms
             try
             {
                 AppResources.RefreshLogo();
-                var logo = AppResources.BusinessLogo;
+                Image logo = AppResources.BusinessLogo;
                 if (logo == null)
                     return Array.Empty<byte>();
-                using (MemoryStream ms = new MemoryStream())
+                using (MemoryStream ms = new())
                 {
                     logo.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
                     return ms.ToArray();
@@ -235,10 +243,10 @@ namespace Pos.WinFormsUI.Forms
             string logoKey = ConfigurationManager.AppSettings["LOGO-new"];
             if (!string.IsNullOrEmpty(logoKey))
             {
-                var res = Resources.ResourceManager.GetObject(logoKey);
+                object? res = Resources.ResourceManager.GetObject(logoKey);
                 if (res is Image img)
                 {
-                    using (MemoryStream ms = new MemoryStream())
+                    using (MemoryStream ms = new())
                     {
                         img.Save(ms, ImageFormat.Png);
                         return ms.ToArray();
@@ -269,12 +277,12 @@ namespace Pos.WinFormsUI.Forms
         private byte[] GenerateQRCode(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
-            if (_qrCache.TryGetValue(text, out var cached)) return cached;
-            using var qrGen = new QRCodeGenerator();
-            using var qrData = qrGen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-            using var qrCode = new QRCode(qrData);
-            using var bmp = qrCode.GetGraphic(3);
-            using var ms = new MemoryStream();
+            if (_qrCache.TryGetValue(text, out byte[]? cached)) return cached;
+            using QRCodeGenerator qrGen = new();
+            using QRCodeData qrData = qrGen.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
+            using QRCode qrCode = new(qrData);
+            using Bitmap bmp = qrCode.GetGraphic(3);
+            using MemoryStream ms = new();
             bmp.Save(ms, ImageFormat.Png);
             _qrCache[text] = ms.ToArray();
             return _qrCache[text];
@@ -292,7 +300,7 @@ namespace Pos.WinFormsUI.Forms
                 if (string.IsNullOrEmpty(reportPath))
                     return;
 
-                var (header, body) = BuildInvoiceDataSets(_invoiceDto);
+                (DataTable? header, DataTable? body) = BuildInvoiceDataSets(_invoiceDto);
                 _itemCount = body.Rows.Count; // Store item count for dynamic height
 
                 _reportViewer.LocalReport.ReportPath = reportPath;
@@ -365,7 +373,7 @@ namespace Pos.WinFormsUI.Forms
                 }
 
                 // printer properties
-                PrinterSettings printerSettings = new PrinterSettings { PrinterName = thermalPrinterName };
+                PrinterSettings printerSettings = new() { PrinterName = thermalPrinterName };
                 if (!printerSettings.IsValid)
                 {
                     AlertManager.ShowError($"Invalid printer: {thermalPrinterName}");
@@ -394,13 +402,13 @@ namespace Pos.WinFormsUI.Forms
 
             try
             {
-                var installedPrinters = PrinterSettings.InstalledPrinters.Cast<string>().ToList();
+                List<string> installedPrinters = PrinterSettings.InstalledPrinters.Cast<string>().ToList();
 
                 if (installedPrinters == null || installedPrinters.Count == 0)
                     throw new InvalidOperationException("No printers are installed on this system.");
 
                 // common brand/model keywords
-                var potentialThermal = installedPrinters.FirstOrDefault(p =>
+                string? potentialThermal = installedPrinters.FirstOrDefault(p =>
                     p.Contains("80", StringComparison.OrdinalIgnoreCase) ||
                     p.Contains("85", StringComparison.OrdinalIgnoreCase) ||
                     p.Contains("Thermal", StringComparison.OrdinalIgnoreCase) ||
@@ -447,7 +455,7 @@ namespace Pos.WinFormsUI.Forms
         public static void PrintToThermal(this LocalReport report, string printerName, double widthInche = 3.15) // Default 80mm width, dynamic height passed in
         {
             const double HeightInches = 100;
-            var pageSettings = new PageSettings
+            PageSettings pageSettings = new()
             {
                 PaperSize = new PaperSize("Thermal 80mm", (int)(widthInche * 100), (int)(HeightInches * 100)), // Hundredths of inch
                 Margins = new Margins(2, 2, 2, 2), // Small margins: 0.1in each
@@ -467,12 +475,12 @@ namespace Pos.WinFormsUI.Forms
                     </DeviceInfo>";
 
             Warning[] warnings;
-            var streams = new List<Stream>();
-            var currentPageIndex = 0;
+            List<Stream> streams = new();
+            int currentPageIndex = 0;
 
             report.Render("Image", deviceInfo, (name, fileNameExtension, encoding, mimeType, willSeek) =>
             {
-                var stream = new MemoryStream();
+                MemoryStream stream = new();
                 streams.Add(stream);
                 return stream;
             }, out warnings);
@@ -483,7 +491,7 @@ namespace Pos.WinFormsUI.Forms
             if (streams == null || streams.Count == 0)
                 throw new Exception("Error: No content to print.");
 
-            var printDocument = new PrintDocument
+            PrintDocument printDocument = new()
             {
                 PrinterSettings = { PrinterName = printerName },
                 DefaultPageSettings = pageSettings
@@ -494,8 +502,8 @@ namespace Pos.WinFormsUI.Forms
 
             printDocument.PrintPage += (sender, e) =>
             {
-                Metafile pageImage = new Metafile(streams[currentPageIndex]);
-                Rectangle adjustedRect = new Rectangle(
+                Metafile pageImage = new(streams[currentPageIndex]);
+                Rectangle adjustedRect = new(
                     e.PageBounds.Left - (int)e.PageSettings.HardMarginX,
                     e.PageBounds.Top - (int)e.PageSettings.HardMarginY,
                     e.PageBounds.Width,
