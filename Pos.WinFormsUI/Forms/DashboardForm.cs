@@ -372,7 +372,6 @@ namespace Pos.WinFormsUI.Forms
         }
         private void HandleInvoiceButtonLayout()
         {
-            //Find the date range label(calendar control)
             if (btnFilterSynced == null || btnExportInvoice == null) return;
             if (paginationInvoices == null) return;
 
@@ -382,88 +381,106 @@ namespace Pos.WinFormsUI.Forms
 
             if (lblDateRange == null) return;
 
-            //  Spacing constants 
+            // ── Constants ─────────────────────────────────────────────────
             const int spacingBetweenButtons = 10;
             const int spacingToCalendar = 8;
             const int spacingToPagination = 8;
 
-            //  Button dimensions (always fixed) 
-            Size exportSize = new Size(182, 37);
-            Size syncSize = new Size(190, 37);
+            const int exportFullWidth = 182;
+            const int exportMinWidth = 80;   // minimum before icon-only
+            const int exportIconOnlyWidth = 40;  // 
+            const int buttonHeight = 37;
+            const int syncWidth = 190;
 
-            //  Actual available gap at runtime 
+            // ── Runtime gap — measured fresh every call ────────────────────
             int gapStart = paginationInvoices.Right + spacingToPagination;
             int gapEnd = lblDateRange.Left - spacingToCalendar;
             int gapWidth = gapEnd - gapStart;
 
-            //  How much space each mode needs 
-            int spaceForExportOnly = exportSize.Width;
-            int spaceForBoth = exportSize.Width + spacingBetweenButtons + syncSize.Width;
-
-            //  Vertical center helper (relative to lblDateRange) 
+            // ── Vertical center helper ─────────────────────────────────────
             int CenterY(int btnHeight) =>
                 lblDateRange.Top + ((lblDateRange.Height - btnHeight) / 2);
 
-            if (gapWidth < spaceForExportOnly)
+            // ── Guard: gap is zero or negative (extreme scale) ────────────
+            if (gapWidth <= 0)
             {
-                //  CRITICAL: not even Export fits — show it anyway 
-                // overlap is inevitable, but Export must stay visible
                 btnFilterSynced.Visible = false;
-
-                btnExportInvoice.Text = "EXPORT";
-                btnExportInvoice.Font = new Font("Arial", 9F);
-                btnExportInvoice.AutoSize = false;
-                btnExportInvoice.Size = exportSize;
-                btnExportInvoice.Visible = true;
-                btnExportInvoice.BringToFront();
-
-                btnExportInvoice.Location = new Point(
-                    gapEnd - exportSize.Width,
-                    CenterY(exportSize.Height)
-                );
+                btnExportInvoice.Visible = false;
+                return;
             }
-            else if (gapWidth < spaceForBoth)
+
+            // ── Determine Export button width — shrink to fit, never overlap ──
+            int exportWidth;
+            string exportText;
+            Font exportFont;
+
+            if (gapWidth >= exportFullWidth)
             {
-                //  COMPACT: only Export fits 
+                // Full size — enough room
+                exportWidth = exportFullWidth;
+                exportText = gapWidth >= (exportFullWidth + spacingBetweenButtons + syncWidth)
+                              ? "📤 Export Invoices"   // normal mode text
+                              : "  EXPORT  ";          // compact mode text
+                exportFont = gapWidth >= (exportFullWidth + spacingBetweenButtons + syncWidth)
+                              ? new Font("Arial", 12F)
+                              : new Font("Arial", 10.8f);
+            }
+            else if (gapWidth >= exportMinWidth)
+            {
+                // Shrink to exactly fit the gap — no overlap
+                exportWidth = gapWidth;
+                exportText = "EXPORT";
+                exportFont = new Font("Arial", 9F);
+            }
+            else if (gapWidth >= exportIconOnlyWidth)
+            {
+                // Icon only — very tight
+                exportWidth = exportIconOnlyWidth;
+                exportText = "📤";
+                exportFont = new Font("Arial", 11F);
+            }
+            else
+            {
+                // Absolute extreme — hide export too, nothing fits
                 btnFilterSynced.Visible = false;
+                btnExportInvoice.Visible = false;
+                return;
+            }
 
-                btnExportInvoice.Text = "  EXPORT  ";
-                btnExportInvoice.Font = new Font("Arial", 10.8f);
-                btnExportInvoice.AutoSize = false;
-                btnExportInvoice.Size = exportSize;
-                btnExportInvoice.Visible = true;
+            // ── Decide FilterSynced visibility ────────────────────────────
+            bool showSync = gapWidth >= (exportFullWidth + spacingBetweenButtons + syncWidth);
 
+            // ── Apply Export button ────────────────────────────────────────
+            btnExportInvoice.Visible = true;
+            btnExportInvoice.AutoSize = false;
+            btnExportInvoice.Size = new Size(exportWidth, buttonHeight);
+            btnExportInvoice.Text = exportText;
+            btnExportInvoice.Font = exportFont;
+            btnExportInvoice.Location = new Point(
+                gapEnd - exportWidth,       // always anchored to right side of gap
+                CenterY(buttonHeight)
+            );
+
+            // ── Apply FilterSynced button ──────────────────────────────────
+            if (showSync)
+            {
+                btnFilterSynced.Visible = true;
+                btnFilterSynced.AutoSize = false;
+                btnFilterSynced.Size = new Size(syncWidth, buttonHeight);
+                btnFilterSynced.Location = new Point(
+                    gapEnd - syncWidth,                                    // left of lblDateRange
+                    CenterY(buttonHeight)
+                );
+
+                // Export moves left of FilterSynced
                 btnExportInvoice.Location = new Point(
-                    gapEnd - exportSize.Width,
-                    CenterY(exportSize.Height)
+                    btnFilterSynced.Left - spacingBetweenButtons - exportWidth,
+                    CenterY(buttonHeight)
                 );
             }
             else
             {
-                // ── NORMAL: both buttons fit ───────────────────────────────
-                btnFilterSynced.Visible = true;
-
-                btnExportInvoice.Text = "📄 Export Invoices";
-                btnExportInvoice.Font = new Font("Arial", 12F);
-                btnExportInvoice.AutoSize = false;
-                btnExportInvoice.Size = exportSize;
-
-                btnFilterSynced.Size = syncSize;
-
-                // FilterSynced sits just left of lblDateRange
-                btnFilterSynced.Location = new Point(
-                    gapEnd - syncSize.Width,
-                    CenterY(syncSize.Height)
-                );
-
-                // Export sits left of FilterSynced
-                btnExportInvoice.Location = new Point(
-                    btnFilterSynced.Left - spacingBetweenButtons - exportSize.Width,
-                    CenterY(exportSize.Height)
-                );
-
-
-
+                btnFilterSynced.Visible = false;
             }
         }
         private void PositionLogsPagination()
