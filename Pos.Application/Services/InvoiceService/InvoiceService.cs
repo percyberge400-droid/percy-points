@@ -184,7 +184,7 @@ namespace Pos.Application.Services.InvoiceService
                     await LogError($"Invoice not available for {dto.InvoiceType}");
                     return ErrorResponse(ResponseMessages.UnknownError);
                 }
-
+                dto.InvoiceNumber = fiscalResponse.Data.invoiceNumber;
                 // ✅ 3. Try to sync with live if internet is available
                 //dto.InvoiceNumber = invoiceEntity.FBRInvoiceNumber;
                 //if (await _networkService.IsInternetAvailableAsync())
@@ -339,7 +339,7 @@ namespace Pos.Application.Services.InvoiceService
         /// A string containing the encrypted invoice package if successful;
         /// otherwise, an empty string.
         /// </returns>
-        private async Task<ApiResponse<(string EncryptedPackage, int InvoiceId)>> GenerateInvoicePackageAsync(Invoice invoice, string? environment)
+        private async Task<ApiResponse<(string EncryptedPackage, int InvoiceId, string invoiceNumber)>> GenerateInvoicePackageAsync(Invoice invoice, string? environment)
         {
             try
             {
@@ -377,20 +377,20 @@ namespace Pos.Application.Services.InvoiceService
                 int invoiceId = await _fileRecordService.CreateAsync(invoice.POSID, encryptedPackage, invoiceNumber);
 
                 // You can return encryptedPackage if needed for fiscal system
-                return new ApiResponse<(string, int)>(
+                return new ApiResponse<(string, int, string)>(
                 ApiStatusCode.Success,
                 ResponseMessages.RecordSaved,
-                (encryptedPackage, invoiceId),
+                (encryptedPackage, invoiceId, invoiceNumber),
                 string.Empty);
             }
             catch (Exception ex)
             {
                 string errorMessage = $"{GlobalVariables.DATE} CreateFiscalInvoiceAsync failed: {ex.InnerException?.Message ?? ex.Message}";
                 await _logService.CreateLogAsync(new CreateLogDto(errorMessage, AlertType.Exception, false));
-                return new ApiResponse<(string, int)>(
+                return new ApiResponse<(string, int, string)>(
                 ApiStatusCode.Error,
                 ResponseMessages.UnknownError,
-                (string.Empty, 0),
+                (string.Empty, 0, string.Empty),
                 string.Empty);
             }
         }
