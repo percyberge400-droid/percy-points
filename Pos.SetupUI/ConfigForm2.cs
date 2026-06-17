@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -1552,6 +1553,7 @@ namespace Pos.SetupUI
                 };
 
                 string baseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? "";
+                //string baseUrl = "https://localhost:7020/api/";
                 string apiUrl = $"{baseUrl}{Endpoints.Authenticate}";
 
                 if (string.IsNullOrWhiteSpace(apiUrl))
@@ -1569,7 +1571,16 @@ namespace Pos.SetupUI
                     appSettings: null          // ✅ pass null — safe, HttpClientHelper guards for null
                 );
 
-                if (apiResponse == null || apiResponse.StatusCode != "200")
+                if (apiResponse.StatusCode == StatusCodes.Status401Unauthorized.ToString())
+                {
+                    ShowMessage(
+                        $"Authentication failed: Invalid Token",
+                        false,
+                        false);
+                    return null!;
+                }
+
+                if (apiResponse == null || apiResponse.StatusCode != StatusCodes.Status200OK.ToString())
                 {
                     ShowMessage(
                         $"Authentication failed: {apiResponse?.StatusCode} - {apiResponse?.Message}",
