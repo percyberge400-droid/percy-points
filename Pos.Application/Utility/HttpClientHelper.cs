@@ -41,7 +41,7 @@ namespace Pos.Application.Utility
             const string endpoint = "api/Live/authenticate-by-mac";
             string url = $"{baseUrl.TrimEnd('/')}/{endpoint}";
 
-            var payload = new List<HttpClientHelpers>
+            List<HttpClientHelpers> payload = new()
             {
                 new()
                 {
@@ -52,18 +52,18 @@ namespace Pos.Application.Utility
                 }
             };
 
-            var handler = new HttpClientHandler
+            HttpClientHandler handler = new()
             {
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 
-            using var httpClient = new HttpClient(handler);
+            using HttpClient httpClient = new(handler);
 
             try
             {
-                var json = JsonSerializer.Serialize(payload);
+                string json = JsonSerializer.Serialize(payload);
 
-                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                using HttpRequestMessage request = new(HttpMethod.Post, url)
                 {
                     Content = new StringContent(json, Encoding.UTF8, "application/json")
                 };
@@ -72,7 +72,7 @@ namespace Pos.Application.Utility
                     new AuthenticationHeaderValue("Bearer", bearerToken);
 
                 var response = await httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                string content = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                     return await HandleError<TResponse>(
@@ -105,12 +105,12 @@ namespace Pos.Application.Utility
       ILogService logService,
       AppSettings appSettings)
         {
-            var handler = new HttpClientHandler
+            HttpClientHandler handler = new()
             {
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 
-            using var httpClient = new HttpClient(handler);
+            using HttpClient httpClient = new(handler);
 
             string url = $"{baseUrl?.TrimEnd('/')}/{endpoint.TrimStart('/')}";
 
@@ -119,7 +119,7 @@ namespace Pos.Application.Utility
                 ApplyAuthHeaders(bearerToken!, httpClient);
 
                 var response = await httpClient.GetAsync(url);
-                var content = await response.Content.ReadAsStringAsync();
+                string content = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -156,18 +156,18 @@ namespace Pos.Application.Utility
             ILogService? logService = null,
             AppSettings? appSettings = null)
         {
-            var handler = new HttpClientHandler
+            HttpClientHandler handler = new()
             {
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 
-            using var httpClient = new HttpClient(handler);
+            using HttpClient httpClient = new(handler);
 
             try
             {
-                var json = JsonSerializer.Serialize(body);
+                string json = JsonSerializer.Serialize(body);
 
-                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                using HttpRequestMessage request = new(HttpMethod.Post, url)
                 {
                     Content = new StringContent(json, Encoding.UTF8, "application/json")
                 };
@@ -181,9 +181,9 @@ namespace Pos.Application.Utility
                         request.Headers.Add(h.Key, h.Value);
 
                 var response = await httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                string content = await response.Content.ReadAsStringAsync();
 
-                if (!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode && logService is not null)
                     return await HandleError<TResponse>(
                         response, content, url, "POST",
                         logService, appSettings);      //  removed ! — both are nullable
@@ -237,18 +237,18 @@ namespace Pos.Application.Utility
             ILogService? logService = null,
             AppSettings? appSettings = null)
         {
-            var handler = new HttpClientHandler
+            HttpClientHandler handler = new()
             {
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 
-            using var httpClient = new HttpClient(handler);
+            using HttpClient httpClient = new(handler);
 
             try
             {
-                var json = JsonSerializer.Serialize(body);
+                string json = JsonSerializer.Serialize(body);
 
-                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                using HttpRequestMessage request = new(HttpMethod.Post, url)
                 {
                     Content = new StringContent(json, Encoding.UTF8, "application/json")
                 };
@@ -262,7 +262,7 @@ namespace Pos.Application.Utility
                         request.Headers.Add(h.Key, h.Value);
 
                 var response = await httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                string content = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                     return await HandleError<string>(
@@ -277,7 +277,7 @@ namespace Pos.Application.Utility
 
 
                 // Correctly unescapes \r\n so CSV splits into proper lines
-                using var doc = JsonDocument.Parse(content);
+                using JsonDocument doc = JsonDocument.Parse(content);
                 var root = doc.RootElement;
 
                 string? rawData = root.TryGetProperty("data", out var dataProp)
@@ -309,7 +309,6 @@ namespace Pos.Application.Utility
             string errorMessage = ExtractErrorMessage(content)
                                   ?? response.ReasonPhrase
                                   ?? "API Error";
-
             var log = logService.BuildLog(
                 message: errorMessage,
 
@@ -351,7 +350,7 @@ namespace Pos.Application.Utility
             ILogService logService,
             AppSettings appSettings)
         {
-            var log = new CreateLogDto
+            CreateLogDto log = new()
             {
                 POSID = appSettings.POS,//AesEncryptionHelper.Decrypt(appSettings.POS.ToString()!),
                 Message = ex.Message,
@@ -384,21 +383,21 @@ namespace Pos.Application.Utility
             // Try JSON
             try
             {
-                using var doc = JsonDocument.Parse(content);
+                using JsonDocument doc = JsonDocument.Parse(content);
                 var root = doc.RootElement;
 
                 // WSO2 JSON fault
                 if (root.TryGetProperty("fault", out var fault))
                 {
-                    var message = fault.TryGetProperty("message", out var msg) ? msg.GetString() : null;
-                    var description = fault.TryGetProperty("description", out var desc) ? desc.GetString() : null;
+                    string? message = fault.TryGetProperty("message", out var msg) ? msg.GetString() : null;
+                    string? description = fault.TryGetProperty("description", out var desc) ? desc.GetString() : null;
                     return $"{message} {description}".Trim();
                 }
 
                 // Business validation error
                 if (root.TryGetProperty("validationResponse", out var vr))
                 {
-                    var statusCode = vr.TryGetProperty("statusCode", out var sc) ? sc.GetString() : null;
+                    string? statusCode = vr.TryGetProperty("statusCode", out var sc) ? sc.GetString() : null;
                     if (statusCode != "00")
                         return vr.TryGetProperty("error", out var err)
                             ? err.GetString()
@@ -414,9 +413,9 @@ namespace Pos.Application.Utility
             // Try XML (WSO2 <ams:fault>)
             try
             {
-                var xml = new XmlDocument();
+                XmlDocument xml = new();
                 xml.LoadXml(content);
-                var nsmgr = new XmlNamespaceManager(xml.NameTable);
+                XmlNamespaceManager nsmgr = new(xml.NameTable);
                 nsmgr.AddNamespace("ams", "http://wso2.org/apimanager/security");
 
                 var messageNode = xml.SelectSingleNode("//ams:message", nsmgr);
@@ -443,7 +442,7 @@ namespace Pos.Application.Utility
 
         private static ApiResponse<List<T>> DeserializeFlexible<T>(string content, JsonSerializerOptions options)
         {
-            using var doc = JsonDocument.Parse(content);
+            using JsonDocument doc = JsonDocument.Parse(content);
             var root = doc.RootElement;
 
             if (root.ValueKind != JsonValueKind.Object)

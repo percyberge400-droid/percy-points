@@ -10,7 +10,6 @@ using Pos.Application.Interfaces.Repositories;
 using Pos.Application.Utility;
 using Pos.Domain.Entities;
 using Pos.DTOs.LogDTOs;
-using Pos.DTOs.LogDTOs;
 using System.Reflection;
 
 namespace Pos.Application.Services.LogService
@@ -38,9 +37,10 @@ namespace Pos.Application.Services.LogService
 
         public async Task<ApiResponse<List<SyncLogDto>>> GetAllUnsyncLogs(LogResponseDto? logResponse)
         {
-            var allRecords = await _sqlLiteLogRepository.GetAllAsync();
-            var unsynced = new List<Logs>();    
-            if (logResponse is not null) { 
+            IEnumerable<Logs> allRecords = await _sqlLiteLogRepository.GetAllAsync();
+            List<Logs> unsynced = new();
+            if (logResponse is not null)
+            {
                 unsynced = allRecords
                     .Where(x =>
                         !x.IsSynced &&
@@ -54,7 +54,7 @@ namespace Pos.Application.Services.LogService
                 unsynced = allRecords.Where(x => !x.IsSynced).Take(1000).ToList();
             }
 
-            var logDtos = _mapper.Map<List<SyncLogDto>>(unsynced);
+            List<SyncLogDto> logDtos = _mapper.Map<List<SyncLogDto>>(unsynced);
             if (logDtos.Any())
                 return new ApiResponse<List<SyncLogDto>>(ApiStatusCode.Success, ResponseMessages.RecordFound, logDtos, string.Empty);
 
@@ -66,7 +66,7 @@ namespace Pos.Application.Services.LogService
             int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
             int numberOfRecords = dto.NumberOfRecords <= 0 ? 10 : dto.NumberOfRecords;
 
-            var query = _sqlLiteLogRepository.Query();
+            IQueryable<Logs> query = _sqlLiteLogRepository.Query();
 
             if (dto.StartDate.HasValue && dto.EndDate.HasValue)
             {
@@ -107,16 +107,16 @@ namespace Pos.Application.Services.LogService
             query = query.OrderByDescending(m => m.CreatedAtPk);
 
             // Apply Pagination
-            var output = await query
+            List<Logs> output = await query
                 .Skip((pageNumber - 1) * numberOfRecords)
                 .Take(numberOfRecords)
                 .ToListAsync();
 
             // Map Entity → DTO
-            var logDto = _mapper.Map<List<LogDto>>(output);
+            List<LogDto> logDto = _mapper.Map<List<LogDto>>(output);
 
             // Final result in clean format
-            var pagedResult = new PageResponseDto<LogDto>
+            PageResponseDto<LogDto> pagedResult = new()
             {
                 Items = logDto ?? new List<LogDto>(),
                 TotalRecords = totalRecords,
@@ -152,7 +152,7 @@ namespace Pos.Application.Services.LogService
 
             try
             {
-                var model = _mapper.Map<Logs>(dto);
+                Logs model = _mapper.Map<Logs>(dto);
                 await _sqlLiteLogRepository.AddAsync(model);
                 await _sqliteUnitOfWork.SaveChangesAsync();
 
@@ -162,7 +162,7 @@ namespace Pos.Application.Services.LogService
             {
                 try
                 {
-                    var errorLog = new Logs
+                    Logs errorLog = new()
                     {
                         Message = $"{DateTime.Now}, DbInsertIssue: {ex.InnerException?.Message ?? ex.Message}",
                         Type = AlertType.Exception,
