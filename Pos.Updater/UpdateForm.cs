@@ -5,7 +5,9 @@ using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 using System.Text.Json;
-
+using Pos.Application.DTOs;
+using Pos.Application.DTOs.ConfigurationsDtos;
+using Pos.Application.Utility;
 
 namespace Pos.Updater
 {
@@ -142,15 +144,12 @@ namespace Pos.Updater
         {
             string localVersionPath = Path.Combine(LocalFolder, "app-version.txt");
 
-            // ✅ AES-encrypted version file with version,isUpdate,date format
             string fullLocalVersion = File.Exists(localVersionPath)
                 ? AesEncryptionHelper.Decrypt(File.ReadAllText(localVersionPath).Trim())
                 : "0.0.0,0,Date";
 
             var parts = fullLocalVersion.Split(',');
-
             string localVersion = parts.Length > 0 ? parts[0] : "0.0.0";
-            string updateDate = DateTime.Now.ToString();
 
             using var client = new HttpClient();
             string moduleBody = $"{{\"moduleName\": \"{ModuleName}\"}}";
@@ -202,7 +201,7 @@ namespace Pos.Updater
 
             // 3️⃣ Download updater zip from API
             Invoke(() => lblStatus.Text = "Downloading update package...");
-            UpdaterFileResponse? zipResponse;
+            ApiResponse<ConfigurationZipFileResponseDto>? zipResponse;
             try
             {
                 var fileRequest = new HttpRequestMessage(HttpMethod.Post, ApiBaseUrl + ApiGetUpdaterFile);
@@ -212,7 +211,7 @@ namespace Pos.Updater
                 var fileHttpResponse = await client.SendAsync(fileRequest);
                 fileHttpResponse.EnsureSuccessStatusCode();
                 zipResponse = await fileHttpResponse.Content
-                    .ReadFromJsonAsync<UpdaterFileResponse>(JsonOptions);
+                    .ReadFromJsonAsync<ApiResponse<ConfigurationZipFileResponseDto>>(JsonOptions);
             }
             catch (Exception ex)
             {
@@ -252,16 +251,15 @@ namespace Pos.Updater
                 return;
             }
 
-            // ✅ Cleanup temp zip
             try { File.Delete(tempZip); } catch { }
 
             progressBar.Value = 70;
 
-            // 5️⃣ Update local version file
+            // 5️⃣ Update local version file — capture date HERE, not at top
+            string updateDate = DateTime.Now.ToString();
             try
             {
                 string updatedFullVersion = $"{serverVersion},0,{updateDate}";
-                Log($"Version updated (Log in updater): {updatedFullVersion}");
                 File.WriteAllText(localVersionPath, AesEncryptionHelper.Encrypt(updatedFullVersion));
                 Log($"Version updated: {localVersion} → {serverVersion}");
             }
@@ -500,34 +498,5 @@ namespace Pos.Updater
         #endregion
     }
 
-    #region DTOs
-
-    public class UpdaterFileResponse
-    {
-        public string StatusCode { get; set; } = string.Empty;
-        public string Message { get; set; } = string.Empty;
-        public UpdaterFileData Data { get; set; } = new();
-        public string Errors { get; set; } = string.Empty;
-    }
-
-    public class UpdaterFileData
-    {
-        public string FileName { get; set; } = string.Empty;
-        public string Base64File { get; set; } = string.Empty;
-    }
-
-    public class ApiResponse<T>
-    {
-        public string StatusCode { get; set; } = string.Empty;
-        public string Message { get; set; } = string.Empty;
-        public T Data { get; set; } = default!;
-        public string Errors { get; set; } = string.Empty;
-    }
-
-    public class ConfigurationResponseDto
-    {
-        public string AppVersion { get; set; } = string.Empty;
-    }
-
-    #endregion
+ 
 }

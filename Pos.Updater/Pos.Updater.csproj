@@ -15,9 +15,10 @@
 
 	<!-- ✅ Add this block -->
 	<ItemGroup>
-		<PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+		<PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.10" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\Pos.Application\Pos.Application.csproj" />
 	  <ProjectReference Include="..\Pos.SecurityEncryption\Pos.SecurityEncryption.csproj" />
 	</ItemGroup>
 
