@@ -583,24 +583,23 @@ namespace Pos.WinFormsUI.Forms
             {
                 Log("Fetching server version from API...");
 
-                var result = await HttpClientHelper.GetAsync<ConfigurationResponseDto>(
-                    endpoint: "Configuration/get-update-version",
+                var result = await HttpClientHelper.PostAsync<Application.DTOs.ApiResponse<ConfigurationResponseDto>>(
+                    url: "http://10.105.200.161/api/Configuration/get-update-version",
+                    body: new Application.DTOs.ConfigurationsDtos.GetByModuleDto { ModuleName = ModuleName },
                     bearerToken: appSettings.Token,
-                    baseUrl: "http://10.105.200.161/api/",
                     logService: _logService,
                     appSettings: appSettings
                 );
 
-                // GetAsync returns ApiResponse<List<T>> — take first item
-                if (result?.Data == null
-                    || result.Data.Count == 0
-                    || string.IsNullOrWhiteSpace(result.Data[0].AppVersion))
+                var versionResponse = result?.Data;
+
+                if (versionResponse?.Data == null || string.IsNullOrWhiteSpace(versionResponse.Data.AppVersion))
                 {
-                    Log($"Invalid API response. Status: {result?.StatusCode} | Message: {result?.Message}");
+                    Log($"Invalid API response. Status: {result?.StatusCode} | Message: {versionResponse?.Message ?? result?.Message}");
                     return;
                 }
 
-                serverVersion = result.Data[0].AppVersion.Trim();
+                serverVersion = versionResponse.Data.AppVersion.Trim();
                 Log($"Server version: {serverVersion}");
             }
             catch (Exception ex)

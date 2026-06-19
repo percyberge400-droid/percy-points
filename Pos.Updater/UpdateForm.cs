@@ -4,6 +4,8 @@ using System.IO.Compression;
 using System.Net.Http.Json;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
+using System.Text.Json;
+
 
 namespace Pos.Updater
 {
@@ -33,6 +35,17 @@ namespace Pos.Updater
         private const string ApiGetVersion = "get-update-version";
         private const string ApiGetUpdaterFile = "get-updater-file";
         private const string ModuleName = "PRAPOS_2.0";
+
+     
+
+        // ✅ FIX: ASP.NET Core serializes responses in camelCase ("statusCode", "data", ...)
+        // by default, but System.Text.Json's plain ReadFromJsonAsync<T>() (no options)
+        // is case-sensitive. Without this, Data always deserialized as null even on a
+        // successful 200 response.
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
         public UpdateForm()
         {
@@ -154,7 +167,7 @@ namespace Pos.Updater
                 var versionHttpResponse = await client.SendAsync(versionRequest);
                 versionHttpResponse.EnsureSuccessStatusCode();
                 versionResponse = await versionHttpResponse.Content
-                    .ReadFromJsonAsync<ApiResponse<ConfigurationResponseDto>>();
+                    .ReadFromJsonAsync<ApiResponse<ConfigurationResponseDto>>(JsonOptions);
             }
             catch (Exception ex)
             {
@@ -199,7 +212,7 @@ namespace Pos.Updater
                 var fileHttpResponse = await client.SendAsync(fileRequest);
                 fileHttpResponse.EnsureSuccessStatusCode();
                 zipResponse = await fileHttpResponse.Content
-                    .ReadFromJsonAsync<UpdaterFileResponse>();
+                    .ReadFromJsonAsync<UpdaterFileResponse>(JsonOptions);
             }
             catch (Exception ex)
             {

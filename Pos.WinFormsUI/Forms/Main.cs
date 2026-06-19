@@ -189,23 +189,27 @@ namespace Pos.WinFormsUI.Forms
                 // ── Fetch server version via HttpClientHelper ──────────────────
                 Log("Fetching server version from API...");
 
-                Application.DTOs.ApiResponse<List<ConfigurationResponseDto>>? result = await HttpClientHelper.GetAsync<ConfigurationResponseDto>(
-                    endpoint: "Configuration/get-update-version",
-                    bearerToken: _appSettings.Token,
-                    baseUrl: "http://10.105.200.161/api/",
-                    logService: _logService,
-                    appSettings: _appSettings
-                );
+                // ✅ FIX: the endpoint is POST-only and requires a moduleName body.
+                // The old code used GetAsync (HTTP GET, no body) which never matched
+                // the server route and always failed silently.
+                Application.DTOs.ApiResponse<Application.DTOs.ApiResponse<ConfigurationResponseDto>>? result =
+                       await HttpClientHelper.PostAsync<Application.DTOs.ApiResponse<ConfigurationResponseDto>>(
+                           url: ApiBaseUrl + ApiGetVersion,
+                           body: new Application.DTOs.ConfigurationsDtos.GetByModuleDto { ModuleName = ModuleName },
+                           bearerToken: _appSettings.Token,
+                           logService: _logService,
+                           appSettings: _appSettings
+                       );
 
-                if (result?.Data == null
-                    || result.Data.Count == 0
-                    || string.IsNullOrWhiteSpace(result.Data[0].AppVersion))
+                var versionResponse = result?.Data;
+
+                if (versionResponse?.Data == null || string.IsNullOrWhiteSpace(versionResponse.Data.AppVersion))
                 {
-                    Log($"Server returned invalid version data. Status: {result?.StatusCode} | Message: {result?.Message}");
+                    Log($"Server returned invalid version data. Status: {result?.StatusCode} | Message: {versionResponse?.Message ?? result?.Message}");
                     return;
                 }
 
-                string serverVersion = result.Data[0].AppVersion.Trim();
+                string serverVersion = versionResponse.Data.AppVersion.Trim();
                 Log($"Server version: {serverVersion}");
 
                 // ── Compare versions ───────────────────────────────────────────
