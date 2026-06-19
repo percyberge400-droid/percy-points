@@ -31,7 +31,7 @@ namespace Pos.WinFormsUI.Forms
         private readonly string LocalFolder = "";
 
         // API base URL here
-        private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
+       
         private const string ApiGetVersion = "get-update-version";
         private const string ModuleName = "PRAPOS_2.0";
         // 🎨 Animation tracking for status badges
@@ -193,14 +193,16 @@ namespace Pos.WinFormsUI.Forms
                 // The old code used GetAsync (HTTP GET, no body) which never matched
                 // the server route and always failed silently.
                 Application.DTOs.ApiResponse<Application.DTOs.ApiResponse<ConfigurationResponseDto>>? result =
-                       await HttpClientHelper.PostAsync<Application.DTOs.ApiResponse<ConfigurationResponseDto>>(
-                           url: ApiBaseUrl + ApiGetVersion,
-                           body: new Application.DTOs.ConfigurationsDtos.GetByModuleDto { ModuleName = ModuleName },
-                           bearerToken: _appSettings.Token,
-                           logService: _logService,
-                           appSettings: _appSettings
-                       );
-
+    await HttpClientHelper.PostAsync<Application.DTOs.ApiResponse<ConfigurationResponseDto>>(
+        url: _baseUrl + ApiGetVersion,
+        body: new Application.DTOs.ConfigurationsDtos.GetByModuleDto
+        {
+            ModuleName = ModuleName
+        },
+        bearerToken: _appSettings.Token,
+        logService: _logService,
+        appSettings: _appSettings
+    );
                 var versionResponse = result?.Data;
 
                 if (versionResponse?.Data == null || string.IsNullOrWhiteSpace(versionResponse.Data.AppVersion))
@@ -258,9 +260,11 @@ namespace Pos.WinFormsUI.Forms
 
                             try
                             {
+                               
                                 ProcessStartInfo psi = new()
                                 {
                                     FileName = updaterExe,
+                                    Arguments = $"\"{_appSettings.BaseUrl}\"",  // ← same as loginForm2
                                     UseShellExecute = true,
                                     Verb = "runas",
                                     WindowStyle = ProcessWindowStyle.Normal
