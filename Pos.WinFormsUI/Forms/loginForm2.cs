@@ -584,7 +584,7 @@ namespace Pos.WinFormsUI.Forms
                 Log("Fetching server version from API...");
 
                 var result = await HttpClientHelper.PostAsync<Application.DTOs.ApiResponse<ConfigurationResponseDto>>(
-                    url: "http://10.105.200.161/api/Configuration/get-update-version",
+                    url: _appSettings.BaseUrl.TrimEnd('/') + "/Configuration/get-update-version",
                     body: new Application.DTOs.ConfigurationsDtos.GetByModuleDto { ModuleName = ModuleName },
                     bearerToken: appSettings.Token,
                     logService: _logService,
@@ -714,14 +714,15 @@ namespace Pos.WinFormsUI.Forms
 
             try
             {
+                string apiBaseUrl = ConfigurationManager.AppSettings["BaseUrl"] ?? string.Empty;
                 var psi = new ProcessStartInfo
                 {
                     FileName = updaterExe,
+                    Arguments = $"\"{apiBaseUrl}\"",   // ← pass it here
                     UseShellExecute = true,
                     Verb = "runas",
                     WindowStyle = ProcessWindowStyle.Normal
                 };
-
                 Process.Start(psi);
                 Log("Updater launched successfully.");
 

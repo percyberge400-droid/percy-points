@@ -33,7 +33,7 @@ namespace Pos.Updater
         };
 
         // API endpoints
-        private const string ApiBaseUrl = "http://10.105.200.161/api/Configuration/";
+        private string ApiBaseUrl = string.Empty;
         private const string ApiGetVersion = "get-update-version";
         private const string ApiGetUpdaterFile = "get-updater-file";
         private const string ModuleName = "PRAPOS_2.0";
@@ -56,6 +56,20 @@ namespace Pos.Updater
 
         private async void UpdateForm_Load(object sender, EventArgs e)
         {
+            // ✅ Read API base URL from argument passed by loginForm2
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length >= 2 && !string.IsNullOrWhiteSpace(args[1]))
+            {
+                ApiBaseUrl = args[1].TrimEnd('/') + "/Configuration/";
+            }
+            else
+            {
+                // fallback — shouldn't happen but prevents crash
+                MessageBox.Show("API base URL not provided. Update aborted.",
+                    "Config Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(1);
+                return;
+            }
             // ✅ Admin check
             if (!new System.Security.Principal.WindowsPrincipal(
                     System.Security.Principal.WindowsIdentity.GetCurrent())
